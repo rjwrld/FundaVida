@@ -7,8 +7,8 @@ describe('cn', () => {
   })
 
   it('drops falsy values', () => {
-    // eslint-disable-next-line no-constant-binary-expression
-    expect(cn('a', false && 'b', undefined, null, 'c')).toBe('a c')
+    const show = false
+    expect(cn('a', show && 'b', undefined, null, 'c')).toBe('a c')
   })
 
   it('merges conflicting tailwind classes — last wins', () => {
