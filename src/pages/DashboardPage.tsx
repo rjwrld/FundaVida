@@ -64,6 +64,10 @@ function TeacherCards() {
 }
 
 function PlaceholderPanel({ role }: { role: string }) {
+  const copy =
+    role === 'student'
+      ? 'Browse your enrolled courses and download your certificates from the sidebar.'
+      : 'TCU reports arrive in a later phase.'
   return (
     <section aria-labelledby="overview-heading" className="max-w-2xl">
       <h2 id="overview-heading" className="sr-only">
@@ -74,10 +78,7 @@ function PlaceholderPanel({ role }: { role: string }) {
           <CardTitle>Your {role} dashboard</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>
-            Role-specific modules arrive in Phase 3. You&apos;ll see enrolled courses, grades, and
-            certificates here once those flows are wired.
-          </p>
+          <p>{copy}</p>
         </CardContent>
       </Card>
     </section>

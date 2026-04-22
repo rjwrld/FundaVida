@@ -11,19 +11,19 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useStore } from '@/data/store'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { buildEligibleList, type EligibleCertificate } from '@/lib/certificates'
 import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
 
 export function CertificatesListPage() {
-  const role = useStore((s) => s.role)
-  const userId = useStore((s) => s.currentUserId)
+  const currentUser = useCurrentUser()
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
   const grades = useStore((s) => s.grades)
 
   const all = buildEligibleList(students, courses, grades)
   const list: EligibleCertificate[] =
-    role === 'student' && userId ? all.filter((c) => c.studentId === userId) : all
+    currentUser?.role === 'student' ? all.filter((c) => c.studentId === currentUser.id) : all
 
   const [selected, setSelected] = useState<EligibleCertificate | null>(null)
   const [dataUrl, setDataUrl] = useState<string | null>(null)
