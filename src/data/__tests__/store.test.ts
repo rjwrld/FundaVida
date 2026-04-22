@@ -45,3 +45,50 @@ describe('useStore', () => {
     expect(window.localStorage.getItem('fundavida:v1:banner-dismissed')).toBeNull()
   })
 })
+
+describe('teacher CRUD', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+  })
+
+  it('creates a teacher with id and empty courseIds', () => {
+    const created = useStore.getState().createTeacher({
+      firstName: 'Grace',
+      lastName: 'Hopper',
+      email: 'grace@fv.cr',
+    })
+    expect(created.id).toMatch(/^tea-\d+$/)
+    expect(created.courseIds).toEqual([])
+    expect(useStore.getState().teachers.some((t) => t.id === created.id)).toBe(true)
+  })
+
+  it('updates a teacher patch', () => {
+    const { id } = useStore.getState().createTeacher({
+      firstName: 'A',
+      lastName: 'B',
+      email: 'a@b.co',
+    })
+    useStore.getState().updateTeacher(id, { lastName: 'Changed' })
+    expect(useStore.getState().teachers.find((t) => t.id === id)?.lastName).toBe('Changed')
+  })
+
+  it('refuses to delete a teacher with assigned courses', () => {
+    const tea1 = useStore.getState().teachers.find((t) => t.courseIds.length > 0)
+    if (!tea1) throw new Error('no teacher with courses in seed')
+    expect(() => useStore.getState().deleteTeacher(tea1.id)).toThrow(/reassign/i)
+    expect(useStore.getState().teachers.some((t) => t.id === tea1.id)).toBe(true)
+  })
+
+  it('deletes a teacher with no assigned courses', () => {
+    const created = useStore.getState().createTeacher({
+      firstName: 'Lone',
+      lastName: 'Wolf',
+      email: 'lone@fv.cr',
+    })
+    useStore.getState().deleteTeacher(created.id)
+    expect(useStore.getState().teachers.some((t) => t.id === created.id)).toBe(false)
+  })
+})
