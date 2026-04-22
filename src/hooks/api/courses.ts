@@ -63,6 +63,7 @@ export function useDeleteCourse() {
       client.invalidateQueries({ queryKey: ['grades'] })
       client.invalidateQueries({ queryKey: ['students'] })
       client.invalidateQueries({ queryKey: ['teachers'] })
+      client.invalidateQueries({ queryKey: ['attendance'] })
     },
   })
 }
@@ -89,6 +90,7 @@ export function useUnenrollStudent() {
       client.invalidateQueries({ queryKey: COURSES_KEY })
       client.invalidateQueries({ queryKey: ['students'] })
       client.invalidateQueries({ queryKey: ['grades'] })
+      client.invalidateQueries({ queryKey: ['attendance'] })
     },
   })
 }

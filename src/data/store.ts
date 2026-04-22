@@ -148,6 +148,7 @@ export const useStore = create<StoreState>((set, get) => ({
       enrollments: state.enrollments.filter((e) => e.studentId !== id),
       grades: state.grades.filter((g) => g.studentId !== id),
       attendance: state.attendance.filter((a) => a.studentId !== id),
+      tcuActivities: state.tcuActivities.filter((a) => a.studentId !== id),
     }))
   },
   createCourse: (input) => {
