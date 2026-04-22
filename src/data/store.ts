@@ -7,6 +7,7 @@ import type {
   Grade,
   TcuActivity,
   AttendanceRecord,
+  AuditLogEntry,
   Role,
 } from '@/types'
 import { buildSeedSnapshot } from './seed'
@@ -30,6 +31,7 @@ export interface StoreState {
   grades: Grade[]
   tcuActivities: TcuActivity[]
   attendance: AttendanceRecord[]
+  auditLog: AuditLogEntry[]
   role: Role | null
   currentUserId: string | null
   setRole: (role: Role) => void
@@ -63,6 +65,18 @@ function userIdForRole(role: Role): string {
   }
 }
 
+function makeAuditEntry(
+  state: StoreState,
+  entry: Omit<AuditLogEntry, 'id' | 'timestamp' | 'actorId'>
+): AuditLogEntry {
+  return {
+    id: nextId('log', state.auditLog),
+    actorId: state.currentUserId ?? 'system',
+    timestamp: new Date().toISOString(),
+    ...entry,
+  }
+}
+
 function initialState(): Pick<
   StoreState,
   | 'students'
@@ -72,6 +86,7 @@ function initialState(): Pick<
   | 'grades'
   | 'tcuActivities'
   | 'attendance'
+  | 'auditLog'
   | 'role'
   | 'currentUserId'
 > {
@@ -87,6 +102,7 @@ function initialState(): Pick<
       grades: persisted.grades,
       tcuActivities: persisted.tcuActivities,
       attendance: persisted.attendance,
+      auditLog: persisted.auditLog,
       role,
       currentUserId,
     }
@@ -129,18 +145,40 @@ export const useStore = create<StoreState>((set, get) => ({
     }
   },
   createStudent: (input) => {
-    const { students } = get()
+    const existing = get()
     const student: Student = {
-      id: nextId('stu', students),
+      id: nextId('stu', existing.students),
       createdAt: new Date().toISOString(),
       enrolledCourseIds: [],
       ...input,
     }
-    set({ students: [...students, student] })
+    set((state) => ({
+      students: [...state.students, student],
+      auditLog: [
+        makeAuditEntry(state, {
+          action: 'create',
+          entity: 'student',
+          entityId: student.id,
+          summary: `Created student ${student.firstName} ${student.lastName}`,
+        }),
+        ...state.auditLog,
+      ],
+    }))
     return student
   },
   updateStudent: (id, patch) => {
-    set({ students: get().students.map((s) => (s.id === id ? { ...s, ...patch } : s)) })
+    set((state) => ({
+      students: state.students.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+      auditLog: [
+        makeAuditEntry(state, {
+          action: 'update',
+          entity: 'student',
+          entityId: id,
+          summary: `Updated student ${id}`,
+        }),
+        ...state.auditLog,
+      ],
+    }))
   },
   deleteStudent: (id) => {
     set((state) => ({
@@ -149,19 +187,42 @@ export const useStore = create<StoreState>((set, get) => ({
       grades: state.grades.filter((g) => g.studentId !== id),
       attendance: state.attendance.filter((a) => a.studentId !== id),
       tcuActivities: state.tcuActivities.filter((a) => a.studentId !== id),
+      auditLog: [
+        makeAuditEntry(state, {
+          action: 'delete',
+          entity: 'student',
+          entityId: id,
+          summary: `Deleted student ${id}`,
+        }),
+        ...state.auditLog,
+      ],
     }))
   },
   createCourse: (input) => {
-    const { courses, teachers } = get()
+    const existing = get()
     const course: Course = {
-      id: nextId('cou', courses),
+      id: nextId('cou', existing.courses),
       createdAt: new Date().toISOString(),
       ...input,
     }
-    const updatedTeachers = teachers.map((t) =>
-      t.id === course.teacherId ? { ...t, courseIds: [...t.courseIds, course.id] } : t
-    )
-    set({ courses: [...courses, course], teachers: updatedTeachers })
+    set((state) => {
+      const updatedTeachers = state.teachers.map((t) =>
+        t.id === course.teacherId ? { ...t, courseIds: [...t.courseIds, course.id] } : t
+      )
+      return {
+        courses: [...state.courses, course],
+        teachers: updatedTeachers,
+        auditLog: [
+          makeAuditEntry(state, {
+            action: 'create',
+            entity: 'course',
+            entityId: course.id,
+            summary: `Created course ${course.name}`,
+          }),
+          ...state.auditLog,
+        ],
+      }
+    })
     return course
   },
   updateCourse: (id, patch) => {
@@ -173,8 +234,14 @@ export const useStore = create<StoreState>((set, get) => ({
         patch.teacherId !== current.teacherId
       const updatedCourses = state.courses.map((c) => (c.id === id ? { ...c, ...patch } : c))
       const newTeacherId = patch.teacherId
+      const audit = makeAuditEntry(state, {
+        action: 'update',
+        entity: 'course',
+        entityId: id,
+        summary: `Updated course ${id}`,
+      })
       if (!teacherChanged || !current || !newTeacherId) {
-        return { courses: updatedCourses }
+        return { courses: updatedCourses, auditLog: [audit, ...state.auditLog] }
       }
       const oldTeacherId = current.teacherId
       const updatedTeachers = state.teachers.map((t) => {
@@ -186,7 +253,11 @@ export const useStore = create<StoreState>((set, get) => ({
         }
         return t
       })
-      return { courses: updatedCourses, teachers: updatedTeachers }
+      return {
+        courses: updatedCourses,
+        teachers: updatedTeachers,
+        auditLog: [audit, ...state.auditLog],
+      }
     })
   },
   deleteCourse: (id) => {
@@ -203,21 +274,52 @@ export const useStore = create<StoreState>((set, get) => ({
         ...s,
         enrolledCourseIds: s.enrolledCourseIds.filter((cid) => cid !== id),
       })),
+      auditLog: [
+        makeAuditEntry(state, {
+          action: 'delete',
+          entity: 'course',
+          entityId: id,
+          summary: `Deleted course ${id}`,
+        }),
+        ...state.auditLog,
+      ],
     }))
   },
   createTeacher: (input) => {
-    const { teachers } = get()
+    const existing = get()
     const teacher: Teacher = {
-      id: nextId('tea', teachers),
+      id: nextId('tea', existing.teachers),
       createdAt: new Date().toISOString(),
       courseIds: [],
       ...input,
     }
-    set({ teachers: [...teachers, teacher] })
+    set((state) => ({
+      teachers: [...state.teachers, teacher],
+      auditLog: [
+        makeAuditEntry(state, {
+          action: 'create',
+          entity: 'teacher',
+          entityId: teacher.id,
+          summary: `Created teacher ${teacher.firstName} ${teacher.lastName}`,
+        }),
+        ...state.auditLog,
+      ],
+    }))
     return teacher
   },
   updateTeacher: (id, patch) => {
-    set({ teachers: get().teachers.map((t) => (t.id === id ? { ...t, ...patch } : t)) })
+    set((state) => ({
+      teachers: state.teachers.map((t) => (t.id === id ? { ...t, ...patch } : t)),
+      auditLog: [
+        makeAuditEntry(state, {
+          action: 'update',
+          entity: 'teacher',
+          entityId: id,
+          summary: `Updated teacher ${id}`,
+        }),
+        ...state.auditLog,
+      ],
+    }))
   },
   deleteTeacher: (id) => {
     const { teachers } = get()
@@ -228,10 +330,21 @@ export const useStore = create<StoreState>((set, get) => ({
         `Teacher ${id} has ${target.courseIds.length} course(s) assigned — reassign before deleting.`
       )
     }
-    set({ teachers: teachers.filter((t) => t.id !== id) })
+    set((state) => ({
+      teachers: state.teachers.filter((t) => t.id !== id),
+      auditLog: [
+        makeAuditEntry(state, {
+          action: 'delete',
+          entity: 'teacher',
+          entityId: id,
+          summary: `Deleted teacher ${id}`,
+        }),
+        ...state.auditLog,
+      ],
+    }))
   },
   enrollStudent: (studentId, courseId) => {
-    const { enrollments, students } = get()
+    const { enrollments } = get()
     const existing = enrollments.find((e) => e.studentId === studentId && e.courseId === courseId)
     if (existing) return existing
     const enrollment: Enrollment = {
@@ -240,35 +353,60 @@ export const useStore = create<StoreState>((set, get) => ({
       courseId,
       enrolledAt: new Date().toISOString(),
     }
-    const updatedStudents = students.map((s) =>
-      s.id === studentId && !s.enrolledCourseIds.includes(courseId)
-        ? { ...s, enrolledCourseIds: [...s.enrolledCourseIds, courseId] }
-        : s
-    )
-    set({ enrollments: [...enrollments, enrollment], students: updatedStudents })
+    set((state) => {
+      const updatedStudents = state.students.map((s) =>
+        s.id === studentId && !s.enrolledCourseIds.includes(courseId)
+          ? { ...s, enrolledCourseIds: [...s.enrolledCourseIds, courseId] }
+          : s
+      )
+      return {
+        enrollments: [...state.enrollments, enrollment],
+        students: updatedStudents,
+        auditLog: [
+          makeAuditEntry(state, {
+            action: 'enroll',
+            entity: 'enrollment',
+            entityId: enrollment.id,
+            summary: `Enrolled ${studentId} in ${courseId}`,
+          }),
+          ...state.auditLog,
+        ],
+      }
+    })
     return enrollment
   },
   unenrollStudent: (enrollmentId) => {
-    const { enrollments, students, grades, attendance } = get()
+    const { enrollments } = get()
     const target = enrollments.find((e) => e.id === enrollmentId)
     if (!target) return
-    const updatedStudents = students.map((s) =>
-      s.id === target.studentId
-        ? {
-            ...s,
-            enrolledCourseIds: s.enrolledCourseIds.filter((cid) => cid !== target.courseId),
-          }
-        : s
-    )
-    set({
-      enrollments: enrollments.filter((e) => e.id !== enrollmentId),
-      grades: grades.filter(
-        (g) => !(g.studentId === target.studentId && g.courseId === target.courseId)
-      ),
-      attendance: attendance.filter(
-        (a) => !(a.studentId === target.studentId && a.courseId === target.courseId)
-      ),
-      students: updatedStudents,
+    set((state) => {
+      const updatedStudents = state.students.map((s) =>
+        s.id === target.studentId
+          ? {
+              ...s,
+              enrolledCourseIds: s.enrolledCourseIds.filter((cid) => cid !== target.courseId),
+            }
+          : s
+      )
+      return {
+        enrollments: state.enrollments.filter((e) => e.id !== enrollmentId),
+        grades: state.grades.filter(
+          (g) => !(g.studentId === target.studentId && g.courseId === target.courseId)
+        ),
+        attendance: state.attendance.filter(
+          (a) => !(a.studentId === target.studentId && a.courseId === target.courseId)
+        ),
+        students: updatedStudents,
+        auditLog: [
+          makeAuditEntry(state, {
+            action: 'unenroll',
+            entity: 'enrollment',
+            entityId: enrollmentId,
+            summary: `Unenrolled ${target.studentId} from ${target.courseId}`,
+          }),
+          ...state.auditLog,
+        ],
+      }
     })
   },
   setGrade: (studentId, courseId, score) => {
@@ -276,7 +414,18 @@ export const useStore = create<StoreState>((set, get) => ({
     const existing = grades.find((g) => g.studentId === studentId && g.courseId === courseId)
     if (existing) {
       const updated: Grade = { ...existing, score, issuedAt: new Date().toISOString() }
-      set({ grades: grades.map((g) => (g.id === existing.id ? updated : g)) })
+      set((state) => ({
+        grades: state.grades.map((g) => (g.id === existing.id ? updated : g)),
+        auditLog: [
+          makeAuditEntry(state, {
+            action: 'grade',
+            entity: 'grade',
+            entityId: existing.id,
+            summary: `Updated grade for ${studentId} in ${courseId} to ${score}`,
+          }),
+          ...state.auditLog,
+        ],
+      }))
       return updated
     }
     const grade: Grade = {
@@ -286,7 +435,18 @@ export const useStore = create<StoreState>((set, get) => ({
       score,
       issuedAt: new Date().toISOString(),
     }
-    set({ grades: [...grades, grade] })
+    set((state) => ({
+      grades: [...state.grades, grade],
+      auditLog: [
+        makeAuditEntry(state, {
+          action: 'grade',
+          entity: 'grade',
+          entityId: grade.id,
+          summary: `Graded ${studentId} in ${courseId} with ${score}`,
+        }),
+        ...state.auditLog,
+      ],
+    }))
     return grade
   },
   updateGradeScore: (gradeId, score) => {
@@ -294,10 +454,30 @@ export const useStore = create<StoreState>((set, get) => ({
       grades: state.grades.map((g) =>
         g.id === gradeId ? { ...g, score, issuedAt: new Date().toISOString() } : g
       ),
+      auditLog: [
+        makeAuditEntry(state, {
+          action: 'update',
+          entity: 'grade',
+          entityId: gradeId,
+          summary: `Updated grade ${gradeId} to ${score}`,
+        }),
+        ...state.auditLog,
+      ],
     }))
   },
   deleteGrade: (gradeId) => {
-    set((state) => ({ grades: state.grades.filter((g) => g.id !== gradeId) }))
+    set((state) => ({
+      grades: state.grades.filter((g) => g.id !== gradeId),
+      auditLog: [
+        makeAuditEntry(state, {
+          action: 'delete',
+          entity: 'grade',
+          entityId: gradeId,
+          summary: `Deleted grade ${gradeId}`,
+        }),
+        ...state.auditLog,
+      ],
+    }))
   },
 }))
 
@@ -312,6 +492,7 @@ const persistSnapshot = debounce((state: StoreState) => {
     grades: state.grades,
     tcuActivities: state.tcuActivities,
     attendance: state.attendance,
+    auditLog: state.auditLog,
   })
 }, 200)
 

@@ -20,7 +20,8 @@ function isValidSnapshot(value: unknown): value is PersistedState {
     Array.isArray(v.enrollments) &&
     Array.isArray(v.grades) &&
     Array.isArray(v.tcuActivities) &&
-    Array.isArray(v.attendance)
+    Array.isArray(v.attendance) &&
+    Array.isArray(v.auditLog)
   )
 }
 

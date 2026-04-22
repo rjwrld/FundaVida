@@ -34,6 +34,7 @@ export function useCreateCourse() {
     mutationFn: async (input: Parameters<typeof createCourse>[0]) => createCourse(input),
     onSuccess: () => {
       client.invalidateQueries({ queryKey: COURSES_KEY })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }
@@ -48,6 +49,7 @@ export function useUpdateCourse() {
     onSuccess: (_, { id }) => {
       client.invalidateQueries({ queryKey: COURSES_KEY })
       client.invalidateQueries({ queryKey: courseKey(id) })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }
@@ -64,6 +66,7 @@ export function useDeleteCourse() {
       client.invalidateQueries({ queryKey: ['students'] })
       client.invalidateQueries({ queryKey: ['teachers'] })
       client.invalidateQueries({ queryKey: ['attendance'] })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }
@@ -77,6 +80,7 @@ export function useEnrollStudent() {
     onSuccess: () => {
       client.invalidateQueries({ queryKey: COURSES_KEY })
       client.invalidateQueries({ queryKey: ['students'] })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }
@@ -91,6 +95,7 @@ export function useUnenrollStudent() {
       client.invalidateQueries({ queryKey: ['students'] })
       client.invalidateQueries({ queryKey: ['grades'] })
       client.invalidateQueries({ queryKey: ['attendance'] })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }
@@ -111,6 +116,7 @@ export function useSetGrade() {
     onSuccess: () => {
       client.invalidateQueries({ queryKey: COURSES_KEY })
       client.invalidateQueries({ queryKey: ['students'] })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }

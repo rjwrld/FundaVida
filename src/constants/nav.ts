@@ -17,6 +17,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/app/reports', label: 'Reports', roles: ['admin'] },
   { to: '/app/certificates', label: 'Certificates', roles: ['admin', 'student'] },
   { to: '/app/tcu', label: 'TCU', roles: ['admin', 'student', 'tcu'] },
+  { to: '/app/audit-log', label: 'Audit Logs', roles: ['admin'] },
 ]
 
 export function navItemsForRole(role: Role): NavItem[] {

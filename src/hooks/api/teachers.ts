@@ -32,6 +32,7 @@ export function useCreateTeacher() {
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: TEACHERS_KEY })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }
@@ -46,6 +47,7 @@ export function useUpdateTeacher() {
     onSuccess: (_, { id }) => {
       client.invalidateQueries({ queryKey: TEACHERS_KEY })
       client.invalidateQueries({ queryKey: teacherKey(id) })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }
@@ -59,6 +61,7 @@ export function useDeleteTeacher() {
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: TEACHERS_KEY })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }
