@@ -18,7 +18,7 @@ export default {
         'revert',
       ],
     ],
-    'subject-case': [2, 'never', ['upper-case', 'pascal-case', 'start-case']],
+    'subject-case': [2, 'never', ['upper-case', 'pascal-case', 'start-case', 'sentence-case']],
     'header-max-length': [2, 'always', 100],
   },
 }
