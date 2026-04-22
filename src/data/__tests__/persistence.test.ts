@@ -1,9 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
+  clearPersistedCurrentUser,
   clearPersistedRole,
   clearPersistedState,
+  loadPersistedCurrentUser,
   loadPersistedRole,
   loadPersistedState,
+  savePersistedCurrentUser,
   savePersistedRole,
   savePersistedState,
 } from '../persistence'
@@ -13,6 +16,7 @@ describe('persistence', () => {
   beforeEach(() => {
     clearPersistedState()
     clearPersistedRole()
+    clearPersistedCurrentUser()
   })
 
   it('returns null when nothing is persisted', () => {
@@ -56,5 +60,18 @@ describe('persistence', () => {
   it('returns null when stored JSON is invalid', () => {
     window.localStorage.setItem('fundavida:v1:state', 'not-json')
     expect(loadPersistedState()).toBeNull()
+  })
+
+  it('persists and loads currentUserId independently', () => {
+    savePersistedCurrentUser('tea-1')
+    expect(loadPersistedCurrentUser()).toBe('tea-1')
+  })
+
+  it('clearPersistedCurrentUser wipes only the current-user key', () => {
+    savePersistedCurrentUser('tea-1')
+    savePersistedRole('teacher')
+    clearPersistedCurrentUser()
+    expect(loadPersistedCurrentUser()).toBeNull()
+    expect(loadPersistedRole()).toBe('teacher')
   })
 })

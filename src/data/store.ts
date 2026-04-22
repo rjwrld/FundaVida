@@ -1,10 +1,14 @@
 import { create } from 'zustand'
 import type { Student, Teacher, Course, Enrollment, Grade, Role } from '@/types'
 import { buildSeedSnapshot } from './seed'
+import { debounce } from './debounce'
 import {
+  clearPersistedCurrentUser,
   clearPersistedRole,
+  loadPersistedCurrentUser,
   loadPersistedRole,
   loadPersistedState,
+  savePersistedCurrentUser,
   savePersistedRole,
   savePersistedState,
 } from './persistence'
@@ -16,12 +20,40 @@ export interface StoreState {
   enrollments: Enrollment[]
   grades: Grade[]
   role: Role | null
+  currentUserId: string | null
   setRole: (role: Role) => void
   resetDemo: () => void
+  createStudent: (input: Omit<Student, 'id' | 'createdAt' | 'enrolledCourseIds'>) => Student
+  updateStudent: (id: string, patch: Partial<Omit<Student, 'id'>>) => void
+  deleteStudent: (id: string) => void
+  createCourse: (input: Omit<Course, 'id' | 'createdAt'>) => Course
+  updateCourse: (id: string, patch: Partial<Omit<Course, 'id'>>) => void
+  deleteCourse: (id: string) => void
+  enrollStudent: (studentId: string, courseId: string) => Enrollment
+  unenrollStudent: (enrollmentId: string) => void
+  setGrade: (studentId: string, courseId: string, score: number) => Grade
 }
 
-function initialState(): Omit<StoreState, 'setRole' | 'resetDemo'> {
+function userIdForRole(role: Role): string {
+  switch (role) {
+    case 'admin':
+      return 'admin'
+    case 'teacher':
+      return 'tea-1'
+    case 'student':
+      return 'stu-1'
+    case 'tcu':
+      return 'tcu-1'
+  }
+}
+
+function initialState(): Pick<
+  StoreState,
+  'students' | 'teachers' | 'courses' | 'enrollments' | 'grades' | 'role' | 'currentUserId'
+> {
   const persisted = loadPersistedState()
+  const role = loadPersistedRole()
+  const currentUserId = loadPersistedCurrentUser()
   if (persisted) {
     return {
       students: persisted.students,
@@ -29,37 +61,156 @@ function initialState(): Omit<StoreState, 'setRole' | 'resetDemo'> {
       courses: persisted.courses,
       enrollments: persisted.enrollments,
       grades: persisted.grades,
-      role: loadPersistedRole(),
+      role,
+      currentUserId,
     }
   }
   const snapshot = buildSeedSnapshot()
-  return { ...snapshot, role: loadPersistedRole() }
+  return { ...snapshot, role, currentUserId }
 }
 
-export const useStore = create<StoreState>((set) => ({
+function nextId(prefix: string, existing: { id: string }[]): string {
+  const nums = existing
+    .map((e) => {
+      const match = e.id.match(new RegExp(`^${prefix}-(\\d+)$`))
+      return match?.[1] ? parseInt(match[1], 10) : 0
+    })
+    .filter((n) => Number.isFinite(n))
+  const max = nums.length > 0 ? Math.max(...nums) : 0
+  return `${prefix}-${max + 1}`
+}
+
+export const useStore = create<StoreState>((set, get) => ({
   ...initialState(),
   setRole: (role) => {
+    const userId = userIdForRole(role)
     savePersistedRole(role)
-    set({ role })
+    savePersistedCurrentUser(userId)
+    set({ role, currentUserId: userId })
   },
   resetDemo: () => {
     const snapshot = buildSeedSnapshot()
     set({
       ...snapshot,
       role: null,
+      currentUserId: null,
     })
     savePersistedState(snapshot)
     clearPersistedRole()
+    clearPersistedCurrentUser()
     if (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined') {
       window.localStorage.removeItem('fundavida:v1:banner-dismissed')
     }
   },
+  createStudent: (input) => {
+    const { students } = get()
+    const student: Student = {
+      id: nextId('stu', students),
+      createdAt: new Date().toISOString(),
+      enrolledCourseIds: [],
+      ...input,
+    }
+    set({ students: [...students, student] })
+    return student
+  },
+  updateStudent: (id, patch) => {
+    set({ students: get().students.map((s) => (s.id === id ? { ...s, ...patch } : s)) })
+  },
+  deleteStudent: (id) => {
+    set({
+      students: get().students.filter((s) => s.id !== id),
+      enrollments: get().enrollments.filter((e) => e.studentId !== id),
+      grades: get().grades.filter((g) => g.studentId !== id),
+    })
+  },
+  createCourse: (input) => {
+    const { courses, teachers } = get()
+    const course: Course = {
+      id: nextId('cou', courses),
+      createdAt: new Date().toISOString(),
+      ...input,
+    }
+    const updatedTeachers = teachers.map((t) =>
+      t.id === course.teacherId ? { ...t, courseIds: [...t.courseIds, course.id] } : t
+    )
+    set({ courses: [...courses, course], teachers: updatedTeachers })
+    return course
+  },
+  updateCourse: (id, patch) => {
+    set({ courses: get().courses.map((c) => (c.id === id ? { ...c, ...patch } : c)) })
+  },
+  deleteCourse: (id) => {
+    set({
+      courses: get().courses.filter((c) => c.id !== id),
+      enrollments: get().enrollments.filter((e) => e.courseId !== id),
+      grades: get().grades.filter((g) => g.courseId !== id),
+      teachers: get().teachers.map((t) => ({
+        ...t,
+        courseIds: t.courseIds.filter((cid) => cid !== id),
+      })),
+    })
+  },
+  enrollStudent: (studentId, courseId) => {
+    const { enrollments, students } = get()
+    const existing = enrollments.find((e) => e.studentId === studentId && e.courseId === courseId)
+    if (existing) return existing
+    const enrollment: Enrollment = {
+      id: nextId('enr', enrollments),
+      studentId,
+      courseId,
+      enrolledAt: new Date().toISOString(),
+    }
+    const updatedStudents = students.map((s) =>
+      s.id === studentId && !s.enrolledCourseIds.includes(courseId)
+        ? { ...s, enrolledCourseIds: [...s.enrolledCourseIds, courseId] }
+        : s
+    )
+    set({ enrollments: [...enrollments, enrollment], students: updatedStudents })
+    return enrollment
+  },
+  unenrollStudent: (enrollmentId) => {
+    const { enrollments, students, grades } = get()
+    const target = enrollments.find((e) => e.id === enrollmentId)
+    if (!target) return
+    const updatedStudents = students.map((s) =>
+      s.id === target.studentId
+        ? {
+            ...s,
+            enrolledCourseIds: s.enrolledCourseIds.filter((cid) => cid !== target.courseId),
+          }
+        : s
+    )
+    set({
+      enrollments: enrollments.filter((e) => e.id !== enrollmentId),
+      grades: grades.filter(
+        (g) => !(g.studentId === target.studentId && g.courseId === target.courseId)
+      ),
+      students: updatedStudents,
+    })
+  },
+  setGrade: (studentId, courseId, score) => {
+    const { grades } = get()
+    const existing = grades.find((g) => g.studentId === studentId && g.courseId === courseId)
+    if (existing) {
+      const updated: Grade = { ...existing, score, issuedAt: new Date().toISOString() }
+      set({ grades: grades.map((g) => (g.id === existing.id ? updated : g)) })
+      return updated
+    }
+    const grade: Grade = {
+      id: nextId('gra', grades),
+      studentId,
+      courseId,
+      score,
+      issuedAt: new Date().toISOString(),
+    }
+    set({ grades: [...grades, grade] })
+    return grade
+  },
 }))
 
-// Persist the data snapshot (NOT role — role has its own key) on every
-// state change. Role changes still fire this subscribe, but the payload
-// writes the same snapshot shape each time.
-useStore.subscribe((state) => {
+// Debounced persistence (200ms). Prevents rapid mutations (e.g. typing in
+// a form) from serializing the entire snapshot on every keystroke.
+const persistSnapshot = debounce((state: StoreState) => {
   savePersistedState({
     students: state.students,
     teachers: state.teachers,
@@ -67,4 +218,8 @@ useStore.subscribe((state) => {
     enrollments: state.enrollments,
     grades: state.grades,
   })
+}, 200)
+
+useStore.subscribe((state) => {
+  persistSnapshot(state)
 })

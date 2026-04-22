@@ -1,0 +1,103 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { api } from '@/data/api'
+import { useStore } from '@/data/store'
+import type { Course } from '@/types'
+
+const COURSES_KEY = ['courses'] as const
+const courseKey = (id: string) => ['courses', id] as const
+
+export function useCourses() {
+  const role = useStore((s) => s.role)
+  return useQuery({
+    queryKey: [...COURSES_KEY, role],
+    queryFn: () => api.courses.list(),
+  })
+}
+
+export function useCourse(id: string) {
+  return useQuery({
+    queryKey: courseKey(id),
+    queryFn: () => api.courses.get(id),
+  })
+}
+
+export function useCreateCourse() {
+  const client = useQueryClient()
+  const createCourse = useStore((s) => s.createCourse)
+  return useMutation({
+    mutationFn: async (input: Parameters<typeof createCourse>[0]) => createCourse(input),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: COURSES_KEY })
+    },
+  })
+}
+
+export function useUpdateCourse() {
+  const client = useQueryClient()
+  const updateCourse = useStore((s) => s.updateCourse)
+  return useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Course> }) => {
+      updateCourse(id, patch)
+    },
+    onSuccess: (_, { id }) => {
+      client.invalidateQueries({ queryKey: COURSES_KEY })
+      client.invalidateQueries({ queryKey: courseKey(id) })
+    },
+  })
+}
+
+export function useDeleteCourse() {
+  const client = useQueryClient()
+  const deleteCourse = useStore((s) => s.deleteCourse)
+  return useMutation({
+    mutationFn: async (id: string) => deleteCourse(id),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: COURSES_KEY })
+    },
+  })
+}
+
+export function useEnrollStudent() {
+  const client = useQueryClient()
+  const enrollStudent = useStore((s) => s.enrollStudent)
+  return useMutation({
+    mutationFn: async ({ studentId, courseId }: { studentId: string; courseId: string }) =>
+      enrollStudent(studentId, courseId),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: COURSES_KEY })
+      client.invalidateQueries({ queryKey: ['students'] })
+    },
+  })
+}
+
+export function useUnenrollStudent() {
+  const client = useQueryClient()
+  const unenrollStudent = useStore((s) => s.unenrollStudent)
+  return useMutation({
+    mutationFn: async (enrollmentId: string) => unenrollStudent(enrollmentId),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: COURSES_KEY })
+      client.invalidateQueries({ queryKey: ['students'] })
+    },
+  })
+}
+
+export function useSetGrade() {
+  const client = useQueryClient()
+  const setGrade = useStore((s) => s.setGrade)
+  return useMutation({
+    mutationFn: async ({
+      studentId,
+      courseId,
+      score,
+    }: {
+      studentId: string
+      courseId: string
+      score: number
+    }) => setGrade(studentId, courseId, score),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: COURSES_KEY })
+      client.invalidateQueries({ queryKey: ['students'] })
+    },
+  })
+}
