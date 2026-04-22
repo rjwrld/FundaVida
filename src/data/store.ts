@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Student, Teacher, Course, Enrollment, Grade, Role } from '@/types'
+import type { Student, Teacher, Course, Enrollment, Grade, TcuActivity, Role } from '@/types'
 import { buildSeedSnapshot } from './seed'
 import { debounce } from './debounce'
 import {
@@ -19,6 +19,7 @@ export interface StoreState {
   courses: Course[]
   enrollments: Enrollment[]
   grades: Grade[]
+  tcuActivities: TcuActivity[]
   role: Role | null
   currentUserId: string | null
   setRole: (role: Role) => void
@@ -54,7 +55,14 @@ function userIdForRole(role: Role): string {
 
 function initialState(): Pick<
   StoreState,
-  'students' | 'teachers' | 'courses' | 'enrollments' | 'grades' | 'role' | 'currentUserId'
+  | 'students'
+  | 'teachers'
+  | 'courses'
+  | 'enrollments'
+  | 'grades'
+  | 'tcuActivities'
+  | 'role'
+  | 'currentUserId'
 > {
   const persisted = loadPersistedState()
   const role = loadPersistedRole()
@@ -66,6 +74,7 @@ function initialState(): Pick<
       courses: persisted.courses,
       enrollments: persisted.enrollments,
       grades: persisted.grades,
+      tcuActivities: persisted.tcuActivities,
       role,
       currentUserId,
     }
@@ -283,6 +292,7 @@ const persistSnapshot = debounce((state: StoreState) => {
     courses: state.courses,
     enrollments: state.enrollments,
     grades: state.grades,
+    tcuActivities: state.tcuActivities,
   })
 }, 200)
 
