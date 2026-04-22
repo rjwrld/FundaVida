@@ -59,20 +59,39 @@ export interface ReportsSnapshot {
 
 export function buildReports(input: ReportsInput): ReportsSnapshot {
   const { students, teachers, courses, enrollments, grades, attendance, tcuActivities } = input
-  const courseName = new Map(courses.map((c) => [c.id, c.name]))
   const studentName = new Map(students.map((s) => [s.id, `${s.firstName} ${s.lastName}`]))
+
+  const enrollmentsByCourseId = new Map<string, number>()
+  enrollments.forEach((e) => {
+    enrollmentsByCourseId.set(e.courseId, (enrollmentsByCourseId.get(e.courseId) ?? 0) + 1)
+  })
+
+  const gradesByCourseId = new Map<string, number[]>()
+  grades.forEach((g) => {
+    const bucket = gradesByCourseId.get(g.courseId)
+    if (bucket) bucket.push(g.score)
+    else gradesByCourseId.set(g.courseId, [g.score])
+  })
+
+  const attendanceByCourseId = new Map<string, { total: number; present: number }>()
+  attendance.forEach((r) => {
+    const bucket = attendanceByCourseId.get(r.courseId) ?? { total: 0, present: 0 }
+    bucket.total += 1
+    if (r.status === 'present') bucket.present += 1
+    attendanceByCourseId.set(r.courseId, bucket)
+  })
 
   const enrollmentsByCourse: EnrollmentByCourse[] = courses
     .map((c) => ({
       courseId: c.id,
       courseName: c.name,
-      count: enrollments.filter((e) => e.courseId === c.id).length,
+      count: enrollmentsByCourseId.get(c.id) ?? 0,
     }))
     .sort((a, b) => b.count - a.count)
 
   const averageGradeByCourse: AverageGradeByCourse[] = courses
     .map((c) => {
-      const scores = grades.filter((g) => g.courseId === c.id).map((g) => g.score)
+      const scores = gradesByCourseId.get(c.id) ?? []
       const average =
         scores.length === 0 ? null : scores.reduce((sum, s) => sum + s, 0) / scores.length
       return { courseId: c.id, courseName: c.name, average }
@@ -81,10 +100,11 @@ export function buildReports(input: ReportsInput): ReportsSnapshot {
 
   const presentRateByCourse: PresentRateByCourse[] = courses
     .map((c) => {
-      const records = attendance.filter((r) => r.courseId === c.id)
-      if (records.length === 0) return { courseId: c.id, courseName: c.name, rate: null }
-      const present = records.filter((r) => r.status === 'present').length
-      return { courseId: c.id, courseName: c.name, rate: present / records.length }
+      const bucket = attendanceByCourseId.get(c.id)
+      if (!bucket || bucket.total === 0) {
+        return { courseId: c.id, courseName: c.name, rate: null }
+      }
+      return { courseId: c.id, courseName: c.name, rate: bucket.present / bucket.total }
     })
     .sort((a, b) => (b.rate ?? -1) - (a.rate ?? -1))
 
@@ -99,8 +119,6 @@ export function buildReports(input: ReportsInput): ReportsSnapshot {
       totalHours,
     }))
     .sort((a, b) => b.totalHours - a.totalHours)
-
-  void courseName
 
   return {
     totals: {
