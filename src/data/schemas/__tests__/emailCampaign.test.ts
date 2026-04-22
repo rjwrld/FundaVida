@@ -3,33 +3,38 @@ import { emailCampaignSchema } from '../emailCampaign'
 
 describe('emailCampaignSchema', () => {
   it('accepts a minimal valid payload', () => {
-    expect(() =>
-      emailCampaignSchema.parse({
-        subject: 'Hello',
-        body: 'This is a test message.',
-        filterKind: 'all',
-      })
-    ).not.toThrow()
+    const result = emailCampaignSchema.safeParse({
+      subject: 'Hello',
+      body: 'This is a test message.',
+      filterKind: 'all',
+    })
+    expect(result.success).toBe(true)
   })
 
   it('rejects short subject', () => {
-    expect(() =>
-      emailCampaignSchema.parse({
-        subject: 'Hi',
-        body: 'This is a test message.',
-        filterKind: 'all',
-      })
-    ).toThrow()
+    const result = emailCampaignSchema.safeParse({
+      subject: 'Hi',
+      body: 'This is a test message.',
+      filterKind: 'all',
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      const issue = result.error.issues.find((i) => i.path[0] === 'subject')
+      expect(issue?.code).toBe('too_small')
+    }
   })
 
   it('rejects short body', () => {
-    expect(() =>
-      emailCampaignSchema.parse({
-        subject: 'Hello',
-        body: 'too short',
-        filterKind: 'all',
-      })
-    ).toThrow()
+    const result = emailCampaignSchema.safeParse({
+      subject: 'Hello',
+      body: 'too short',
+      filterKind: 'all',
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      const issue = result.error.issues.find((i) => i.path[0] === 'body')
+      expect(issue?.code).toBe('too_small')
+    }
   })
 
   it('accepts filterKind "all" without a filterValue', () => {
