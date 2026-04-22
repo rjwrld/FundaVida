@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { api } from '../api'
 import { useStore } from '../store'
-import { clearPersistedState } from '../persistence'
+import { clearPersistedRole, clearPersistedState } from '../persistence'
 
 describe('api.students', () => {
   beforeEach(() => {
     clearPersistedState()
+    clearPersistedRole()
     useStore.getState().resetDemo()
   })
 

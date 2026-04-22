@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
+  clearPersistedRole,
   clearPersistedState,
   loadPersistedRole,
   loadPersistedState,
@@ -10,7 +11,8 @@ import { buildSeedSnapshot } from '../seed'
 
 describe('persistence', () => {
   beforeEach(() => {
-    window.localStorage.clear()
+    clearPersistedState()
+    clearPersistedRole()
   })
 
   it('returns null when nothing is persisted', () => {
@@ -30,12 +32,20 @@ describe('persistence', () => {
     expect(loadPersistedRole()).toBe('teacher')
   })
 
-  it('clearPersistedState wipes both keys', () => {
+  it('clearPersistedState wipes only the state key, not the role', () => {
     savePersistedState(buildSeedSnapshot())
     savePersistedRole('admin')
     clearPersistedState()
     expect(loadPersistedState()).toBeNull()
+    expect(loadPersistedRole()).toBe('admin')
+  })
+
+  it('clearPersistedRole wipes only the role key, not state', () => {
+    savePersistedState(buildSeedSnapshot())
+    savePersistedRole('admin')
+    clearPersistedRole()
     expect(loadPersistedRole()).toBeNull()
+    expect(loadPersistedState()).not.toBeNull()
   })
 
   it('returns null when stored JSON has the wrong shape', () => {

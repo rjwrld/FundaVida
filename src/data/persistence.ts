@@ -46,7 +46,6 @@ export function savePersistedState(state: PersistedState): void {
 export function clearPersistedState(): void {
   if (!isBrowser()) return
   window.localStorage.removeItem(STATE_KEY)
-  window.localStorage.removeItem(ROLE_KEY)
 }
 
 export function loadPersistedRole(): Role | null {

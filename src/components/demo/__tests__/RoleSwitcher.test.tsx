@@ -4,11 +4,12 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { RoleSwitcher } from '@/components/demo/RoleSwitcher'
 import { useStore } from '@/data/store'
-import { clearPersistedState } from '@/data/persistence'
+import { clearPersistedRole, clearPersistedState } from '@/data/persistence'
 
 describe('<RoleSwitcher />', () => {
   beforeEach(() => {
     clearPersistedState()
+    clearPersistedRole()
     useStore.getState().resetDemo()
   })
 

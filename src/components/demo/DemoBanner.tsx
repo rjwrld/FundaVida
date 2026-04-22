@@ -21,8 +21,8 @@ export function DemoBanner() {
     <div className="bg-primary/10 text-sm">
       <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-2">
         <p>
-          <strong>Demo mode.</strong> All data lives in your browser and resets on the &quot;Reset
-          demo data&quot; button.
+          <strong>Demo mode.</strong> All data lives in your browser. Clear site data to start
+          fresh.
         </p>
         <Button size="sm" variant="ghost" onClick={dismiss}>
           Dismiss

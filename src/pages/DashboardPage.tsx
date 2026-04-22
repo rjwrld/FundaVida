@@ -1,24 +1,93 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useStore } from '@/data/store'
 
+function AdminCards() {
+  const students = useStore((s) => s.students.length)
+  const teachers = useStore((s) => s.teachers.length)
+  const courses = useStore((s) => s.courses.length)
+  const grades = useStore((s) => s.grades.length)
+  const entries: [string, number][] = [
+    ['students', students],
+    ['teachers', teachers],
+    ['courses', courses],
+    ['grades', grades],
+  ]
+  return (
+    <section
+      aria-labelledby="overview-heading"
+      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+    >
+      <h2 id="overview-heading" className="sr-only">
+        Overview
+      </h2>
+      {entries.map(([label, value]) => (
+        <Card key={label}>
+          <CardHeader>
+            <CardTitle className="capitalize">{label}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-semibold">{value}</p>
+          </CardContent>
+        </Card>
+      ))}
+    </section>
+  )
+}
+
+function TeacherCards() {
+  const students = useStore((s) => s.students.length)
+  const courses = useStore((s) => s.courses.filter((c) => c.teacherId === 'tea-1').length)
+  const entries: [string, number][] = [
+    ['my courses', courses],
+    ['students', students],
+  ]
+  return (
+    <section
+      aria-labelledby="overview-heading"
+      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 max-w-2xl"
+    >
+      <h2 id="overview-heading" className="sr-only">
+        Overview
+      </h2>
+      {entries.map(([label, value]) => (
+        <Card key={label}>
+          <CardHeader>
+            <CardTitle className="capitalize">{label}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-semibold">{value}</p>
+          </CardContent>
+        </Card>
+      ))}
+    </section>
+  )
+}
+
+function PlaceholderPanel({ role }: { role: string }) {
+  return (
+    <section aria-labelledby="overview-heading" className="max-w-2xl">
+      <h2 id="overview-heading" className="sr-only">
+        Overview
+      </h2>
+      <Card>
+        <CardHeader>
+          <CardTitle>Your {role} dashboard</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>
+            Role-specific modules arrive in Phase 3. You&apos;ll see enrolled courses, grades, and
+            certificates here once those flows are wired.
+          </p>
+        </CardContent>
+      </Card>
+    </section>
+  )
+}
+
 export function DashboardPage() {
   const roleOrNull = useStore((s) => s.role)
-  const studentCount = useStore((s) => s.students.length)
-  const teacherCount = useStore((s) => s.teachers.length)
-  const courseCount = useStore((s) => s.courses.length)
-  const gradeCount = useStore((s) => s.grades.length)
-
-  // RoleRequired guards this route and redirects to / if role is null.
   if (!roleOrNull) return null
-
-  const role: string = roleOrNull
-
-  const stats: { key: string; label: string; count: number }[] = [
-    { key: 'students', label: 'students', count: studentCount },
-    { key: 'teachers', label: 'teachers', count: teacherCount },
-    { key: 'courses', label: 'courses', count: courseCount },
-    { key: 'grades', label: 'grades', count: gradeCount },
-  ]
+  const role = roleOrNull
 
   return (
     <div className="space-y-6">
@@ -28,18 +97,9 @@ export function DashboardPage() {
           Demo dashboard. Domain modules land in subsequent phases.
         </p>
       </header>
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map(({ key, label, count }) => (
-          <Card key={key}>
-            <CardHeader>
-              <CardTitle className="capitalize">{label}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-semibold">{count}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </section>
+      {role === 'admin' && <AdminCards />}
+      {role === 'teacher' && <TeacherCards />}
+      {(role === 'student' || role === 'tcu') && <PlaceholderPanel role={role} />}
     </div>
   )
 }
