@@ -43,7 +43,7 @@ export const coursesApi = {
   },
   async get(id: string): Promise<Course | null> {
     await delay()
-    const courses = useStore.getState().courses
-    return courses.find((c) => c.id === id) ?? null
+    const visible = applyRoleFilter(useStore.getState().courses)
+    return visible.find((c) => c.id === id) ?? null
   },
 }
