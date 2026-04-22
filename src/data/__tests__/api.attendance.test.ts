@@ -20,6 +20,7 @@ describe('attendanceApi', () => {
   it('returns only own records for student (stu-1)', async () => {
     useStore.getState().setRole('student')
     const result = await attendanceApi.list()
+    expect(result.length).toBeGreaterThan(0)
     expect(result.every((r) => r.studentId === 'stu-1')).toBe(true)
   })
 
@@ -30,6 +31,7 @@ describe('attendanceApi', () => {
     const ownedCourseIds = new Set(
       state.courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id)
     )
+    expect(result.length).toBeGreaterThan(0)
     expect(result.every((r) => ownedCourseIds.has(r.courseId))).toBe(true)
   })
 
