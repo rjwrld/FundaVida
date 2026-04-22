@@ -1,10 +1,24 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { useStore } from '@/data/store'
+import {
+  clearPersistedCurrentUser,
+  clearPersistedRole,
+  clearPersistedState,
+} from '@/data/persistence'
 
 describe('<AppLayout />', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+  })
+
   it('renders the header, sidebar, and outlet content', () => {
+    useStore.getState().setRole('admin')
     render(
       <MemoryRouter
         initialEntries={['/']}
@@ -18,7 +32,7 @@ describe('<AppLayout />', () => {
       </MemoryRouter>
     )
     expect(screen.getByText('FundaVida')).toBeInTheDocument()
-    expect(screen.getByLabelText('Sections')).toBeInTheDocument()
+    expect(screen.getByRole('complementary', { name: 'Sections' })).toBeInTheDocument()
     expect(screen.getByText('Hello from outlet')).toBeInTheDocument()
   })
 

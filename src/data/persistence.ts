@@ -64,3 +64,20 @@ export function clearPersistedRole(): void {
   if (!isBrowser()) return
   window.localStorage.removeItem(ROLE_KEY)
 }
+
+const CURRENT_USER_KEY = 'fundavida:v1:current-user'
+
+export function loadPersistedCurrentUser(): string | null {
+  if (!isBrowser()) return null
+  return window.localStorage.getItem(CURRENT_USER_KEY)
+}
+
+export function savePersistedCurrentUser(userId: string): void {
+  if (!isBrowser()) return
+  window.localStorage.setItem(CURRENT_USER_KEY, userId)
+}
+
+export function clearPersistedCurrentUser(): void {
+  if (!isBrowser()) return
+  window.localStorage.removeItem(CURRENT_USER_KEY)
+}
