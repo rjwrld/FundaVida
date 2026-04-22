@@ -238,4 +238,47 @@ describe('audit log instrumentation', () => {
     expect(log[0]?.action).toBe('grade')
     expect(log[0]?.entity).toBe('grade')
   })
+
+  describe('sendEmailCampaign', () => {
+    it('prepends the new campaign to emailCampaigns', () => {
+      const before = useStore.getState().emailCampaigns.length
+      const campaign = useStore.getState().sendEmailCampaign({
+        subject: 'Welcome',
+        body: 'Thanks for joining the demo program.',
+        filter: { kind: 'all' },
+        recipientIds: ['stu-1', 'stu-2'],
+      })
+      const after = useStore.getState().emailCampaigns
+      expect(after.length).toBe(before + 1)
+      expect(after[0]?.id).toBe(campaign.id)
+    })
+
+    it('writes an audit entry tagged as an emailCampaign create', () => {
+      const campaign = useStore.getState().sendEmailCampaign({
+        subject: 'Reminders',
+        body: 'A quick reminder about upcoming sessions.',
+        filter: { kind: 'all' },
+        recipientIds: ['stu-1', 'stu-2', 'stu-3'],
+      })
+      const log = useStore.getState().auditLog
+      expect(log[0]?.action).toBe('create')
+      expect(log[0]?.entity).toBe('emailCampaign')
+      expect(log[0]?.entityId).toBe(campaign.id)
+      expect(log[0]?.summary).toContain('Reminders')
+      expect(log[0]?.summary).toContain('3')
+    })
+
+    it('records actorId as the currentUserId for the active role', () => {
+      const currentUserId = useStore.getState().currentUserId
+      expect(currentUserId).not.toBeNull()
+      useStore.getState().sendEmailCampaign({
+        subject: 'Greetings',
+        body: 'Just checking in on the cohort.',
+        filter: { kind: 'all' },
+        recipientIds: ['stu-1'],
+      })
+      const log = useStore.getState().auditLog
+      expect(log[0]?.actorId).toBe(currentUserId)
+    })
+  })
 })

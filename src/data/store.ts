@@ -506,7 +506,7 @@ export const useStore = create<StoreState>((set, get) => ({
       auditLog: [
         makeAuditEntry(state, {
           action: 'create',
-          entity: 'student',
+          entity: 'emailCampaign',
           entityId: campaign.id,
           summary: `Sent email "${campaign.subject}" to ${campaign.recipientIds.length} recipients`,
         }),

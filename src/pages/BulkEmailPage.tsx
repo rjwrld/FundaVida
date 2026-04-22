@@ -157,6 +157,9 @@ export function BulkEmailPage() {
                         ))}
                     </SelectContent>
                   </Select>
+                  {errors.filterValue && (
+                    <p className="text-sm text-destructive">{errors.filterValue.message}</p>
+                  )}
                 </div>
               )}
             </div>
