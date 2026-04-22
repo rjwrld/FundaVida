@@ -13,6 +13,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/app/enrollments', label: 'Enrollments', roles: ['admin'] },
   { to: '/app/courses', label: 'Courses', roles: ['admin', 'teacher', 'student'] },
   { to: '/app/grades', label: 'Grades', roles: ['admin'] },
+  { to: '/app/attendance', label: 'Attendance', roles: ['admin', 'teacher', 'student'] },
   { to: '/app/certificates', label: 'Certificates', roles: ['admin', 'student'] },
   { to: '/app/tcu', label: 'TCU', roles: ['admin', 'student', 'tcu'] },
 ]

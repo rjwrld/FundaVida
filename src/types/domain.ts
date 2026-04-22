@@ -58,3 +58,13 @@ export interface TcuActivity {
   date: string
   organizerId?: string
 }
+
+export type AttendanceStatus = 'present' | 'absent' | 'excused'
+
+export interface AttendanceRecord {
+  id: string
+  courseId: string
+  studentId: string
+  sessionDate: string
+  status: AttendanceStatus
+}
