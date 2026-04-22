@@ -71,7 +71,13 @@ export interface AttendanceRecord {
 
 export type AuditAction = 'create' | 'update' | 'delete' | 'enroll' | 'unenroll' | 'grade'
 
-export type AuditEntity = 'student' | 'teacher' | 'course' | 'enrollment' | 'grade'
+export type AuditEntity =
+  | 'student'
+  | 'teacher'
+  | 'course'
+  | 'enrollment'
+  | 'grade'
+  | 'emailCampaign'
 
 export interface AuditLogEntry {
   id: string

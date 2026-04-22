@@ -19,7 +19,14 @@ import type { AuditLogFilters } from '@/data/api/auditLog'
 import type { AuditAction, AuditEntity } from '@/types'
 
 const ACTIONS: AuditAction[] = ['create', 'update', 'delete', 'enroll', 'unenroll', 'grade']
-const ENTITIES: AuditEntity[] = ['student', 'teacher', 'course', 'enrollment', 'grade']
+const ENTITIES: AuditEntity[] = [
+  'student',
+  'teacher',
+  'course',
+  'enrollment',
+  'grade',
+  'emailCampaign',
+]
 
 export function AuditLogPage() {
   const [filters, setFilters] = useState<AuditLogFilters>({})

@@ -1,5 +1,4 @@
-import type { Course, Enrollment, Student } from '@/types'
-import type { EmailFilter } from '@/types'
+import type { Course, EmailFilter, Enrollment, Student } from '@/types'
 
 export interface RecipientInput {
   students: Student[]
