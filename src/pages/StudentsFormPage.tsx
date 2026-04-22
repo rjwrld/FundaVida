@@ -14,10 +14,7 @@ import {
 } from '@/components/ui/select'
 import { studentSchema, type StudentFormValues } from '@/data/schemas/student'
 import { useCreateStudent, useStudent, useUpdateStudent } from '@/hooks/api'
-
-const PROVINCES = ['San José', 'Heredia', 'Alajuela', 'Cartago']
-const LEVELS = ['Primary', 'Secondary', 'University'] as const
-const GENDERS = ['F', 'M', 'X'] as const
+import { EDUCATIONAL_LEVELS, GENDERS, PROVINCES } from '@/constants/student'
 
 export function StudentsFormPage() {
   const { id } = useParams<{ id: string }>()
@@ -105,9 +102,11 @@ export function StudentsFormPage() {
             <Label>Gender</Label>
             <Select
               value={watch('gender')}
-              onValueChange={(v) => setValue('gender', v as StudentFormValues['gender'])}
+              onValueChange={(v) =>
+                setValue('gender', v as StudentFormValues['gender'], { shouldValidate: true })
+              }
             >
-              <SelectTrigger>
+              <SelectTrigger aria-label="Gender">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -121,7 +120,10 @@ export function StudentsFormPage() {
           </div>
           <div className="space-y-1.5">
             <Label>Province</Label>
-            <Select value={watch('province')} onValueChange={(v) => setValue('province', v)}>
+            <Select
+              value={watch('province')}
+              onValueChange={(v) => setValue('province', v, { shouldValidate: true })}
+            >
               <SelectTrigger aria-label="Province">
                 <SelectValue placeholder="Select province" />
               </SelectTrigger>
@@ -148,14 +150,16 @@ export function StudentsFormPage() {
           <Select
             value={watch('educationalLevel')}
             onValueChange={(v) =>
-              setValue('educationalLevel', v as StudentFormValues['educationalLevel'])
+              setValue('educationalLevel', v as StudentFormValues['educationalLevel'], {
+                shouldValidate: true,
+              })
             }
           >
-            <SelectTrigger>
+            <SelectTrigger aria-label="Educational level">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {LEVELS.map((l) => (
+              {EDUCATIONAL_LEVELS.map((l) => (
                 <SelectItem key={l} value={l}>
                   {l}
                 </SelectItem>

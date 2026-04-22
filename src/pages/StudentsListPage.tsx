@@ -19,9 +19,7 @@ import {
 } from '@/components/ui/table'
 import { useDeleteStudent, useStudents } from '@/hooks/api'
 import type { StudentFilters } from '@/data/api/students'
-
-const PROVINCES = ['San José', 'Heredia', 'Alajuela', 'Cartago']
-const LEVELS = ['Primary', 'Secondary', 'University']
+import { EDUCATIONAL_LEVELS, PROVINCES } from '@/constants/student'
 
 export function StudentsListPage() {
   const [filters, setFilters] = useState<StudentFilters>({})
@@ -76,7 +74,7 @@ export function StudentsListPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="any">Any level</SelectItem>
-            {LEVELS.map((l) => (
+            {EDUCATIONAL_LEVELS.map((l) => (
               <SelectItem key={l} value={l}>
                 {l}
               </SelectItem>

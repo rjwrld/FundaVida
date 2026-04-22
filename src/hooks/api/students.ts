@@ -23,6 +23,7 @@ export function useStudent(id: string) {
   return useQuery({
     queryKey: studentKey(id),
     queryFn: () => api.students.get(id),
+    enabled: id.length > 0,
   })
 }
 
