@@ -82,3 +82,20 @@ export interface AuditLogEntry {
   timestamp: string
   summary: string
 }
+
+export type EmailFilterKind = 'all' | 'program' | 'province' | 'course'
+
+export interface EmailFilter {
+  kind: EmailFilterKind
+  value?: string
+}
+
+export interface EmailCampaign {
+  id: string
+  subject: string
+  body: string
+  filter: EmailFilter
+  recipientIds: string[]
+  sentAt: string
+  sentBy: string
+}
