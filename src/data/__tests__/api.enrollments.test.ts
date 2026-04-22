@@ -26,13 +26,21 @@ describe('enrollmentsApi', () => {
 
   it('filters by studentId', async () => {
     useStore.getState().setRole('admin')
-    const result = await enrollmentsApi.list({ studentId: 'stu-1' })
-    expect(result.every((e) => e.studentId === 'stu-1')).toBe(true)
+    const all = await enrollmentsApi.list()
+    const targetStudent = all[0]?.studentId
+    if (!targetStudent) throw new Error('no enrollments in seed')
+    const result = await enrollmentsApi.list({ studentId: targetStudent })
+    expect(result.length).toBeGreaterThan(0)
+    expect(result.every((e) => e.studentId === targetStudent)).toBe(true)
   })
 
   it('filters by courseId', async () => {
     useStore.getState().setRole('admin')
-    const result = await enrollmentsApi.list({ courseId: 'cou-1' })
-    expect(result.every((e) => e.courseId === 'cou-1')).toBe(true)
+    const all = await enrollmentsApi.list()
+    const targetCourse = all[0]?.courseId
+    if (!targetCourse) throw new Error('no enrollments in seed')
+    const result = await enrollmentsApi.list({ courseId: targetCourse })
+    expect(result.length).toBeGreaterThan(0)
+    expect(result.every((e) => e.courseId === targetCourse)).toBe(true)
   })
 })
