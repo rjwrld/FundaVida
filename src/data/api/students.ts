@@ -2,20 +2,38 @@ import type { Student } from '@/types'
 import { useStore } from '../store'
 import { delay } from './_delay'
 
+export interface StudentFilters {
+  search?: string
+  province?: string
+  educationalLevel?: string
+}
+
 function applyRoleFilter(students: Student[]): Student[] {
   const role = useStore.getState().role
   if (role === 'admin' || role === 'teacher') return students
-  // Student and TCU roles see nothing in the generic list endpoint by
-  // default; hero flows in Phase 3 will refine this with self-scoped
-  // reads once current-user identity exists.
   return []
 }
 
+function applyFilters(students: Student[], filters: StudentFilters): Student[] {
+  const { search, province, educationalLevel } = filters
+  return students.filter((s) => {
+    if (
+      search &&
+      !`${s.firstName} ${s.lastName} ${s.email}`.toLowerCase().includes(search.toLowerCase())
+    ) {
+      return false
+    }
+    if (province && s.province !== province) return false
+    if (educationalLevel && s.educationalLevel !== educationalLevel) return false
+    return true
+  })
+}
+
 export const studentsApi = {
-  async list(): Promise<Student[]> {
+  async list(filters: StudentFilters = {}): Promise<Student[]> {
     await delay()
     const students = useStore.getState().students
-    return applyRoleFilter(students)
+    return applyFilters(applyRoleFilter(students), filters)
   },
   async get(id: string): Promise<Student | null> {
     await delay()
