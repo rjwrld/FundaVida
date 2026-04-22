@@ -29,6 +29,9 @@ export interface StoreState {
   createCourse: (input: Omit<Course, 'id' | 'createdAt'>) => Course
   updateCourse: (id: string, patch: Partial<Omit<Course, 'id'>>) => void
   deleteCourse: (id: string) => void
+  createTeacher: (input: Omit<Teacher, 'id' | 'createdAt' | 'courseIds'>) => Teacher
+  updateTeacher: (id: string, patch: Partial<Omit<Teacher, 'id'>>) => void
+  deleteTeacher: (id: string) => void
   enrollStudent: (studentId: string, courseId: string) => Enrollment
   unenrollStudent: (enrollmentId: string) => void
   setGrade: (studentId: string, courseId: string, score: number) => Grade
@@ -175,6 +178,31 @@ export const useStore = create<StoreState>((set, get) => ({
         enrolledCourseIds: s.enrolledCourseIds.filter((cid) => cid !== id),
       })),
     }))
+  },
+  createTeacher: (input) => {
+    const { teachers } = get()
+    const teacher: Teacher = {
+      id: nextId('tea', teachers),
+      createdAt: new Date().toISOString(),
+      courseIds: [],
+      ...input,
+    }
+    set({ teachers: [...teachers, teacher] })
+    return teacher
+  },
+  updateTeacher: (id, patch) => {
+    set({ teachers: get().teachers.map((t) => (t.id === id ? { ...t, ...patch } : t)) })
+  },
+  deleteTeacher: (id) => {
+    const { teachers } = get()
+    const target = teachers.find((t) => t.id === id)
+    if (!target) return
+    if (target.courseIds.length > 0) {
+      throw new Error(
+        `Teacher ${id} has ${target.courseIds.length} course(s) assigned — reassign before deleting.`
+      )
+    }
+    set({ teachers: teachers.filter((t) => t.id !== id) })
   },
   enrollStudent: (studentId, courseId) => {
     const { enrollments, students } = get()

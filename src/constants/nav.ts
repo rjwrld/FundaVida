@@ -9,6 +9,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { to: '/app', label: 'Dashboard', roles: ['admin', 'teacher', 'student', 'tcu'] },
   { to: '/app/students', label: 'Students', roles: ['admin', 'teacher'] },
+  { to: '/app/teachers', label: 'Teachers', roles: ['admin'] },
   { to: '/app/courses', label: 'Courses', roles: ['admin', 'teacher', 'student'] },
   { to: '/app/certificates', label: 'Certificates', roles: ['admin', 'student'] },
 ]

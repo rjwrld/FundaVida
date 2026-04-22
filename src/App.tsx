@@ -5,6 +5,9 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { StudentsListPage } from '@/pages/StudentsListPage'
 import { StudentsDetailPage } from '@/pages/StudentsDetailPage'
 import { StudentsFormPage } from '@/pages/StudentsFormPage'
+import { TeachersListPage } from '@/pages/TeachersListPage'
+import { TeachersDetailPage } from '@/pages/TeachersDetailPage'
+import { TeachersFormPage } from '@/pages/TeachersFormPage'
 import { CoursesListPage } from '@/pages/CoursesListPage'
 import { CoursesDetailPage } from '@/pages/CoursesDetailPage'
 import { CoursesFormPage } from '@/pages/CoursesFormPage'
@@ -26,6 +29,12 @@ export function App() {
               <Route path="students/new" element={<StudentsFormPage />} />
               <Route path="students/:id" element={<StudentsDetailPage />} />
               <Route path="students/:id/edit" element={<StudentsFormPage />} />
+            </Route>
+            <Route element={<RoleGate allow={['admin']} />}>
+              <Route path="teachers" element={<TeachersListPage />} />
+              <Route path="teachers/new" element={<TeachersFormPage />} />
+              <Route path="teachers/:id" element={<TeachersDetailPage />} />
+              <Route path="teachers/:id/edit" element={<TeachersFormPage />} />
             </Route>
             <Route element={<RoleGate allow={['admin', 'teacher', 'student']} />}>
               <Route path="courses" element={<CoursesListPage />} />
