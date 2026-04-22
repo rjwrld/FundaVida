@@ -48,3 +48,13 @@ export interface Grade {
   score: number
   issuedAt: string
 }
+
+export interface TcuActivity {
+  id: string
+  studentId: string
+  title: string
+  description: string
+  hours: number
+  date: string
+  organizerId?: string
+}

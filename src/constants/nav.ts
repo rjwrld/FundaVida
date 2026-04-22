@@ -14,6 +14,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/app/courses', label: 'Courses', roles: ['admin', 'teacher', 'student'] },
   { to: '/app/grades', label: 'Grades', roles: ['admin'] },
   { to: '/app/certificates', label: 'Certificates', roles: ['admin', 'student'] },
+  { to: '/app/tcu', label: 'TCU', roles: ['admin', 'student', 'tcu'] },
 ]
 
 export function navItemsForRole(role: Role): NavItem[] {
