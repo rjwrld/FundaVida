@@ -42,33 +42,33 @@ The platform's 11 modules are assigned to three tiers based on interaction depth
 
 ### Tier 1 — Hero modules (full CRUD, deep polish)
 
-| Module | Rationale |
-|---|---|
-| **Students** | Core domain entity; most commonly exercised flow |
-| **Courses** | Natural pairing with Students; exercises relational state |
+| Module           | Rationale                                                              |
+| ---------------- | ---------------------------------------------------------------------- |
+| **Students**     | Core domain entity; most commonly exercised flow                       |
+| **Courses**      | Natural pairing with Students; exercises relational state              |
 | **Certificates** | Visually dramatic end-to-end flow (generate + download PDF in-browser) |
 
 Hero modules support: create, read, update, delete, filter, search, sort, optimistic updates, proper empty/loading/error states, keyboard navigation, responsive layout, and full i18n.
 
 ### Tier 2 — Supporting modules (basic CRUD, standard polish)
 
-| Module | Rationale |
-|---|---|
-| **Teachers** | Referenced by Courses |
-| **Enrollments** | Bridges Students and Courses |
-| **Grades** | Referenced by Certificates (approval threshold) |
+| Module          | Rationale                                       |
+| --------------- | ----------------------------------------------- |
+| **Teachers**    | Referenced by Courses                           |
+| **Enrollments** | Bridges Students and Courses                    |
+| **Grades**      | Referenced by Certificates (approval threshold) |
 
 Supporting modules support: create, read, update, delete on the happy path. Advanced features (bulk operations, complex filters, exports) are deferred — the UI may show them as demo-disabled.
 
 ### Tier 3 — Read-only showcase modules
 
-| Module | Rationale |
-|---|---|
-| **Attendance** | Pre-seeded records demonstrate the feature exists |
+| Module                   | Rationale                                                                                                      |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| **Attendance**           | Pre-seeded records demonstrate the feature exists                                                              |
 | **Bulk Email Campaigns** | View composed campaigns + recipient lists; `<DemoReadOnly>` modal previews what production delivery looks like |
-| **Reports / Analytics** | Pre-computed charts with seeded data |
-| **Audit Logs** | Seeded log entries demonstrate governance posture |
-| **TCU** | View-only trainee records; shows role-based UI variation |
+| **Reports / Analytics**  | Pre-computed charts with seeded data                                                                           |
+| **Audit Logs**           | Seeded log entries demonstrate governance posture                                                              |
+| **TCU**                  | View-only trainee records; shows role-based UI variation                                                       |
 
 Tier 3 modules display seeded data; mutation controls are replaced by a shared `<DemoReadOnly action="..." />` wrapper that renders a tasteful modal explaining what the production flow does.
 
@@ -111,6 +111,7 @@ The `data/api/*` modules expose functions whose names and signatures match the S
 - New: `api.students.list({ includeDeleted: false })`
 
 Each function:
+
 - Returns a promise with ~150 ms artificial latency (so loading skeletons stay honest).
 - Reads or mutates Zustand state.
 - Applies role-aware filtering that mirrors the original RLS policies.
@@ -158,15 +159,15 @@ This abstraction is the single most important risk reducer in the plan: ~95% of 
 
 ## 8. Tooling baseline
 
-| Tool | Configuration |
-|---|---|
-| TypeScript | `strict: true`, `noImplicitAny: true`, `strictNullChecks: true`, `noUnusedLocals: true`, `noUnusedParameters: true` |
-| ESLint | `@typescript-eslint/no-explicit-any: "error"`, `react-hooks/exhaustive-deps: "error"`, `no-unused-vars` re-enabled |
-| Prettier | Project-wide config; integrated with ESLint |
-| Commit linting | `commitlint` + `husky` enforcing conventional commits |
-| Tests | Vitest + React Testing Library for unit tests; Playwright for E2E on hero flows |
-| CI | GitHub Actions: typecheck, lint, test, build on every PR; Vercel preview deploys |
-| Quality gates | Lighthouse CI budgets: Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 95 on landing |
+| Tool           | Configuration                                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------------------------- |
+| TypeScript     | `strict: true`, `noImplicitAny: true`, `strictNullChecks: true`, `noUnusedLocals: true`, `noUnusedParameters: true` |
+| ESLint         | `@typescript-eslint/no-explicit-any: "error"`, `react-hooks/exhaustive-deps: "error"`, `no-unused-vars` re-enabled  |
+| Prettier       | Project-wide config; integrated with ESLint                                                                         |
+| Commit linting | `commitlint` + `husky` enforcing conventional commits                                                               |
+| Tests          | Vitest + React Testing Library for unit tests; Playwright for E2E on hero flows                                     |
+| CI             | GitHub Actions: typecheck, lint, test, build on every PR; Vercel preview deploys                                    |
+| Quality gates  | Lighthouse CI budgets: Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 95 on landing                         |
 
 ## 9. Testing strategy
 
