@@ -30,6 +30,7 @@ describe('api.courses role filter', () => {
       .getState()
       .enrollments.filter((e) => e.studentId === 'stu-1')
       .map((e) => e.courseId)
+    expect(list.length).toBeGreaterThan(0)
     expect(list.every((c) => enrolledIds.includes(c.id))).toBe(true)
   })
 

@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -32,6 +33,11 @@ export function EnrollStudentDialog({ open, onOpenChange, courseId }: Props) {
   )
   const eligible = students.filter((s) => !enrolledIds.has(s.id))
   const [selected, setSelected] = useState<string>('')
+
+  useEffect(() => {
+    if (!open) setSelected('')
+  }, [open])
+
   const enroll = useEnrollStudent()
 
   async function submit() {
@@ -46,6 +52,7 @@ export function EnrollStudentDialog({ open, onOpenChange, courseId }: Props) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Enroll a student</DialogTitle>
+          <DialogDescription>Select a student to enroll in this course.</DialogDescription>
         </DialogHeader>
         <div className="space-y-1.5">
           <Label>Student</Label>
