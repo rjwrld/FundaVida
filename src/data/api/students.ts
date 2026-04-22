@@ -1,9 +1,6 @@
 import type { Student } from '@/types'
 import { useStore } from '../store'
-
-function delay(ms = 150): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
+import { delay } from './_delay'
 
 function applyRoleFilter(students: Student[]): Student[] {
   const role = useStore.getState().role

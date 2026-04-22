@@ -20,10 +20,9 @@ describe('persistence', () => {
 
   it('round-trips a persisted snapshot', () => {
     const snapshot = buildSeedSnapshot()
-    savePersistedState({ ...snapshot, role: 'admin' })
+    savePersistedState(snapshot)
     const loaded = loadPersistedState()
     expect(loaded?.students.length).toBe(snapshot.students.length)
-    expect(loaded?.role).toBe('admin')
   })
 
   it('persists and loads a role independently', () => {
@@ -32,10 +31,20 @@ describe('persistence', () => {
   })
 
   it('clearPersistedState wipes both keys', () => {
-    savePersistedState({ ...buildSeedSnapshot(), role: 'admin' })
+    savePersistedState(buildSeedSnapshot())
     savePersistedRole('admin')
     clearPersistedState()
     expect(loadPersistedState()).toBeNull()
     expect(loadPersistedRole()).toBeNull()
+  })
+
+  it('returns null when stored JSON has the wrong shape', () => {
+    window.localStorage.setItem('fundavida:v1:state', JSON.stringify({ wrong: true }))
+    expect(loadPersistedState()).toBeNull()
+  })
+
+  it('returns null when stored JSON is invalid', () => {
+    window.localStorage.setItem('fundavida:v1:state', 'not-json')
+    expect(loadPersistedState()).toBeNull()
   })
 })

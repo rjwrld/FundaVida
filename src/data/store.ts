@@ -47,11 +47,13 @@ export const useStore = create<StoreState>((set) => ({
       ...snapshot,
       role: null,
     })
-    savePersistedState({ ...snapshot, role: null })
+    savePersistedState(snapshot)
   },
 }))
 
-// Persist on every state change.
+// Persist the data snapshot (NOT role — role has its own key) on every
+// state change. Role changes still fire this subscribe, but the payload
+// writes the same snapshot shape each time.
 useStore.subscribe((state) => {
   savePersistedState({
     students: state.students,
@@ -59,6 +61,5 @@ useStore.subscribe((state) => {
     courses: state.courses,
     enrollments: state.enrollments,
     grades: state.grades,
-    role: state.role,
   })
 })
