@@ -14,5 +14,11 @@ test('admin edits a grade score', async ({ page }) => {
   await page.getByRole('button', { name: 'Save grade' }).click()
 
   await expect(page.getByRole('heading', { name: 'Edit grade' })).toBeHidden()
-  await expect(page.getByRole('cell', { name: '42' }).first()).toBeVisible()
+
+  // Assert the edited row now shows 42, not just "some cell somewhere"
+  const editedRow = page
+    .getByRole('row')
+    .filter({ has: page.getByRole('cell', { name: '42' }) })
+    .first()
+  await expect(editedRow).toBeVisible()
 })

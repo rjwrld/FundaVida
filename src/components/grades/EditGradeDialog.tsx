@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -10,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useUpdateGradeScore } from '@/hooks/api'
+import { gradeSchema, type GradeFormValues } from '@/data/schemas/grade'
 
 interface Props {
   gradeId: string | null
@@ -26,33 +29,35 @@ export function EditGradeDialog({
   courseName,
   onClose,
 }: Props) {
-  const [value, setValue] = useState(String(initialScore))
-  const [error, setError] = useState<string | null>(null)
   const updateGrade = useUpdateGradeScore()
+  const open = gradeId !== null
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<GradeFormValues>({
+    resolver: zodResolver(gradeSchema),
+    defaultValues: { score: initialScore },
+  })
 
   useEffect(() => {
-    setValue(String(initialScore))
-    setError(null)
-  }, [gradeId, initialScore])
+    reset({ score: initialScore })
+  }, [gradeId, initialScore, reset, open])
 
-  async function onSave() {
-    const n = Number(value)
-    if (!Number.isFinite(n) || n < 0 || n > 100) {
-      setError('Score must be a number between 0 and 100.')
-      return
-    }
+  async function onSubmit(values: GradeFormValues) {
     if (!gradeId) return
-    await updateGrade.mutateAsync({ id: gradeId, score: n })
+    await updateGrade.mutateAsync({ id: gradeId, score: values.score })
     onClose()
   }
 
   return (
-    <Dialog open={gradeId !== null} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit grade</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3 text-sm">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 text-sm">
           <p className="text-muted-foreground">
             {studentName} — {courseName}
           </p>
@@ -63,20 +68,25 @@ export function EditGradeDialog({
               type="number"
               min={0}
               max={100}
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
+              aria-invalid={errors.score !== undefined}
+              aria-describedby={errors.score ? 'score-error' : undefined}
+              {...register('score', { valueAsNumber: true })}
             />
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {errors.score && (
+              <p id="score-error" role="alert" className="text-sm text-destructive">
+                {errors.score.message}
+              </p>
+            )}
           </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={onSave} disabled={updateGrade.isPending}>
-            Save grade
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting || updateGrade.isPending}>
+              Save grade
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )
