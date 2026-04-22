@@ -78,8 +78,10 @@ describe('teacher CRUD', () => {
   it('refuses to delete a teacher with assigned courses', () => {
     const tea1 = useStore.getState().teachers.find((t) => t.courseIds.length > 0)
     if (!tea1) throw new Error('no teacher with courses in seed')
+    const auditLogLengthBefore = useStore.getState().auditLog.length
     expect(() => useStore.getState().deleteTeacher(tea1.id)).toThrow(/reassign/i)
     expect(useStore.getState().teachers.some((t) => t.id === tea1.id)).toBe(true)
+    expect(useStore.getState().auditLog.length).toBe(auditLogLengthBefore)
   })
 
   it('deletes a teacher with no assigned courses', () => {

@@ -70,7 +70,7 @@ function makeAuditEntry(
   entry: Omit<AuditLogEntry, 'id' | 'timestamp' | 'actorId'>
 ): AuditLogEntry {
   return {
-    id: `log-${Date.now()}-${state.auditLog.length + 1}`,
+    id: nextId('log', state.auditLog),
     actorId: state.currentUserId ?? 'system',
     timestamp: new Date().toISOString(),
     ...entry,
