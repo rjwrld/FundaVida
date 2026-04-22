@@ -25,6 +25,7 @@ export function useDeleteEnrollment() {
       client.invalidateQueries({ queryKey: ['students'] })
       client.invalidateQueries({ queryKey: ['courses'] })
       client.invalidateQueries({ queryKey: ['grades'] })
+      client.invalidateQueries({ queryKey: ['attendance'] })
     },
   })
 }
