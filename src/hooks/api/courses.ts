@@ -59,6 +59,10 @@ export function useDeleteCourse() {
     mutationFn: async (id: string) => deleteCourse(id),
     onSuccess: () => {
       client.invalidateQueries({ queryKey: COURSES_KEY })
+      client.invalidateQueries({ queryKey: ['enrollments'] })
+      client.invalidateQueries({ queryKey: ['grades'] })
+      client.invalidateQueries({ queryKey: ['students'] })
+      client.invalidateQueries({ queryKey: ['teachers'] })
     },
   })
 }
@@ -84,6 +88,7 @@ export function useUnenrollStudent() {
     onSuccess: () => {
       client.invalidateQueries({ queryKey: COURSES_KEY })
       client.invalidateQueries({ queryKey: ['students'] })
+      client.invalidateQueries({ queryKey: ['grades'] })
     },
   })
 }

@@ -26,9 +26,4 @@ export const gradesApi = {
     await delay()
     return applyFilters(applyRoleFilter(useStore.getState().grades), filters)
   },
-  async get(id: string): Promise<Grade | null> {
-    await delay()
-    const visible = applyRoleFilter(useStore.getState().grades)
-    return visible.find((g) => g.id === id) ?? null
-  },
 }

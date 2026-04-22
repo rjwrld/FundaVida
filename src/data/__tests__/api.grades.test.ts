@@ -45,21 +45,4 @@ describe('gradesApi', () => {
     expect(result.length).toBeGreaterThan(0)
     expect(result.every((g) => g.courseId === target)).toBe(true)
   })
-
-  it('get returns null for non-admin roles', async () => {
-    useStore.getState().setRole('admin')
-    const first = (await gradesApi.list())[0]
-    if (!first) throw new Error('expected a seeded grade')
-    useStore.getState().setRole('teacher')
-    expect(await gradesApi.get(first.id)).toBeNull()
-    useStore.getState().setRole('student')
-    expect(await gradesApi.get(first.id)).toBeNull()
-  })
-
-  it('get returns the grade for admin', async () => {
-    useStore.getState().setRole('admin')
-    const first = (await gradesApi.list())[0]
-    if (!first) throw new Error('expected a seeded grade')
-    expect(await gradesApi.get(first.id)).not.toBeNull()
-  })
 })

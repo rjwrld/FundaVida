@@ -68,9 +68,15 @@ export function GradeDialog({
               min={0}
               max={100}
               step={1}
+              aria-invalid={errors.score !== undefined}
+              aria-describedby={errors.score ? 'grade-score-error' : undefined}
               {...register('score', { valueAsNumber: true })}
             />
-            {errors.score && <p className="text-xs text-destructive">{errors.score.message}</p>}
+            {errors.score && (
+              <p id="grade-score-error" role="alert" className="text-xs text-destructive">
+                {errors.score.message}
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
