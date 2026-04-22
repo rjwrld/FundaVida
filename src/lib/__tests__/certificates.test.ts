@@ -57,4 +57,15 @@ describe('buildEligibleList', () => {
     }
     expect(buildEligibleList([student], [course], [g])).toEqual([])
   })
+
+  it('excludes grades referencing a missing course', () => {
+    const g: Grade = {
+      id: 'gra-1',
+      studentId: 'stu-1',
+      courseId: 'cou-does-not-exist',
+      score: 95,
+      issuedAt: new Date().toISOString(),
+    }
+    expect(buildEligibleList([student], [course], [g])).toEqual([])
+  })
 })

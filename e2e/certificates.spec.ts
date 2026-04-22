@@ -10,9 +10,13 @@ test('admin previews and downloads a certificate', async ({ page }) => {
   await page.getByRole('button', { name: 'Preview' }).first().click()
   await expect(page.getByRole('heading', { name: 'Certificate preview' })).toBeVisible()
 
+  // Wait for the async PDF blob to resolve before clicking
+  const downloadBtn = page.getByRole('button', { name: 'Download PDF' })
+  await expect(downloadBtn).not.toHaveAttribute('aria-disabled', 'true')
+
   // Capture the PDF download event
   const downloadPromise = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Download PDF' }).click()
+  await downloadBtn.click()
   const download = await downloadPromise
   expect(download.suggestedFilename()).toMatch(/^certificate-.*\.pdf$/)
 })
