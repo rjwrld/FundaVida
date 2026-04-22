@@ -1,5 +1,14 @@
 import { create } from 'zustand'
-import type { Student, Teacher, Course, Enrollment, Grade, TcuActivity, Role } from '@/types'
+import type {
+  Student,
+  Teacher,
+  Course,
+  Enrollment,
+  Grade,
+  TcuActivity,
+  AttendanceRecord,
+  Role,
+} from '@/types'
 import { buildSeedSnapshot } from './seed'
 import { debounce } from './debounce'
 import {
@@ -20,6 +29,7 @@ export interface StoreState {
   enrollments: Enrollment[]
   grades: Grade[]
   tcuActivities: TcuActivity[]
+  attendance: AttendanceRecord[]
   role: Role | null
   currentUserId: string | null
   setRole: (role: Role) => void
@@ -61,6 +71,7 @@ function initialState(): Pick<
   | 'enrollments'
   | 'grades'
   | 'tcuActivities'
+  | 'attendance'
   | 'role'
   | 'currentUserId'
 > {
@@ -75,6 +86,7 @@ function initialState(): Pick<
       enrollments: persisted.enrollments,
       grades: persisted.grades,
       tcuActivities: persisted.tcuActivities,
+      attendance: persisted.attendance,
       role,
       currentUserId,
     }
@@ -135,6 +147,7 @@ export const useStore = create<StoreState>((set, get) => ({
       students: state.students.filter((s) => s.id !== id),
       enrollments: state.enrollments.filter((e) => e.studentId !== id),
       grades: state.grades.filter((g) => g.studentId !== id),
+      attendance: state.attendance.filter((a) => a.studentId !== id),
     }))
   },
   createCourse: (input) => {
@@ -180,6 +193,7 @@ export const useStore = create<StoreState>((set, get) => ({
       courses: state.courses.filter((c) => c.id !== id),
       enrollments: state.enrollments.filter((e) => e.courseId !== id),
       grades: state.grades.filter((g) => g.courseId !== id),
+      attendance: state.attendance.filter((a) => a.courseId !== id),
       teachers: state.teachers.map((t) => ({
         ...t,
         courseIds: t.courseIds.filter((cid) => cid !== id),
@@ -234,7 +248,7 @@ export const useStore = create<StoreState>((set, get) => ({
     return enrollment
   },
   unenrollStudent: (enrollmentId) => {
-    const { enrollments, students, grades } = get()
+    const { enrollments, students, grades, attendance } = get()
     const target = enrollments.find((e) => e.id === enrollmentId)
     if (!target) return
     const updatedStudents = students.map((s) =>
@@ -249,6 +263,9 @@ export const useStore = create<StoreState>((set, get) => ({
       enrollments: enrollments.filter((e) => e.id !== enrollmentId),
       grades: grades.filter(
         (g) => !(g.studentId === target.studentId && g.courseId === target.courseId)
+      ),
+      attendance: attendance.filter(
+        (a) => !(a.studentId === target.studentId && a.courseId === target.courseId)
       ),
       students: updatedStudents,
     })
@@ -293,6 +310,7 @@ const persistSnapshot = debounce((state: StoreState) => {
     enrollments: state.enrollments,
     grades: state.grades,
     tcuActivities: state.tcuActivities,
+    attendance: state.attendance,
   })
 }, 200)
 
