@@ -36,7 +36,7 @@ function AdminCards() {
 
 function TeacherCards() {
   const students = useStore((s) => s.students.length)
-  const courses = useStore((s) => s.courses.filter((c) => c.teacherId === 'tea-1').length)
+  const courses = useStore((s) => s.courses.filter((c) => c.teacherId === s.currentUserId).length)
   const entries: [string, number][] = [
     ['my courses', courses],
     ['students', students],
