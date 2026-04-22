@@ -153,18 +153,23 @@ export function CertificatesListPage() {
                 <Button variant="outline" onClick={() => setSelected(null)}>
                   Close
                 </Button>
-                <Button asChild disabled={!dataUrl}>
-                  <a
-                    href={dataUrl ?? '#'}
-                    download={downloadName}
-                    aria-disabled={!dataUrl}
-                    role="button"
-                    onClick={(e) => {
-                      if (!dataUrl) e.preventDefault()
-                    }}
-                  >
-                    Download PDF
-                  </a>
+                <Button
+                  disabled={!dataUrl}
+                  aria-disabled={!dataUrl}
+                  onClick={() => {
+                    if (!dataUrl) return
+                    const anchor = document.createElement('a')
+                    anchor.setAttribute('download', downloadName)
+                    anchor.setAttribute('href', dataUrl)
+                    anchor.style.display = 'none'
+                    document.body.appendChild(anchor)
+                    anchor.dispatchEvent(
+                      new MouseEvent('click', { bubbles: true, cancelable: true, view: window })
+                    )
+                    setTimeout(() => anchor.remove(), 0)
+                  }}
+                >
+                  Download PDF
                 </Button>
               </div>
             </div>
