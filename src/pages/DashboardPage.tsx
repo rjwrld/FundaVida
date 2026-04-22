@@ -2,11 +2,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useStore } from '@/data/store'
 
 export function DashboardPage() {
-  const role = useStore((s) => s.role)
+  const roleOrNull = useStore((s) => s.role)
   const studentCount = useStore((s) => s.students.length)
   const teacherCount = useStore((s) => s.teachers.length)
   const courseCount = useStore((s) => s.courses.length)
   const gradeCount = useStore((s) => s.grades.length)
+
+  // RoleRequired guards this route and redirects to / if role is null.
+  if (!roleOrNull) return null
+
+  const role: string = roleOrNull
 
   const stats: { key: string; label: string; count: number }[] = [
     { key: 'students', label: 'students', count: studentCount },
@@ -18,7 +23,7 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Signed in as {role ?? 'unknown'}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Signed in as {role}</h1>
         <p className="text-sm text-muted-foreground">
           Demo dashboard. Domain modules land in subsequent phases.
         </p>

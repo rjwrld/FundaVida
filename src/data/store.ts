@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { Student, Teacher, Course, Enrollment, Grade, Role } from '@/types'
 import { buildSeedSnapshot } from './seed'
 import {
+  clearPersistedRole,
   loadPersistedRole,
   loadPersistedState,
   savePersistedRole,
@@ -48,6 +49,7 @@ export const useStore = create<StoreState>((set) => ({
       role: null,
     })
     savePersistedState(snapshot)
+    clearPersistedRole()
   },
 }))
 

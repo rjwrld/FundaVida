@@ -9,14 +9,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useStore } from '@/data/store'
+import { ROLES } from '@/constants/roles'
 import type { Role } from '@/types'
-
-const ROLES: { value: Role; label: string }[] = [
-  { value: 'admin', label: 'Admin' },
-  { value: 'teacher', label: 'Teacher' },
-  { value: 'student', label: 'Student' },
-  { value: 'tcu', label: 'TCU' },
-]
 
 export function RoleSwitcher() {
   const role = useStore((s) => s.role)
