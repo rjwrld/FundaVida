@@ -1,0 +1,190 @@
+import { useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { useCourse, useUnenrollStudent } from '@/hooks/api'
+import { useStore } from '@/data/store'
+import { GradeDialog } from '@/components/courses/GradeDialog'
+import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
+
+interface GradingTarget {
+  studentId: string
+  studentName: string
+  initialScore?: number
+}
+
+export function CoursesDetailPage() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const { data: course, isLoading } = useCourse(id ?? '')
+  const role = useStore((s) => s.role)
+  const students = useStore((s) => s.students)
+  const teachers = useStore((s) => s.teachers)
+  const enrollments = useStore((s) => s.enrollments)
+  const grades = useStore((s) => s.grades)
+  const unenroll = useUnenrollStudent()
+
+  const [gradingTarget, setGradingTarget] = useState<GradingTarget | null>(null)
+  const [enrollOpen, setEnrollOpen] = useState(false)
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>
+  if (!course) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">Course not found.</p>
+        <Button asChild variant="outline">
+          <Link to="/app/courses">Back to courses</Link>
+        </Button>
+      </div>
+    )
+  }
+
+  const teacher = teachers.find((t) => t.id === course.teacherId)
+  const courseEnrollments = enrollments.filter((e) => e.courseId === course.id)
+  const isAdmin = role === 'admin'
+  const isTeacherOrAdmin = role === 'admin' || role === 'teacher'
+
+  return (
+    <div className="space-y-6">
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">{course.name}</h1>
+          <p className="text-sm text-muted-foreground">{course.programName}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate('/app/courses')}>
+            Back
+          </Button>
+          {isAdmin && (
+            <Button onClick={() => navigate(`/app/courses/${course.id}/edit`)}>Edit</Button>
+          )}
+        </div>
+      </header>
+
+      <section className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <p>
+              <span className="text-muted-foreground">Headquarters:</span> {course.headquartersName}
+            </p>
+            <p>
+              <span className="text-muted-foreground">Program:</span> {course.programName}
+            </p>
+            <p>
+              <span className="text-muted-foreground">Teacher:</span>{' '}
+              {teacher ? `${teacher.firstName} ${teacher.lastName}` : 'Unassigned'}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Description</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">{course.description}</CardContent>
+        </Card>
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight">Enrolled students</h2>
+          {isAdmin && (
+            <Button size="sm" onClick={() => setEnrollOpen(true)}>
+              Enroll student
+            </Button>
+          )}
+        </div>
+        {courseEnrollments.length === 0 ? (
+          <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+            No students enrolled yet.
+          </p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Grade</TableHead>
+                {isTeacherOrAdmin && <TableHead className="text-right">Actions</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {courseEnrollments.map((e) => {
+                const student = students.find((s) => s.id === e.studentId)
+                const grade = grades.find(
+                  (g) => g.studentId === e.studentId && g.courseId === course.id
+                )
+                if (!student) return null
+                return (
+                  <TableRow key={e.id}>
+                    <TableCell>
+                      <Link to={`/app/students/${student.id}`} className="hover:underline">
+                        {student.firstName} {student.lastName}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{grade ? grade.score : 'Not graded'}</TableCell>
+                    {isTeacherOrAdmin && (
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            setGradingTarget({
+                              studentId: student.id,
+                              studentName: `${student.firstName} ${student.lastName}`,
+                              initialScore: grade?.score,
+                            })
+                          }
+                        >
+                          Grade
+                        </Button>
+                        {isAdmin && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (
+                                confirm(
+                                  `Remove ${student.firstName} ${student.lastName} from this course?`
+                                )
+                              ) {
+                                unenroll.mutate(e.id)
+                              }
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </section>
+
+      {gradingTarget && (
+        <GradeDialog
+          open
+          onOpenChange={(v) => !v && setGradingTarget(null)}
+          courseId={course.id}
+          studentId={gradingTarget.studentId}
+          studentName={gradingTarget.studentName}
+          initialScore={gradingTarget.initialScore}
+        />
+      )}
+      <EnrollStudentDialog open={enrollOpen} onOpenChange={setEnrollOpen} courseId={course.id} />
+    </div>
+  )
+}

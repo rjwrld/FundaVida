@@ -2,27 +2,44 @@ import type { Course } from '@/types'
 import { useStore } from '../store'
 import { delay } from './_delay'
 
+export interface CourseFilters {
+  search?: string
+  headquartersName?: string
+  programName?: string
+}
+
 function applyRoleFilter(courses: Course[]): Course[] {
-  const role = useStore.getState().role
+  const state = useStore.getState()
+  const role = state.role
   if (role === 'admin') return courses
-  if (role === 'teacher') {
-    // Teachers see only their own courses. Until current-user identity
-    // exists, teachers see everything taught by tea-1 as a stand-in.
-    // Phase 3 tightens this once the hero flow introduces a current-
-    // user concept.
-    return courses.filter((c) => c.teacherId === 'tea-1')
+  if (role === 'teacher' && state.currentUserId) {
+    return courses.filter((c) => c.teacherId === state.currentUserId)
   }
-  // Students and TCU roles see nothing in the generic list endpoint by
-  // default; Phase 3 hero flows will refine this with self-scoped
-  // reads once current-user identity exists.
+  if (role === 'student' && state.currentUserId) {
+    const enrollments = state.enrollments.filter((e) => e.studentId === state.currentUserId)
+    const courseIds = new Set(enrollments.map((e) => e.courseId))
+    return courses.filter((c) => courseIds.has(c.id))
+  }
   return []
 }
 
+function applyFilters(courses: Course[], filters: CourseFilters): Course[] {
+  const { search, headquartersName, programName } = filters
+  return courses.filter((c) => {
+    if (search && !`${c.name} ${c.description}`.toLowerCase().includes(search.toLowerCase())) {
+      return false
+    }
+    if (headquartersName && c.headquartersName !== headquartersName) return false
+    if (programName && c.programName !== programName) return false
+    return true
+  })
+}
+
 export const coursesApi = {
-  async list(): Promise<Course[]> {
+  async list(filters: CourseFilters = {}): Promise<Course[]> {
     await delay()
     const courses = useStore.getState().courses
-    return applyRoleFilter(courses)
+    return applyFilters(applyRoleFilter(courses), filters)
   },
   async get(id: string): Promise<Course | null> {
     await delay()

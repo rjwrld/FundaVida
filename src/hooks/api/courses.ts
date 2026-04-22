@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/data/api'
 import { useStore } from '@/data/store'
 import type { Course } from '@/types'
+import type { CourseFilters } from '@/data/api/courses'
 
 const COURSES_KEY = ['courses'] as const
 const courseKey = (id: string) => ['courses', id] as const
@@ -10,11 +11,11 @@ const courseKey = (id: string) => ['courses', id] as const
 // When the role changes, Zustand triggers a re-render, React Query sees a new
 // queryKey, and refetches with the new role applied via the API layer's
 // role-aware filter.
-export function useCourses() {
+export function useCourses(filters: CourseFilters = {}) {
   const role = useStore((s) => s.role)
   return useQuery({
-    queryKey: [...COURSES_KEY, role],
-    queryFn: () => api.courses.list(),
+    queryKey: [...COURSES_KEY, role, filters],
+    queryFn: () => api.courses.list(filters),
   })
 }
 
@@ -22,6 +23,7 @@ export function useCourse(id: string) {
   return useQuery({
     queryKey: courseKey(id),
     queryFn: () => api.courses.get(id),
+    enabled: id.length > 0,
   })
 }
 
