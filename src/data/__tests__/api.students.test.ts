@@ -36,4 +36,19 @@ describe('api.students', () => {
     const found = await api.students.get('stu-does-not-exist')
     expect(found).toBeNull()
   })
+
+  it('list applies the search filter on name or email', async () => {
+    useStore.getState().setRole('admin')
+    const all = await api.students.list()
+    const first = all[0]
+    if (!first) throw new Error('no students in seed')
+    const targeted = await api.students.list({ search: first.firstName })
+    expect(targeted.some((s) => s.id === first.id)).toBe(true)
+  })
+
+  it('list applies province filter', async () => {
+    useStore.getState().setRole('admin')
+    const result = await api.students.list({ province: 'San José' })
+    expect(result.every((s) => s.province === 'San José')).toBe(true)
+  })
 })
