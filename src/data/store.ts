@@ -8,6 +8,8 @@ import type {
   TcuActivity,
   AttendanceRecord,
   AuditLogEntry,
+  EmailCampaign,
+  EmailFilter,
   Role,
 } from '@/types'
 import { buildSeedSnapshot } from './seed'
@@ -32,6 +34,7 @@ export interface StoreState {
   tcuActivities: TcuActivity[]
   attendance: AttendanceRecord[]
   auditLog: AuditLogEntry[]
+  emailCampaigns: EmailCampaign[]
   role: Role | null
   currentUserId: string | null
   setRole: (role: Role) => void
@@ -50,6 +53,12 @@ export interface StoreState {
   setGrade: (studentId: string, courseId: string, score: number) => Grade
   updateGradeScore: (gradeId: string, score: number) => void
   deleteGrade: (gradeId: string) => void
+  sendEmailCampaign: (input: {
+    subject: string
+    body: string
+    filter: EmailFilter
+    recipientIds: string[]
+  }) => EmailCampaign
 }
 
 function userIdForRole(role: Role): string {
@@ -87,6 +96,7 @@ function initialState(): Pick<
   | 'tcuActivities'
   | 'attendance'
   | 'auditLog'
+  | 'emailCampaigns'
   | 'role'
   | 'currentUserId'
 > {
@@ -103,6 +113,7 @@ function initialState(): Pick<
       tcuActivities: persisted.tcuActivities,
       attendance: persisted.attendance,
       auditLog: persisted.auditLog,
+      emailCampaigns: persisted.emailCampaigns,
       role,
       currentUserId,
     }
@@ -479,6 +490,31 @@ export const useStore = create<StoreState>((set, get) => ({
       ],
     }))
   },
+  sendEmailCampaign: (input) => {
+    const existing = get()
+    const campaign: EmailCampaign = {
+      id: nextId('cam', existing.emailCampaigns),
+      subject: input.subject,
+      body: input.body,
+      filter: input.filter,
+      recipientIds: input.recipientIds,
+      sentAt: new Date().toISOString(),
+      sentBy: existing.currentUserId ?? 'system',
+    }
+    set((state) => ({
+      emailCampaigns: [campaign, ...state.emailCampaigns],
+      auditLog: [
+        makeAuditEntry(state, {
+          action: 'create',
+          entity: 'student',
+          entityId: campaign.id,
+          summary: `Sent email "${campaign.subject}" to ${campaign.recipientIds.length} recipients`,
+        }),
+        ...state.auditLog,
+      ],
+    }))
+    return campaign
+  },
 }))
 
 // Debounced persistence (200ms). Prevents rapid mutations (e.g. typing in
@@ -493,6 +529,7 @@ const persistSnapshot = debounce((state: StoreState) => {
     tcuActivities: state.tcuActivities,
     attendance: state.attendance,
     auditLog: state.auditLog,
+    emailCampaigns: state.emailCampaigns,
   })
 }, 200)
 

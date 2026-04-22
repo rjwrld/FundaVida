@@ -18,6 +18,7 @@ import { TcuListPage } from '@/pages/TcuListPage'
 import { AttendanceListPage } from '@/pages/AttendanceListPage'
 import { ReportsPage } from '@/pages/ReportsPage'
 import { AuditLogPage } from '@/pages/AuditLogPage'
+import { BulkEmailPage } from '@/pages/BulkEmailPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { RoleRequired } from '@/components/demo/RoleRequired'
 import { RoleGate } from '@/components/demo/RoleGate'
@@ -54,6 +55,7 @@ export function App() {
               <Route path="grades" element={<GradesListPage />} />
               <Route path="reports" element={<ReportsPage />} />
               <Route path="audit-log" element={<AuditLogPage />} />
+              <Route path="bulk-email" element={<BulkEmailPage />} />
             </Route>
             <Route element={<RoleGate allow={['admin', 'student']} />}>
               <Route path="certificates" element={<CertificatesListPage />} />
