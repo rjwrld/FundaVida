@@ -14,7 +14,9 @@ export function HomePage() {
             Scaffolding phase complete. Domain modules arrive in later phases.
           </p>
           <Button asChild>
-            <a href="https://github.com/rjwrld/FundaVida">View repository</a>
+            <a href="https://github.com/rjwrld/FundaVida" target="_blank" rel="noopener noreferrer">
+              View repository
+            </a>
           </Button>
         </CardContent>
       </Card>

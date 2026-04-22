@@ -6,7 +6,10 @@ import { AppLayout } from '@/components/layout/AppLayout'
 describe('<AppLayout />', () => {
   it('renders the header, sidebar, and outlet content', () => {
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter
+        initialEntries={['/']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <Routes>
           <Route element={<AppLayout />}>
             <Route index element={<div>Hello from outlet</div>} />
