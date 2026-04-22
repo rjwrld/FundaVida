@@ -60,3 +60,8 @@ export function savePersistedRole(role: Role): void {
   if (!isBrowser()) return
   window.localStorage.setItem(ROLE_KEY, role)
 }
+
+export function clearPersistedRole(): void {
+  if (!isBrowser()) return
+  window.localStorage.removeItem(ROLE_KEY)
+}

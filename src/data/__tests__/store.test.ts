@@ -29,4 +29,11 @@ describe('useStore', () => {
     expect(useStore.getState().role).toBeNull()
     expect(useStore.getState().students.length).toBeGreaterThan(0)
   })
+
+  it('resetDemo clears the persisted role key so a reload does not rehydrate it', () => {
+    useStore.getState().setRole('teacher')
+    expect(window.localStorage.getItem('fundavida:v1:role')).toBe('teacher')
+    useStore.getState().resetDemo()
+    expect(window.localStorage.getItem('fundavida:v1:role')).toBeNull()
+  })
 })

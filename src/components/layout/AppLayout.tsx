@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { AppHeader } from './AppHeader'
 import { AppSidebar } from './AppSidebar'
+import { DemoBanner } from '@/components/demo/DemoBanner'
 
 export function AppLayout() {
   return (
@@ -11,6 +12,7 @@ export function AppLayout() {
       >
         Skip to main content
       </a>
+      <DemoBanner />
       <AppHeader />
       <div className="flex flex-1">
         <AppSidebar />
