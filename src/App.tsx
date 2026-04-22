@@ -8,6 +8,7 @@ import { StudentsFormPage } from '@/pages/StudentsFormPage'
 import { TeachersListPage } from '@/pages/TeachersListPage'
 import { TeachersDetailPage } from '@/pages/TeachersDetailPage'
 import { TeachersFormPage } from '@/pages/TeachersFormPage'
+import { EnrollmentsListPage } from '@/pages/EnrollmentsListPage'
 import { CoursesListPage } from '@/pages/CoursesListPage'
 import { CoursesDetailPage } from '@/pages/CoursesDetailPage'
 import { CoursesFormPage } from '@/pages/CoursesFormPage'
@@ -35,6 +36,7 @@ export function App() {
               <Route path="teachers/new" element={<TeachersFormPage />} />
               <Route path="teachers/:id" element={<TeachersDetailPage />} />
               <Route path="teachers/:id/edit" element={<TeachersFormPage />} />
+              <Route path="enrollments" element={<EnrollmentsListPage />} />
             </Route>
             <Route element={<RoleGate allow={['admin', 'teacher', 'student']} />}>
               <Route path="courses" element={<CoursesListPage />} />
