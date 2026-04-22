@@ -182,3 +182,58 @@ describe('tcu cascade on deleteStudent', () => {
     expect(useStore.getState().tcuActivities.some((a) => a.studentId === studentId)).toBe(false)
   })
 })
+
+describe('audit log instrumentation', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
+  })
+
+  it('createStudent appends a create entry', () => {
+    const before = useStore.getState().auditLog.length
+    const created = useStore.getState().createStudent({
+      firstName: 'Nova',
+      lastName: 'Pine',
+      email: 'n@fv.cr',
+      gender: 'F',
+      province: 'X',
+      canton: 'Y',
+      educationalLevel: 'Primary',
+    })
+    const log = useStore.getState().auditLog
+    expect(log.length).toBe(before + 1)
+    expect(log[0]?.action).toBe('create')
+    expect(log[0]?.entity).toBe('student')
+    expect(log[0]?.entityId).toBe(created.id)
+  })
+
+  it('deleteStudent appends a delete entry and cascades', () => {
+    const { id } = useStore.getState().createStudent({
+      firstName: 'A',
+      lastName: 'B',
+      email: 'a@b.co',
+      gender: 'F',
+      province: 'X',
+      canton: 'Y',
+      educationalLevel: 'Primary',
+    })
+    useStore.getState().deleteStudent(id)
+    const log = useStore.getState().auditLog
+    expect(log[0]?.action).toBe('delete')
+    expect(log[0]?.entity).toBe('student')
+    expect(log[0]?.entityId).toBe(id)
+  })
+
+  it('setGrade appends a grade entry', () => {
+    const state = useStore.getState()
+    const first = state.enrollments[0]
+    if (!first) throw new Error('no enrollments in seed')
+    useStore.getState().setGrade(first.studentId, first.courseId, 95)
+    const log = useStore.getState().auditLog
+    expect(log[0]?.action).toBe('grade')
+    expect(log[0]?.entity).toBe('grade')
+  })
+})

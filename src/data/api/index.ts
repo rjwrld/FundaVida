@@ -5,6 +5,7 @@ import { enrollmentsApi } from './enrollments'
 import { gradesApi } from './grades'
 import { tcuApi } from './tcu'
 import { attendanceApi } from './attendance'
+import { auditLogApi } from './auditLog'
 
 export const api = {
   students: studentsApi,
@@ -14,4 +15,5 @@ export const api = {
   grades: gradesApi,
   tcu: tcuApi,
   attendance: attendanceApi,
+  auditLog: auditLogApi,
 }

@@ -36,6 +36,7 @@ export function useCreateStudent() {
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: STUDENTS_KEY })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }
@@ -50,6 +51,7 @@ export function useUpdateStudent() {
     onSuccess: (_, { id }) => {
       client.invalidateQueries({ queryKey: STUDENTS_KEY })
       client.invalidateQueries({ queryKey: studentKey(id) })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }
@@ -67,6 +69,7 @@ export function useDeleteStudent() {
       client.invalidateQueries({ queryKey: ['grades'] })
       client.invalidateQueries({ queryKey: ['attendance'] })
       client.invalidateQueries({ queryKey: ['tcu'] })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }

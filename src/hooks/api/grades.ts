@@ -22,6 +22,7 @@ export function useUpdateGradeScore() {
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: GRADES_KEY })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }
@@ -35,6 +36,7 @@ export function useDeleteGrade() {
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: GRADES_KEY })
+      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
   })
 }

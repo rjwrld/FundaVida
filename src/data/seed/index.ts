@@ -5,6 +5,7 @@ import { seedEnrollments } from './enrollments'
 import { seedGrades } from './grades'
 import { seedTcuActivities } from './tcuActivities'
 import { seedAttendance } from './attendance'
+import { seedAuditLog } from './auditLog'
 import type {
   Student,
   Teacher,
@@ -13,6 +14,7 @@ import type {
   Grade,
   TcuActivity,
   AttendanceRecord,
+  AuditLogEntry,
 } from '@/types'
 
 export interface SeedSnapshot {
@@ -23,6 +25,7 @@ export interface SeedSnapshot {
   grades: Grade[]
   tcuActivities: TcuActivity[]
   attendance: AttendanceRecord[]
+  auditLog: AuditLogEntry[]
 }
 
 export function buildSeedSnapshot(): SeedSnapshot {
@@ -50,5 +53,7 @@ export function buildSeedSnapshot(): SeedSnapshot {
   const grades = seedGrades(enrollments)
   const tcuActivities = seedTcuActivities(studentIds)
   const attendance = seedAttendance(enrollments, courseIds)
-  return { students, teachers, courses, enrollments, grades, tcuActivities, attendance }
+  const auditLog = seedAuditLog({ students, teachers, courses, enrollments, grades })
+
+  return { students, teachers, courses, enrollments, grades, tcuActivities, attendance, auditLog }
 }

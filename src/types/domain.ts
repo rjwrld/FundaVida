@@ -68,3 +68,17 @@ export interface AttendanceRecord {
   sessionDate: string
   status: AttendanceStatus
 }
+
+export type AuditAction = 'create' | 'update' | 'delete' | 'enroll' | 'unenroll' | 'grade'
+
+export type AuditEntity = 'student' | 'teacher' | 'course' | 'enrollment' | 'grade'
+
+export interface AuditLogEntry {
+  id: string
+  actorId: string
+  action: AuditAction
+  entity: AuditEntity
+  entityId: string
+  timestamp: string
+  summary: string
+}
