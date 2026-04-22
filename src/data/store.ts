@@ -117,11 +117,11 @@ export const useStore = create<StoreState>((set, get) => ({
     set({ students: get().students.map((s) => (s.id === id ? { ...s, ...patch } : s)) })
   },
   deleteStudent: (id) => {
-    set({
-      students: get().students.filter((s) => s.id !== id),
-      enrollments: get().enrollments.filter((e) => e.studentId !== id),
-      grades: get().grades.filter((g) => g.studentId !== id),
-    })
+    set((state) => ({
+      students: state.students.filter((s) => s.id !== id),
+      enrollments: state.enrollments.filter((e) => e.studentId !== id),
+      grades: state.grades.filter((g) => g.studentId !== id),
+    }))
   },
   createCourse: (input) => {
     const { courses, teachers } = get()
@@ -137,18 +137,44 @@ export const useStore = create<StoreState>((set, get) => ({
     return course
   },
   updateCourse: (id, patch) => {
-    set({ courses: get().courses.map((c) => (c.id === id ? { ...c, ...patch } : c)) })
+    set((state) => {
+      const current = state.courses.find((c) => c.id === id)
+      const teacherChanged =
+        current !== undefined &&
+        patch.teacherId !== undefined &&
+        patch.teacherId !== current.teacherId
+      const updatedCourses = state.courses.map((c) => (c.id === id ? { ...c, ...patch } : c))
+      const newTeacherId = patch.teacherId
+      if (!teacherChanged || !current || !newTeacherId) {
+        return { courses: updatedCourses }
+      }
+      const oldTeacherId = current.teacherId
+      const updatedTeachers = state.teachers.map((t) => {
+        if (t.id === oldTeacherId) {
+          return { ...t, courseIds: t.courseIds.filter((cid) => cid !== id) }
+        }
+        if (t.id === newTeacherId && !t.courseIds.includes(id)) {
+          return { ...t, courseIds: [...t.courseIds, id] }
+        }
+        return t
+      })
+      return { courses: updatedCourses, teachers: updatedTeachers }
+    })
   },
   deleteCourse: (id) => {
-    set({
-      courses: get().courses.filter((c) => c.id !== id),
-      enrollments: get().enrollments.filter((e) => e.courseId !== id),
-      grades: get().grades.filter((g) => g.courseId !== id),
-      teachers: get().teachers.map((t) => ({
+    set((state) => ({
+      courses: state.courses.filter((c) => c.id !== id),
+      enrollments: state.enrollments.filter((e) => e.courseId !== id),
+      grades: state.grades.filter((g) => g.courseId !== id),
+      teachers: state.teachers.map((t) => ({
         ...t,
         courseIds: t.courseIds.filter((cid) => cid !== id),
       })),
-    })
+      students: state.students.map((s) => ({
+        ...s,
+        enrolledCourseIds: s.enrolledCourseIds.filter((cid) => cid !== id),
+      })),
+    }))
   },
   enrollStudent: (studentId, courseId) => {
     const { enrollments, students } = get()

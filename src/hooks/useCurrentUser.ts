@@ -18,5 +18,7 @@ export function useCurrentUser(): CurrentUser | null {
     role === 'student' && userId ? s.students.find((t) => t.id === userId) : undefined
   )
   if (!role || !userId) return null
+  if (role === 'teacher' && !teacher) return null
+  if (role === 'student' && !student) return null
   return { id: userId, role, teacher, student }
 }

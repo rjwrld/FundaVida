@@ -6,6 +6,10 @@ import type { Course } from '@/types'
 const COURSES_KEY = ['courses'] as const
 const courseKey = (id: string) => ['courses', id] as const
 
+// Role is captured in the queryKey so cache entries per role are isolated.
+// When the role changes, Zustand triggers a re-render, React Query sees a new
+// queryKey, and refetches with the new role applied via the API layer's
+// role-aware filter.
 export function useCourses() {
   const role = useStore((s) => s.role)
   return useQuery({
