@@ -12,6 +12,7 @@ import { EnrollmentsListPage } from '@/pages/EnrollmentsListPage'
 import { CoursesListPage } from '@/pages/CoursesListPage'
 import { CoursesDetailPage } from '@/pages/CoursesDetailPage'
 import { CoursesFormPage } from '@/pages/CoursesFormPage'
+import { GradesListPage } from '@/pages/GradesListPage'
 import { CertificatesListPage } from '@/pages/CertificatesListPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { RoleRequired } from '@/components/demo/RoleRequired'
@@ -45,6 +46,7 @@ export function App() {
             <Route element={<RoleGate allow={['admin']} />}>
               <Route path="courses/new" element={<CoursesFormPage />} />
               <Route path="courses/:id/edit" element={<CoursesFormPage />} />
+              <Route path="grades" element={<GradesListPage />} />
             </Route>
             <Route element={<RoleGate allow={['admin', 'student']} />}>
               <Route path="certificates" element={<CertificatesListPage />} />

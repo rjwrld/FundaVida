@@ -92,3 +92,32 @@ describe('teacher CRUD', () => {
     expect(useStore.getState().teachers.some((t) => t.id === created.id)).toBe(false)
   })
 })
+
+describe('grade admin actions', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+  })
+
+  it('updateGradeScore refreshes score and issuedAt', () => {
+    const first = useStore.getState().grades[0]
+    if (!first) throw new Error('expected at least one seeded grade')
+    const originalIssuedAt = first.issuedAt
+    useStore.getState().updateGradeScore(first.id, 88)
+    const after = useStore.getState().grades.find((g) => g.id === first.id)
+    if (!after) throw new Error('expected updated grade to exist')
+    expect(after.score).toBe(88)
+    expect(after.issuedAt).not.toBe(originalIssuedAt)
+  })
+
+  it('deleteGrade removes only the target grade', () => {
+    const first = useStore.getState().grades[0]
+    if (!first) throw new Error('expected at least one seeded grade')
+    const before = useStore.getState().grades.length
+    useStore.getState().deleteGrade(first.id)
+    expect(useStore.getState().grades.length).toBe(before - 1)
+    expect(useStore.getState().grades.some((g) => g.id === first.id)).toBe(false)
+  })
+})

@@ -35,6 +35,8 @@ export interface StoreState {
   enrollStudent: (studentId: string, courseId: string) => Enrollment
   unenrollStudent: (enrollmentId: string) => void
   setGrade: (studentId: string, courseId: string, score: number) => Grade
+  updateGradeScore: (gradeId: string, score: number) => void
+  deleteGrade: (gradeId: string) => void
 }
 
 function userIdForRole(role: Role): string {
@@ -259,6 +261,16 @@ export const useStore = create<StoreState>((set, get) => ({
     }
     set({ grades: [...grades, grade] })
     return grade
+  },
+  updateGradeScore: (gradeId, score) => {
+    set((state) => ({
+      grades: state.grades.map((g) =>
+        g.id === gradeId ? { ...g, score, issuedAt: new Date().toISOString() } : g
+      ),
+    }))
+  },
+  deleteGrade: (gradeId) => {
+    set((state) => ({ grades: state.grades.filter((g) => g.id !== gradeId) }))
   },
 }))
 
