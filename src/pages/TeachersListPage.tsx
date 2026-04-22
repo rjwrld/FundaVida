@@ -79,20 +79,26 @@ export function TeachersListPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      disabled={hasCourses}
-                      title={
-                        hasCourses
-                          ? 'Reassign this teacher\u2019s courses before deleting.'
-                          : undefined
-                      }
-                      onClick={() => {
-                        if (confirm(`Delete ${t.firstName} ${t.lastName}?`)) {
-                          deleteTeacher.mutate(t.id)
+                      aria-disabled={hasCourses}
+                      aria-describedby={hasCourses ? `teacher-${t.id}-delete-reason` : undefined}
+                      className={hasCourses ? 'opacity-50' : undefined}
+                      onClick={async () => {
+                        if (hasCourses) return
+                        if (!confirm(`Delete ${t.firstName} ${t.lastName}?`)) return
+                        try {
+                          await deleteTeacher.mutateAsync(t.id)
+                        } catch (err) {
+                          alert((err as Error).message)
                         }
                       }}
                     >
                       Delete
                     </Button>
+                    {hasCourses && (
+                      <span id={`teacher-${t.id}-delete-reason`} className="sr-only">
+                        Reassign this teacher's courses before deleting.
+                      </span>
+                    )}
                   </TableCell>
                 </TableRow>
               )
