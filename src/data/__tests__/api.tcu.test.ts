@@ -27,6 +27,7 @@ describe('tcuApi', () => {
   it('returns only organized activities for tcu (tcu-1)', async () => {
     useStore.getState().setRole('tcu')
     const result = await tcuApi.list()
+    expect(result.length).toBeGreaterThan(0)
     expect(result.every((a) => a.organizerId === 'tcu-1')).toBe(true)
   })
 
