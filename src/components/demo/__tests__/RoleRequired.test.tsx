@@ -3,11 +3,12 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { RoleRequired } from '@/components/demo/RoleRequired'
 import { useStore } from '@/data/store'
-import { clearPersistedState } from '@/data/persistence'
+import { clearPersistedRole, clearPersistedState } from '@/data/persistence'
 
 describe('<RoleRequired />', () => {
   beforeEach(() => {
     clearPersistedState()
+    clearPersistedRole()
     useStore.getState().resetDemo()
   })
 

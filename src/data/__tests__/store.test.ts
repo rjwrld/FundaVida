@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useStore } from '../store'
-import { clearPersistedState } from '../persistence'
+import { clearPersistedRole, clearPersistedState } from '../persistence'
 
 describe('useStore', () => {
   beforeEach(() => {
     clearPersistedState()
+    clearPersistedRole()
     useStore.getState().resetDemo()
   })
 
@@ -35,5 +36,11 @@ describe('useStore', () => {
     expect(window.localStorage.getItem('fundavida:v1:role')).toBe('teacher')
     useStore.getState().resetDemo()
     expect(window.localStorage.getItem('fundavida:v1:role')).toBeNull()
+  })
+
+  it('resetDemo clears the banner-dismissed flag so the banner reappears', () => {
+    window.localStorage.setItem('fundavida:v1:banner-dismissed', '1')
+    useStore.getState().resetDemo()
+    expect(window.localStorage.getItem('fundavida:v1:banner-dismissed')).toBeNull()
   })
 })

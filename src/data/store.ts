@@ -50,6 +50,9 @@ export const useStore = create<StoreState>((set) => ({
     })
     savePersistedState(snapshot)
     clearPersistedRole()
+    if (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined') {
+      window.localStorage.removeItem('fundavida:v1:banner-dismissed')
+    }
   },
 }))
 
