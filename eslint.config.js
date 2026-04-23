@@ -44,5 +44,12 @@ export default tseslint.config(
       'react-refresh/only-export-components': 'off',
     },
   },
+  {
+    files: ['scripts/**/*.ts'],
+    rules: {
+      'no-console': 'off',
+      'react-refresh/only-export-components': 'off',
+    },
+  },
   prettier
 )
