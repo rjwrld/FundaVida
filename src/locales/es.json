@@ -1,4 +1,51 @@
 {
+  "attendance": {
+    "list": {
+      "columns": {
+        "course": "Curso",
+        "date": "Fecha",
+        "status": "Estado",
+        "student": "Estudiante"
+      },
+      "empty": "Aún no hay asistencia registrada.",
+      "emptyFiltered": "Ninguna asistencia coincide.",
+      "filters": {
+        "anyCourse": "Cualquier curso",
+        "anyStatus": "Cualquier estado",
+        "anyStudent": "Cualquier estudiante",
+        "coursePlaceholder": "Curso",
+        "statusPlaceholder": "Estado",
+        "studentPlaceholder": "Estudiante"
+      },
+      "status": {
+        "absent": "Ausente",
+        "excused": "Justificado",
+        "present": "Presente"
+      },
+      "subtitle": "Asistencia por sesión en tu ámbito.",
+      "title": "Asistencia"
+    }
+  },
+  "certificates": {
+    "list": {
+      "columns": {
+        "action": "Acción",
+        "course": "Curso",
+        "grade": "Nota final",
+        "issuedAt": "Emitido",
+        "student": "Estudiante"
+      },
+      "dialog": {
+        "title": "Vista previa del certificado"
+      },
+      "downloadPdf": "Descargar PDF",
+      "empty": "Aún no se han emitido certificados.",
+      "emptyStudent": "Aún no has obtenido certificados.",
+      "previewButton": "Vista previa",
+      "subtitle": "Los estudiantes que aprueban un curso (nota ≥ 70) obtienen un certificado. Previsualiza y descarga el PDF.",
+      "title": "Certificados"
+    }
+  },
   "common": {
     "a11y": {
       "filters": "Filtros"
@@ -86,6 +133,35 @@
       "title": "Matrículas",
       "unenroll": "Desmatricular",
       "unenrollConfirm": "¿Eliminar esta matrícula?"
+    }
+  },
+  "grades": {
+    "dialog": {
+      "editTitle": "Editar calificación",
+      "scoreLabel": "Nota (0-100)",
+      "setTitle": "Calificar a {{student}}",
+      "submit": "Guardar calificación"
+    },
+    "list": {
+      "columns": {
+        "actions": "Acciones",
+        "course": "Curso",
+        "score": "Nota",
+        "student": "Estudiante",
+        "updatedAt": "Actualizado"
+      },
+      "deleteConfirmWithNames": "¿Eliminar la calificación de {{student}} en {{course}}?",
+      "editButton": "Editar",
+      "empty": "Aún no hay calificaciones.",
+      "emptyFiltered": "Ninguna calificación coincide con los filtros.",
+      "filters": {
+        "anyCourse": "Cualquier curso",
+        "anyStudent": "Cualquier estudiante",
+        "coursePlaceholder": "Curso",
+        "studentPlaceholder": "Estudiante"
+      },
+      "subtitle": "Cada calificación del sistema. Los administradores pueden corregir o eliminar registros.",
+      "title": "Calificaciones"
     }
   },
   "header": {
@@ -191,6 +267,27 @@
       "emptyFiltered": "Ningún estudiante coincide con el filtro.",
       "searchPlaceholder": "Buscar por nombre o correo",
       "title": "Estudiantes"
+    }
+  },
+  "tcu": {
+    "list": {
+      "columns": {
+        "date": "Fecha",
+        "description": "Actividad",
+        "hours": "Horas",
+        "organizer": "Organizador",
+        "student": "Estudiante"
+      },
+      "empty": "Aún no hay actividades registradas.",
+      "filters": {
+        "anyOrganizer": "Cualquier organizador",
+        "anyStudent": "Cualquier estudiante",
+        "organizerPlaceholder": "Organizador",
+        "studentPlaceholder": "Estudiante"
+      },
+      "subtitle": "Horas de servicio comunitario por estudiante.",
+      "title": "Actividades TCU",
+      "totalLabel": "Total de horas: {{hours}}"
     }
   },
   "teachers": {

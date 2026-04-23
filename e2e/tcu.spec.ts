@@ -14,3 +14,11 @@ test('student sees only their own TCU activities', async ({ page }) => {
   // The page must NOT show the student filter select (admin-only).
   await expect(page.getByRole('combobox', { name: /student/i })).toHaveCount(0)
 })
+
+test('renders in Spanish when locale is ES', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'es' }).click()
+  await page.getByRole('button', { name: 'Ingresar como Administrador' }).click()
+  await page.getByRole('link', { name: 'TCU' }).click()
+  await expect(page.getByRole('heading', { name: 'Actividades TCU' })).toBeVisible()
+})

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import {
   Select,
@@ -17,6 +18,7 @@ import {
 } from '@/components/ui/table'
 import { useAttendance } from '@/hooks/api'
 import { useStore } from '@/data/store'
+import { useFormat } from '@/hooks/useFormat'
 import type { AttendanceFilters } from '@/data/api/attendance'
 import type { AttendanceStatus } from '@/types'
 
@@ -31,20 +33,24 @@ function statusVariant(
 }
 
 export function AttendanceListPage() {
+  const { t } = useTranslation()
+  const { formatDate } = useFormat()
   const role = useStore((s) => s.role)
   const [filters, setFilters] = useState<AttendanceFilters>({})
   const { data = [], isLoading } = useAttendance(filters)
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
 
+  const hasFilters = Boolean(filters.studentId || filters.courseId || filters.status)
+
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Attendance</h1>
-        <p className="text-sm text-muted-foreground">Per-session attendance across your scope.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('attendance.list.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('attendance.list.subtitle')}</p>
       </header>
 
-      <section aria-label="Filters" className="grid gap-3 sm:grid-cols-3">
+      <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-3">
         {role === 'admin' && (
           <Select
             value={filters.studentId ?? 'any'}
@@ -53,10 +59,10 @@ export function AttendanceListPage() {
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Student" />
+              <SelectValue placeholder={t('attendance.list.filters.studentPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="any">Any student</SelectItem>
+              <SelectItem value="any">{t('attendance.list.filters.anyStudent')}</SelectItem>
               {students.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
                   {s.firstName} {s.lastName}
@@ -72,10 +78,10 @@ export function AttendanceListPage() {
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Course" />
+            <SelectValue placeholder={t('attendance.list.filters.coursePlaceholder')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">Any course</SelectItem>
+            <SelectItem value="any">{t('attendance.list.filters.anyCourse')}</SelectItem>
             {courses.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
@@ -90,13 +96,13 @@ export function AttendanceListPage() {
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t('attendance.list.filters.statusPlaceholder')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">Any status</SelectItem>
+            <SelectItem value="any">{t('attendance.list.filters.anyStatus')}</SelectItem>
             {STATUS_OPTIONS.map((s) => (
               <SelectItem key={s} value={s}>
-                {s}
+                {t(`attendance.list.status.${s}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -104,19 +110,19 @@ export function AttendanceListPage() {
       </section>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">…</p>
       ) : data.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          No attendance records match.
+          {hasFilters ? t('attendance.list.emptyFiltered') : t('attendance.list.empty')}
         </p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Student</TableHead>
-              <TableHead>Course</TableHead>
-              <TableHead>Session</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>{t('attendance.list.columns.student')}</TableHead>
+              <TableHead>{t('attendance.list.columns.course')}</TableHead>
+              <TableHead>{t('attendance.list.columns.date')}</TableHead>
+              <TableHead>{t('attendance.list.columns.status')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -129,9 +135,11 @@ export function AttendanceListPage() {
                     {s?.firstName} {s?.lastName}
                   </TableCell>
                   <TableCell>{c?.name}</TableCell>
-                  <TableCell>{new Date(r.sessionDate).toLocaleDateString('en-US')}</TableCell>
+                  <TableCell>{formatDate(r.sessionDate)}</TableCell>
                   <TableCell>
-                    <Badge variant={statusVariant(r.status)}>{r.status}</Badge>
+                    <Badge variant={statusVariant(r.status)}>
+                      {t(`attendance.list.status.${r.status}`)}
+                    </Badge>
                   </TableCell>
                 </TableRow>
               )

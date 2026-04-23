@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { pdf, PDFViewer } from '@react-pdf/renderer'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
@@ -12,10 +13,13 @@ import {
 } from '@/components/ui/table'
 import { useStore } from '@/data/store'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useFormat } from '@/hooks/useFormat'
 import { buildEligibleList, type EligibleCertificate } from '@/lib/certificates'
 import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
 
 export function CertificatesListPage() {
+  const { t } = useTranslation()
+  const { formatDate, formatGrade } = useFormat()
   const currentUser = useCurrentUser()
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
@@ -85,27 +89,30 @@ export function CertificatesListPage() {
       ? `certificate-${selectedStudent.id}-${selectedCourse.id}.pdf`
       : 'certificate.pdf'
 
+  const emptyMessage =
+    currentUser?.role === 'student'
+      ? t('certificates.list.emptyStudent')
+      : t('certificates.list.empty')
+
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Certificates</h1>
-        <p className="text-sm text-muted-foreground">
-          Students who passed a course (score ≥ 70) earn a certificate. Preview and download the
-          PDF.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('certificates.list.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('certificates.list.subtitle')}</p>
       </header>
       {list.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          No eligible certificates yet.
+          {emptyMessage}
         </p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Student</TableHead>
-              <TableHead>Course</TableHead>
-              <TableHead>Score</TableHead>
-              <TableHead className="text-right">Action</TableHead>
+              <TableHead>{t('certificates.list.columns.student')}</TableHead>
+              <TableHead>{t('certificates.list.columns.course')}</TableHead>
+              <TableHead>{t('certificates.list.columns.grade')}</TableHead>
+              <TableHead>{t('certificates.list.columns.issuedAt')}</TableHead>
+              <TableHead className="text-right">{t('certificates.list.columns.action')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -118,10 +125,11 @@ export function CertificatesListPage() {
                     {s?.firstName} {s?.lastName}
                   </TableCell>
                   <TableCell>{cs?.name}</TableCell>
-                  <TableCell>{c.score}</TableCell>
+                  <TableCell>{formatGrade(c.score)}</TableCell>
+                  <TableCell>{formatDate(c.issuedAt)}</TableCell>
                   <TableCell className="text-right">
                     <Button size="sm" onClick={() => setSelected(c)}>
-                      Preview
+                      {t('certificates.list.previewButton')}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -134,7 +142,7 @@ export function CertificatesListPage() {
       <Dialog open={selected !== null} onOpenChange={(v) => !v && setSelected(null)}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Certificate preview</DialogTitle>
+            <DialogTitle>{t('certificates.list.dialog.title')}</DialogTitle>
           </DialogHeader>
           {selected && selectedStudent && selectedCourse && (
             <div className="space-y-4">
@@ -151,7 +159,7 @@ export function CertificatesListPage() {
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setSelected(null)}>
-                  Close
+                  {t('common.actions.close')}
                 </Button>
                 <Button
                   disabled={!dataUrl}
@@ -169,7 +177,7 @@ export function CertificatesListPage() {
                     setTimeout(() => anchor.remove(), 0)
                   }}
                 >
-                  Download PDF
+                  {t('certificates.list.downloadPdf')}
                 </Button>
               </div>
             </div>

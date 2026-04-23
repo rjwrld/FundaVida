@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -12,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useUpdateGradeScore } from '@/hooks/api'
-import { gradeSchema, type GradeFormValues } from '@/data/schemas/grade'
+import { buildGradeSchema, type GradeFormValues } from '@/data/schemas/grade'
 
 interface Props {
   gradeId: string | null
@@ -29,6 +30,7 @@ export function EditGradeDialog({
   courseName,
   onClose,
 }: Props) {
+  const { t } = useTranslation()
   const updateGrade = useUpdateGradeScore()
   const open = gradeId !== null
   const {
@@ -37,7 +39,7 @@ export function EditGradeDialog({
     formState: { errors, isSubmitting },
     reset,
   } = useForm<GradeFormValues>({
-    resolver: zodResolver(gradeSchema),
+    resolver: zodResolver(buildGradeSchema(t)),
     defaultValues: { score: initialScore },
   })
 
@@ -55,14 +57,14 @@ export function EditGradeDialog({
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit grade</DialogTitle>
+          <DialogTitle>{t('grades.dialog.editTitle')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 text-sm">
           <p className="text-muted-foreground">
             {studentName} — {courseName}
           </p>
           <div className="space-y-1.5">
-            <Label htmlFor="score">Score</Label>
+            <Label htmlFor="score">{t('grades.dialog.scoreLabel')}</Label>
             <Input
               id="score"
               type="number"
@@ -80,10 +82,10 @@ export function EditGradeDialog({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting || updateGrade.isPending}>
-              Save grade
+              {t('grades.dialog.submit')}
             </Button>
           </DialogFooter>
         </form>
