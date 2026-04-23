@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Select,
   SelectContent,
@@ -15,6 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useAuditLog } from '@/hooks/api'
+import { useFormat } from '@/hooks/useFormat'
 import type { AuditLogFilters } from '@/data/api/auditLog'
 import type { AuditAction, AuditEntity } from '@/types'
 
@@ -29,19 +31,19 @@ const ENTITIES: AuditEntity[] = [
 ]
 
 export function AuditLogPage() {
+  const { t } = useTranslation()
+  const { formatDateTime } = useFormat()
   const [filters, setFilters] = useState<AuditLogFilters>({})
   const { data = [], isLoading } = useAuditLog(filters)
 
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Audit logs</h1>
-        <p className="text-sm text-muted-foreground">
-          Every create, update, and delete since the last demo reset, plus seeded history.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('auditLog.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('auditLog.subtitle')}</p>
       </header>
 
-      <section aria-label="Filters" className="grid gap-3 sm:grid-cols-2">
+      <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
         <Select
           value={filters.action ?? 'any'}
           onValueChange={(v) =>
@@ -49,13 +51,13 @@ export function AuditLogPage() {
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Action" />
+            <SelectValue placeholder={t('auditLog.columns.action')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">Any action</SelectItem>
+            <SelectItem value="any">{t('auditLog.filter.all')}</SelectItem>
             {ACTIONS.map((a) => (
               <SelectItem key={a} value={a}>
-                {a}
+                {t(`auditLog.filter.${a}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -67,13 +69,13 @@ export function AuditLogPage() {
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Entity" />
+            <SelectValue placeholder={t('auditLog.columns.entity')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">Any entity</SelectItem>
+            <SelectItem value="any">{t('auditLog.filter.all')}</SelectItem>
             {ENTITIES.map((e) => (
               <SelectItem key={e} value={e}>
-                {e}
+                {t(`auditLog.entities.${e}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -81,29 +83,29 @@ export function AuditLogPage() {
       </section>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
       ) : data.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          No audit entries match.
+          {t('auditLog.empty')}
         </p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>When</TableHead>
-              <TableHead>Actor</TableHead>
-              <TableHead>Action</TableHead>
-              <TableHead>Entity</TableHead>
-              <TableHead>Summary</TableHead>
+              <TableHead>{t('auditLog.columns.timestamp')}</TableHead>
+              <TableHead>{t('auditLog.columns.actor')}</TableHead>
+              <TableHead>{t('auditLog.columns.action')}</TableHead>
+              <TableHead>{t('auditLog.columns.entity')}</TableHead>
+              <TableHead>{t('auditLog.columns.summary')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((e) => (
               <TableRow key={e.id}>
-                <TableCell>{new Date(e.timestamp).toLocaleString('en-US')}</TableCell>
+                <TableCell>{formatDateTime(e.timestamp)}</TableCell>
                 <TableCell>{e.actorId}</TableCell>
-                <TableCell>{e.action}</TableCell>
-                <TableCell>{e.entity}</TableCell>
+                <TableCell>{t(`auditLog.actions.${e.action}`)}</TableCell>
+                <TableCell>{t(`auditLog.entities.${e.entity}`)}</TableCell>
                 <TableCell>{e.summary}</TableCell>
               </TableRow>
             ))}

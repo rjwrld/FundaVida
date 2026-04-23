@@ -26,6 +26,83 @@
       "title": "Attendance"
     }
   },
+  "auditLog": {
+    "actions": {
+      "create": "Create",
+      "delete": "Delete",
+      "enroll": "Enroll",
+      "grade": "Grade",
+      "unenroll": "Unenroll",
+      "update": "Update"
+    },
+    "columns": {
+      "action": "Action",
+      "actor": "Actor",
+      "entity": "Entity",
+      "summary": "Summary",
+      "timestamp": "When"
+    },
+    "empty": "No audit entries match your filter.",
+    "entities": {
+      "attendance": "Attendance",
+      "course": "Course",
+      "emailCampaign": "Email",
+      "enrollment": "Enrollment",
+      "grade": "Grade",
+      "student": "Student",
+      "tcu": "TCU",
+      "teacher": "Teacher"
+    },
+    "filter": {
+      "all": "All actions",
+      "create": "Creates",
+      "delete": "Deletes",
+      "enroll": "Enrollments",
+      "grade": "Grades",
+      "unenroll": "Unenrollments",
+      "update": "Updates"
+    },
+    "subtitle": "Chronological record of every create, update, and delete.",
+    "title": "Audit logs"
+  },
+  "bulkEmail": {
+    "compose": "Compose",
+    "dimensions": {
+      "course": "course",
+      "program": "program",
+      "province": "province"
+    },
+    "fields": {
+      "body": "Body",
+      "filter": "Recipient filter",
+      "filterValue": "Filter value",
+      "subject": "Subject"
+    },
+    "filter": {
+      "all": "All students",
+      "course": "By course",
+      "placeholder": "Select a {{dimension}}",
+      "program": "By program",
+      "province": "By province"
+    },
+    "history": {
+      "columns": {
+        "filter": "Filter",
+        "recipients": "Recipients",
+        "sentAt": "Sent",
+        "subject": "Subject"
+      },
+      "empty": "No campaigns sent yet.",
+      "title": "Sent campaigns"
+    },
+    "noRecipients": "No recipients match this filter.",
+    "recipientCount_one": "{{count}} recipient will receive this email.",
+    "recipientCount_other": "{{count}} recipients will receive this email.",
+    "sending": "Sending…",
+    "submit": "Send",
+    "subtitle": "Draft a message, pick recipients, send (simulated).",
+    "title": "Bulk email"
+  },
   "certificates": {
     "list": {
       "columns": {
@@ -102,6 +179,26 @@
       "searchPlaceholder": "Search by name or program",
       "title": "Courses"
     }
+  },
+  "dashboard": {
+    "admin": {
+      "courses": "Courses",
+      "grades": "Grades",
+      "students": "Students",
+      "teachers": "Teachers"
+    },
+    "overviewHeading": "Overview",
+    "placeholder": {
+      "cardTitle": "Your {{role}} dashboard",
+      "studentCopy": "Browse your enrolled courses and download your certificates from the sidebar.",
+      "tcuCopy": "TCU reports arrive in a later phase."
+    },
+    "subtitle": "Demo dashboard. Domain modules land in subsequent phases.",
+    "teacher": {
+      "myCourses": "My courses",
+      "students": "Students"
+    },
+    "title": "Signed in as {{role}}"
   },
   "demoBanner": {
     "dismiss": "Dismiss",
@@ -192,6 +289,32 @@
   "notFound": {
     "subtitle": "We couldn't find that page.",
     "title": "404"
+  },
+  "reports": {
+    "columns": {
+      "average": "Average",
+      "count": "Count",
+      "course": "Course",
+      "hours": "Hours",
+      "rate": "Rate",
+      "student": "Student"
+    },
+    "empty": "No data yet.",
+    "noRecords": "No records",
+    "sections": {
+      "averageGradeByCourse": "Average grade by course",
+      "enrollmentsByCourse": "Enrollments by course",
+      "presentRateByCourse": "Attendance rate by course",
+      "tcuHoursByStudent": "TCU hours by student"
+    },
+    "subtitle": "Cross-cutting totals across the program.",
+    "title": "Reports",
+    "totals": {
+      "courses": "Courses",
+      "enrollments": "Enrollments",
+      "students": "Students",
+      "teachers": "Teachers"
+    }
   },
   "roles": {
     "admin": {
@@ -326,7 +449,11 @@
   "validation": {
     "email": "Enter a valid email",
     "max": "At most {{count}} characters",
+    "max_one": "At most {{count}} character",
+    "max_other": "At most {{count}} characters",
     "min": "At least {{count}} characters",
+    "min_one": "At least {{count}} character",
+    "min_other": "At least {{count}} characters",
     "numberMax": "Maximum {{max}}",
     "numberMin": "Minimum {{min}}",
     "numberRequired": "Must be a number",

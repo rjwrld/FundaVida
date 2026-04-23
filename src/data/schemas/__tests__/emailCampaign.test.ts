@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { emailCampaignSchema } from '../emailCampaign'
+import { buildEmailCampaignSchema } from '../emailCampaign'
+
+const tStub = ((k: string) => k) as unknown as Parameters<typeof buildEmailCampaignSchema>[0]
+const emailCampaignSchema = buildEmailCampaignSchema(tStub)
 
 describe('emailCampaignSchema', () => {
   it('accepts a minimal valid payload', () => {
@@ -55,7 +58,7 @@ describe('emailCampaignSchema', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       const issue = result.error.issues.find((i) => i.path[0] === 'filterValue')
-      expect(issue?.message).toBe('Select a value for the chosen filter')
+      expect(issue?.message).toBe('validation.selectValue')
     }
   })
 
