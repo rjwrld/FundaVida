@@ -61,9 +61,11 @@ const SHOTS: Shot[] = [
     capture: async (page) => {
       const previewButton = page.getByRole('button', { name: /preview|vista previa/i }).first()
       await previewButton.click()
-      await page.getByRole('heading', {
-        name: /certificate preview|vista previa del certificado/i,
-      })
+      await page
+        .getByRole('heading', {
+          name: /certificate preview|vista previa del certificado/i,
+        })
+        .waitFor()
       // PDFViewer embeds a PDF via an iframe. Headless Chromium's bundled PDF
       // viewer plugin is unavailable, so the iframe frame stays blank — but the
       // dialog chrome (title, close/download buttons, list behind the backdrop)
