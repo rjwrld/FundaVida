@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export function EnrollStudentDialog({ open, onOpenChange, courseId }: Props) {
+  const { t } = useTranslation()
   const students = useStore((s) => s.students)
   const enrollments = useStore((s) => s.enrollments)
   const enrolledIds = new Set(
@@ -51,14 +53,14 @@ export function EnrollStudentDialog({ open, onOpenChange, courseId }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Enroll a student</DialogTitle>
-          <DialogDescription>Select a student to enroll in this course.</DialogDescription>
+          <DialogTitle>{t('enrollments.dialog.title')}</DialogTitle>
+          <DialogDescription>{t('enrollments.dialog.studentPlaceholder')}</DialogDescription>
         </DialogHeader>
         <div className="space-y-1.5">
-          <Label>Student</Label>
+          <Label>{t('enrollments.dialog.studentLabel')}</Label>
           <Select value={selected} onValueChange={setSelected}>
-            <SelectTrigger aria-label="Student">
-              <SelectValue placeholder="Select a student" />
+            <SelectTrigger aria-label={t('enrollments.dialog.studentLabel')}>
+              <SelectValue placeholder={t('enrollments.dialog.studentPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
               {eligible.map((s) => (
@@ -69,17 +71,15 @@ export function EnrollStudentDialog({ open, onOpenChange, courseId }: Props) {
             </SelectContent>
           </Select>
           {eligible.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              Every student is already enrolled in this course.
-            </p>
+            <p className="text-sm text-muted-foreground">{t('enrollments.dialog.noStudents')}</p>
           )}
         </div>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common.actions.cancel')}
           </Button>
           <Button type="button" onClick={submit} disabled={!selected}>
-            Enroll
+            {t('enrollments.dialog.submit')}
           </Button>
         </DialogFooter>
       </DialogContent>

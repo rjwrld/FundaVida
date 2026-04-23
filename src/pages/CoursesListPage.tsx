@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -23,6 +24,7 @@ import type { CourseFilters } from '@/data/api/courses'
 import { useStore } from '@/data/store'
 
 export function CoursesListPage() {
+  const { t } = useTranslation()
   const [filters, setFilters] = useState<CourseFilters>({})
   const { data = [], isLoading } = useCourses(filters)
   const deleteCourse = useDeleteCourse()
@@ -32,25 +34,26 @@ export function CoursesListPage() {
   const isAdmin = role === 'admin'
 
   const teacherName = (teacherId: string) => {
-    const t = teachers.find((x) => x.id === teacherId)
-    return t ? `${t.firstName} ${t.lastName}` : teacherId
+    const teacher = teachers.find((x) => x.id === teacherId)
+    return teacher ? `${teacher.firstName} ${teacher.lastName}` : teacherId
   }
 
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Courses</h1>
-          <p className="text-sm text-muted-foreground">
-            Browse courses, manage enrollments, and grade students.
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight">{t('courses.list.title')}</h1>
         </div>
-        {isAdmin && <Button onClick={() => navigate('/app/courses/new')}>New course</Button>}
+        {isAdmin && (
+          <Button onClick={() => navigate('/app/courses/new')}>
+            {t('courses.list.addButton')}
+          </Button>
+        )}
       </header>
 
       <section aria-label="Filters" className="grid gap-3 sm:grid-cols-3">
         <Input
-          placeholder="Search by name or description"
+          placeholder={t('students.list.searchPlaceholder')}
           value={filters.search ?? ''}
           onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value || undefined }))}
         />
@@ -60,11 +63,11 @@ export function CoursesListPage() {
             setFilters((f) => ({ ...f, headquartersName: v === 'any' ? undefined : v }))
           }
         >
-          <SelectTrigger aria-label="Headquarters">
-            <SelectValue placeholder="Headquarters" />
+          <SelectTrigger aria-label={t('courses.form.fields.headquartersName')}>
+            <SelectValue placeholder={t('courses.form.fields.headquartersName')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">Any headquarters</SelectItem>
+            <SelectItem value="any">{t('courses.form.fields.headquartersName')}</SelectItem>
             {HEADQUARTERS.map((h) => (
               <SelectItem key={h} value={h}>
                 {h}
@@ -78,11 +81,11 @@ export function CoursesListPage() {
             setFilters((f) => ({ ...f, programName: v === 'any' ? undefined : v }))
           }
         >
-          <SelectTrigger aria-label="Program">
-            <SelectValue placeholder="Program" />
+          <SelectTrigger aria-label={t('courses.list.columns.program')}>
+            <SelectValue placeholder={t('courses.list.columns.program')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">Any program</SelectItem>
+            <SelectItem value="any">{t('courses.list.columns.program')}</SelectItem>
             {PROGRAMS.map((p) => (
               <SelectItem key={p} value={p}>
                 {p}
@@ -93,20 +96,22 @@ export function CoursesListPage() {
       </section>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">…</p>
       ) : data.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          No courses match these filters.
+          {t('courses.list.empty')}
         </p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Program</TableHead>
-              <TableHead>Headquarters</TableHead>
-              <TableHead>Teacher</TableHead>
-              {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+              <TableHead>{t('courses.list.columns.name')}</TableHead>
+              <TableHead>{t('courses.list.columns.program')}</TableHead>
+              <TableHead>{t('courses.form.fields.headquartersName')}</TableHead>
+              <TableHead>{t('courses.list.columns.teacher')}</TableHead>
+              {isAdmin && (
+                <TableHead className="text-right">{t('courses.list.columns.actions')}</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -127,18 +132,18 @@ export function CoursesListPage() {
                       size="sm"
                       onClick={() => navigate(`/app/courses/${c.id}/edit`)}
                     >
-                      Edit
+                      {t('courses.detail.edit')}
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        if (confirm(`Delete ${c.name}?`)) {
+                        if (confirm(t('courses.detail.deleteConfirm'))) {
                           deleteCourse.mutate(c.id)
                         }
                       }}
                     >
-                      Delete
+                      {t('common.actions.delete')}
                     </Button>
                   </TableCell>
                 )}

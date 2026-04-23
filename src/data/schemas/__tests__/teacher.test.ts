@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { teacherSchema } from '../teacher'
+import { buildTeacherSchema } from '../teacher'
+
+const tStub = ((k: string) => k) as unknown as Parameters<typeof buildTeacherSchema>[0]
+const teacherSchema = buildTeacherSchema(tStub)
 
 describe('teacherSchema', () => {
   it('accepts a valid payload', () => {

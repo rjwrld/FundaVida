@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,11 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { studentSchema, type StudentFormValues } from '@/data/schemas/student'
+import { buildStudentSchema, type StudentFormValues } from '@/data/schemas/student'
 import { useCreateStudent, useStudent, useUpdateStudent } from '@/hooks/api'
 import { EDUCATIONAL_LEVELS, GENDERS, PROVINCES } from '@/constants/student'
 
 export function StudentsFormPage() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
@@ -32,7 +34,7 @@ export function StudentsFormPage() {
     watch,
     formState: { errors, isSubmitting },
   } = useForm<StudentFormValues>({
-    resolver: zodResolver(studentSchema),
+    resolver: zodResolver(buildStudentSchema(t)),
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -72,20 +74,20 @@ export function StudentsFormPage() {
     <div className="max-w-2xl space-y-6">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {isEdit ? 'Edit student' : 'New student'}
+          {isEdit ? t('students.form.editTitle') : t('students.form.newTitle')}
         </h1>
       </header>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="firstName">First name</Label>
+            <Label htmlFor="firstName">{t('students.form.fields.firstName')}</Label>
             <Input id="firstName" {...register('firstName')} />
             {errors.firstName && (
               <p className="text-xs text-destructive">{errors.firstName.message}</p>
             )}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="lastName">Last name</Label>
+            <Label htmlFor="lastName">{t('students.form.fields.lastName')}</Label>
             <Input id="lastName" {...register('lastName')} />
             {errors.lastName && (
               <p className="text-xs text-destructive">{errors.lastName.message}</p>
@@ -93,39 +95,39 @@ export function StudentsFormPage() {
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t('students.form.fields.email')}</Label>
           <Input id="email" type="email" {...register('email')} />
           {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-1.5">
-            <Label>Gender</Label>
+            <Label>{t('students.form.fields.gender')}</Label>
             <Select
               value={watch('gender')}
               onValueChange={(v) =>
                 setValue('gender', v as StudentFormValues['gender'], { shouldValidate: true })
               }
             >
-              <SelectTrigger aria-label="Gender">
+              <SelectTrigger aria-label={t('students.form.fields.gender')}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {GENDERS.map((g) => (
                   <SelectItem key={g} value={g}>
-                    {g}
+                    {t(`students.form.gender.${g}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Province</Label>
+            <Label>{t('students.form.fields.province')}</Label>
             <Select
               value={watch('province')}
               onValueChange={(v) => setValue('province', v, { shouldValidate: true })}
             >
-              <SelectTrigger aria-label="Province">
-                <SelectValue placeholder="Select province" />
+              <SelectTrigger aria-label={t('students.form.fields.province')}>
+                <SelectValue placeholder={t('students.form.fields.province')} />
               </SelectTrigger>
               <SelectContent>
                 {PROVINCES.map((p) => (
@@ -140,13 +142,13 @@ export function StudentsFormPage() {
             )}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="canton">Canton</Label>
+            <Label htmlFor="canton">{t('students.form.fields.canton')}</Label>
             <Input id="canton" {...register('canton')} />
             {errors.canton && <p className="text-xs text-destructive">{errors.canton.message}</p>}
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label>Educational level</Label>
+          <Label>{t('students.form.fields.educationalLevel')}</Label>
           <Select
             value={watch('educationalLevel')}
             onValueChange={(v) =>
@@ -155,13 +157,13 @@ export function StudentsFormPage() {
               })
             }
           >
-            <SelectTrigger aria-label="Educational level">
+            <SelectTrigger aria-label={t('students.form.fields.educationalLevel')}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {EDUCATIONAL_LEVELS.map((l) => (
                 <SelectItem key={l} value={l}>
-                  {l}
+                  {t(`students.form.level.${l}`)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -169,10 +171,10 @@ export function StudentsFormPage() {
         </div>
         <div className="flex gap-2">
           <Button type="submit" disabled={isSubmitting}>
-            {isEdit ? 'Save' : 'Create'}
+            {t('common.actions.save')}
           </Button>
           <Button type="button" variant="outline" onClick={() => navigate('/app/students')}>
-            Cancel
+            {t('common.actions.cancel')}
           </Button>
         </div>
       </form>

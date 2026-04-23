@@ -13,10 +13,69 @@
       "spanish": "Spanish"
     }
   },
+  "courses": {
+    "detail": {
+      "deleteConfirm": "Delete this course?",
+      "edit": "Edit",
+      "enrollButton": "Enroll student",
+      "sections": {
+        "noStudents": "No students enrolled.",
+        "overview": "Overview",
+        "students": "Students"
+      },
+      "title": "Course"
+    },
+    "form": {
+      "editTitle": "Edit course",
+      "fields": {
+        "description": "Description",
+        "headquartersName": "Headquarters",
+        "name": "Course name",
+        "programName": "Program",
+        "teacherId": "Teacher"
+      },
+      "newTitle": "New course",
+      "teacherPlaceholder": "Select a teacher"
+    },
+    "list": {
+      "addButton": "Add course",
+      "columns": {
+        "actions": "Actions",
+        "enrolled": "Enrolled",
+        "name": "Name",
+        "program": "Program",
+        "teacher": "Teacher"
+      },
+      "empty": "No courses yet.",
+      "title": "Courses"
+    }
+  },
   "demoBanner": {
     "dismiss": "Dismiss",
     "message": "This is a demo. All data runs locally in your browser.",
     "reset": "Reset demo"
+  },
+  "enrollments": {
+    "dialog": {
+      "alreadyEnrolled": "Student is already enrolled in this course.",
+      "noStudents": "No eligible students.",
+      "studentLabel": "Student",
+      "studentPlaceholder": "Select a student",
+      "submit": "Enroll",
+      "title": "Enroll student"
+    },
+    "list": {
+      "columns": {
+        "actions": "Actions",
+        "course": "Course",
+        "enrolledAt": "Enrolled",
+        "student": "Student"
+      },
+      "empty": "No enrollments yet.",
+      "title": "Enrollments",
+      "unenroll": "Unenroll",
+      "unenrollConfirm": "Remove this enrollment?"
+    }
   },
   "header": {
     "brand": "FundaVida",
@@ -72,5 +131,96 @@
   },
   "sidebar": {
     "sectionsAriaLabel": "Sections"
+  },
+  "students": {
+    "detail": {
+      "deleteConfirm": "Delete this student? This cannot be undone.",
+      "edit": "Edit",
+      "sections": {
+        "enrollments": "Enrollments",
+        "identity": "Identity",
+        "noEnrollments": "Not enrolled in any courses."
+      },
+      "title": "Student"
+    },
+    "form": {
+      "editTitle": "Edit student",
+      "fields": {
+        "canton": "Canton",
+        "educationalLevel": "Educational level",
+        "email": "Email",
+        "firstName": "First name",
+        "gender": "Gender",
+        "lastName": "Last name",
+        "province": "Province"
+      },
+      "gender": {
+        "F": "Female",
+        "M": "Male",
+        "X": "Other"
+      },
+      "level": {
+        "Primary": "Primary",
+        "Secondary": "Secondary",
+        "University": "University"
+      },
+      "newTitle": "New student"
+    },
+    "list": {
+      "addButton": "Add student",
+      "columns": {
+        "actions": "Actions",
+        "email": "Email",
+        "level": "Level",
+        "name": "Name",
+        "province": "Province"
+      },
+      "empty": "No students yet.",
+      "emptyFiltered": "No students match your filter.",
+      "searchPlaceholder": "Search by name or email",
+      "title": "Students"
+    }
+  },
+  "teachers": {
+    "detail": {
+      "deleteConfirm": "Delete this teacher?",
+      "edit": "Edit",
+      "sections": {
+        "courses": "Courses taught",
+        "identity": "Identity",
+        "noCourses": "No assigned courses."
+      },
+      "title": "Teacher"
+    },
+    "form": {
+      "editTitle": "Edit teacher",
+      "fields": {
+        "email": "Email",
+        "firstName": "First name",
+        "lastName": "Last name"
+      },
+      "newTitle": "New teacher"
+    },
+    "list": {
+      "addButton": "Add teacher",
+      "columns": {
+        "actions": "Actions",
+        "courses": "Courses",
+        "email": "Email",
+        "name": "Name"
+      },
+      "empty": "No teachers yet.",
+      "title": "Teachers"
+    }
+  },
+  "validation": {
+    "email": "Enter a valid email",
+    "max": "At most {{count}} characters",
+    "min": "At least {{count}} characters",
+    "numberMax": "Maximum {{max}}",
+    "numberMin": "Minimum {{min}}",
+    "numberRequired": "Must be a number",
+    "required": "{{field}} is required",
+    "selectValue": "Select a value for the chosen filter"
   }
 }

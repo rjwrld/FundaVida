@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { I18nProvider } from '@/lib/i18n'
 import { TeachersFormPage } from '@/pages/TeachersFormPage'
 import { useStore } from '@/data/store'
 import {
@@ -14,19 +15,21 @@ import {
 function renderForm(path = '/app/teachers/new') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
   return render(
-    <QueryClientProvider client={client}>
-      <MemoryRouter
-        initialEntries={[path]}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
-        <Routes>
-          <Route path="/app/teachers" element={<div>teachers list</div>} />
-          <Route path="/app/teachers/new" element={<TeachersFormPage />} />
-          <Route path="/app/teachers/:id" element={<div>teacher detail</div>} />
-          <Route path="/app/teachers/:id/edit" element={<TeachersFormPage />} />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>
+    <I18nProvider>
+      <QueryClientProvider client={client}>
+        <MemoryRouter
+          initialEntries={[path]}
+          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+        >
+          <Routes>
+            <Route path="/app/teachers" element={<div>teachers list</div>} />
+            <Route path="/app/teachers/new" element={<TeachersFormPage />} />
+            <Route path="/app/teachers/:id" element={<div>teacher detail</div>} />
+            <Route path="/app/teachers/:id/edit" element={<TeachersFormPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </I18nProvider>
   )
 }
 
@@ -37,15 +40,16 @@ describe('<TeachersFormPage />', () => {
     clearPersistedCurrentUser()
     useStore.getState().resetDemo()
     useStore.getState().setRole('admin')
+    useStore.getState().setLocale('en')
   })
 
   it('shows validation errors on empty submit', async () => {
     const user = userEvent.setup()
     renderForm()
-    await user.click(screen.getByRole('button', { name: 'Create teacher' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
     expect(await screen.findByText('First name is required')).toBeInTheDocument()
     expect(screen.getByText('Last name is required')).toBeInTheDocument()
-    expect(screen.getByText('Invalid email')).toBeInTheDocument()
+    expect(screen.getByText('Enter a valid email')).toBeInTheDocument()
   })
 
   it('creates a teacher and lands on their detail page', async () => {
@@ -54,7 +58,7 @@ describe('<TeachersFormPage />', () => {
     await user.type(screen.getByLabelText('First name'), 'Grace')
     await user.type(screen.getByLabelText('Last name'), 'Hopper')
     await user.type(screen.getByLabelText('Email'), 'grace@example.com')
-    await user.click(screen.getByRole('button', { name: 'Create teacher' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
     expect(await screen.findByText('teacher detail')).toBeInTheDocument()
     const added = useStore.getState().teachers.find((t) => t.email === 'grace@example.com')
     expect(added).toBeDefined()
@@ -72,7 +76,7 @@ describe('<TeachersFormPage />', () => {
 
     await user.clear(firstNameInput)
     await user.type(firstNameInput, 'Renamed')
-    await user.click(screen.getByRole('button', { name: 'Save changes' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(await screen.findByText('teacher detail')).toBeInTheDocument()
     const updated = useStore.getState().teachers.find((t) => t.id === first.id)

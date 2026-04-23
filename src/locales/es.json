@@ -13,10 +13,69 @@
       "spanish": "Español"
     }
   },
+  "courses": {
+    "detail": {
+      "deleteConfirm": "¿Eliminar este curso?",
+      "edit": "Editar",
+      "enrollButton": "Matricular estudiante",
+      "sections": {
+        "noStudents": "Ningún estudiante matriculado.",
+        "overview": "Resumen",
+        "students": "Estudiantes"
+      },
+      "title": "Curso"
+    },
+    "form": {
+      "editTitle": "Editar curso",
+      "fields": {
+        "description": "Descripción",
+        "headquartersName": "Sede",
+        "name": "Nombre del curso",
+        "programName": "Programa",
+        "teacherId": "Docente"
+      },
+      "newTitle": "Nuevo curso",
+      "teacherPlaceholder": "Selecciona un docente"
+    },
+    "list": {
+      "addButton": "Agregar curso",
+      "columns": {
+        "actions": "Acciones",
+        "enrolled": "Matriculados",
+        "name": "Nombre",
+        "program": "Programa",
+        "teacher": "Docente"
+      },
+      "empty": "Aún no hay cursos.",
+      "title": "Cursos"
+    }
+  },
   "demoBanner": {
     "dismiss": "Cerrar",
     "message": "Esta es una demostración. Todos los datos se ejecutan localmente en tu navegador.",
     "reset": "Reiniciar demo"
+  },
+  "enrollments": {
+    "dialog": {
+      "alreadyEnrolled": "El estudiante ya está matriculado en este curso.",
+      "noStudents": "No hay estudiantes elegibles.",
+      "studentLabel": "Estudiante",
+      "studentPlaceholder": "Selecciona un estudiante",
+      "submit": "Matricular",
+      "title": "Matricular estudiante"
+    },
+    "list": {
+      "columns": {
+        "actions": "Acciones",
+        "course": "Curso",
+        "enrolledAt": "Matriculado",
+        "student": "Estudiante"
+      },
+      "empty": "Aún no hay matrículas.",
+      "title": "Matrículas",
+      "unenroll": "Desmatricular",
+      "unenrollConfirm": "¿Eliminar esta matrícula?"
+    }
   },
   "header": {
     "brand": "FundaVida",
@@ -72,5 +131,96 @@
   },
   "sidebar": {
     "sectionsAriaLabel": "Secciones"
+  },
+  "students": {
+    "detail": {
+      "deleteConfirm": "¿Eliminar este estudiante? Esta acción no se puede deshacer.",
+      "edit": "Editar",
+      "sections": {
+        "enrollments": "Matrículas",
+        "identity": "Identidad",
+        "noEnrollments": "No está matriculado en ningún curso."
+      },
+      "title": "Estudiante"
+    },
+    "form": {
+      "editTitle": "Editar estudiante",
+      "fields": {
+        "canton": "Cantón",
+        "educationalLevel": "Nivel educativo",
+        "email": "Correo",
+        "firstName": "Nombre",
+        "gender": "Género",
+        "lastName": "Apellido",
+        "province": "Provincia"
+      },
+      "gender": {
+        "F": "Femenino",
+        "M": "Masculino",
+        "X": "Otro"
+      },
+      "level": {
+        "Primary": "Primaria",
+        "Secondary": "Secundaria",
+        "University": "Universidad"
+      },
+      "newTitle": "Nuevo estudiante"
+    },
+    "list": {
+      "addButton": "Agregar estudiante",
+      "columns": {
+        "actions": "Acciones",
+        "email": "Correo",
+        "level": "Nivel",
+        "name": "Nombre",
+        "province": "Provincia"
+      },
+      "empty": "Aún no hay estudiantes.",
+      "emptyFiltered": "Ningún estudiante coincide con el filtro.",
+      "searchPlaceholder": "Buscar por nombre o correo",
+      "title": "Estudiantes"
+    }
+  },
+  "teachers": {
+    "detail": {
+      "deleteConfirm": "¿Eliminar este docente?",
+      "edit": "Editar",
+      "sections": {
+        "courses": "Cursos impartidos",
+        "identity": "Identidad",
+        "noCourses": "Sin cursos asignados."
+      },
+      "title": "Docente"
+    },
+    "form": {
+      "editTitle": "Editar docente",
+      "fields": {
+        "email": "Correo",
+        "firstName": "Nombre",
+        "lastName": "Apellido"
+      },
+      "newTitle": "Nuevo docente"
+    },
+    "list": {
+      "addButton": "Agregar docente",
+      "columns": {
+        "actions": "Acciones",
+        "courses": "Cursos",
+        "email": "Correo",
+        "name": "Nombre"
+      },
+      "empty": "Aún no hay docentes.",
+      "title": "Docentes"
+    }
+  },
+  "validation": {
+    "email": "Ingresa un correo válido",
+    "max": "Máximo {{count}} caracteres",
+    "min": "Al menos {{count}} caracteres",
+    "numberMax": "Máximo {{max}}",
+    "numberMin": "Mínimo {{min}}",
+    "numberRequired": "Debe ser un número",
+    "required": "{{field}} es obligatorio",
+    "selectValue": "Selecciona un valor para el filtro elegido"
   }
 }

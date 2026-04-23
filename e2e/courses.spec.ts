@@ -23,3 +23,12 @@ test('teacher grades a student in their course', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /^Grade / })).toBeHidden()
   await expect(page.getByText('92')).toBeVisible()
 })
+
+test('list renders in Spanish when locale is ES', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'es' }).click()
+  await page.getByRole('button', { name: 'Ingresar como Administrador' }).click()
+  await page.getByRole('link', { name: 'Cursos' }).click()
+  await expect(page.getByRole('heading', { name: 'Cursos' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Agregar curso' })).toBeVisible()
+})

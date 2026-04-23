@@ -11,7 +11,7 @@ test('admin runs the full chain: create student, enroll, grade, certificate', as
 
   await page.getByRole('link', { name: 'Students' }).click()
   await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible()
-  await page.getByRole('button', { name: 'New student' }).click()
+  await page.getByRole('button', { name: 'Add student' }).click()
   await expect(page.getByRole('heading', { name: 'New student' })).toBeVisible()
 
   await page.getByLabel('First name').fill(firstName)
@@ -20,7 +20,7 @@ test('admin runs the full chain: create student, enroll, grade, certificate', as
   await page.getByLabel('Canton').fill('Central')
   await page.getByRole('combobox', { name: /province/i }).click()
   await page.getByRole('option', { name: 'San José' }).click()
-  await page.getByRole('button', { name: 'Create' }).click()
+  await page.getByRole('button', { name: 'Save' }).click()
 
   await expect(page.getByRole('heading', { name: fullName })).toBeVisible()
 
@@ -29,11 +29,11 @@ test('admin runs the full chain: create student, enroll, grade, certificate', as
   await page.getByRole('table').getByRole('link').first().click()
 
   await page.getByRole('button', { name: 'Enroll student' }).click()
-  await expect(page.getByRole('heading', { name: 'Enroll a student' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Enroll student' })).toBeVisible()
   await page.getByRole('combobox', { name: 'Student' }).click()
   await page.getByRole('option', { name: fullName }).click()
   await page.getByRole('button', { name: 'Enroll', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Enroll a student' })).toBeHidden()
+  await expect(page.getByRole('heading', { name: 'Enroll student' })).toBeHidden()
 
   const studentRow = page.getByRole('row').filter({ hasText: fullName })
   await expect(studentRow).toBeVisible()

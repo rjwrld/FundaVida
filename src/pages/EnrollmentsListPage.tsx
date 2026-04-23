@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -20,6 +21,7 @@ import { useStore } from '@/data/store'
 import type { EnrollmentFilters } from '@/data/api/enrollments'
 
 export function EnrollmentsListPage() {
+  const { t } = useTranslation()
   const [filters, setFilters] = useState<EnrollmentFilters>({})
   const { data = [], isLoading } = useEnrollments(filters)
   const deleteEnrollment = useDeleteEnrollment()
@@ -29,10 +31,7 @@ export function EnrollmentsListPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Enrollments</h1>
-        <p className="text-sm text-muted-foreground">
-          Every student-course enrollment. Unenroll to also remove the matching grade.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('enrollments.list.title')}</h1>
       </header>
 
       <section aria-label="Filters" className="grid gap-3 sm:grid-cols-2">
@@ -43,10 +42,10 @@ export function EnrollmentsListPage() {
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Student" />
+            <SelectValue placeholder={t('enrollments.list.columns.student')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">Any student</SelectItem>
+            <SelectItem value="any">{t('enrollments.list.columns.student')}</SelectItem>
             {students.map((s) => (
               <SelectItem key={s.id} value={s.id}>
                 {s.firstName} {s.lastName}
@@ -61,10 +60,10 @@ export function EnrollmentsListPage() {
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Course" />
+            <SelectValue placeholder={t('enrollments.list.columns.course')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">Any course</SelectItem>
+            <SelectItem value="any">{t('enrollments.list.columns.course')}</SelectItem>
             {courses.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
@@ -75,19 +74,19 @@ export function EnrollmentsListPage() {
       </section>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">…</p>
       ) : data.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          No enrollments match the current filters.
+          {t('enrollments.list.empty')}
         </p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Student</TableHead>
-              <TableHead>Course</TableHead>
-              <TableHead>Enrolled</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t('enrollments.list.columns.student')}</TableHead>
+              <TableHead>{t('enrollments.list.columns.course')}</TableHead>
+              <TableHead>{t('enrollments.list.columns.enrolledAt')}</TableHead>
+              <TableHead className="text-right">{t('enrollments.list.columns.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -106,16 +105,12 @@ export function EnrollmentsListPage() {
                       size="sm"
                       variant="ghost"
                       onClick={() => {
-                        if (
-                          confirm(
-                            `Unenroll ${s?.firstName ?? ''} ${s?.lastName ?? ''} from ${c?.name ?? ''}? Matching grade will also be removed.`
-                          )
-                        ) {
+                        if (confirm(t('enrollments.list.unenrollConfirm'))) {
                           deleteEnrollment.mutate(e.id)
                         }
                       }}
                     >
-                      Unenroll
+                      {t('enrollments.list.unenroll')}
                     </Button>
                   </TableCell>
                 </TableRow>
