@@ -26,6 +26,7 @@ export function LanguageToggle({ variant = 'header' }: { variant?: Variant }) {
           onClick={() => setLocale(code)}
           className={cn(
             'px-2.5 py-1 font-medium uppercase tracking-wide transition-colors',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
             locale === code
               ? 'bg-foreground text-background'
               : 'text-muted-foreground hover:text-foreground'

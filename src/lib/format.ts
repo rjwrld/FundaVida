@@ -1,5 +1,7 @@
-export type Locale = 'en' | 'es'
+import type { Locale } from '@/data/persistence'
+export type { Locale }
 
+// es-CR: Costa Rican Spanish — period thousands-separator (12.345), matches the project's domain.
 const localeTag: Record<Locale, string> = {
   en: 'en-US',
   es: 'es-CR',

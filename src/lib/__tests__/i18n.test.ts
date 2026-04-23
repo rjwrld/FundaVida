@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import i18next from 'i18next'
 import '@/lib/i18n'
 import { useStore } from '@/data/store'
+import enJson from '@/locales/en.json'
 
 describe('i18n', () => {
   beforeEach(() => {
@@ -22,8 +23,13 @@ describe('i18n', () => {
   it('falls back to English when a key is missing in Spanish', async () => {
     i18next.addResource('es', 'translation', 'temp.onlyInEnglish', '')
     i18next.addResource('en', 'translation', 'temp.onlyInEnglish', 'English Only')
-    await i18next.changeLanguage('es')
-    expect(i18next.t('temp.onlyInEnglish')).toBe('English Only')
+    try {
+      await i18next.changeLanguage('es')
+      expect(i18next.t('temp.onlyInEnglish')).toBe('English Only')
+    } finally {
+      i18next.removeResourceBundle('en', 'translation')
+      i18next.addResourceBundle('en', 'translation', enJson, true, true)
+    }
   })
 
   it('returns the raw key when absent from both locales', async () => {
