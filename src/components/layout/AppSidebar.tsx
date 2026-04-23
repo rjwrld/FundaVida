@@ -1,14 +1,19 @@
 import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { navItemsForRole } from '@/constants/nav'
 import { useStore } from '@/data/store'
 import { cn } from '@/lib/utils'
 
 export function AppSidebar() {
   const role = useStore((s) => s.role)
+  const { t } = useTranslation()
   if (!role) return null
   const items = navItemsForRole(role)
   return (
-    <aside aria-label="Sections" className="hidden w-56 shrink-0 border-r bg-muted/20 md:block">
+    <aside
+      aria-label={t('sidebar.sectionsAriaLabel')}
+      className="hidden w-56 shrink-0 border-r bg-muted/20 md:block"
+    >
       <nav className="p-4 text-sm">
         <ul className="space-y-1">
           {items.map((item) => (
@@ -23,7 +28,7 @@ export function AppSidebar() {
                   )
                 }
               >
-                {item.label}
+                {t(item.labelKey)}
               </NavLink>
             </li>
           ))}

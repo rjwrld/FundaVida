@@ -85,3 +85,24 @@ export function clearPersistedCurrentUser(): void {
   if (!isBrowser()) return
   window.localStorage.removeItem(CURRENT_USER_KEY)
 }
+
+export type Locale = 'en' | 'es'
+
+const LOCALE_KEY = 'fundavida:v1:locale'
+
+export function loadPersistedLocale(): Locale | null {
+  if (!isBrowser()) return null
+  const raw = window.localStorage.getItem(LOCALE_KEY)
+  if (raw === 'en' || raw === 'es') return raw
+  return null
+}
+
+export function savePersistedLocale(locale: Locale): void {
+  if (!isBrowser()) return
+  window.localStorage.setItem(LOCALE_KEY, locale)
+}
+
+export function clearPersistedLocale(): void {
+  if (!isBrowser()) return
+  window.localStorage.removeItem(LOCALE_KEY)
+}

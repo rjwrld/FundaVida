@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 
 const DISMISS_KEY = 'fundavida:v1:banner-dismissed'
 
 export function DemoBanner() {
   const [visible, setVisible] = useState(false)
+  const { t } = useTranslation()
 
   useEffect(() => {
     setVisible(window.localStorage.getItem(DISMISS_KEY) !== '1')
@@ -20,12 +22,9 @@ export function DemoBanner() {
   return (
     <div className="bg-primary/10 text-sm">
       <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-2">
-        <p>
-          <strong>Demo mode.</strong> All data lives in your browser. Clear site data to start
-          fresh.
-        </p>
+        <p>{t('demoBanner.message')}</p>
         <Button size="sm" variant="ghost" onClick={dismiss}>
-          Dismiss
+          {t('demoBanner.dismiss')}
         </Button>
       </div>
     </div>
