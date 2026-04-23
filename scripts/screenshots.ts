@@ -89,7 +89,7 @@ const SHOTS: Shot[] = [
 async function startDevServer(): Promise<ChildProcess> {
   const server = spawn('npm', ['run', 'dev'], {
     cwd: ROOT,
-    stdio: ['ignore', 'pipe', 'pipe'],
+    stdio: ['ignore', 'pipe', 'inherit'],
     env: { ...process.env, PORT: String(DEV_PORT) },
   })
   await new Promise<void>((resolve, reject) => {
@@ -97,6 +97,9 @@ async function startDevServer(): Promise<ChildProcess> {
     server.stdout?.on('data', (chunk: Buffer) => {
       if (chunk.toString().includes(`localhost:${DEV_PORT}`)) {
         clearTimeout(timeout)
+        server.removeListener('error', reject)
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        server.on('error', () => {})
         resolve()
       }
     })
@@ -106,6 +109,10 @@ async function startDevServer(): Promise<ChildProcess> {
 }
 
 async function enterAsAdmin(page: Page, locale: Locale) {
+  // The plan calls for resetDemo() before each capture to guarantee determinism.
+  // resetDemo is a browser-side Zustand action, so we can't call it from Node.
+  // Clearing localStorage + reloading is equivalent: the store re-initialises
+  // from the fixtures in src/data/seed/*.ts, all of which call faker.seed(42..50).
   await page.goto(DEV_URL)
   await page.evaluate(() => localStorage.clear())
   await page.reload()
@@ -172,6 +179,3 @@ main().catch((err) => {
   console.error(err)
   process.exit(1)
 })
-
-// Ensure at least one export so this file is a module under TS module resolution
-export {}
