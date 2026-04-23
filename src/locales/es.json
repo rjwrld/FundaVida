@@ -1,5 +1,8 @@
 {
   "common": {
+    "a11y": {
+      "filters": "Filtros"
+    },
     "actions": {
       "backToHome": "Volver al inicio",
       "cancel": "Cancelar",
@@ -18,12 +21,14 @@
       "deleteConfirm": "¿Eliminar este curso?",
       "edit": "Editar",
       "enrollButton": "Matricular estudiante",
+      "loading": "Cargando…",
       "sections": {
         "noStudents": "Ningún estudiante matriculado.",
         "overview": "Resumen",
         "students": "Estudiantes"
       },
-      "title": "Curso"
+      "title": "Curso",
+      "unassignedTeacher": "Sin asignar"
     },
     "form": {
       "editTitle": "Editar curso",
@@ -47,6 +52,7 @@
         "teacher": "Docente"
       },
       "empty": "Aún no hay cursos.",
+      "searchPlaceholder": "Buscar por nombre o programa",
       "title": "Cursos"
     }
   },
@@ -139,6 +145,7 @@
       "sections": {
         "enrollments": "Matrículas",
         "identity": "Identidad",
+        "location": "Ubicación",
         "noEnrollments": "No está matriculado en ningún curso."
       },
       "title": "Estudiante"
@@ -210,6 +217,7 @@
         "name": "Nombre"
       },
       "empty": "Aún no hay docentes.",
+      "searchPlaceholder": "Buscar por nombre o correo",
       "title": "Docentes"
     }
   },

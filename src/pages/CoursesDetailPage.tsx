@@ -37,7 +37,8 @@ export function CoursesDetailPage() {
   const [gradingTarget, setGradingTarget] = useState<GradingTarget | null>(null)
   const [enrollOpen, setEnrollOpen] = useState(false)
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>
+  if (isLoading)
+    return <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
   if (!course) {
     return (
       <div className="space-y-4">
@@ -91,7 +92,9 @@ export function CoursesDetailPage() {
             </p>
             <p>
               <span className="text-muted-foreground">{t('courses.form.fields.teacherId')}:</span>{' '}
-              {teacher ? `${teacher.firstName} ${teacher.lastName}` : 'Unassigned'}
+              {teacher
+                ? `${teacher.firstName} ${teacher.lastName}`
+                : t('courses.detail.unassignedTeacher')}
             </p>
           </CardContent>
         </Card>

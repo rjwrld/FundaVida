@@ -57,6 +57,7 @@ t('students.form.level.University')
 // Keys declared in the dictionary skeleton for future tasks but not yet in use
 t('courses.list.columns.enrolled')
 t('enrollments.dialog.alreadyEnrolled')
+t('students.detail.sections.location')
 t('validation.max')
 t('validation.min')
 t('validation.numberMax')

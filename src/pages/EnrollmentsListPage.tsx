@@ -34,7 +34,7 @@ export function EnrollmentsListPage() {
         <h1 className="text-2xl font-semibold tracking-tight">{t('enrollments.list.title')}</h1>
       </header>
 
-      <section aria-label="Filters" className="grid gap-3 sm:grid-cols-2">
+      <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
         <Select
           value={filters.studentId ?? 'any'}
           onValueChange={(v) =>

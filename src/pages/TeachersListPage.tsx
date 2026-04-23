@@ -32,9 +32,9 @@ export function TeachersListPage() {
         </Button>
       </header>
 
-      <section aria-label="Filters">
+      <section aria-label={t('common.a11y.filters')}>
         <Input
-          placeholder={t('students.list.searchPlaceholder')}
+          placeholder={t('teachers.list.searchPlaceholder')}
           value={filters.search ?? ''}
           onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value || undefined }))}
           className="max-w-sm"

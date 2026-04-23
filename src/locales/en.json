@@ -1,5 +1,8 @@
 {
   "common": {
+    "a11y": {
+      "filters": "Filters"
+    },
     "actions": {
       "backToHome": "Back to home",
       "cancel": "Cancel",
@@ -18,12 +21,14 @@
       "deleteConfirm": "Delete this course?",
       "edit": "Edit",
       "enrollButton": "Enroll student",
+      "loading": "Loading…",
       "sections": {
         "noStudents": "No students enrolled.",
         "overview": "Overview",
         "students": "Students"
       },
-      "title": "Course"
+      "title": "Course",
+      "unassignedTeacher": "Unassigned"
     },
     "form": {
       "editTitle": "Edit course",
@@ -47,6 +52,7 @@
         "teacher": "Teacher"
       },
       "empty": "No courses yet.",
+      "searchPlaceholder": "Search by name or program",
       "title": "Courses"
     }
   },
@@ -139,6 +145,7 @@
       "sections": {
         "enrollments": "Enrollments",
         "identity": "Identity",
+        "location": "Location",
         "noEnrollments": "Not enrolled in any courses."
       },
       "title": "Student"
@@ -210,6 +217,7 @@
         "name": "Name"
       },
       "empty": "No teachers yet.",
+      "searchPlaceholder": "Search by name or email",
       "title": "Teachers"
     }
   },

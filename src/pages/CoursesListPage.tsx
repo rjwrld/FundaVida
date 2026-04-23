@@ -51,9 +51,9 @@ export function CoursesListPage() {
         )}
       </header>
 
-      <section aria-label="Filters" className="grid gap-3 sm:grid-cols-3">
+      <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-3">
         <Input
-          placeholder={t('students.list.searchPlaceholder')}
+          placeholder={t('courses.list.searchPlaceholder')}
           value={filters.search ?? ''}
           onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value || undefined }))}
         />
