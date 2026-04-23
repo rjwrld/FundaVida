@@ -54,6 +54,11 @@ t('students.form.level.Primary')
 t('students.form.level.Secondary')
 t('students.form.level.University')
 
+// Keys referenced dynamically via t(`attendance.list.status.${status}`)
+t('attendance.list.status.present')
+t('attendance.list.status.absent')
+t('attendance.list.status.excused')
+
 // Keys declared in the dictionary skeleton for future tasks but not yet in use
 t('courses.list.columns.enrolled')
 t('enrollments.dialog.alreadyEnrolled')

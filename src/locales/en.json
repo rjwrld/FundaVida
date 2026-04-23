@@ -1,4 +1,51 @@
 {
+  "attendance": {
+    "list": {
+      "columns": {
+        "course": "Course",
+        "date": "Date",
+        "status": "Status",
+        "student": "Student"
+      },
+      "empty": "No attendance recorded yet.",
+      "emptyFiltered": "No attendance records match.",
+      "filters": {
+        "anyCourse": "Any course",
+        "anyStatus": "Any status",
+        "anyStudent": "Any student",
+        "coursePlaceholder": "Course",
+        "statusPlaceholder": "Status",
+        "studentPlaceholder": "Student"
+      },
+      "status": {
+        "absent": "Absent",
+        "excused": "Excused",
+        "present": "Present"
+      },
+      "subtitle": "Per-session attendance across your scope.",
+      "title": "Attendance"
+    }
+  },
+  "certificates": {
+    "list": {
+      "columns": {
+        "action": "Action",
+        "course": "Course",
+        "grade": "Final grade",
+        "issuedAt": "Issued",
+        "student": "Student"
+      },
+      "dialog": {
+        "title": "Certificate preview"
+      },
+      "downloadPdf": "Download PDF",
+      "empty": "No certificates earned yet.",
+      "emptyStudent": "You haven't earned any certificates yet.",
+      "previewButton": "Preview",
+      "subtitle": "Students who passed a course (score ≥ 70) earn a certificate. Preview and download the PDF.",
+      "title": "Certificates"
+    }
+  },
   "common": {
     "a11y": {
       "filters": "Filters"
@@ -86,6 +133,35 @@
       "title": "Enrollments",
       "unenroll": "Unenroll",
       "unenrollConfirm": "Remove this enrollment?"
+    }
+  },
+  "grades": {
+    "dialog": {
+      "editTitle": "Edit grade",
+      "scoreLabel": "Score (0-100)",
+      "setTitle": "Grade {{student}}",
+      "submit": "Save grade"
+    },
+    "list": {
+      "columns": {
+        "actions": "Actions",
+        "course": "Course",
+        "score": "Score",
+        "student": "Student",
+        "updatedAt": "Updated"
+      },
+      "deleteConfirmWithNames": "Delete grade for {{student}} in {{course}}?",
+      "editButton": "Edit",
+      "empty": "No grades recorded yet.",
+      "emptyFiltered": "No grades match the current filters.",
+      "filters": {
+        "anyCourse": "Any course",
+        "anyStudent": "Any student",
+        "coursePlaceholder": "Course",
+        "studentPlaceholder": "Student"
+      },
+      "subtitle": "Every grade in the system. Admins can correct or remove entries.",
+      "title": "Grades"
     }
   },
   "header": {
@@ -191,6 +267,26 @@
       "emptyFiltered": "No students match your filter.",
       "searchPlaceholder": "Search by name or email",
       "title": "Students"
+    }
+  },
+  "tcu": {
+    "list": {
+      "columns": {
+        "date": "Date",
+        "description": "Activity",
+        "hours": "Hours",
+        "organizer": "Organizer",
+        "student": "Student"
+      },
+      "empty": "No activities logged yet.",
+      "filters": {
+        "anyOrganizer": "Any organizer",
+        "anyStudent": "Any student",
+        "organizerPlaceholder": "Organizer",
+        "studentPlaceholder": "Student"
+      },
+      "subtitle": "Community service hours logged per student. {{hours}} hours total in view.",
+      "title": "TCU activities"
     }
   },
   "teachers": {

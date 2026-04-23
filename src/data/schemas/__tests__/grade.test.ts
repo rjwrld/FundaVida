@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { gradeSchema } from '../grade'
+import { buildGradeSchema } from '../grade'
+
+const tStub = ((k: string) => k) as unknown as Parameters<typeof buildGradeSchema>[0]
+const gradeSchema = buildGradeSchema(tStub)
 
 describe('gradeSchema', () => {
   it('accepts scores 0 and 100', () => {

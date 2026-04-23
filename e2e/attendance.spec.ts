@@ -17,8 +17,16 @@ test('teacher sees attendance only for their own courses', async ({ page }) => {
     .getByRole('combobox')
     .filter({ hasText: /status/i })
     .click()
-  await page.getByRole('option', { name: 'present' }).click()
+  await page.getByRole('option', { name: 'Present' }).click()
 
-  const presentBadges = page.getByText('present', { exact: true })
+  const presentBadges = page.getByText('Present', { exact: true })
   await expect(presentBadges.first()).toBeVisible()
+})
+
+test('renders in Spanish when locale is ES', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'es' }).click()
+  await page.getByRole('button', { name: 'Ingresar como Administrador' }).click()
+  await page.getByRole('link', { name: 'Asistencia' }).click()
+  await expect(page.getByRole('heading', { name: 'Asistencia' })).toBeVisible()
 })

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Select,
   SelectContent,
@@ -16,9 +17,12 @@ import {
 } from '@/components/ui/table'
 import { useTcuActivities } from '@/hooks/api'
 import { useStore } from '@/data/store'
+import { useFormat } from '@/hooks/useFormat'
 import type { TcuFilters } from '@/data/api/tcu'
 
 export function TcuListPage() {
+  const { t } = useTranslation()
+  const { formatDate, formatNumber } = useFormat()
   const role = useStore((s) => s.role)
   const [filters, setFilters] = useState<TcuFilters>({})
   const { data = [], isLoading } = useTcuActivities(filters)
@@ -29,14 +33,14 @@ export function TcuListPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">TCU activities</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('tcu.list.title')}</h1>
         <p className="text-sm text-muted-foreground">
-          Community service hours logged per student. {totalHours} hours total in view.
+          {t('tcu.list.subtitle', { hours: formatNumber(totalHours) })}
         </p>
       </header>
 
       {role === 'admin' && (
-        <section aria-label="Filters" className="grid gap-3 sm:grid-cols-2">
+        <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
           <Select
             value={filters.studentId ?? 'any'}
             onValueChange={(v) =>
@@ -44,10 +48,10 @@ export function TcuListPage() {
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Student" />
+              <SelectValue placeholder={t('tcu.list.filters.studentPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="any">Any student</SelectItem>
+              <SelectItem value="any">{t('tcu.list.filters.anyStudent')}</SelectItem>
               {students.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
                   {s.firstName} {s.lastName}
@@ -62,10 +66,10 @@ export function TcuListPage() {
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Organizer" />
+              <SelectValue placeholder={t('tcu.list.filters.organizerPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="any">Any organizer</SelectItem>
+              <SelectItem value="any">{t('tcu.list.filters.anyOrganizer')}</SelectItem>
               <SelectItem value="tcu-1">TCU-1</SelectItem>
             </SelectContent>
           </Select>
@@ -73,20 +77,20 @@ export function TcuListPage() {
       )}
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">…</p>
       ) : data.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          No activities logged yet.
+          {t('tcu.list.empty')}
         </p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Student</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Hours</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Organizer</TableHead>
+              <TableHead>{t('tcu.list.columns.student')}</TableHead>
+              <TableHead>{t('tcu.list.columns.description')}</TableHead>
+              <TableHead>{t('tcu.list.columns.hours')}</TableHead>
+              <TableHead>{t('tcu.list.columns.date')}</TableHead>
+              <TableHead>{t('tcu.list.columns.organizer')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -98,8 +102,8 @@ export function TcuListPage() {
                     {s?.firstName} {s?.lastName}
                   </TableCell>
                   <TableCell>{a.title}</TableCell>
-                  <TableCell>{a.hours}</TableCell>
-                  <TableCell>{new Date(a.date).toLocaleDateString('en-US')}</TableCell>
+                  <TableCell>{formatNumber(a.hours)}</TableCell>
+                  <TableCell>{formatDate(a.date)}</TableCell>
                   <TableCell>{a.organizerId ?? '—'}</TableCell>
                 </TableRow>
               )

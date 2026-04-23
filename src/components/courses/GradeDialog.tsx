@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useSetGrade } from '@/hooks/api'
-import { gradeSchema, type GradeFormValues } from '@/data/schemas/grade'
+import { buildGradeSchema, type GradeFormValues } from '@/data/schemas/grade'
 
 interface Props {
   open: boolean
@@ -32,6 +32,7 @@ export function GradeDialog({
   studentName,
   initialScore,
 }: Props) {
+  const { t } = useTranslation()
   const setGrade = useSetGrade()
   const {
     register,
@@ -39,7 +40,7 @@ export function GradeDialog({
     formState: { errors, isSubmitting },
     reset,
   } = useForm<GradeFormValues>({
-    resolver: zodResolver(gradeSchema),
+    resolver: zodResolver(buildGradeSchema(t)),
     defaultValues: { score: initialScore ?? 0 },
   })
 
@@ -56,12 +57,11 @@ export function GradeDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Grade {studentName}</DialogTitle>
-          <DialogDescription>Enter a score between 0 and 100.</DialogDescription>
+          <DialogTitle>{t('grades.dialog.setTitle', { student: studentName })}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="score">Score</Label>
+            <Label htmlFor="score">{t('grades.dialog.scoreLabel')}</Label>
             <Input
               id="score"
               type="number"
@@ -80,10 +80,10 @@ export function GradeDialog({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              Save grade
+              {t('grades.dialog.submit')}
             </Button>
           </DialogFooter>
         </form>

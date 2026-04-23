@@ -20,3 +20,11 @@ test('admin previews and downloads a certificate', async ({ page }) => {
   const download = await downloadPromise
   expect(download.suggestedFilename()).toMatch(/^certificate-.*\.pdf$/)
 })
+
+test('renders in Spanish when locale is ES', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'es' }).click()
+  await page.getByRole('button', { name: 'Ingresar como Administrador' }).click()
+  await page.getByRole('link', { name: 'Certificados' }).click()
+  await expect(page.getByRole('heading', { name: 'Certificados' })).toBeVisible()
+})
