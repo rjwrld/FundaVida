@@ -44,3 +44,6 @@ test-results/
 
 # Misc
 *.local
+
+# Claude Code local settings (plugin state, untracked by intent)
+.claude/
