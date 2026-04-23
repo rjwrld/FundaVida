@@ -64,6 +64,7 @@
   "enrollments": {
     "dialog": {
       "alreadyEnrolled": "El estudiante ya está matriculado en este curso.",
+      "description": "Selecciona un estudiante para matricularlo en este curso.",
       "noStudents": "No hay estudiantes elegibles.",
       "studentLabel": "Estudiante",
       "studentPlaceholder": "Selecciona un estudiante",
@@ -78,6 +79,10 @@
         "student": "Estudiante"
       },
       "empty": "Aún no hay matrículas.",
+      "filterAnyCourse": "Cualquier curso",
+      "filterAnyStudent": "Cualquier estudiante",
+      "loading": "Cargando…",
+      "subtitle": "Cada matrícula estudiante-curso. Desmatricular también elimina la calificación correspondiente.",
       "title": "Matrículas",
       "unenroll": "Desmatricular",
       "unenrollConfirm": "¿Eliminar esta matrícula?"

@@ -18,10 +18,12 @@ import {
 } from '@/components/ui/table'
 import { useDeleteEnrollment, useEnrollments } from '@/hooks/api'
 import { useStore } from '@/data/store'
+import { useFormat } from '@/hooks/useFormat'
 import type { EnrollmentFilters } from '@/data/api/enrollments'
 
 export function EnrollmentsListPage() {
   const { t } = useTranslation()
+  const { formatDate } = useFormat()
   const [filters, setFilters] = useState<EnrollmentFilters>({})
   const { data = [], isLoading } = useEnrollments(filters)
   const deleteEnrollment = useDeleteEnrollment()
@@ -32,6 +34,7 @@ export function EnrollmentsListPage() {
     <div className="space-y-6">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">{t('enrollments.list.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('enrollments.list.subtitle')}</p>
       </header>
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
@@ -45,7 +48,7 @@ export function EnrollmentsListPage() {
             <SelectValue placeholder={t('enrollments.list.columns.student')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">{t('enrollments.list.columns.student')}</SelectItem>
+            <SelectItem value="any">{t('enrollments.list.filterAnyStudent')}</SelectItem>
             {students.map((s) => (
               <SelectItem key={s.id} value={s.id}>
                 {s.firstName} {s.lastName}
@@ -63,7 +66,7 @@ export function EnrollmentsListPage() {
             <SelectValue placeholder={t('enrollments.list.columns.course')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">{t('enrollments.list.columns.course')}</SelectItem>
+            <SelectItem value="any">{t('enrollments.list.filterAnyCourse')}</SelectItem>
             {courses.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
@@ -74,7 +77,7 @@ export function EnrollmentsListPage() {
       </section>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">…</p>
+        <p className="text-sm text-muted-foreground">{t('enrollments.list.loading')}</p>
       ) : data.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
           {t('enrollments.list.empty')}
@@ -99,7 +102,7 @@ export function EnrollmentsListPage() {
                     {s?.firstName} {s?.lastName}
                   </TableCell>
                   <TableCell>{c?.name}</TableCell>
-                  <TableCell>{new Date(e.enrolledAt).toLocaleDateString('en-US')}</TableCell>
+                  <TableCell>{formatDate(e.enrolledAt)}</TableCell>
                   <TableCell className="text-right">
                     <Button
                       size="sm"

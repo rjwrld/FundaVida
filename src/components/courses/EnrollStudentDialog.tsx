@@ -54,7 +54,7 @@ export function EnrollStudentDialog({ open, onOpenChange, courseId }: Props) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('enrollments.dialog.title')}</DialogTitle>
-          <DialogDescription>{t('enrollments.dialog.studentPlaceholder')}</DialogDescription>
+          <DialogDescription>{t('enrollments.dialog.description')}</DialogDescription>
         </DialogHeader>
         <div className="space-y-1.5">
           <Label>{t('enrollments.dialog.studentLabel')}</Label>

@@ -64,6 +64,7 @@
   "enrollments": {
     "dialog": {
       "alreadyEnrolled": "Student is already enrolled in this course.",
+      "description": "Select a student to enroll in this course.",
       "noStudents": "No eligible students.",
       "studentLabel": "Student",
       "studentPlaceholder": "Select a student",
@@ -78,6 +79,10 @@
         "student": "Student"
       },
       "empty": "No enrollments yet.",
+      "filterAnyCourse": "Any course",
+      "filterAnyStudent": "Any student",
+      "loading": "Loading…",
+      "subtitle": "Every student-course enrollment. Unenroll to also remove the matching grade.",
       "title": "Enrollments",
       "unenroll": "Unenroll",
       "unenrollConfirm": "Remove this enrollment?"
