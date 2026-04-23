@@ -10,9 +10,13 @@ describe('LandingFooter', () => {
         <LandingFooter />
       </I18nProvider>
     )
+    const orgLink = screen.getByRole('link', { name: /fundavida org/i })
+    const githubLink = screen.getByRole('link', { name: /source/i })
     const linkedinLink = screen.getByRole('link', { name: /linkedin/i })
-    expect(linkedinLink).toHaveAttribute('target', '_blank')
-    expect(linkedinLink).toHaveAttribute('rel', 'noopener noreferrer')
+    for (const link of [orgLink, githubLink, linkedinLink]) {
+      expect(link).toHaveAttribute('target', '_blank')
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+    }
   })
 
   it('renders the FundaVida org and source links', () => {
