@@ -20,6 +20,20 @@ test.describe('i18n', () => {
     await expect(page.getByText(/Plataforma de gestión educativa/)).toBeVisible()
   })
 
+  test('new landing sections render in both locales', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: "A taste of what's inside" })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Built with' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'FundaVida org' })).toBeVisible()
+
+    await page.getByRole('button', { name: 'es' }).click()
+
+    await expect(
+      page.getByRole('heading', { name: 'Una muestra de lo que hay adentro' })
+    ).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Hecho con' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Fundación FundaVida' })).toBeVisible()
+  })
+
   test('locale persists from landing into app shell', async ({ page }) => {
     await page.getByRole('button', { name: 'es' }).click()
     await page.getByRole('button', { name: /Ingresar como Administrador/ }).click()
