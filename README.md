@@ -4,7 +4,6 @@
 
 [![Live demo](https://img.shields.io/badge/demo-live-brightgreen?style=flat-square)](https://fundavida.vercel.app/)
 [![Build](https://img.shields.io/github/actions/workflow/status/rjwrld/FundaVida/ci.yml?branch=main&label=CI&style=flat-square)](https://github.com/rjwrld/FundaVida/actions)
-![License](https://img.shields.io/github/license/rjwrld/FundaVida?style=flat-square)
 
 FundaVida was a production educational-management platform built for a Costa Rican non-profit on React + Supabase. This repository is a **portfolio rearchitecture**: all data runs in your browser via `localStorage`, there is no backend, no auth, no secrets. The original platform's visual breadth is preserved; interactivity is deliberately tiered (full CRUD on hero modules, read-only showcase on others).
 
@@ -113,7 +112,8 @@ No environment variables required. The demo seeds deterministic data on first lo
 
 ```
 src/
-├── app/              # App shell & layout
+├── App.tsx           # App shell & router
+├── main.tsx          # Vite entry
 ├── components/
 │   ├── landing/      # Landing-only components (hero, features, tech stack, footer)
 │   ├── layout/       # Shared layout (header, sidebar, language toggle)
@@ -124,8 +124,11 @@ src/
 │   ├── api/          # Thin hooks atop @tanstack/react-query
 │   ├── schemas/      # Zod schema factories (buildXSchema(t))
 │   ├── seed/         # Deterministic faker.seed(42) generators
+│   ├── persistence.ts # localStorage adapter
+│   ├── debounce.ts   # Persistence debouncer
 │   └── store.ts      # Zustand root store
 ├── hooks/            # Custom React hooks (useFormat, useCurrentUser, …)
+│   └── api/          # Feature-scoped @tanstack/react-query hooks
 ├── lib/              # Format helpers, report builders, PDF templates
 ├── locales/          # en.json + es.json dictionaries + keys.ts parser hints
 ├── pages/            # Route-level components
@@ -171,7 +174,7 @@ Built by **Josue Calderon** as a portfolio rearchitecture of a college project.
 - Consejería
 - Apoyo Educativo
 
-Este repositorio es una **rearquitecturización de portafolio** de una plataforma original construida con React + Supabase para FundaVida. Toda la data corre en tu navegador; no hay backend, ni autenticación, ni secretos. La interfaz está traducida al español y se puede alternar con el botón de idioma en la esquina superior derecha.
+Este repositorio es una **rearquitectura de portafolio** de una plataforma original construida con React + Supabase para FundaVida. Toda la data corre en tu navegador; no hay backend, ni autenticación, ni secretos. La interfaz está traducida al español y se puede alternar con el botón de idioma en la esquina superior derecha.
 
 > "La esperanza lo cambia todo."
 
