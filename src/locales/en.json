@@ -125,7 +125,8 @@
   },
   "common": {
     "a11y": {
-      "filters": "Filters"
+      "filters": "Filters",
+      "skipToMain": "Skip to main content"
     },
     "actions": {
       "backToHome": "Back to home",
@@ -135,9 +136,7 @@
       "save": "Save"
     },
     "language": {
-      "english": "English",
-      "label": "Language",
-      "spanish": "Spanish"
+      "label": "Language"
     }
   },
   "courses": {
@@ -145,6 +144,15 @@
       "deleteConfirm": "Delete this course?",
       "edit": "Edit",
       "enrollButton": "Enroll student",
+      "enrolledTable": {
+        "actions": "Actions",
+        "grade": "Grade",
+        "gradeButton": "Grade",
+        "name": "Name",
+        "notGraded": "Not graded",
+        "removeButton": "Remove",
+        "removeConfirm": "Remove {{student}} from this course?"
+      },
       "loading": "Loading…",
       "sections": {
         "noStudents": "No students enrolled.",
@@ -170,7 +178,6 @@
       "addButton": "Add course",
       "columns": {
         "actions": "Actions",
-        "enrolled": "Enrolled",
         "name": "Name",
         "program": "Program",
         "teacher": "Teacher"
@@ -202,12 +209,10 @@
   },
   "demoBanner": {
     "dismiss": "Dismiss",
-    "message": "This is a demo. All data runs locally in your browser.",
-    "reset": "Reset demo"
+    "message": "This is a demo. All data runs locally in your browser."
   },
   "enrollments": {
     "dialog": {
-      "alreadyEnrolled": "Student is already enrolled in this course.",
       "description": "Select a student to enroll in this course.",
       "noStudents": "No eligible students.",
       "studentLabel": "Student",
@@ -299,7 +304,6 @@
       "rate": "Rate",
       "student": "Student"
     },
-    "empty": "No data yet.",
     "noRecords": "No records",
     "sections": {
       "averageGradeByCourse": "Average grade by course",
@@ -349,7 +353,6 @@
       "sections": {
         "enrollments": "Enrollments",
         "identity": "Identity",
-        "location": "Location",
         "noEnrollments": "Not enrolled in any courses."
       },
       "title": "Student"
@@ -415,6 +418,8 @@
   },
   "teachers": {
     "detail": {
+      "cannotDeleteWithCourses_one": "This teacher has {{count}} course assigned — reassign before deleting.",
+      "cannotDeleteWithCourses_other": "This teacher has {{count}} courses assigned — reassign before deleting.",
       "deleteConfirm": "Delete this teacher?",
       "edit": "Edit",
       "sections": {

@@ -38,9 +38,6 @@ t('common.actions.close')
 t('common.actions.delete')
 t('common.actions.save')
 t('common.actions.backToHome')
-t('common.language.english')
-t('common.language.spanish')
-t('demoBanner.reset')
 t('notFound.title')
 t('notFound.subtitle')
 
@@ -60,9 +57,6 @@ t('attendance.list.status.absent')
 t('attendance.list.status.excused')
 
 // Keys declared in the dictionary skeleton for future tasks but not yet in use
-t('courses.list.columns.enrolled')
-t('enrollments.dialog.alreadyEnrolled')
-t('students.detail.sections.location')
 t('validation.max')
 t('validation.min')
 t('validation.numberMax')
@@ -119,6 +113,3 @@ t('dashboard.teacher.students')
 t('dashboard.placeholder.cardTitle')
 t('dashboard.placeholder.studentCopy')
 t('dashboard.placeholder.tcuCopy')
-
-// reports.empty is declared for completeness; currently unused in page render
-t('reports.empty')
