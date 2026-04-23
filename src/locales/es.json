@@ -1,0 +1,76 @@
+{
+  "common": {
+    "actions": {
+      "backToHome": "Volver al inicio",
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "delete": "Eliminar",
+      "save": "Guardar"
+    },
+    "language": {
+      "english": "Inglés",
+      "label": "Idioma",
+      "spanish": "Español"
+    }
+  },
+  "demoBanner": {
+    "dismiss": "Cerrar",
+    "message": "Esta es una demostración. Todos los datos se ejecutan localmente en tu navegador.",
+    "reset": "Reiniciar demo"
+  },
+  "header": {
+    "brand": "FundaVida",
+    "demoLabel": "Demo",
+    "primaryAriaLabel": "Principal"
+  },
+  "landing": {
+    "enterAs": "Ingresar como {{role}}",
+    "rolesHeading": "Elige un rol de demostración",
+    "subtitle": "Demostración de plataforma de gestión educativa. Todos los datos se ejecutan en tu navegador — elige un rol para explorar.",
+    "title": "FundaVida"
+  },
+  "nav": {
+    "attendance": "Asistencia",
+    "auditLog": "Bitácora",
+    "bulkEmail": "Correos masivos",
+    "certificates": "Certificados",
+    "courses": "Cursos",
+    "dashboard": "Panel",
+    "enrollments": "Matrículas",
+    "grades": "Calificaciones",
+    "reports": "Reportes",
+    "students": "Estudiantes",
+    "tcu": "TCU",
+    "teachers": "Docentes"
+  },
+  "notFound": {
+    "subtitle": "No pudimos encontrar esa página.",
+    "title": "404"
+  },
+  "roles": {
+    "admin": {
+      "blurb": "Acceso total — gestiona estudiantes, cursos y certificados.",
+      "label": "Administrador"
+    },
+    "student": {
+      "blurb": "Ver cursos matriculados, calificaciones y certificados.",
+      "label": "Estudiante"
+    },
+    "tcu": {
+      "blurb": "Vista de practicante / líder comunitario de actividades asignadas.",
+      "label": "TCU"
+    },
+    "teacher": {
+      "blurb": "Ver cursos asignados, calificar estudiantes y registrar asistencia.",
+      "label": "Docente"
+    }
+  },
+  "roleSwitcher": {
+    "choose": "Elegir rol",
+    "current": "Rol: {{role}}",
+    "switch": "Cambiar rol"
+  },
+  "sidebar": {
+    "sectionsAriaLabel": "Secciones"
+  }
+}

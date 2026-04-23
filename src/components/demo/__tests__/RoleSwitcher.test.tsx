@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
+import { I18nProvider } from '@/lib/i18n'
 import { RoleSwitcher } from '@/components/demo/RoleSwitcher'
 import { useStore } from '@/data/store'
 import {
@@ -16,13 +17,16 @@ describe('<RoleSwitcher />', () => {
     clearPersistedRole()
     clearPersistedCurrentUser()
     useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
   })
 
   it('shows a prompt when no role is selected', () => {
     render(
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <RoleSwitcher />
-      </MemoryRouter>
+      <I18nProvider>
+        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <RoleSwitcher />
+        </MemoryRouter>
+      </I18nProvider>
     )
     expect(screen.getByRole('button', { name: /choose role/i })).toBeInTheDocument()
   })
@@ -30,9 +34,11 @@ describe('<RoleSwitcher />', () => {
   it('shows the current role label when one is selected', () => {
     useStore.getState().setRole('teacher')
     render(
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <RoleSwitcher />
-      </MemoryRouter>
+      <I18nProvider>
+        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <RoleSwitcher />
+        </MemoryRouter>
+      </I18nProvider>
     )
     expect(screen.getByRole('button', { name: /role: teacher/i })).toBeInTheDocument()
   })
@@ -47,13 +53,15 @@ describe('<RoleSwitcher />', () => {
     }
 
     render(
-      <MemoryRouter
-        initialEntries={['/app']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
-        <RoleSwitcher />
-        <LocationDisplay />
-      </MemoryRouter>
+      <I18nProvider>
+        <MemoryRouter
+          initialEntries={['/app']}
+          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+        >
+          <RoleSwitcher />
+          <LocationDisplay />
+        </MemoryRouter>
+      </I18nProvider>
     )
     await user.click(screen.getByRole('button', { name: /role: admin/i }))
     await user.click(screen.getByRole('menuitem', { name: /student/i }))

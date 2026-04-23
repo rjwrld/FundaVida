@@ -1,0 +1,76 @@
+{
+  "common": {
+    "actions": {
+      "backToHome": "Back to home",
+      "cancel": "Cancel",
+      "close": "Close",
+      "delete": "Delete",
+      "save": "Save"
+    },
+    "language": {
+      "english": "English",
+      "label": "Language",
+      "spanish": "Spanish"
+    }
+  },
+  "demoBanner": {
+    "dismiss": "Dismiss",
+    "message": "This is a demo. All data runs locally in your browser.",
+    "reset": "Reset demo"
+  },
+  "header": {
+    "brand": "FundaVida",
+    "demoLabel": "Demo",
+    "primaryAriaLabel": "Primary"
+  },
+  "landing": {
+    "enterAs": "Enter as {{role}}",
+    "rolesHeading": "Choose a demo role",
+    "subtitle": "Educational management platform demo. All data runs in your browser — pick a role to explore.",
+    "title": "FundaVida"
+  },
+  "nav": {
+    "attendance": "Attendance",
+    "auditLog": "Audit Logs",
+    "bulkEmail": "Bulk Email",
+    "certificates": "Certificates",
+    "courses": "Courses",
+    "dashboard": "Dashboard",
+    "enrollments": "Enrollments",
+    "grades": "Grades",
+    "reports": "Reports",
+    "students": "Students",
+    "tcu": "TCU",
+    "teachers": "Teachers"
+  },
+  "notFound": {
+    "subtitle": "We couldn't find that page.",
+    "title": "404"
+  },
+  "roles": {
+    "admin": {
+      "blurb": "Full access — manage students, courses, certificates.",
+      "label": "Admin"
+    },
+    "student": {
+      "blurb": "View enrolled courses, grades, and certificates.",
+      "label": "Student"
+    },
+    "tcu": {
+      "blurb": "Trainee / community-leader view of assigned activities.",
+      "label": "TCU"
+    },
+    "teacher": {
+      "blurb": "See assigned courses, grade students, track attendance.",
+      "label": "Teacher"
+    }
+  },
+  "roleSwitcher": {
+    "choose": "Choose role",
+    "current": "Role: {{role}}",
+    "switch": "Switch role"
+  },
+  "sidebar": {
+    "sectionsAriaLabel": "Sections"
+  }
+}

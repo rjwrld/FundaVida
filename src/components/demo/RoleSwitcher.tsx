@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -16,6 +17,7 @@ export function RoleSwitcher() {
   const role = useStore((s) => s.role)
   const setRole = useStore((s) => s.setRole)
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const current = ROLES.find((r) => r.value === role)
 
@@ -28,15 +30,17 @@ export function RoleSwitcher() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm">
-          {current ? `Role: ${current.label}` : 'Choose role'}
+          {current
+            ? t('roleSwitcher.current', { role: t(current.labelKey) })
+            : t('roleSwitcher.choose')}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Switch role</DropdownMenuLabel>
+        <DropdownMenuLabel>{t('roleSwitcher.switch')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {ROLES.map((r) => (
           <DropdownMenuItem key={r.value} onSelect={() => pick(r.value)}>
-            {r.label}
+            {t(r.labelKey)}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

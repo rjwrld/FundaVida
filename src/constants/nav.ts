@@ -2,23 +2,23 @@ import type { Role } from '@/types'
 
 export interface NavItem {
   to: string
-  label: string
+  labelKey: string
   roles: Role[]
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { to: '/app', label: 'Dashboard', roles: ['admin', 'teacher', 'student', 'tcu'] },
-  { to: '/app/students', label: 'Students', roles: ['admin', 'teacher'] },
-  { to: '/app/teachers', label: 'Teachers', roles: ['admin'] },
-  { to: '/app/enrollments', label: 'Enrollments', roles: ['admin'] },
-  { to: '/app/courses', label: 'Courses', roles: ['admin', 'teacher', 'student'] },
-  { to: '/app/grades', label: 'Grades', roles: ['admin'] },
-  { to: '/app/attendance', label: 'Attendance', roles: ['admin', 'teacher', 'student'] },
-  { to: '/app/reports', label: 'Reports', roles: ['admin'] },
-  { to: '/app/certificates', label: 'Certificates', roles: ['admin', 'student'] },
-  { to: '/app/tcu', label: 'TCU', roles: ['admin', 'student', 'tcu'] },
-  { to: '/app/audit-log', label: 'Audit Logs', roles: ['admin'] },
-  { to: '/app/bulk-email', label: 'Bulk Email', roles: ['admin'] },
+  { to: '/app', labelKey: 'nav.dashboard', roles: ['admin', 'teacher', 'student', 'tcu'] },
+  { to: '/app/students', labelKey: 'nav.students', roles: ['admin', 'teacher'] },
+  { to: '/app/teachers', labelKey: 'nav.teachers', roles: ['admin'] },
+  { to: '/app/enrollments', labelKey: 'nav.enrollments', roles: ['admin'] },
+  { to: '/app/courses', labelKey: 'nav.courses', roles: ['admin', 'teacher', 'student'] },
+  { to: '/app/grades', labelKey: 'nav.grades', roles: ['admin'] },
+  { to: '/app/attendance', labelKey: 'nav.attendance', roles: ['admin', 'teacher', 'student'] },
+  { to: '/app/reports', labelKey: 'nav.reports', roles: ['admin'] },
+  { to: '/app/certificates', labelKey: 'nav.certificates', roles: ['admin', 'student'] },
+  { to: '/app/tcu', labelKey: 'nav.tcu', roles: ['admin', 'student', 'tcu'] },
+  { to: '/app/audit-log', labelKey: 'nav.auditLog', roles: ['admin'] },
+  { to: '/app/bulk-email', labelKey: 'nav.bulkEmail', roles: ['admin'] },
 ]
 
 export function navItemsForRole(role: Role): NavItem[] {

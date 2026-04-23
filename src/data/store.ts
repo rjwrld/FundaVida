@@ -18,12 +18,15 @@ import {
   clearPersistedCurrentUser,
   clearPersistedRole,
   loadPersistedCurrentUser,
+  loadPersistedLocale,
   loadPersistedRole,
   loadPersistedState,
   savePersistedCurrentUser,
+  savePersistedLocale,
   savePersistedRole,
   savePersistedState,
 } from './persistence'
+import type { Locale } from './persistence'
 
 export interface StoreState {
   students: Student[]
@@ -37,7 +40,9 @@ export interface StoreState {
   emailCampaigns: EmailCampaign[]
   role: Role | null
   currentUserId: string | null
+  locale: Locale
   setRole: (role: Role) => void
+  setLocale: (locale: Locale) => void
   resetDemo: () => void
   createStudent: (input: Omit<Student, 'id' | 'createdAt' | 'enrolledCourseIds'>) => Student
   updateStudent: (id: string, patch: Partial<Omit<Student, 'id'>>) => void
@@ -86,6 +91,15 @@ function makeAuditEntry(
   }
 }
 
+function detectInitialLocale(): Locale {
+  const persisted = loadPersistedLocale()
+  if (persisted) return persisted
+  if (typeof navigator !== 'undefined' && navigator.language?.toLowerCase().startsWith('es')) {
+    return 'es'
+  }
+  return 'en'
+}
+
 function initialState(): Pick<
   StoreState,
   | 'students'
@@ -99,10 +113,12 @@ function initialState(): Pick<
   | 'emailCampaigns'
   | 'role'
   | 'currentUserId'
+  | 'locale'
 > {
   const persisted = loadPersistedState()
   const role = loadPersistedRole()
   const currentUserId = loadPersistedCurrentUser()
+  const locale = detectInitialLocale()
   if (persisted) {
     return {
       students: persisted.students,
@@ -116,10 +132,11 @@ function initialState(): Pick<
       emailCampaigns: persisted.emailCampaigns,
       role,
       currentUserId,
+      locale,
     }
   }
   const snapshot = buildSeedSnapshot()
-  return { ...snapshot, role, currentUserId }
+  return { ...snapshot, role, currentUserId, locale }
 }
 
 function nextId(prefix: string, existing: { id: string }[]): string {
@@ -140,6 +157,10 @@ export const useStore = create<StoreState>((set, get) => ({
     savePersistedRole(role)
     savePersistedCurrentUser(userId)
     set({ role, currentUserId: userId })
+  },
+  setLocale: (locale) => {
+    savePersistedLocale(locale)
+    set({ locale })
   },
   resetDemo: () => {
     const snapshot = buildSeedSnapshot()
