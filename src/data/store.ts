@@ -358,9 +358,9 @@ export const useStore = create<StoreState>((set, get) => ({
     const target = teachers.find((t) => t.id === id)
     if (!target) return
     if (target.courseIds.length > 0) {
-      throw new Error(
-        `Teacher ${id} has ${target.courseIds.length} course(s) assigned — reassign before deleting.`
-      )
+      // Defensive guard for direct store callers; the UI pre-checks and surfaces a localized message,
+      // so this English text should never reach end users. Keep "reassign" to satisfy existing tests.
+      throw new Error('teacher has courses assigned — reassign before deleting')
     }
     set((state) => ({
       teachers: state.teachers.filter((t) => t.id !== id),

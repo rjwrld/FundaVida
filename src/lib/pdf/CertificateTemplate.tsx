@@ -1,4 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import { formatDate } from '@/lib/format'
 
 interface Props {
   studentName: string
@@ -41,11 +42,9 @@ export function CertificateTemplate({
   score,
   issuedAt,
 }: Props) {
-  const issued = new Date(issuedAt).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  // The PDF body is intentionally English (stakeholder decision); route the date through
+  // the official formatter to keep the Intl-call audit clean.
+  const issued = formatDate(issuedAt, 'en')
   return (
     <Document>
       <Page size="LETTER" orientation="landscape" style={styles.page}>

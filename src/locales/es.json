@@ -126,7 +126,8 @@
   },
   "common": {
     "a11y": {
-      "filters": "Filtros"
+      "filters": "Filtros",
+      "skipToMain": "Saltar al contenido principal"
     },
     "actions": {
       "backToHome": "Volver al inicio",
@@ -136,9 +137,7 @@
       "save": "Guardar"
     },
     "language": {
-      "english": "Inglés",
-      "label": "Idioma",
-      "spanish": "Español"
+      "label": "Idioma"
     }
   },
   "courses": {
@@ -146,6 +145,15 @@
       "deleteConfirm": "¿Eliminar este curso?",
       "edit": "Editar",
       "enrollButton": "Matricular estudiante",
+      "enrolledTable": {
+        "actions": "Acciones",
+        "grade": "Nota",
+        "gradeButton": "Calificar",
+        "name": "Nombre",
+        "notGraded": "Sin calificar",
+        "removeButton": "Quitar",
+        "removeConfirm": "¿Quitar a {{student}} de este curso?"
+      },
       "loading": "Cargando…",
       "sections": {
         "noStudents": "Ningún estudiante matriculado.",
@@ -171,7 +179,6 @@
       "addButton": "Agregar curso",
       "columns": {
         "actions": "Acciones",
-        "enrolled": "Matriculados",
         "name": "Nombre",
         "program": "Programa",
         "teacher": "Docente"
@@ -202,13 +209,11 @@
     "title": "Sesión como {{role}}"
   },
   "demoBanner": {
-    "dismiss": "Cerrar",
-    "message": "Esta es una demostración. Todos los datos se ejecutan localmente en tu navegador.",
-    "reset": "Reiniciar demo"
+    "dismiss": "Descartar",
+    "message": "Esta es una demostración. Todos los datos se ejecutan localmente en tu navegador."
   },
   "enrollments": {
     "dialog": {
-      "alreadyEnrolled": "El estudiante ya está matriculado en este curso.",
       "description": "Selecciona un estudiante para matricularlo en este curso.",
       "noStudents": "No hay estudiantes elegibles.",
       "studentLabel": "Estudiante",
@@ -300,7 +305,6 @@
       "rate": "Porcentaje",
       "student": "Estudiante"
     },
-    "empty": "Aún no hay datos.",
     "noRecords": "Sin registros",
     "sections": {
       "averageGradeByCourse": "Nota promedio por curso",
@@ -350,7 +354,6 @@
       "sections": {
         "enrollments": "Matrículas",
         "identity": "Identidad",
-        "location": "Ubicación",
         "noEnrollments": "No está matriculado en ningún curso."
       },
       "title": "Estudiante"
@@ -416,6 +419,9 @@
   },
   "teachers": {
     "detail": {
+      "cannotDeleteWithCourses_one": "Este docente tiene {{count}} curso asignado — reasígnalo antes de eliminar.",
+      "cannotDeleteWithCourses_many": "Este docente tiene {{count}} cursos asignados — reasígnalos antes de eliminar.",
+      "cannotDeleteWithCourses_other": "Este docente tiene {{count}} cursos asignados — reasígnalos antes de eliminar.",
       "deleteConfirm": "¿Eliminar este docente?",
       "edit": "Editar",
       "sections": {
@@ -460,7 +466,7 @@
     "numberMax": "Máximo {{max}}",
     "numberMin": "Mínimo {{min}}",
     "numberRequired": "Debe ser un número",
-    "required": "{{field}} es obligatorio",
+    "required": "Completa {{field}}",
     "selectValue": "Selecciona un valor para el filtro elegido"
   }
 }

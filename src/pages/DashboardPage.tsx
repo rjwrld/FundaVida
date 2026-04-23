@@ -80,7 +80,9 @@ function PlaceholderPanel({ role }: { role: 'student' | 'tcu' }) {
       </h2>
       <Card>
         <CardHeader>
-          <CardTitle>{t('dashboard.placeholder.cardTitle', { role })}</CardTitle>
+          <CardTitle>
+            {t('dashboard.placeholder.cardTitle', { role: t(`roles.${role}.label`) })}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>{copy}</p>
@@ -99,7 +101,9 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('dashboard.title', { role })}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t('dashboard.title', { role: t(`roles.${role}.label`) })}
+        </h1>
         <p className="text-sm text-muted-foreground">{t('dashboard.subtitle')}</p>
       </header>
       {role === 'admin' && <AdminCards />}

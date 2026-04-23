@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/table'
 import { useCourse, useUnenrollStudent } from '@/hooks/api'
 import { useStore } from '@/data/store'
+import { useFormat } from '@/hooks/useFormat'
 import { GradeDialog } from '@/components/courses/GradeDialog'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
 
@@ -24,6 +25,7 @@ interface GradingTarget {
 
 export function CoursesDetailPage() {
   const { t } = useTranslation()
+  const { formatGrade } = useFormat()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: course, isLoading } = useCourse(id ?? '')
@@ -125,9 +127,13 @@ export function CoursesDetailPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Grade</TableHead>
-                {isTeacherOrAdmin && <TableHead className="text-right">Actions</TableHead>}
+                <TableHead>{t('courses.detail.enrolledTable.name')}</TableHead>
+                <TableHead>{t('courses.detail.enrolledTable.grade')}</TableHead>
+                {isTeacherOrAdmin && (
+                  <TableHead className="text-right">
+                    {t('courses.detail.enrolledTable.actions')}
+                  </TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -144,7 +150,11 @@ export function CoursesDetailPage() {
                         {student.firstName} {student.lastName}
                       </Link>
                     </TableCell>
-                    <TableCell>{grade ? grade.score : 'Not graded'}</TableCell>
+                    <TableCell>
+                      {grade
+                        ? formatGrade(grade.score)
+                        : t('courses.detail.enrolledTable.notGraded')}
+                    </TableCell>
                     {isTeacherOrAdmin && (
                       <TableCell className="text-right">
                         <Button
@@ -158,7 +168,7 @@ export function CoursesDetailPage() {
                             })
                           }
                         >
-                          Grade
+                          {t('courses.detail.enrolledTable.gradeButton')}
                         </Button>
                         {isAdmin && (
                           <Button
@@ -167,14 +177,16 @@ export function CoursesDetailPage() {
                             onClick={() => {
                               if (
                                 confirm(
-                                  `Remove ${student.firstName} ${student.lastName} from this course?`
+                                  t('courses.detail.enrolledTable.removeConfirm', {
+                                    student: `${student.firstName} ${student.lastName}`,
+                                  })
                                 )
                               ) {
                                 unenroll.mutate(e.id)
                               }
                             }}
                           >
-                            Remove
+                            {t('courses.detail.enrolledTable.removeButton')}
                           </Button>
                         )}
                       </TableCell>

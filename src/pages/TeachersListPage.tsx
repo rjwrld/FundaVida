@@ -86,13 +86,16 @@ export function TeachersListPage() {
                       }
                       className={hasCourses ? 'opacity-50' : undefined}
                       onClick={async () => {
-                        if (hasCourses) return
-                        if (!confirm(t('teachers.detail.deleteConfirm'))) return
-                        try {
-                          await deleteTeacher.mutateAsync(teacher.id)
-                        } catch (err) {
-                          alert((err as Error).message)
+                        if (hasCourses) {
+                          alert(
+                            t('teachers.detail.cannotDeleteWithCourses', {
+                              count: teacher.courseIds.length,
+                            })
+                          )
+                          return
                         }
+                        if (!confirm(t('teachers.detail.deleteConfirm'))) return
+                        await deleteTeacher.mutateAsync(teacher.id)
                       }}
                     >
                       {t('common.actions.delete')}
