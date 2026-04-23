@@ -8,7 +8,7 @@ test('admin sees audit log and a new create entry after making one', async ({ pa
   await page.getByRole('button', { name: 'Enter as Admin' }).click()
 
   await page.getByRole('link', { name: 'Students' }).click()
-  await page.getByRole('button', { name: 'New student' }).click()
+  await page.getByRole('button', { name: 'Add student' }).click()
   await page.getByLabel('First name').fill(firstName)
   await page.getByLabel('Last name').fill('Log')
   await page.getByLabel('Email').fill(`a${suffix}@fv.cr`)
@@ -17,7 +17,7 @@ test('admin sees audit log and a new create entry after making one', async ({ pa
   await page.getByRole('combobox', { name: /province/i }).click()
   await page.getByRole('option', { name: 'San José' }).click()
 
-  await page.getByRole('button', { name: 'Create' }).click()
+  await page.getByRole('button', { name: 'Save' }).click()
 
   await expect(page.getByRole('heading', { name: `${firstName} Log` })).toBeVisible()
 

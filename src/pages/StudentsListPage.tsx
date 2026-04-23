@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -22,26 +23,28 @@ import type { StudentFilters } from '@/data/api/students'
 import { EDUCATIONAL_LEVELS, PROVINCES } from '@/constants/student'
 
 export function StudentsListPage() {
+  const { t } = useTranslation()
   const [filters, setFilters] = useState<StudentFilters>({})
   const { data = [], isLoading } = useStudents(filters)
   const deleteStudent = useDeleteStudent()
   const navigate = useNavigate()
 
+  const hasFilters = Boolean(filters.search || filters.province || filters.educationalLevel)
+
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Students</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage enrolled students and their profiles.
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight">{t('students.list.title')}</h1>
         </div>
-        <Button onClick={() => navigate('/app/students/new')}>New student</Button>
+        <Button onClick={() => navigate('/app/students/new')}>
+          {t('students.list.addButton')}
+        </Button>
       </header>
 
-      <section aria-label="Filters" className="grid gap-3 sm:grid-cols-3">
+      <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-3">
         <Input
-          placeholder="Search by name or email"
+          placeholder={t('students.list.searchPlaceholder')}
           value={filters.search ?? ''}
           onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value || undefined }))}
         />
@@ -52,10 +55,10 @@ export function StudentsListPage() {
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Province" />
+            <SelectValue placeholder={t('students.list.columns.province')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">Any province</SelectItem>
+            <SelectItem value="any">{t('students.list.columns.province')}</SelectItem>
             {PROVINCES.map((p) => (
               <SelectItem key={p} value={p}>
                 {p}
@@ -70,13 +73,13 @@ export function StudentsListPage() {
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Level" />
+            <SelectValue placeholder={t('students.list.columns.level')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">Any level</SelectItem>
+            <SelectItem value="any">{t('students.list.columns.level')}</SelectItem>
             {EDUCATIONAL_LEVELS.map((l) => (
               <SelectItem key={l} value={l}>
-                {l}
+                {t(`students.form.level.${l}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -84,20 +87,20 @@ export function StudentsListPage() {
       </section>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">…</p>
       ) : data.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          No students match these filters.
+          {hasFilters ? t('students.list.emptyFiltered') : t('students.list.empty')}
         </p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Province</TableHead>
-              <TableHead>Level</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t('students.list.columns.name')}</TableHead>
+              <TableHead>{t('students.list.columns.email')}</TableHead>
+              <TableHead>{t('students.list.columns.province')}</TableHead>
+              <TableHead>{t('students.list.columns.level')}</TableHead>
+              <TableHead className="text-right">{t('students.list.columns.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -110,25 +113,25 @@ export function StudentsListPage() {
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{s.email}</TableCell>
                 <TableCell>{s.province}</TableCell>
-                <TableCell>{s.educationalLevel}</TableCell>
+                <TableCell>{t(`students.form.level.${s.educationalLevel}`)}</TableCell>
                 <TableCell className="text-right">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => navigate(`/app/students/${s.id}/edit`)}
                   >
-                    Edit
+                    {t('students.detail.edit')}
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      if (confirm(`Delete ${s.firstName} ${s.lastName}?`)) {
+                      if (confirm(t('students.detail.deleteConfirm'))) {
                         deleteStudent.mutate(s.id)
                       }
                     }}
                   >
-                    Delete
+                    {t('common.actions.delete')}
                   </Button>
                 </TableCell>
               </TableRow>

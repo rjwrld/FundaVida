@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,12 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { courseSchema, type CourseFormValues } from '@/data/schemas/course'
+import { buildCourseSchema, type CourseFormValues } from '@/data/schemas/course'
 import { useCourse, useCreateCourse, useUpdateCourse } from '@/hooks/api'
 import { HEADQUARTERS, PROGRAMS } from '@/constants/course'
 import { useStore } from '@/data/store'
 
 export function CoursesFormPage() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
@@ -35,7 +37,7 @@ export function CoursesFormPage() {
     watch,
     formState: { errors, isSubmitting },
   } = useForm<CourseFormValues>({
-    resolver: zodResolver(courseSchema),
+    resolver: zodResolver(buildCourseSchema(t)),
     defaultValues: {
       name: '',
       description: '',
@@ -71,17 +73,17 @@ export function CoursesFormPage() {
     <div className="max-w-2xl space-y-6">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {isEdit ? 'Edit course' : 'New course'}
+          {isEdit ? t('courses.form.editTitle') : t('courses.form.newTitle')}
         </h1>
       </header>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor="name">{t('courses.form.fields.name')}</Label>
           <Input id="name" {...register('name')} />
           {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description">{t('courses.form.fields.description')}</Label>
           <Textarea id="description" rows={3} {...register('description')} />
           {errors.description && (
             <p className="text-xs text-destructive">{errors.description.message}</p>
@@ -89,13 +91,13 @@ export function CoursesFormPage() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label>Headquarters</Label>
+            <Label>{t('courses.form.fields.headquartersName')}</Label>
             <Select
               value={watch('headquartersName')}
               onValueChange={(v) => setValue('headquartersName', v, { shouldValidate: true })}
             >
-              <SelectTrigger aria-label="Headquarters">
-                <SelectValue placeholder="Select headquarters" />
+              <SelectTrigger aria-label={t('courses.form.fields.headquartersName')}>
+                <SelectValue placeholder={t('courses.form.fields.headquartersName')} />
               </SelectTrigger>
               <SelectContent>
                 {HEADQUARTERS.map((h) => (
@@ -110,13 +112,13 @@ export function CoursesFormPage() {
             )}
           </div>
           <div className="space-y-1.5">
-            <Label>Program</Label>
+            <Label>{t('courses.form.fields.programName')}</Label>
             <Select
               value={watch('programName')}
               onValueChange={(v) => setValue('programName', v, { shouldValidate: true })}
             >
-              <SelectTrigger aria-label="Program">
-                <SelectValue placeholder="Select program" />
+              <SelectTrigger aria-label={t('courses.form.fields.programName')}>
+                <SelectValue placeholder={t('courses.form.fields.programName')} />
               </SelectTrigger>
               <SelectContent>
                 {PROGRAMS.map((p) => (
@@ -132,18 +134,18 @@ export function CoursesFormPage() {
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label>Teacher</Label>
+          <Label>{t('courses.form.fields.teacherId')}</Label>
           <Select
             value={watch('teacherId')}
             onValueChange={(v) => setValue('teacherId', v, { shouldValidate: true })}
           >
-            <SelectTrigger aria-label="Teacher">
-              <SelectValue placeholder="Assign a teacher" />
+            <SelectTrigger aria-label={t('courses.form.fields.teacherId')}>
+              <SelectValue placeholder={t('courses.form.teacherPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
-              {teachers.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.firstName} {t.lastName}
+              {teachers.map((teacher) => (
+                <SelectItem key={teacher.id} value={teacher.id}>
+                  {teacher.firstName} {teacher.lastName}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -154,10 +156,10 @@ export function CoursesFormPage() {
         </div>
         <div className="flex gap-2">
           <Button type="submit" disabled={isSubmitting}>
-            {isEdit ? 'Save' : 'Create'}
+            {t('common.actions.save')}
           </Button>
           <Button type="button" variant="outline" onClick={() => navigate('/app/courses')}>
-            Cancel
+            {t('common.actions.cancel')}
           </Button>
         </div>
       </form>

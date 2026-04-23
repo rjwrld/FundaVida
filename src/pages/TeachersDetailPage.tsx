@@ -1,4 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -6,18 +7,19 @@ import { useTeacher } from '@/hooks/api'
 import { useStore } from '@/data/store'
 
 export function TeachersDetailPage() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: teacher, isLoading } = useTeacher(id ?? '')
   const courses = useStore((s) => s.courses)
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>
+  if (isLoading) return <p className="text-sm text-muted-foreground">…</p>
   if (!teacher) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">Teacher not found.</p>
+        <p className="text-sm text-muted-foreground">{t('teachers.detail.title')}</p>
         <Button asChild variant="outline">
-          <Link to="/app/teachers">Back to teachers</Link>
+          <Link to="/app/teachers">{t('common.actions.backToHome')}</Link>
         </Button>
       </div>
     )
@@ -36,34 +38,39 @@ export function TeachersDetailPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => navigate('/app/teachers')}>
-            Back
+            {t('common.actions.backToHome')}
           </Button>
-          <Button onClick={() => navigate(`/app/teachers/${teacher.id}/edit`)}>Edit</Button>
+          <Button onClick={() => navigate(`/app/teachers/${teacher.id}/edit`)}>
+            {t('teachers.detail.edit')}
+          </Button>
         </div>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Profile</CardTitle>
+            <CardTitle>{t('teachers.detail.sections.identity')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
-              <span className="text-muted-foreground">Email:</span> {teacher.email}
+              <span className="text-muted-foreground">{t('teachers.form.fields.email')}:</span>{' '}
+              {teacher.email}
             </p>
             <p>
-              <span className="text-muted-foreground">Courses assigned:</span>{' '}
+              <span className="text-muted-foreground">{t('teachers.list.columns.courses')}:</span>{' '}
               {teacher.courseIds.length}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Courses</CardTitle>
+            <CardTitle>{t('teachers.detail.sections.courses')}</CardTitle>
           </CardHeader>
           <CardContent>
             {assigned.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No courses assigned.</p>
+              <p className="text-sm text-muted-foreground">
+                {t('teachers.detail.sections.noCourses')}
+              </p>
             ) : (
               <ul className="space-y-1 text-sm">
                 {assigned.map((c) => (

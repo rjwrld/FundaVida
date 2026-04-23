@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { courseSchema } from '../course'
+import { buildCourseSchema } from '../course'
+
+const tStub = ((k: string) => k) as unknown as Parameters<typeof buildCourseSchema>[0]
+const courseSchema = buildCourseSchema(tStub)
 
 describe('courseSchema', () => {
   const valid = {

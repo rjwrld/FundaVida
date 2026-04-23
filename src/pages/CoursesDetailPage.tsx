@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -22,6 +23,7 @@ interface GradingTarget {
 }
 
 export function CoursesDetailPage() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: course, isLoading } = useCourse(id ?? '')
@@ -35,19 +37,20 @@ export function CoursesDetailPage() {
   const [gradingTarget, setGradingTarget] = useState<GradingTarget | null>(null)
   const [enrollOpen, setEnrollOpen] = useState(false)
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>
+  if (isLoading)
+    return <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
   if (!course) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">Course not found.</p>
+        <p className="text-sm text-muted-foreground">{t('courses.detail.title')}</p>
         <Button asChild variant="outline">
-          <Link to="/app/courses">Back to courses</Link>
+          <Link to="/app/courses">{t('common.actions.backToHome')}</Link>
         </Button>
       </div>
     )
   }
 
-  const teacher = teachers.find((t) => t.id === course.teacherId)
+  const teacher = teachers.find((tt) => tt.id === course.teacherId)
   const courseEnrollments = enrollments.filter((e) => e.courseId === course.id)
   const isAdmin = role === 'admin'
   const isTeacherOrAdmin = role === 'admin' || role === 'teacher'
@@ -61,10 +64,12 @@ export function CoursesDetailPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => navigate('/app/courses')}>
-            Back
+            {t('common.actions.backToHome')}
           </Button>
           {isAdmin && (
-            <Button onClick={() => navigate(`/app/courses/${course.id}/edit`)}>Edit</Button>
+            <Button onClick={() => navigate(`/app/courses/${course.id}/edit`)}>
+              {t('courses.detail.edit')}
+            </Button>
           )}
         </div>
       </header>
@@ -72,24 +77,30 @@ export function CoursesDetailPage() {
       <section className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Details</CardTitle>
+            <CardTitle>{t('courses.detail.sections.overview')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
-              <span className="text-muted-foreground">Headquarters:</span> {course.headquartersName}
+              <span className="text-muted-foreground">
+                {t('courses.form.fields.headquartersName')}:
+              </span>{' '}
+              {course.headquartersName}
             </p>
             <p>
-              <span className="text-muted-foreground">Program:</span> {course.programName}
+              <span className="text-muted-foreground">{t('courses.form.fields.programName')}:</span>{' '}
+              {course.programName}
             </p>
             <p>
-              <span className="text-muted-foreground">Teacher:</span>{' '}
-              {teacher ? `${teacher.firstName} ${teacher.lastName}` : 'Unassigned'}
+              <span className="text-muted-foreground">{t('courses.form.fields.teacherId')}:</span>{' '}
+              {teacher
+                ? `${teacher.firstName} ${teacher.lastName}`
+                : t('courses.detail.unassignedTeacher')}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Description</CardTitle>
+            <CardTitle>{t('courses.form.fields.description')}</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">{course.description}</CardContent>
         </Card>
@@ -97,16 +108,18 @@ export function CoursesDetailPage() {
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight">Enrolled students</h2>
+          <h2 className="text-lg font-semibold tracking-tight">
+            {t('courses.detail.sections.students')}
+          </h2>
           {isAdmin && (
             <Button size="sm" onClick={() => setEnrollOpen(true)}>
-              Enroll student
+              {t('courses.detail.enrollButton')}
             </Button>
           )}
         </div>
         {courseEnrollments.length === 0 ? (
           <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-            No students enrolled yet.
+            {t('courses.detail.sections.noStudents')}
           </p>
         ) : (
           <Table>

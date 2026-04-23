@@ -1,11 +1,26 @@
 import { z } from 'zod'
+import type { TFunction } from 'i18next'
 
-export const courseSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(120),
-  description: z.string().min(1, 'Description is required').max(500),
-  headquartersName: z.string().min(1, 'Headquarters is required'),
-  programName: z.string().min(1, 'Program is required'),
-  teacherId: z.string().min(1, 'Teacher is required'),
-})
+export function buildCourseSchema(t: TFunction) {
+  return z.object({
+    name: z
+      .string()
+      .min(1, t('validation.required', { field: t('courses.form.fields.name') }))
+      .max(120),
+    description: z
+      .string()
+      .min(1, t('validation.required', { field: t('courses.form.fields.description') }))
+      .max(500),
+    headquartersName: z
+      .string()
+      .min(1, t('validation.required', { field: t('courses.form.fields.headquartersName') })),
+    programName: z
+      .string()
+      .min(1, t('validation.required', { field: t('courses.form.fields.programName') })),
+    teacherId: z
+      .string()
+      .min(1, t('validation.required', { field: t('courses.form.fields.teacherId') })),
+  })
+}
 
-export type CourseFormValues = z.infer<typeof courseSchema>
+export type CourseFormValues = z.infer<ReturnType<typeof buildCourseSchema>>
