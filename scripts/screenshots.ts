@@ -66,11 +66,10 @@ const SHOTS: Shot[] = [
           name: /certificate preview|vista previa del certificado/i,
         })
         .waitFor()
-      // PDFViewer embeds a PDF via an iframe. Headless Chromium's bundled PDF
-      // viewer plugin is unavailable, so the iframe frame stays blank — but the
-      // dialog chrome (title, close/download buttons, list behind the backdrop)
-      // still reads and captures the feature accurately. Give React time to
-      // paint the dialog.
+      // PDFViewer embeds a PDF via an iframe. We launch real Chrome (stable
+      // channel) instead of Playwright's bundled Chromium so the PDF viewer
+      // plugin is available and the iframe renders actual PDF content. Give
+      // React + the plugin time to paint.
       await delay(2000)
     },
   },
@@ -158,7 +157,7 @@ async function main() {
 
   const server = await startDevServer()
   try {
-    const browser = await chromium.launch()
+    const browser = await chromium.launch({ channel: 'chrome' })
     const context = await browser.newContext({ deviceScaleFactor: 2 })
     const page = await context.newPage()
 
