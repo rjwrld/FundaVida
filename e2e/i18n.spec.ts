@@ -9,15 +9,15 @@ test.describe('i18n', () => {
   test('landing starts in English when no preference set', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByRole('heading', { name: 'FundaVida' })).toBeVisible()
-    await expect(page.getByText(/Educational management platform demo/)).toBeVisible()
+    await expect(page.getByText(/Educational management platform/)).toBeVisible()
   })
 
   test('toggling to ES on landing renders Spanish copy and persists', async ({ page }) => {
     await page.getByRole('button', { name: 'es' }).click()
-    await expect(page.getByText(/Demostración de plataforma/)).toBeVisible()
+    await expect(page.getByText(/Plataforma de gestión educativa/)).toBeVisible()
 
     await page.reload()
-    await expect(page.getByText(/Demostración de plataforma/)).toBeVisible()
+    await expect(page.getByText(/Plataforma de gestión educativa/)).toBeVisible()
   })
 
   test('locale persists from landing into app shell', async ({ page }) => {

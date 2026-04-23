@@ -274,8 +274,39 @@
   },
   "landing": {
     "enterAs": "Ingresar como {{role}}",
+    "featurePreview": {
+      "certificate": {
+        "alt": "Diálogo de vista previa del certificado con botón de descarga.",
+        "caption": "Los estudiantes elegibles reciben un certificado en PDF renderizado en el navegador con @react-pdf/renderer.",
+        "title": "Generación de certificados en PDF"
+      },
+      "heading": "Una muestra de lo que hay adentro",
+      "reports": {
+        "alt": "Panel de reportes con tarjetas de totales y tablas de clasificación.",
+        "caption": "Matrículas, notas promedio, tasas de asistencia y horas de comunidad — calculadas en el cliente.",
+        "title": "Reportes transversales"
+      },
+      "students": {
+        "alt": "Página de lista de estudiantes con controles de filtro y datos de ejemplo.",
+        "caption": "Crear, filtrar, buscar, editar y eliminar. Validación de formularios, actualizaciones optimistas y navegación por teclado.",
+        "title": "Módulo de estudiantes con CRUD completo"
+      }
+    },
+    "footer": {
+      "github": "Código",
+      "linkedin": "LinkedIn",
+      "org": "Fundación FundaVida",
+      "rearchitected": "Demo de portafolio rearquitecturizada de {{org}}"
+    },
+    "hero": {
+      "cta": "Entrar a la demo",
+      "screenshotAlt": "Vista previa del panel con estadísticas de estudiantes y cursos.",
+      "tagline": "Plataforma de gestión educativa — rearquitecturizada como una demo de portafolio que corre solo en el navegador."
+    },
     "rolesHeading": "Elige un rol de demostración",
-    "subtitle": "Demostración de plataforma de gestión educativa. Todos los datos se ejecutan en tu navegador — elige un rol para explorar.",
+    "techStack": {
+      "heading": "Hecho con"
+    },
     "title": "FundaVida"
   },
   "nav": {

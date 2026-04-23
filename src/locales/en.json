@@ -273,8 +273,39 @@
   },
   "landing": {
     "enterAs": "Enter as {{role}}",
+    "featurePreview": {
+      "certificate": {
+        "alt": "Certificate preview dialog with download button.",
+        "caption": "Eligible students earn a PDF certificate rendered in-browser via @react-pdf/renderer.",
+        "title": "Certificate PDF generation"
+      },
+      "heading": "A taste of what's inside",
+      "reports": {
+        "alt": "Reports dashboard with totals cards and ranking tables.",
+        "caption": "Enrollments, average grades, attendance rates, and community hours — computed client-side.",
+        "title": "Cross-cutting reports"
+      },
+      "students": {
+        "alt": "Students list page with filter controls and seeded data.",
+        "caption": "Create, filter, search, edit, and delete. Form validation, optimistic updates, and keyboard navigation.",
+        "title": "Full-CRUD students module"
+      }
+    },
+    "footer": {
+      "github": "Source",
+      "linkedin": "LinkedIn",
+      "org": "FundaVida org",
+      "rearchitected": "Rearchitected portfolio demo of {{org}}"
+    },
+    "hero": {
+      "cta": "Enter demo",
+      "screenshotAlt": "Dashboard preview with student and course statistics.",
+      "tagline": "Educational management platform — rearchitected as a browser-only portfolio demo."
+    },
     "rolesHeading": "Choose a demo role",
-    "subtitle": "Educational management platform demo. All data runs in your browser — pick a role to explore.",
+    "techStack": {
+      "heading": "Built with"
+    },
     "title": "FundaVida"
   },
   "nav": {
