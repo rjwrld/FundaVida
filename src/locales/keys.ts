@@ -69,3 +69,56 @@ t('validation.numberMax')
 t('validation.numberMin')
 t('validation.numberRequired')
 t('validation.selectValue')
+
+// --- Task 4 (Tier 3) dynamic key references ---
+
+// Keys referenced dynamically via t(`auditLog.actions.${entry.action}`)
+t('auditLog.actions.create')
+t('auditLog.actions.update')
+t('auditLog.actions.delete')
+t('auditLog.actions.enroll')
+t('auditLog.actions.unenroll')
+t('auditLog.actions.grade')
+
+// Keys referenced dynamically via t(`auditLog.entities.${entry.entity}`)
+t('auditLog.entities.student')
+t('auditLog.entities.teacher')
+t('auditLog.entities.course')
+t('auditLog.entities.enrollment')
+t('auditLog.entities.grade')
+t('auditLog.entities.attendance')
+t('auditLog.entities.tcu')
+t('auditLog.entities.emailCampaign')
+
+// Keys referenced dynamically via t(`auditLog.filter.${action}`) in the filter dropdown
+t('auditLog.filter.create')
+t('auditLog.filter.update')
+t('auditLog.filter.delete')
+t('auditLog.filter.enroll')
+t('auditLog.filter.unenroll')
+t('auditLog.filter.grade')
+
+// Keys referenced dynamically via t(`bulkEmail.filter.${kind}`) for history rows
+t('bulkEmail.filter.all')
+t('bulkEmail.filter.program')
+t('bulkEmail.filter.province')
+t('bulkEmail.filter.course')
+
+// Keys referenced dynamically via t(`bulkEmail.dimensions.${kind}`) for filter placeholder
+t('bulkEmail.dimensions.program')
+t('bulkEmail.dimensions.province')
+t('bulkEmail.dimensions.course')
+
+// DashboardPage passes literal-string keys via an array — declare them so the parser sees them
+t('dashboard.admin.students')
+t('dashboard.admin.teachers')
+t('dashboard.admin.courses')
+t('dashboard.admin.grades')
+t('dashboard.teacher.myCourses')
+t('dashboard.teacher.students')
+t('dashboard.placeholder.cardTitle')
+t('dashboard.placeholder.studentCopy')
+t('dashboard.placeholder.tcuCopy')
+
+// reports.empty is declared for completeness; currently unused in page render
+t('reports.empty')

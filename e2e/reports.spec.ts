@@ -11,8 +11,16 @@ test('admin sees report cards and section tables', async ({ page }) => {
   await expect(page.getByText('Courses', { exact: true }).first()).toBeVisible()
   await expect(page.getByText('Enrollments', { exact: true }).first()).toBeVisible()
 
-  await expect(page.getByRole('heading', { name: 'Top enrollments by course' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Enrollments by course' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Average grade by course' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Attendance present rate' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Top TCU hours by student' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Attendance rate by course' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'TCU hours by student' })).toBeVisible()
+})
+
+test('renders in Spanish when locale is ES', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'es' }).click()
+  await page.getByRole('button', { name: 'Ingresar como Administrador' }).click()
+  await page.getByRole('link', { name: 'Reportes' }).click()
+  await expect(page.getByRole('heading', { name: 'Reportes' })).toBeVisible()
 })

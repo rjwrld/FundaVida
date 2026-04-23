@@ -26,6 +26,84 @@
       "title": "Asistencia"
     }
   },
+  "auditLog": {
+    "actions": {
+      "create": "Crear",
+      "delete": "Eliminar",
+      "enroll": "Matricular",
+      "grade": "Calificar",
+      "unenroll": "Desmatricular",
+      "update": "Actualizar"
+    },
+    "columns": {
+      "action": "Acción",
+      "actor": "Autor",
+      "entity": "Entidad",
+      "summary": "Resumen",
+      "timestamp": "Cuándo"
+    },
+    "empty": "Ningún registro coincide con el filtro.",
+    "entities": {
+      "attendance": "Asistencia",
+      "course": "Curso",
+      "emailCampaign": "Correo",
+      "enrollment": "Matrícula",
+      "grade": "Calificación",
+      "student": "Estudiante",
+      "tcu": "TCU",
+      "teacher": "Docente"
+    },
+    "filter": {
+      "all": "Todas las acciones",
+      "create": "Creaciones",
+      "delete": "Eliminaciones",
+      "enroll": "Matrículas",
+      "grade": "Calificaciones",
+      "unenroll": "Desmatrículas",
+      "update": "Actualizaciones"
+    },
+    "subtitle": "Registro cronológico de cada creación, actualización y eliminación.",
+    "title": "Bitácora"
+  },
+  "bulkEmail": {
+    "compose": "Redactar",
+    "dimensions": {
+      "course": "curso",
+      "program": "programa",
+      "province": "provincia"
+    },
+    "fields": {
+      "body": "Cuerpo",
+      "filter": "Filtro de destinatarios",
+      "filterValue": "Valor del filtro",
+      "subject": "Asunto"
+    },
+    "filter": {
+      "all": "Todos los estudiantes",
+      "course": "Por curso",
+      "placeholder": "Selecciona un {{dimension}}",
+      "program": "Por programa",
+      "province": "Por provincia"
+    },
+    "history": {
+      "columns": {
+        "filter": "Filtro",
+        "recipients": "Destinatarios",
+        "sentAt": "Enviado",
+        "subject": "Asunto"
+      },
+      "empty": "Aún no hay campañas enviadas.",
+      "title": "Campañas enviadas"
+    },
+    "noRecipients": "Ningún destinatario coincide con el filtro.",
+    "recipientCount_one": "{{count}} destinatario recibirá este correo.",
+    "recipientCount_many": "{{count}} destinatarios recibirán este correo.",
+    "recipientCount_other": "{{count}} destinatarios recibirán este correo.",
+    "sending": "Enviando…",
+    "submit": "Enviar",
+    "subtitle": "Redacta un mensaje, elige destinatarios, envía (simulado).",
+    "title": "Correos masivos"
+  },
   "certificates": {
     "list": {
       "columns": {
@@ -102,6 +180,26 @@
       "searchPlaceholder": "Buscar por nombre o programa",
       "title": "Cursos"
     }
+  },
+  "dashboard": {
+    "admin": {
+      "courses": "Cursos",
+      "grades": "Calificaciones",
+      "students": "Estudiantes",
+      "teachers": "Docentes"
+    },
+    "overviewHeading": "Resumen",
+    "placeholder": {
+      "cardTitle": "Tu panel de {{role}}",
+      "studentCopy": "Explora tus cursos matriculados y descarga tus certificados desde la barra lateral.",
+      "tcuCopy": "Los reportes de TCU llegan en una fase posterior."
+    },
+    "subtitle": "Panel de demostración. Los módulos de dominio llegan en fases posteriores.",
+    "teacher": {
+      "myCourses": "Mis cursos",
+      "students": "Estudiantes"
+    },
+    "title": "Sesión como {{role}}"
   },
   "demoBanner": {
     "dismiss": "Cerrar",
@@ -192,6 +290,32 @@
   "notFound": {
     "subtitle": "No pudimos encontrar esa página.",
     "title": "404"
+  },
+  "reports": {
+    "columns": {
+      "average": "Promedio",
+      "count": "Cantidad",
+      "course": "Curso",
+      "hours": "Horas",
+      "rate": "Porcentaje",
+      "student": "Estudiante"
+    },
+    "empty": "Aún no hay datos.",
+    "noRecords": "Sin registros",
+    "sections": {
+      "averageGradeByCourse": "Nota promedio por curso",
+      "enrollmentsByCourse": "Matrículas por curso",
+      "presentRateByCourse": "Asistencia por curso",
+      "tcuHoursByStudent": "Horas TCU por estudiante"
+    },
+    "subtitle": "Totales transversales del programa.",
+    "title": "Reportes",
+    "totals": {
+      "courses": "Cursos",
+      "enrollments": "Matrículas",
+      "students": "Estudiantes",
+      "teachers": "Docentes"
+    }
   },
   "roles": {
     "admin": {
@@ -326,7 +450,13 @@
   "validation": {
     "email": "Ingresa un correo válido",
     "max": "Máximo {{count}} caracteres",
+    "max_one": "Máximo {{count}} carácter",
+    "max_many": "Máximo {{count}} caracteres",
+    "max_other": "Máximo {{count}} caracteres",
     "min": "Al menos {{count}} caracteres",
+    "min_one": "Al menos {{count}} carácter",
+    "min_many": "Al menos {{count}} caracteres",
+    "min_other": "Al menos {{count}} caracteres",
     "numberMax": "Máximo {{max}}",
     "numberMin": "Mínimo {{min}}",
     "numberRequired": "Debe ser un número",
