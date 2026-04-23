@@ -285,8 +285,9 @@
         "organizerPlaceholder": "Organizador",
         "studentPlaceholder": "Estudiante"
       },
-      "subtitle": "Horas de servicio comunitario por estudiante. {{hours}} horas en total.",
-      "title": "Actividades TCU"
+      "subtitle": "Horas de servicio comunitario por estudiante.",
+      "title": "Actividades TCU",
+      "totalLabel": "Total de horas: {{hours}}"
     }
   },
   "teachers": {

@@ -34,8 +34,9 @@ export function TcuListPage() {
     <div className="space-y-6">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">{t('tcu.list.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('tcu.list.subtitle')}</p>
         <p className="text-sm text-muted-foreground">
-          {t('tcu.list.subtitle', { hours: formatNumber(totalHours) })}
+          {t('tcu.list.totalLabel', { hours: formatNumber(totalHours) })}
         </p>
       </header>
 

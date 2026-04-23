@@ -285,8 +285,9 @@
         "organizerPlaceholder": "Organizer",
         "studentPlaceholder": "Student"
       },
-      "subtitle": "Community service hours logged per student. {{hours}} hours total in view.",
-      "title": "TCU activities"
+      "subtitle": "Community service hours logged per student.",
+      "title": "TCU activities",
+      "totalLabel": "Total hours: {{hours}}"
     }
   },
   "teachers": {
