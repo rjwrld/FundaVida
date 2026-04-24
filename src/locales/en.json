@@ -137,6 +137,12 @@
     },
     "language": {
       "label": "Language"
+    },
+    "theme": {
+      "dark": "Dark",
+      "light": "Light",
+      "system": "System",
+      "toggle": "Toggle theme"
     }
   },
   "courses": {
