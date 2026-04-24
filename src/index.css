@@ -4,49 +4,168 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    /* Brand Green ramp (primary product color) */
+    --brand-green-50: 0.97 0.02 138;
+    --brand-green-100: 0.93 0.05 138;
+    --brand-green-200: 0.87 0.09 138;
+    --brand-green-300: 0.78 0.14 138;
+    --brand-green-400: 0.68 0.16 138;
+    --brand-green-500: 0.57 0.17 138;
+    --brand-green-600: 0.5 0.16 138;
+    --brand-green-700: 0.42 0.14 138;
+    --brand-green-800: 0.34 0.11 138;
+    --brand-green-900: 0.26 0.08 138;
+    --brand-green-950: 0.18 0.05 138;
+
+    /* Brand Blue ramp (secondary / institutional) */
+    --brand-blue-50: 0.97 0.02 260;
+    --brand-blue-100: 0.92 0.05 260;
+    --brand-blue-200: 0.84 0.1 260;
+    --brand-blue-300: 0.74 0.15 260;
+    --brand-blue-400: 0.62 0.18 260;
+    --brand-blue-500: 0.51 0.19 260;
+    --brand-blue-600: 0.44 0.18 260;
+    --brand-blue-700: 0.37 0.16 260;
+    --brand-blue-800: 0.3 0.13 260;
+    --brand-blue-900: 0.24 0.1 260;
+    --brand-blue-950: 0.17 0.06 260;
+
+    /* Flame Red ramp (destructive) */
+    --flame-red-50: 0.97 0.02 27;
+    --flame-red-100: 0.92 0.06 27;
+    --flame-red-200: 0.84 0.13 27;
+    --flame-red-300: 0.72 0.21 27;
+    --flame-red-400: 0.62 0.24 27;
+    --flame-red-500: 0.52 0.25 27;
+    --flame-red-600: 0.46 0.22 27;
+    --flame-red-700: 0.39 0.18 27;
+    --flame-red-800: 0.32 0.14 27;
+    --flame-red-900: 0.25 0.1 27;
+    --flame-red-950: 0.17 0.06 27;
+
+    /* Flame Yellow ramp (accent / celebration / warning) */
+    --flame-yellow-50: 0.98 0.02 90;
+    --flame-yellow-100: 0.95 0.06 90;
+    --flame-yellow-200: 0.92 0.11 90;
+    --flame-yellow-300: 0.9 0.15 90;
+    --flame-yellow-400: 0.87 0.16 90;
+    --flame-yellow-500: 0.85 0.17 90;
+    --flame-yellow-600: 0.75 0.16 90;
+    --flame-yellow-700: 0.63 0.14 90;
+    --flame-yellow-800: 0.5 0.11 90;
+    --flame-yellow-900: 0.38 0.09 90;
+    --flame-yellow-950: 0.25 0.06 90;
+
+    /* Neutral ramp (cool gray, hue 220) */
+    --neutral-50: 0.99 0.003 220;
+    --neutral-100: 0.96 0.006 220;
+    --neutral-200: 0.92 0.01 220;
+    --neutral-300: 0.86 0.015 220;
+    --neutral-400: 0.7 0.02 220;
+    --neutral-500: 0.55 0.025 220;
+    --neutral-600: 0.45 0.025 220;
+    --neutral-700: 0.35 0.022 220;
+    --neutral-800: 0.26 0.018 220;
+    --neutral-900: 0.18 0.015 220;
+    --neutral-950: 0.13 0.012 220;
+
+    /* Semantic tokens — light mode */
+    --background: var(--neutral-50);
+    --foreground: 0.18 0 0;
+    --card: 1 0 0;
+    --card-foreground: 0.18 0 0;
+    --popover: 1 0 0;
+    --popover-foreground: 0.18 0 0;
+    --primary: var(--brand-green-600);
+    --primary-foreground: 0.99 0.003 95;
+    --secondary: var(--brand-blue-500);
+    --secondary-foreground: 0.99 0.003 95;
+    --muted: var(--neutral-100);
+    --muted-foreground: var(--neutral-500);
+    --accent: var(--brand-green-50);
+    --accent-foreground: var(--brand-green-700);
+    --destructive: var(--flame-red-500);
+    --destructive-foreground: 0.99 0.003 95;
+    --success: var(--brand-green-500);
+    --warning: var(--flame-yellow-500);
+    --info: var(--brand-blue-500);
+    --border: var(--neutral-200);
+    --input: var(--neutral-200);
+    --ring: var(--brand-green-500);
+
+    /* Chart categorical palette */
+    --chart-1: var(--brand-green-500);
+    --chart-2: var(--brand-blue-500);
+    --chart-3: var(--flame-yellow-500);
+    --chart-4: var(--brand-green-700);
+    --chart-5: var(--brand-blue-700);
+
+    --radius: 0.75rem;
   }
+
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --background: var(--neutral-950);
+    --foreground: var(--neutral-100);
+    --card: var(--neutral-900);
+    --card-foreground: var(--neutral-100);
+    --popover: var(--neutral-900);
+    --popover-foreground: var(--neutral-100);
+    --primary: var(--brand-green-400);
+    --primary-foreground: var(--neutral-950);
+    --secondary: var(--brand-blue-400);
+    --secondary-foreground: var(--neutral-950);
+    --muted: var(--neutral-800);
+    --muted-foreground: var(--neutral-400);
+    --accent: var(--brand-green-900);
+    --accent-foreground: var(--brand-green-200);
+    --destructive: var(--flame-red-400);
+    --destructive-foreground: var(--neutral-50);
+    --success: var(--brand-green-400);
+    --warning: var(--flame-yellow-400);
+    --info: var(--brand-blue-400);
+    --border: var(--neutral-800);
+    --input: var(--neutral-800);
+    --ring: var(--brand-green-400);
+
+    --chart-1: var(--brand-green-400);
+    --chart-2: var(--brand-blue-400);
+    --chart-3: var(--flame-yellow-400);
+    --chart-4: var(--brand-green-300);
+    --chart-5: var(--brand-blue-300);
   }
 
   * {
     @apply border-border;
   }
+
+  html {
+    background-color: oklch(var(--background));
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    font-family:
+      'Geist Sans',
+      system-ui,
+      -apple-system,
+      sans-serif;
+  }
+
+  .font-display {
+    font-family: 'Instrument Serif', Georgia, serif;
+  }
+
+  .font-mono {
+    font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aurora,
+    .marquee,
+    .float,
+    .pulse-soft {
+      animation: none !important;
+    }
   }
 }

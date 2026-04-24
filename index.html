@@ -30,6 +30,21 @@
       content="Educational management platform — rearchitected as a browser-only portfolio demo."
     />
     <meta name="twitter:image" content="/og-image.png" />
+    <script>
+      ;(function () {
+        try {
+          var stored = localStorage.getItem('fundavida:theme')
+          var theme = stored || 'system'
+          var resolved =
+            theme === 'system'
+              ? matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+              : theme
+          if (resolved === 'dark') document.documentElement.classList.add('dark')
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
