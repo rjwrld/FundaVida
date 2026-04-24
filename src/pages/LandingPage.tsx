@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LanguageToggle } from '@/components/layout/LanguageToggle'
+import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { HeroScreenshot } from '@/components/landing/HeroScreenshot'
 import { FeaturePreview } from '@/components/landing/FeaturePreview'
 import { TechStack } from '@/components/landing/TechStack'
@@ -23,8 +24,9 @@ export function LandingPage() {
 
   return (
     <main className="relative mx-auto max-w-5xl space-y-16 px-6 py-12">
-      <div className="absolute right-6 top-6">
-        <LanguageToggle variant="landing" />
+      <div className="absolute right-6 top-6 flex items-center gap-1 rounded-md border bg-background/90 p-1 backdrop-blur">
+        <LanguageToggle />
+        <ThemeToggle />
       </div>
 
       <header className="grid gap-8 lg:grid-cols-2 lg:items-center">

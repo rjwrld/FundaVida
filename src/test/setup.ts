@@ -6,6 +6,23 @@ afterEach(() => {
   cleanup()
 })
 
+// matchMedia is not implemented in jsdom — provide a default stub
+// Individual tests can override via vi.spyOn(window, 'matchMedia')
+if (!window.matchMedia) {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  const noop = () => {}
+  window.matchMedia = (query: string) => ({
+    matches: false,
+    media: query,
+    addEventListener: noop,
+    removeEventListener: noop,
+    addListener: noop,
+    removeListener: noop,
+    dispatchEvent: () => false,
+    onchange: null,
+  })
+}
+
 // Radix UI uses pointer capture and scroll APIs not implemented in jsdom
 window.HTMLElement.prototype.hasPointerCapture = () => false
 // eslint-disable-next-line @typescript-eslint/no-empty-function

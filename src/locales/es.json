@@ -138,6 +138,12 @@
     },
     "language": {
       "label": "Idioma"
+    },
+    "theme": {
+      "dark": "Oscuro",
+      "light": "Claro",
+      "system": "Sistema",
+      "toggle": "Cambiar tema"
     }
   },
   "courses": {

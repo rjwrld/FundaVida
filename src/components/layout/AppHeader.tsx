@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { RoleSwitcher } from '@/components/demo/RoleSwitcher'
 import { LanguageToggle } from '@/components/layout/LanguageToggle'
+import { ThemeToggle } from '@/components/shared/ThemeToggle'
 
 export function AppHeader() {
   const { t } = useTranslation()
@@ -16,6 +17,7 @@ export function AppHeader() {
             <span>{t('header.demoLabel')}</span>
           </nav>
           <LanguageToggle variant="header" />
+          <ThemeToggle />
           <RoleSwitcher />
         </div>
       </div>
