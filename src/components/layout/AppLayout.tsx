@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router-dom'
+import { useLocation, useOutlet } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { AppHeader } from './AppHeader'
@@ -10,6 +10,7 @@ import { fadeUp, transitionDefaults } from '@/lib/motion'
 
 function AnimatedOutlet() {
   const { pathname } = useLocation()
+  const outlet = useOutlet()
   // Collapse dynamic id segments so detail→detail navigation (e.g. /app/students/1 → /app/students/2)
   // doesn't remount the subtree. Route params in this app are numeric.
   const routeKey = pathname.replace(/\/\d+(?=\/|$)/g, '/:id')
@@ -23,7 +24,7 @@ function AnimatedOutlet() {
         exit="hidden"
         transition={transitionDefaults}
       >
-        <Outlet />
+        {outlet}
       </motion.div>
     </AnimatePresence>
   )
