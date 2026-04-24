@@ -339,6 +339,11 @@
     "enrollments": "Enrollments",
     "grades": "Grades",
     "reports": "Reports",
+    "sections": {
+      "people": "People",
+      "programs": "Programs",
+      "reports": "Reports"
+    },
     "students": "Students",
     "tcu": "TCU",
     "teachers": "Teachers"

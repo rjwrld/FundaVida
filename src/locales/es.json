@@ -340,6 +340,11 @@
     "enrollments": "Matrículas",
     "grades": "Calificaciones",
     "reports": "Reportes",
+    "sections": {
+      "people": "Personas",
+      "programs": "Programas",
+      "reports": "Reportes"
+    },
     "students": "Estudiantes",
     "tcu": "TCU",
     "teachers": "Docentes"
