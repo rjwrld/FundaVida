@@ -24,8 +24,8 @@ export function LandingPage() {
 
   return (
     <main className="relative mx-auto max-w-5xl space-y-16 px-6 py-12">
-      <div className="absolute right-6 top-6 flex items-center gap-2">
-        <LanguageToggle variant="landing" />
+      <div className="absolute right-6 top-6 flex items-center gap-1 rounded-md border bg-background/90 p-1 backdrop-blur">
+        <LanguageToggle />
         <ThemeToggle />
       </div>
 

@@ -1,4 +1,4 @@
-import { Monitor, Moon, Sun } from 'lucide-react'
+import { Monitor, Moon, Sun, type LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useTheme, type Theme } from '@/hooks/useTheme'
 import {
@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 
-const icons: Record<Theme, typeof Sun> = {
+const icons: Record<Theme, LucideIcon> = {
   light: Sun,
   dark: Moon,
   system: Monitor,
@@ -24,20 +24,20 @@ export function ThemeToggle() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" aria-label={t('common.theme.toggle')}>
-          <ActiveIcon size={18} />
+          <ActiveIcon />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme('light')}>
-          <Sun size={16} className="mr-2" />
+          <Sun />
           {t('common.theme.light')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('dark')}>
-          <Moon size={16} className="mr-2" />
+          <Moon />
           {t('common.theme.dark')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('system')}>
-          <Monitor size={16} className="mr-2" />
+          <Monitor />
           {t('common.theme.system')}
         </DropdownMenuItem>
       </DropdownMenuContent>
