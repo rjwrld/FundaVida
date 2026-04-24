@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 
@@ -100,12 +101,10 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t('dashboard.title', { role: t(`roles.${role}.label`) })}
-        </h1>
-        <p className="text-sm text-muted-foreground">{t('dashboard.subtitle')}</p>
-      </header>
+      <PageHeader
+        title={t('dashboard.title', { role: t(`roles.${role}.label`) })}
+        description={t('dashboard.subtitle')}
+      />
       {role === 'admin' && <AdminCards />}
       {role === 'teacher' && <TeacherCards />}
       {(role === 'student' || role === 'tcu') && <PlaceholderPanel role={role} />}

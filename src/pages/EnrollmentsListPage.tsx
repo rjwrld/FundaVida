@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useDeleteEnrollment, useEnrollments } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
@@ -32,10 +33,10 @@ export function EnrollmentsListPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('enrollments.list.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('enrollments.list.subtitle')}</p>
-      </header>
+      <PageHeader
+        title={t('enrollments.list.title')}
+        description={t('enrollments.list.subtitle')}
+      />
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
         <Select

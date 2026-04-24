@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useStore } from '@/data/store'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useFormat } from '@/hooks/useFormat'
@@ -96,10 +97,10 @@ export function CertificatesListPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('certificates.list.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('certificates.list.subtitle')}</p>
-      </header>
+      <PageHeader
+        title={t('certificates.list.title')}
+        description={t('certificates.list.subtitle')}
+      />
       {list.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
           {emptyMessage}

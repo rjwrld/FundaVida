@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useDeleteTeacher, useTeachers } from '@/hooks/api'
 import type { TeacherFilters } from '@/data/api/teachers'
 
@@ -23,14 +24,15 @@ export function TeachersListPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{t('teachers.list.title')}</h1>
-        </div>
-        <Button onClick={() => navigate('/app/teachers/new')}>
-          {t('teachers.list.addButton')}
-        </Button>
-      </header>
+      <PageHeader
+        title={t('teachers.list.title')}
+        description={t('teachers.list.subtitle')}
+        action={
+          <Button onClick={() => navigate('/app/teachers/new')}>
+            {t('teachers.list.addButton')}
+          </Button>
+        }
+      />
 
       <section aria-label={t('common.a11y.filters')}>
         <Input

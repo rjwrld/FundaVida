@@ -125,6 +125,7 @@
   },
   "common": {
     "a11y": {
+      "breadcrumb": "Breadcrumb",
       "filters": "Filters",
       "skipToMain": "Skip to main content"
     },
@@ -133,11 +134,29 @@
       "cancel": "Cancel",
       "close": "Close",
       "delete": "Delete",
+      "edit": "Edit",
+      "new": "New",
       "save": "Save"
+    },
+    "commandPalette": {
+      "empty": "No results.",
+      "hints": {
+        "close": "to close",
+        "select": "to select"
+      },
+      "navigation": "Navigation",
+      "placeholder": "Type a command or search…",
+      "theme": "Theme"
+    },
+    "help": {
+      "body": "Have questions about the rebuild? The source is on GitHub.",
+      "cta": "View the repo →",
+      "title": "Need help?"
     },
     "language": {
       "label": "Language"
     },
+    "search": "Search",
     "theme": {
       "dark": "Dark",
       "light": "Light",
@@ -190,6 +209,7 @@
       },
       "empty": "No courses yet.",
       "searchPlaceholder": "Search by name or program",
+      "subtitle": "Catalog of courses offered across programs and headquarters.",
       "title": "Courses"
     }
   },
@@ -272,11 +292,6 @@
       "title": "Grades"
     }
   },
-  "header": {
-    "brand": "FundaVida",
-    "demoLabel": "Demo",
-    "primaryAriaLabel": "Primary"
-  },
   "landing": {
     "enterAs": "Enter as {{role}}",
     "featurePreview": {
@@ -324,6 +339,11 @@
     "enrollments": "Enrollments",
     "grades": "Grades",
     "reports": "Reports",
+    "sections": {
+      "people": "People",
+      "programs": "Programs",
+      "reports": "Reports"
+    },
     "students": "Students",
     "tcu": "TCU",
     "teachers": "Teachers"
@@ -429,6 +449,7 @@
       "empty": "No students yet.",
       "emptyFiltered": "No students match your filter.",
       "searchPlaceholder": "Search by name or email",
+      "subtitle": "Create, filter, and manage students enrolled in programs.",
       "title": "Students"
     }
   },
@@ -485,6 +506,7 @@
       },
       "empty": "No teachers yet.",
       "searchPlaceholder": "Search by name or email",
+      "subtitle": "Manage teachers and their course assignments.",
       "title": "Teachers"
     }
   },

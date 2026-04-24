@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { buildCourseSchema, type CourseFormValues } from '@/data/schemas/course'
 import { useCourse, useCreateCourse, useUpdateCourse } from '@/hooks/api'
 import { HEADQUARTERS, PROGRAMS } from '@/constants/course'
@@ -71,11 +72,7 @@ export function CoursesFormPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {isEdit ? t('courses.form.editTitle') : t('courses.form.newTitle')}
-        </h1>
-      </header>
+      <PageHeader title={isEdit ? t('courses.form.editTitle') : t('courses.form.newTitle')} />
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="name">{t('courses.form.fields.name')}</Label>

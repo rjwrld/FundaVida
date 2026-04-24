@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useStore } from '@/data/store'
 import { buildReports } from '@/lib/reports'
 import { useFormat } from '@/hooks/useFormat'
@@ -35,10 +36,7 @@ export function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('reports.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('reports.subtitle')}</p>
-      </header>
+      <PageHeader title={t('reports.title')} description={t('reports.subtitle')} />
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>

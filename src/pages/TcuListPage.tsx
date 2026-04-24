@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useTcuActivities } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
@@ -32,13 +33,15 @@ export function TcuListPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('tcu.list.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('tcu.list.subtitle')}</p>
-        <p className="text-sm text-muted-foreground">
-          {t('tcu.list.totalLabel', { hours: formatNumber(totalHours) })}
-        </p>
-      </header>
+      <PageHeader
+        title={t('tcu.list.title')}
+        description={t('tcu.list.subtitle')}
+        action={
+          <p className="text-sm text-muted-foreground">
+            {t('tcu.list.totalLabel', { hours: formatNumber(totalHours) })}
+          </p>
+        }
+      />
 
       {role === 'admin' && (
         <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">

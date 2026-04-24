@@ -126,6 +126,7 @@
   },
   "common": {
     "a11y": {
+      "breadcrumb": "Ruta de navegación",
       "filters": "Filtros",
       "skipToMain": "Saltar al contenido principal"
     },
@@ -134,11 +135,29 @@
       "cancel": "Cancelar",
       "close": "Cerrar",
       "delete": "Eliminar",
+      "edit": "Editar",
+      "new": "Nuevo",
       "save": "Guardar"
+    },
+    "commandPalette": {
+      "empty": "Sin resultados.",
+      "hints": {
+        "close": "para cerrar",
+        "select": "para seleccionar"
+      },
+      "navigation": "Navegación",
+      "placeholder": "Escribe un comando o busca…",
+      "theme": "Tema"
+    },
+    "help": {
+      "body": "¿Preguntas sobre la rearquitectura? El código está en GitHub.",
+      "cta": "Ver el repo →",
+      "title": "¿Necesitas ayuda?"
     },
     "language": {
       "label": "Idioma"
     },
+    "search": "Buscar",
     "theme": {
       "dark": "Oscuro",
       "light": "Claro",
@@ -191,6 +210,7 @@
       },
       "empty": "Aún no hay cursos.",
       "searchPlaceholder": "Buscar por nombre o programa",
+      "subtitle": "Catálogo de cursos ofrecidos en los programas y sedes.",
       "title": "Cursos"
     }
   },
@@ -273,11 +293,6 @@
       "title": "Calificaciones"
     }
   },
-  "header": {
-    "brand": "FundaVida",
-    "demoLabel": "Demo",
-    "primaryAriaLabel": "Principal"
-  },
   "landing": {
     "enterAs": "Ingresar como {{role}}",
     "featurePreview": {
@@ -325,6 +340,11 @@
     "enrollments": "Matrículas",
     "grades": "Calificaciones",
     "reports": "Reportes",
+    "sections": {
+      "people": "Personas",
+      "programs": "Programas",
+      "reports": "Reportes"
+    },
     "students": "Estudiantes",
     "tcu": "TCU",
     "teachers": "Docentes"
@@ -430,6 +450,7 @@
       "empty": "Aún no hay estudiantes.",
       "emptyFiltered": "Ningún estudiante coincide con el filtro.",
       "searchPlaceholder": "Buscar por nombre o correo",
+      "subtitle": "Crea, filtra y gestiona estudiantes matriculados en los programas.",
       "title": "Estudiantes"
     }
   },
@@ -487,6 +508,7 @@
       },
       "empty": "Aún no hay docentes.",
       "searchPlaceholder": "Buscar por nombre o correo",
+      "subtitle": "Gestiona docentes y sus cursos asignados.",
       "title": "Docentes"
     }
   },

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useTeacher } from '@/hooks/api'
 import { useStore } from '@/data/store'
 
@@ -29,22 +30,21 @@ export function TeachersDetailPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {teacher.firstName} {teacher.lastName}
-          </h1>
-          <p className="text-sm text-muted-foreground">{teacher.email}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate('/app/teachers')}>
-            {t('common.actions.backToHome')}
-          </Button>
-          <Button onClick={() => navigate(`/app/teachers/${teacher.id}/edit`)}>
-            {t('teachers.detail.edit')}
-          </Button>
-        </div>
-      </header>
+      <PageHeader
+        eyebrow={t('teachers.detail.title')}
+        title={`${teacher.firstName} ${teacher.lastName}`}
+        description={teacher.email}
+        action={
+          <>
+            <Button variant="outline" onClick={() => navigate('/app/teachers')}>
+              {t('common.actions.backToHome')}
+            </Button>
+            <Button onClick={() => navigate(`/app/teachers/${teacher.id}/edit`)}>
+              {t('teachers.detail.edit')}
+            </Button>
+          </>
+        }
+      />
 
       <section className="grid gap-4 sm:grid-cols-2">
         <Card>
