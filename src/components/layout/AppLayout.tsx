@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useMatches } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { AppHeader } from './AppHeader'
@@ -9,11 +9,12 @@ import { CommandPaletteProvider } from '@/components/shared/CommandPaletteProvid
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 
 function AnimatedOutlet() {
-  const location = useLocation()
+  const matches = useMatches()
+  const routeKey = matches[matches.length - 1]?.id ?? 'root'
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={location.pathname}
+        key={routeKey}
         variants={fadeUp}
         initial="hidden"
         animate="visible"

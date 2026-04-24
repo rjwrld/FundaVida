@@ -10,7 +10,6 @@ export function useCommandPalette() {
         setOpen((prev) => !prev)
         return
       }
-      if (e.key === 'Escape') setOpen(false)
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
