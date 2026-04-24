@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useDeleteStudent, useStudents } from '@/hooks/api'
 import type { StudentFilters } from '@/data/api/students'
 import { EDUCATIONAL_LEVELS, PROVINCES } from '@/constants/student'
@@ -33,14 +34,15 @@ export function StudentsListPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{t('students.list.title')}</h1>
-        </div>
-        <Button onClick={() => navigate('/app/students/new')}>
-          {t('students.list.addButton')}
-        </Button>
-      </header>
+      <PageHeader
+        title={t('students.list.title')}
+        description={t('students.list.subtitle')}
+        action={
+          <Button onClick={() => navigate('/app/students/new')}>
+            {t('students.list.addButton')}
+          </Button>
+        }
+      />
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-3">
         <Input

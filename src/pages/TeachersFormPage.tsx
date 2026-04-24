@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { buildTeacherSchema, type TeacherFormValues } from '@/data/schemas/teacher'
 import { useCreateTeacher, useTeacher, useUpdateTeacher } from '@/hooks/api'
 
@@ -50,11 +51,7 @@ export function TeachersFormPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {isEdit ? t('teachers.form.editTitle') : t('teachers.form.newTitle')}
-        </h1>
-      </header>
+      <PageHeader title={isEdit ? t('teachers.form.editTitle') : t('teachers.form.newTitle')} />
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">

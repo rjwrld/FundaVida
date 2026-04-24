@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { EditGradeDialog } from '@/components/grades/EditGradeDialog'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useDeleteGrade, useGrades } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
@@ -43,10 +44,7 @@ export function GradesListPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('grades.list.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('grades.list.subtitle')}</p>
-      </header>
+      <PageHeader title={t('grades.list.title')} description={t('grades.list.subtitle')} />
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
         <Select

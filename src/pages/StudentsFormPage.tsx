@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { buildStudentSchema, type StudentFormValues } from '@/data/schemas/student'
 import { useCreateStudent, useStudent, useUpdateStudent } from '@/hooks/api'
 import { EDUCATIONAL_LEVELS, GENDERS, PROVINCES } from '@/constants/student'
@@ -72,11 +73,7 @@ export function StudentsFormPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {isEdit ? t('students.form.editTitle') : t('students.form.newTitle')}
-        </h1>
-      </header>
+      <PageHeader title={isEdit ? t('students.form.editTitle') : t('students.form.newTitle')} />
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">

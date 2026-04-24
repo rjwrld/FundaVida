@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useAuditLog } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import type { AuditLogFilters } from '@/data/api/auditLog'
@@ -38,10 +39,7 @@ export function AuditLogPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('auditLog.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('auditLog.subtitle')}</p>
-      </header>
+      <PageHeader title={t('auditLog.title')} description={t('auditLog.subtitle')} />
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
         <Select

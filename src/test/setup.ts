@@ -31,3 +31,19 @@ window.HTMLElement.prototype.setPointerCapture = () => {}
 window.HTMLElement.prototype.releasePointerCapture = () => {}
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 window.HTMLElement.prototype.scrollIntoView = () => {}
+
+// cmdk relies on ResizeObserver; jsdom doesn't implement it
+if (!window.ResizeObserver) {
+  class ResizeObserverStub {
+    observe() {
+      /* noop */
+    }
+    unobserve() {
+      /* noop */
+    }
+    disconnect() {
+      /* noop */
+    }
+  }
+  window.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver
+}

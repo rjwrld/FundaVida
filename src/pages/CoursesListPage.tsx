@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useCourses, useDeleteCourse } from '@/hooks/api'
 import { HEADQUARTERS, PROGRAMS } from '@/constants/course'
 import type { CourseFilters } from '@/data/api/courses'
@@ -40,16 +41,17 @@ export function CoursesListPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{t('courses.list.title')}</h1>
-        </div>
-        {isAdmin && (
-          <Button onClick={() => navigate('/app/courses/new')}>
-            {t('courses.list.addButton')}
-          </Button>
-        )}
-      </header>
+      <PageHeader
+        title={t('courses.list.title')}
+        description={t('courses.list.subtitle')}
+        action={
+          isAdmin ? (
+            <Button onClick={() => navigate('/app/courses/new')}>
+              {t('courses.list.addButton')}
+            </Button>
+          ) : null
+        }
+      />
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-3">
         <Input

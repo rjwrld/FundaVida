@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useCourse, useUnenrollStudent } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
@@ -59,22 +60,23 @@ export function CoursesDetailPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{course.name}</h1>
-          <p className="text-sm text-muted-foreground">{course.programName}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate('/app/courses')}>
-            {t('common.actions.backToHome')}
-          </Button>
-          {isAdmin && (
-            <Button onClick={() => navigate(`/app/courses/${course.id}/edit`)}>
-              {t('courses.detail.edit')}
+      <PageHeader
+        eyebrow={t('courses.detail.title')}
+        title={course.name}
+        description={course.programName}
+        action={
+          <>
+            <Button variant="outline" onClick={() => navigate('/app/courses')}>
+              {t('common.actions.backToHome')}
             </Button>
-          )}
-        </div>
-      </header>
+            {isAdmin && (
+              <Button onClick={() => navigate(`/app/courses/${course.id}/edit`)}>
+                {t('courses.detail.edit')}
+              </Button>
+            )}
+          </>
+        }
+      />
 
       <section className="grid gap-4 sm:grid-cols-2">
         <Card>

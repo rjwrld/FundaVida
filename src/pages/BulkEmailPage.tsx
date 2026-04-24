@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PageHeader } from '@/components/shared/PageHeader'
 import {
   Table,
   TableBody,
@@ -87,10 +88,7 @@ export function BulkEmailPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('bulkEmail.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('bulkEmail.subtitle')}</p>
-      </header>
+      <PageHeader title={t('bulkEmail.title')} description={t('bulkEmail.subtitle')} />
 
       <Card>
         <CardHeader>

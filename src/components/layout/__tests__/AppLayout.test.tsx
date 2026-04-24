@@ -35,7 +35,7 @@ describe('<AppLayout />', () => {
         </MemoryRouter>
       </I18nProvider>
     )
-    expect(screen.getByText('FundaVida')).toBeInTheDocument()
+    expect(screen.getByRole('banner')).toBeInTheDocument()
     expect(screen.getByRole('complementary', { name: 'Sections' })).toBeInTheDocument()
     expect(screen.getByText('Hello from outlet')).toBeInTheDocument()
   })

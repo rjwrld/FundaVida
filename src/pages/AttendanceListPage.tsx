@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/shared/PageHeader'
 import {
   Select,
   SelectContent,
@@ -45,10 +46,7 @@ export function AttendanceListPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('attendance.list.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('attendance.list.subtitle')}</p>
-      </header>
+      <PageHeader title={t('attendance.list.title')} description={t('attendance.list.subtitle')} />
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-3">
         {role === 'admin' && (
