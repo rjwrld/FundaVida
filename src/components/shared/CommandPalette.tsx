@@ -20,6 +20,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from '@/components/ui/command'
 import { useTheme, type Theme } from '@/hooks/useTheme'
 import { useCommandPaletteContext } from '@/hooks/useCommandPaletteContext'
@@ -81,6 +82,8 @@ export function CommandPalette() {
             )
           })}
         </CommandGroup>
+
+        <CommandSeparator />
 
         <CommandGroup heading={t('common.commandPalette.theme')}>
           <CommandItem
