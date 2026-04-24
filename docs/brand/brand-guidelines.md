@@ -961,14 +961,14 @@ First-class. Light and dark palettes both curated, per-page audited. Not an afte
 
 Three-way: `light` / `dark` / `system`. Implemented via `ThemeToggle` component in the header.
 
-- Persisted in `localStorage` under key `fundavida:theme`.
+- Persisted in `localStorage` under key `fundavida:v1:theme`.
 - `system` reads `prefers-color-scheme` and reacts to OS change.
 - No flash on page load: theme class applied to `<html>` before React hydrates, via an inline script in `index.html`:
 
 ```html
 <script>
   ;(function () {
-    var stored = localStorage.getItem('fundavida:theme')
+    var stored = localStorage.getItem('fundavida:v1:theme')
     var theme = stored || 'system'
     var resolved =
       theme === 'system'

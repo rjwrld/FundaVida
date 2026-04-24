@@ -72,7 +72,7 @@ See [`docs/brand/brand-guidelines.md`](../../brand/brand-guidelines.md) for the 
 
 - Dark palette is **curated**, not token-inverted. Deep navy background (`oklch(0.17 0.02 250)`), off-white foreground, brand colors slightly desaturated (saturated colors vibrate on dark — standard dark-mode rule).
 - Primary token in dark uses OKLCH lightness shift of light primary — same hue, different lightness/chroma — so branding stays recognizable.
-- Toggle: `light` / `dark` / `system`, three-way. Persisted in `localStorage` under key `fundavida:theme`. Respects `prefers-color-scheme` when `system`.
+- Toggle: `light` / `dark` / `system`, three-way. Persisted in `localStorage` under key `fundavida:v1:theme`. Respects `prefers-color-scheme` when `system`.
 
 ### 4.3 Typography
 
