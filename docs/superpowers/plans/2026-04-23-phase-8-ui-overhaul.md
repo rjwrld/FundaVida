@@ -578,7 +578,7 @@ createRoot(document.getElementById('root')!).render(
 <script>
   ;(function () {
     try {
-      var stored = localStorage.getItem('fundavida:theme')
+      var stored = localStorage.getItem('fundavida:v1:theme')
       var theme = stored || 'system'
       var resolved =
         theme === 'system'
@@ -688,7 +688,7 @@ describe('useTheme', () => {
   })
 
   it('reads stored theme from localStorage', () => {
-    localStorage.setItem('fundavida:theme', 'dark')
+    localStorage.setItem('fundavida:v1:theme', 'dark')
     const { result } = renderHook(() => useTheme())
     expect(result.current.theme).toBe('dark')
   })
@@ -696,7 +696,7 @@ describe('useTheme', () => {
   it('setTheme persists to localStorage and applies class', () => {
     const { result } = renderHook(() => useTheme())
     act(() => result.current.setTheme('dark'))
-    expect(localStorage.getItem('fundavida:theme')).toBe('dark')
+    expect(localStorage.getItem('fundavida:v1:theme')).toBe('dark')
     expect(document.documentElement.classList.contains('dark')).toBe(true)
   })
 
@@ -735,7 +735,7 @@ describe('useTheme', () => {
 import { useCallback, useEffect, useState } from 'react'
 
 export type Theme = 'light' | 'dark' | 'system'
-const STORAGE_KEY = 'fundavida:theme'
+const STORAGE_KEY = 'fundavida:v1:theme'
 
 function resolveSystem(): 'light' | 'dark' {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -893,7 +893,7 @@ describe('ThemeToggle', () => {
     await user.click(screen.getByRole('button'))
     await user.click(screen.getByText(/^(dark|oscuro)$/i))
     expect(document.documentElement.classList.contains('dark')).toBe(true)
-    expect(localStorage.getItem('fundavida:theme')).toBe('dark')
+    expect(localStorage.getItem('fundavida:v1:theme')).toBe('dark')
   })
 })
 ```
@@ -975,7 +975,7 @@ If audit required additional token edits to `src/index.css` or `tailwind.config.
 git push -u origin feat/phase-8-theme-toggle
 gh pr create --title "feat: add light/dark/system theme toggle with per-page audit" --body "$(cat <<'EOF'
 ## Summary
-- New useTheme hook reads/writes fundavida:theme from localStorage and applies .dark class on <html>.
+- New useTheme hook reads/writes fundavida:v1:theme from localStorage and applies .dark class on <html>.
 - ThemeToggle component in the header offers three-way light/dark/system with Lucide icons.
 - Respects prefers-color-scheme when theme is system; reacts to OS change.
 - Per-page audit across all admin routes + landing; tokens tweaked where contrast or surface separation was poor.
