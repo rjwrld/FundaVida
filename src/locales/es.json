@@ -357,7 +357,25 @@
     }
   },
   "landing": {
-    "enterAs": "Ingresar como {{role}}",
+    "featureBento": {
+      "bilingual": {
+        "caption": "Cada módulo se publica en inglés y español. i18n:check protege el CI.",
+        "title": "Bilingüe desde el día uno"
+      },
+      "crud": {
+        "caption": "Estudiantes, cursos y certificados con actualizaciones optimistas, validación localizada y navegación por teclado.",
+        "title": "Módulos CRUD principales"
+      },
+      "deterministic": {
+        "caption": "faker.seed(42) hace que cada visitante vea los mismos estudiantes, cursos y notas.",
+        "title": "Datos de demo deterministas"
+      },
+      "heading": "Construido con el mismo oficio que producción.",
+      "pdf": {
+        "caption": "Generados y descargados desde el cliente vía @react-pdf/renderer.",
+        "title": "Certificados PDF en el navegador"
+      }
+    },
     "featurePreview": {
       "certificate": {
         "alt": "Diálogo de vista previa del certificado con botón de descarga.",
@@ -376,6 +394,11 @@
         "title": "Módulo de estudiantes con CRUD completo"
       }
     },
+    "finalCta": {
+      "cta": "Ingresar como administrador",
+      "headline": "¿Listo para explorar?",
+      "subline": "Abrí la demo de administrador. Todo corre localmente en tu navegador."
+    },
     "footer": {
       "github": "Código",
       "linkedin": "LinkedIn",
@@ -383,15 +406,52 @@
       "rearchitected": "Demo de portafolio rearquitecturizada de {{org}}"
     },
     "hero": {
-      "cta": "Entrar a la demo",
+      "eyebrow": "Gestión educativa · Costa Rica",
+      "headline": "La esperanza lo cambia todo.",
+      "illustrationAlt": "Ilustración isométrica del panel FundaVida con un certificado y motivo de llama",
+      "noSignup": "Sin registro · Los datos viven en tu navegador",
+      "primaryCta": "Ingresar como administrador",
       "screenshotAlt": "Vista previa del panel con estadísticas de estudiantes y cursos.",
-      "tagline": "Plataforma de gestión educativa — rearquitecturizada como una demo de portafolio que corre solo en el navegador."
+      "secondaryCta": "Ver en GitHub",
+      "subhead": "Una plataforma educativa de producción, rearquitecturada como demo de portafolio sin backend. Sin servidor. Sin autenticación. Solo oficio."
     },
-    "rolesHeading": "Elige un rol de demostración",
+    "rearchitecture": {
+      "headline": "De respaldo en Supabase a solo navegador.",
+      "rows": [
+        {
+          "after": "Selector de rol (sin login)",
+          "before": "Supabase Auth + RLS"
+        },
+        {
+          "after": "Zustand + localStorage",
+          "before": "PostgreSQL + Storage"
+        },
+        {
+          "after": "Simulada (registrada en auditoría)",
+          "before": "Entrega de correo Resend"
+        },
+        {
+          "after": "Solo Vercel",
+          "before": "Hosting Vercel + Supabase"
+        },
+        {
+          "after": "Bilingüe EN / ES",
+          "before": "UI solo en español"
+        }
+      ]
+    },
     "techStack": {
       "heading": "Hecho con"
     },
-    "title": "FundaVida"
+    "trustStrip": {
+      "headline": "Rearquitecturada desde una plataforma de producción",
+      "stat": {
+        "backends": "Backends",
+        "locales": "Idiomas",
+        "modules": "Módulos",
+        "tests": "Pruebas"
+      }
+    }
   },
   "nav": {
     "attendance": "Asistencia",

@@ -132,3 +132,9 @@ t('landing.featurePreview.certificate.alt')
 t('landing.featurePreview.reports.title')
 t('landing.featurePreview.reports.caption')
 t('landing.featurePreview.reports.alt')
+
+// Keys referenced dynamically via t(`landing.trustStrip.stat.${stat.key}`) in TrustStrip
+t('landing.trustStrip.stat.modules')
+t('landing.trustStrip.stat.locales')
+t('landing.trustStrip.stat.tests')
+t('landing.trustStrip.stat.backends')

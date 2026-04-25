@@ -353,7 +353,25 @@
     }
   },
   "landing": {
-    "enterAs": "Enter as {{role}}",
+    "featureBento": {
+      "bilingual": {
+        "caption": "Every module ships in English and Spanish. i18n:check gates the CI.",
+        "title": "Bilingual from day one"
+      },
+      "crud": {
+        "caption": "Students, courses, and certificates with optimistic updates, localized validation, and keyboard navigation.",
+        "title": "CRUD hero modules"
+      },
+      "deterministic": {
+        "caption": "faker.seed(42) means every visitor sees the same students, courses, and grades.",
+        "title": "Deterministic demo data"
+      },
+      "heading": "Built with the same craft as production.",
+      "pdf": {
+        "caption": "Generated and downloaded client-side via @react-pdf/renderer.",
+        "title": "PDF certificates in the browser"
+      }
+    },
     "featurePreview": {
       "certificate": {
         "alt": "Certificate preview dialog with download button.",
@@ -372,6 +390,11 @@
         "title": "Full-CRUD students module"
       }
     },
+    "finalCta": {
+      "cta": "Enter as admin",
+      "headline": "Ready to explore?",
+      "subline": "Open the admin demo. Everything runs locally in your browser."
+    },
     "footer": {
       "github": "Source",
       "linkedin": "LinkedIn",
@@ -379,15 +402,52 @@
       "rearchitected": "Rearchitected portfolio demo of {{org}}"
     },
     "hero": {
-      "cta": "Enter demo",
+      "eyebrow": "Educational management · Costa Rica",
+      "headline": "Hope changes everything.",
+      "illustrationAlt": "Isometric illustration of the FundaVida dashboard with a certificate and flame motif",
+      "noSignup": "No signup · Data lives in your browser",
+      "primaryCta": "Enter as admin",
       "screenshotAlt": "Dashboard preview with student and course statistics.",
-      "tagline": "Educational management platform — rearchitected as a browser-only portfolio demo."
+      "secondaryCta": "View on GitHub",
+      "subhead": "A production educational platform, rearchitected as a browser-only portfolio demo. No backend. No auth. Just craft."
     },
-    "rolesHeading": "Choose a demo role",
+    "rearchitecture": {
+      "headline": "From Supabase-backed to browser-only.",
+      "rows": [
+        {
+          "after": "Role switcher (no login)",
+          "before": "Supabase Auth + RLS"
+        },
+        {
+          "after": "Zustand + localStorage",
+          "before": "PostgreSQL + Storage"
+        },
+        {
+          "after": "Simulated (logged to audit)",
+          "before": "Resend email delivery"
+        },
+        {
+          "after": "Vercel only",
+          "before": "Vercel + Supabase hosting"
+        },
+        {
+          "after": "Bilingual EN / ES",
+          "before": "Spanish-only UI"
+        }
+      ]
+    },
     "techStack": {
       "heading": "Built with"
     },
-    "title": "FundaVida"
+    "trustStrip": {
+      "headline": "Rearchitected from a production platform",
+      "stat": {
+        "backends": "Backends",
+        "locales": "Locales",
+        "modules": "Modules",
+        "tests": "Tests"
+      }
+    }
   },
   "nav": {
     "attendance": "Attendance",
