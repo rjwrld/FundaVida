@@ -1,18 +1,16 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('smoke', () => {
-  test('landing renders FundaVida heading and four role CTAs', async ({ page }) => {
+  test('landing renders the hero headline and admin CTA', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: 'FundaVida' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Enter as Admin' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Enter as Teacher' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Enter as Student' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Enter as TCU' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Hope changes everything.' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Enter as admin' }).first()).toBeVisible()
+    await expect(page.getByRole('link', { name: 'View on GitHub' })).toBeVisible()
   })
 
   test('picking a role lands on the dashboard', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('button', { name: 'Enter as Admin' }).click()
+    await page.getByRole('button', { name: 'Enter as admin' }).first().click()
     await expect(page).toHaveURL(/\/app$/)
     await expect(page.getByRole('heading', { name: /hola, admin/i })).toBeVisible()
   })

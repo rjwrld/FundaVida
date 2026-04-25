@@ -357,24 +357,29 @@
     }
   },
   "landing": {
-    "enterAs": "Ingresar como {{role}}",
-    "featurePreview": {
-      "certificate": {
-        "alt": "Diálogo de vista previa del certificado con botón de descarga.",
-        "caption": "Los estudiantes elegibles reciben un certificado en PDF renderizado en el navegador con @react-pdf/renderer.",
-        "title": "Generación de certificados en PDF"
+    "featureBento": {
+      "bilingual": {
+        "caption": "Cada módulo se publica en inglés y español. i18n:check protege el CI.",
+        "title": "Bilingüe desde el día uno"
       },
-      "heading": "Una muestra de lo que hay adentro",
-      "reports": {
-        "alt": "Panel de reportes con tarjetas de totales y tablas de clasificación.",
-        "caption": "Matrículas, notas promedio, tasas de asistencia y horas de comunidad — calculadas en el cliente.",
-        "title": "Reportes transversales"
+      "crud": {
+        "caption": "Estudiantes, cursos y certificados con actualizaciones optimistas, validación localizada y navegación por teclado.",
+        "title": "Módulos CRUD principales"
       },
-      "students": {
-        "alt": "Página de lista de estudiantes con controles de filtro y datos de ejemplo.",
-        "caption": "Crear, filtrar, buscar, editar y eliminar. Validación de formularios, actualizaciones optimistas y navegación por teclado.",
-        "title": "Módulo de estudiantes con CRUD completo"
+      "deterministic": {
+        "caption": "faker.seed(42) hace que cada visitante vea los mismos estudiantes, cursos y notas.",
+        "title": "Datos de demo deterministas"
+      },
+      "heading": "Construido con el mismo oficio que producción.",
+      "pdf": {
+        "caption": "Generados y descargados desde el cliente vía @react-pdf/renderer.",
+        "title": "Certificados PDF en el navegador"
       }
+    },
+    "finalCta": {
+      "cta": "Ingresar como administrador",
+      "headline": "¿Listo para explorar?",
+      "subline": "Abrí la demo de administrador. Todo corre localmente en tu navegador."
     },
     "footer": {
       "github": "Código",
@@ -383,15 +388,48 @@
       "rearchitected": "Demo de portafolio rearquitecturizada de {{org}}"
     },
     "hero": {
-      "cta": "Entrar a la demo",
-      "screenshotAlt": "Vista previa del panel con estadísticas de estudiantes y cursos.",
-      "tagline": "Plataforma de gestión educativa — rearquitecturizada como una demo de portafolio que corre solo en el navegador."
+      "eyebrow": "Gestión educativa · Costa Rica",
+      "headline": "La esperanza lo cambia todo.",
+      "illustrationAlt": "Ilustración isométrica del panel FundaVida con un certificado y motivo de llama",
+      "noSignup": "Sin registro · Los datos viven en tu navegador",
+      "primaryCta": "Ingresar como administrador",
+      "secondaryCta": "Ver en GitHub",
+      "subhead": "Una plataforma educativa de producción, rearquitecturada como demo de portafolio sin backend. Sin servidor. Sin autenticación. Solo oficio."
     },
-    "rolesHeading": "Elige un rol de demostración",
-    "techStack": {
-      "heading": "Hecho con"
+    "rearchitecture": {
+      "headline": "De respaldo en Supabase a solo navegador.",
+      "rows": [
+        {
+          "after": "Selector de rol (sin login)",
+          "before": "Supabase Auth + RLS"
+        },
+        {
+          "after": "Zustand + localStorage",
+          "before": "PostgreSQL + Storage"
+        },
+        {
+          "after": "Simulada (registrada en auditoría)",
+          "before": "Entrega de correo Resend"
+        },
+        {
+          "after": "Solo Vercel",
+          "before": "Hosting Vercel + Supabase"
+        },
+        {
+          "after": "Bilingüe EN / ES",
+          "before": "UI solo en español"
+        }
+      ]
     },
-    "title": "FundaVida"
+    "trustStrip": {
+      "headline": "Rearquitecturada desde una plataforma de producción",
+      "stat": {
+        "backends": "Backends",
+        "locales": "Idiomas",
+        "modules": "Módulos",
+        "tests": "Pruebas"
+      }
+    }
   },
   "nav": {
     "attendance": "Asistencia",
