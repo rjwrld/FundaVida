@@ -8,7 +8,7 @@
         "student": "Student"
       },
       "empty": "No attendance recorded yet.",
-      "emptyFiltered": "No attendance records match.",
+      "emptyFiltered": "No attendance records match the current filters.",
       "filters": {
         "anyCourse": "Any course",
         "anyStatus": "Any status",
