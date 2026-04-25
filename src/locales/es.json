@@ -42,11 +42,11 @@
       "summary": "Resumen",
       "timestamp": "Cuándo"
     },
-    "empty": "Ningún registro coincide con el filtro.",
-    "emptyState": {
+    "empty": {
       "body": "Las acciones administrativas aparecerán aquí a medida que ocurran.",
       "heading": "Aún no hay registros de auditoría"
     },
+    "emptyFiltered": "Ningún registro coincide con el filtro.",
     "entities": {
       "attendance": "Asistencia",
       "course": "Curso",

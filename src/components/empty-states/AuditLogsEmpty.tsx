@@ -10,9 +10,9 @@ export function AuditLogsEmpty({ className }: AuditLogsEmptyProps) {
   return (
     <EmptyState
       className={className}
-      illustration={<img src="/illustrations/audit-logs.svg" alt="" className="w-60" />}
-      heading={t('auditLog.emptyState.heading')}
-      body={t('auditLog.emptyState.body')}
+      illustration={<img src="/illustrations/audit-logs.svg" alt="" className="w-full" />}
+      heading={t('auditLog.empty.heading')}
+      body={t('auditLog.empty.body')}
     />
   )
 }

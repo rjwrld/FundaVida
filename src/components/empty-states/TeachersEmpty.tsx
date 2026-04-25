@@ -11,7 +11,7 @@ export function TeachersEmpty({ onAdd, className }: TeachersEmptyProps) {
   return (
     <EmptyState
       className={className}
-      illustration={<img src="/illustrations/teachers.svg" alt="" className="w-60" />}
+      illustration={<img src="/illustrations/teachers.svg" alt="" className="w-full" />}
       heading={t('teachers.empty.heading')}
       body={t('teachers.empty.body')}
       action={onAdd ? { label: t('teachers.empty.cta'), onClick: onAdd } : undefined}

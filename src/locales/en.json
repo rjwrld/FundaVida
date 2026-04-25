@@ -42,11 +42,11 @@
       "summary": "Summary",
       "timestamp": "When"
     },
-    "empty": "No audit entries match your filter.",
-    "emptyState": {
+    "empty": {
       "body": "Administrative actions will appear here as they happen.",
       "heading": "No audit entries yet"
     },
+    "emptyFiltered": "No audit entries match your filter.",
     "entities": {
       "attendance": "Attendance",
       "course": "Course",

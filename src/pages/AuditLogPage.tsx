@@ -84,7 +84,7 @@ export function AuditLogPage() {
         <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
       ) : data.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {t('auditLog.empty')}
+          {t('auditLog.emptyFiltered')}
         </p>
       ) : (
         <Table>

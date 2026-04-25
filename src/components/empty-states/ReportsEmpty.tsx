@@ -10,7 +10,7 @@ export function ReportsEmpty({ className }: ReportsEmptyProps) {
   return (
     <EmptyState
       className={className}
-      illustration={<img src="/illustrations/reports.svg" alt="" className="w-60" />}
+      illustration={<img src="/illustrations/reports.svg" alt="" className="w-full" />}
       heading={t('reports.empty.heading')}
       body={t('reports.empty.body')}
     />

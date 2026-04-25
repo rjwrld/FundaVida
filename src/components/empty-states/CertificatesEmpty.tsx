@@ -11,7 +11,7 @@ export function CertificatesEmpty({ onAdd, className }: CertificatesEmptyProps) 
   return (
     <EmptyState
       className={className}
-      illustration={<img src="/illustrations/certificates.svg" alt="" className="w-60" />}
+      illustration={<img src="/illustrations/certificates.svg" alt="" className="w-full" />}
       heading={t('certificates.empty.heading')}
       body={t('certificates.empty.body')}
       action={onAdd ? { label: t('certificates.empty.cta'), onClick: onAdd } : undefined}
