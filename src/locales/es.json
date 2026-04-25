@@ -43,6 +43,10 @@
       "timestamp": "Cuándo"
     },
     "empty": "Ningún registro coincide con el filtro.",
+    "emptyState": {
+      "body": "Las acciones administrativas aparecerán aquí a medida que ocurran.",
+      "heading": "Aún no hay registros de auditoría"
+    },
     "entities": {
       "attendance": "Asistencia",
       "course": "Curso",
@@ -105,6 +109,11 @@
     "title": "Correos masivos"
   },
   "certificates": {
+    "empty": {
+      "body": "Aprueba la primera matrícula para emitir un certificado.",
+      "cta": "Ver matrículas",
+      "heading": "Aún no hay certificados emitidos"
+    },
     "list": {
       "columns": {
         "action": "Acción",
@@ -187,6 +196,11 @@
       },
       "title": "Curso",
       "unassignedTeacher": "Sin asignar"
+    },
+    "empty": {
+      "body": "Crea el primer curso para empezar a registrar matrículas y notas.",
+      "cta": "Agregar curso",
+      "heading": "Aún no hay cursos"
     },
     "form": {
       "editTitle": "Editar curso",
@@ -410,6 +424,10 @@
       "rate": "Porcentaje",
       "student": "Estudiante"
     },
+    "empty": {
+      "body": "Genera el primer reporte cuando tengas datos suficientes.",
+      "heading": "Aún no hay reportes"
+    },
     "noRecords": "Sin registros",
     "sections": {
       "averageGradeByCourse": "Nota promedio por curso",
@@ -462,6 +480,11 @@
         "noEnrollments": "No está matriculado en ningún curso."
       },
       "title": "Estudiante"
+    },
+    "empty": {
+      "body": "Agrega el primer estudiante para comenzar con matrículas y certificados.",
+      "cta": "Agregar estudiante",
+      "heading": "Aún no hay estudiantes"
     },
     "form": {
       "editTitle": "Editar estudiante",
@@ -536,6 +559,11 @@
         "noCourses": "Sin cursos asignados."
       },
       "title": "Docente"
+    },
+    "empty": {
+      "body": "Agrega al primer docente para asignarlo a cursos.",
+      "cta": "Agregar docente",
+      "heading": "Aún no hay docentes"
     },
     "form": {
       "editTitle": "Editar docente",

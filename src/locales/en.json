@@ -43,6 +43,10 @@
       "timestamp": "When"
     },
     "empty": "No audit entries match your filter.",
+    "emptyState": {
+      "body": "Administrative actions will appear here as they happen.",
+      "heading": "No audit entries yet"
+    },
     "entities": {
       "attendance": "Attendance",
       "course": "Course",
@@ -104,6 +108,11 @@
     "title": "Bulk email"
   },
   "certificates": {
+    "empty": {
+      "body": "Approve the first enrollment to issue a certificate.",
+      "cta": "View enrollments",
+      "heading": "No certificates issued yet"
+    },
     "list": {
       "columns": {
         "action": "Action",
@@ -186,6 +195,11 @@
       },
       "title": "Course",
       "unassignedTeacher": "Unassigned"
+    },
+    "empty": {
+      "body": "Create your first course to start tracking enrollments and grades.",
+      "cta": "Add course",
+      "heading": "No courses yet"
     },
     "form": {
       "editTitle": "Edit course",
@@ -406,6 +420,10 @@
       "rate": "Rate",
       "student": "Student"
     },
+    "empty": {
+      "body": "Generate your first report once you have enough data to summarize.",
+      "heading": "No reports yet"
+    },
     "noRecords": "No records",
     "sections": {
       "averageGradeByCourse": "Average grade by course",
@@ -458,6 +476,11 @@
         "noEnrollments": "Not enrolled in any courses."
       },
       "title": "Student"
+    },
+    "empty": {
+      "body": "Add your first student to get started with enrollments and certificates.",
+      "cta": "Add student",
+      "heading": "No students yet"
     },
     "form": {
       "editTitle": "Edit student",
@@ -531,6 +554,11 @@
         "noCourses": "No assigned courses."
       },
       "title": "Teacher"
+    },
+    "empty": {
+      "body": "Add your first teacher to assign them to courses.",
+      "cta": "Add teacher",
+      "heading": "No teachers yet"
     },
     "form": {
       "editTitle": "Edit teacher",
