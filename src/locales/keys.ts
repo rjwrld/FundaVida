@@ -109,15 +109,14 @@ t('bulkEmail.dimensions.province')
 t('bulkEmail.dimensions.course')
 
 // DashboardPage passes literal-string keys via an array — declare them so the parser sees them
-t('dashboard.admin.students')
-t('dashboard.admin.teachers')
-t('dashboard.admin.courses')
-t('dashboard.admin.grades')
 t('dashboard.teacher.myCourses')
 t('dashboard.teacher.students')
 t('dashboard.placeholder.cardTitle')
 t('dashboard.placeholder.studentCopy')
 t('dashboard.placeholder.tcuCopy')
+// AdminDashboard recent-activity actor labels resolved via t(`dashboard.recentActivity.actor.${id}`)
+t('dashboard.recentActivity.actor.admin')
+t('dashboard.recentActivity.actor.system')
 
 // Keys referenced via LANDING_FEATURES[].titleKey/captionKey/altKey in FeaturePreview
 t('landing.featurePreview.students.title')

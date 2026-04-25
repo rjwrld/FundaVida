@@ -214,24 +214,69 @@
     }
   },
   "dashboard": {
-    "admin": {
-      "courses": "Courses",
-      "grades": "Grades",
-      "students": "Students",
-      "teachers": "Teachers"
+    "attendance": {
+      "rateLabel": "Present this month",
+      "title": "Attendance this month",
+      "trendLabel": "Last 7 sessions"
     },
     "overviewHeading": "Overview",
+    "pendingApprovals": {
+      "cta": "Review",
+      "description_one": "{{count}} enrollment is awaiting a grade.",
+      "description_other": "{{count}} enrollments are awaiting a grade.",
+      "title": "Pending approvals",
+      "zero": "All caught up!",
+      "zeroSubtitle": "Every enrollment has a grade. Nice work."
+    },
     "placeholder": {
       "cardTitle": "Your {{role}} dashboard",
       "studentCopy": "Browse your enrolled courses and download your certificates from the sidebar.",
       "tcuCopy": "TCU reports arrive in a later phase."
+    },
+    "recentActivity": {
+      "actor": {
+        "admin": "Admin",
+        "system": "System"
+      },
+      "empty": "No activity yet.",
+      "title": "Recent activity"
+    },
+    "rightPanel": {
+      "calendarTitle": "Calendar",
+      "upcomingEmpty": "Nothing on deck.",
+      "upcomingTitle": "On your radar"
+    },
+    "stats": {
+      "activeCourses": "Active courses",
+      "certificatesIssued": "Certificates issued",
+      "students": "Total students",
+      "tcuHours": "TCU hours",
+      "vsLastMonth": "vs last month"
     },
     "subtitle": "Demo dashboard. Domain modules land in subsequent phases.",
     "teacher": {
       "myCourses": "My courses",
       "students": "Students"
     },
-    "title": "Signed in as {{role}}"
+    "title": "Signed in as {{role}}",
+    "topCourses": {
+      "empty": "No courses yet.",
+      "enrollments_one": "{{count}} student",
+      "enrollments_other": "{{count}} students",
+      "title": "Top courses"
+    },
+    "upcoming": {
+      "gradePending": "Grade pending: {{course}}",
+      "tcuLogged": "TCU logged: {{title}}"
+    },
+    "welcome": {
+      "context_one": "You have {{count}} enrollment awaiting a grade.",
+      "context_other": "You have {{count}} enrollments awaiting a grade.",
+      "contextZero": "Everything is graded. Time for a coffee.",
+      "cta": "Review pending",
+      "eyebrow": "Today",
+      "greeting": "Hola, {{name}} 👋"
+    }
   },
   "demoBanner": {
     "dismiss": "Dismiss",

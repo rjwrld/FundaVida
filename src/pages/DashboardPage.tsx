@@ -1,43 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { AdminDashboard } from '@/components/dashboard/AdminDashboard'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
-
-function AdminCards() {
-  const { t } = useTranslation()
-  const { formatNumber } = useFormat()
-  const students = useStore((s) => s.students.length)
-  const teachers = useStore((s) => s.teachers.length)
-  const courses = useStore((s) => s.courses.length)
-  const grades = useStore((s) => s.grades.length)
-  const entries: [string, number][] = [
-    ['dashboard.admin.students', students],
-    ['dashboard.admin.teachers', teachers],
-    ['dashboard.admin.courses', courses],
-    ['dashboard.admin.grades', grades],
-  ]
-  return (
-    <section
-      aria-labelledby="overview-heading"
-      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-    >
-      <h2 id="overview-heading" className="sr-only">
-        {t('dashboard.overviewHeading')}
-      </h2>
-      {entries.map(([labelKey, value]) => (
-        <Card key={labelKey}>
-          <CardHeader>
-            <CardTitle>{t(labelKey)}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{formatNumber(value)}</p>
-          </CardContent>
-        </Card>
-      ))}
-    </section>
-  )
-}
 
 function TeacherCards() {
   const { t } = useTranslation()
@@ -99,13 +65,16 @@ export function DashboardPage() {
   if (!roleOrNull) return null
   const role = roleOrNull
 
+  if (role === 'admin') {
+    return <AdminDashboard />
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         title={t('dashboard.title', { role: t(`roles.${role}.label`) })}
         description={t('dashboard.subtitle')}
       />
-      {role === 'admin' && <AdminCards />}
       {role === 'teacher' && <TeacherCards />}
       {(role === 'student' || role === 'tcu') && <PlaceholderPanel role={role} />}
     </div>
