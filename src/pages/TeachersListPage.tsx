@@ -85,9 +85,7 @@ export function TeachersListPage() {
               <TableRow className="bg-muted/50 hover:bg-muted/50">
                 <TableHead>{t('teachers.list.columns.name')}</TableHead>
                 <TableHead>{t('teachers.list.columns.email')}</TableHead>
-                <TableHead className="text-right font-mono">
-                  {t('teachers.list.columns.courses')}
-                </TableHead>
+                <TableHead className="text-right">{t('teachers.list.columns.courses')}</TableHead>
                 <TableHead className="text-right">{t('teachers.list.columns.actions')}</TableHead>
               </TableRow>
             </TableHeader>
@@ -153,7 +151,9 @@ export function TeachersListPage() {
                       </DropdownMenu>
                       {hasCourses && (
                         <span id={`teacher-${teacher.id}-delete-reason`} className="sr-only">
-                          {t('teachers.detail.sections.courses')}
+                          {t('teachers.detail.cannotDeleteWithCourses', {
+                            count: teacher.courseIds.length,
+                          })}
                         </span>
                       )}
                     </TableCell>
