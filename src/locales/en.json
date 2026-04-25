@@ -221,7 +221,7 @@
         "program": "Program",
         "teacher": "Teacher"
       },
-      "empty": "No courses yet.",
+      "emptyFiltered": "No courses match your filter.",
       "searchPlaceholder": "Search by name or program",
       "subtitle": "Catalog of courses offered across programs and headquarters.",
       "title": "Courses"
@@ -514,7 +514,6 @@
         "name": "Name",
         "province": "Province"
       },
-      "empty": "No students yet.",
       "emptyFiltered": "No students match your filter.",
       "searchPlaceholder": "Search by name or email",
       "subtitle": "Create, filter, and manage students enrolled in programs.",
@@ -577,7 +576,7 @@
         "email": "Email",
         "name": "Name"
       },
-      "empty": "No teachers yet.",
+      "emptyFiltered": "No teachers match your filter.",
       "searchPlaceholder": "Search by name or email",
       "subtitle": "Manage teachers and their course assignments.",
       "title": "Teachers"

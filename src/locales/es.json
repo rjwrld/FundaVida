@@ -222,7 +222,7 @@
         "program": "Programa",
         "teacher": "Docente"
       },
-      "empty": "Aún no hay cursos.",
+      "emptyFiltered": "Ningún curso coincide con el filtro.",
       "searchPlaceholder": "Buscar por nombre o programa",
       "subtitle": "Catálogo de cursos ofrecidos en los programas y sedes.",
       "title": "Cursos"
@@ -518,7 +518,6 @@
         "name": "Nombre",
         "province": "Provincia"
       },
-      "empty": "Aún no hay estudiantes.",
       "emptyFiltered": "Ningún estudiante coincide con el filtro.",
       "searchPlaceholder": "Buscar por nombre o correo",
       "subtitle": "Crea, filtra y gestiona estudiantes matriculados en los programas.",
@@ -582,7 +581,7 @@
         "email": "Correo",
         "name": "Nombre"
       },
-      "empty": "Aún no hay docentes.",
+      "emptyFiltered": "Ningún docente coincide con el filtro.",
       "searchPlaceholder": "Buscar por nombre o correo",
       "subtitle": "Gestiona docentes y sus cursos asignados.",
       "title": "Docentes"
