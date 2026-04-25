@@ -417,32 +417,37 @@
     "title": "404"
   },
   "reports": {
-    "columns": {
-      "average": "Promedio",
-      "count": "Cantidad",
-      "course": "Curso",
-      "hours": "Horas",
-      "rate": "Porcentaje",
-      "student": "Estudiante"
+    "attendanceHeatmap": {
+      "title": "Mapa de asistencia"
+    },
+    "averageGrade": {
+      "caption": "promedio",
+      "title": "Nota promedio"
+    },
+    "certsThisMonth": {
+      "delta": "vs mes anterior",
+      "title": "Certificados del mes"
     },
     "empty": {
       "body": "Genera el primer reporte cuando tengas datos suficientes.",
       "heading": "Aún no hay reportes"
     },
-    "noRecords": "Sin registros",
-    "sections": {
-      "averageGradeByCourse": "Nota promedio por curso",
-      "enrollmentsByCourse": "Matrículas por curso",
-      "presentRateByCourse": "Asistencia por curso",
-      "tcuHoursByStudent": "Horas TCU por estudiante"
+    "enrollmentTrend": {
+      "currentYear": "Año actual",
+      "priorYear": "Año anterior",
+      "title": "Tendencia de matrículas"
     },
+    "noRecords": "Sin registros",
     "subtitle": "Totales transversales del programa.",
+    "tcuProgress": {
+      "title": "Progreso TCU"
+    },
     "title": "Reportes",
-    "totals": {
-      "courses": "Cursos",
-      "enrollments": "Matrículas",
-      "students": "Estudiantes",
-      "teachers": "Docentes"
+    "topCourses": {
+      "title": "Cursos principales"
+    },
+    "upcoming": {
+      "title": "Próximos hitos"
     }
   },
   "roles": {

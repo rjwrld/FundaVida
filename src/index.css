@@ -169,3 +169,19 @@
     }
   }
 }
+
+@media print {
+  aside,
+  header,
+  [data-sidebar],
+  [data-command-palette] {
+    display: none !important;
+  }
+  main {
+    margin: 0 !important;
+    padding: 1rem !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

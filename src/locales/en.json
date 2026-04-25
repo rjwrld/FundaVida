@@ -413,32 +413,37 @@
     "title": "404"
   },
   "reports": {
-    "columns": {
-      "average": "Average",
-      "count": "Count",
-      "course": "Course",
-      "hours": "Hours",
-      "rate": "Rate",
-      "student": "Student"
+    "attendanceHeatmap": {
+      "title": "Attendance heatmap"
+    },
+    "averageGrade": {
+      "caption": "average",
+      "title": "Average grade"
+    },
+    "certsThisMonth": {
+      "delta": "vs last month",
+      "title": "Certificates this month"
     },
     "empty": {
       "body": "Generate your first report once you have enough data to summarize.",
       "heading": "No reports yet"
     },
-    "noRecords": "No records",
-    "sections": {
-      "averageGradeByCourse": "Average grade by course",
-      "enrollmentsByCourse": "Enrollments by course",
-      "presentRateByCourse": "Attendance rate by course",
-      "tcuHoursByStudent": "TCU hours by student"
+    "enrollmentTrend": {
+      "currentYear": "Current year",
+      "priorYear": "Prior year",
+      "title": "Enrollment trend"
     },
+    "noRecords": "No records",
     "subtitle": "Cross-cutting totals across the program.",
+    "tcuProgress": {
+      "title": "TCU progress"
+    },
     "title": "Reports",
-    "totals": {
-      "courses": "Courses",
-      "enrollments": "Enrollments",
-      "students": "Students",
-      "teachers": "Teachers"
+    "topCourses": {
+      "title": "Top courses"
+    },
+    "upcoming": {
+      "title": "Upcoming milestones"
     }
   },
   "roles": {
