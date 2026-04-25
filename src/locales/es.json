@@ -215,24 +215,72 @@
     }
   },
   "dashboard": {
-    "admin": {
-      "courses": "Cursos",
-      "grades": "Calificaciones",
-      "students": "Estudiantes",
-      "teachers": "Docentes"
+    "attendance": {
+      "rateLabel": "Asistencia este mes",
+      "title": "Asistencia este mes",
+      "trendLabel": "Últimas 7 sesiones"
     },
     "overviewHeading": "Resumen",
+    "pendingApprovals": {
+      "cta": "Revisar",
+      "description_one": "{{count}} matrícula está esperando calificación.",
+      "description_many": "{{count}} matrículas están esperando calificación.",
+      "description_other": "{{count}} matrículas están esperando calificación.",
+      "title": "Pendientes de aprobación",
+      "zero": "¡Todo al día!",
+      "zeroSubtitle": "Todas las matrículas tienen calificación. Buen trabajo."
+    },
     "placeholder": {
       "cardTitle": "Tu panel de {{role}}",
       "studentCopy": "Explora tus cursos matriculados y descarga tus certificados desde la barra lateral.",
       "tcuCopy": "Los reportes de TCU llegan en una fase posterior."
+    },
+    "recentActivity": {
+      "actor": {
+        "admin": "Admin",
+        "system": "Sistema"
+      },
+      "empty": "Aún no hay actividad.",
+      "title": "Actividad reciente"
+    },
+    "rightPanel": {
+      "calendarTitle": "Calendario",
+      "upcomingEmpty": "Nada en la agenda.",
+      "upcomingTitle": "En tu radar"
+    },
+    "stats": {
+      "activeCourses": "Cursos activos",
+      "certificatesIssued": "Certificados emitidos",
+      "students": "Total de estudiantes",
+      "tcuHours": "Horas TCU",
+      "vsLastMonth": "vs. mes pasado"
     },
     "subtitle": "Panel de demostración. Los módulos de dominio llegan en fases posteriores.",
     "teacher": {
       "myCourses": "Mis cursos",
       "students": "Estudiantes"
     },
-    "title": "Sesión como {{role}}"
+    "title": "Sesión como {{role}}",
+    "topCourses": {
+      "empty": "Aún no hay cursos.",
+      "enrollments_one": "{{count}} estudiante",
+      "enrollments_many": "{{count}} estudiantes",
+      "enrollments_other": "{{count}} estudiantes",
+      "title": "Cursos destacados"
+    },
+    "upcoming": {
+      "gradePending": "Calificación pendiente: {{course}}",
+      "tcuLogged": "TCU registrado: {{title}}"
+    },
+    "welcome": {
+      "context_one": "Tienes {{count}} matrícula esperando calificación.",
+      "context_many": "Tienes {{count}} matrículas esperando calificación.",
+      "context_other": "Tienes {{count}} matrículas esperando calificación.",
+      "contextZero": "Todo está calificado. Hora de un café.",
+      "cta": "Revisar pendientes",
+      "eyebrow": "Hoy",
+      "greeting": "Hola, {{name}} 👋"
+    }
   },
   "demoBanner": {
     "dismiss": "Descartar",

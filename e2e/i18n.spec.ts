@@ -47,7 +47,7 @@ test.describe('i18n', () => {
     await expect(page).toHaveURL(/\/app$/)
     await expect(page.getByRole('link', { name: 'Students' })).toBeVisible()
 
-    await page.getByRole('button', { name: 'es' }).click()
+    await page.getByRole('button', { name: 'es', exact: true }).click()
     await expect(page.getByRole('link', { name: 'Estudiantes' })).toBeVisible()
 
     await page.reload()
