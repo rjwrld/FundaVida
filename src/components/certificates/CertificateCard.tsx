@@ -10,6 +10,7 @@ interface Props {
     studentName: string
     courseName: string
     issuedAt: string
+    grade: string
     status: 'issued' | 'pending'
   }
   onClick: () => void
@@ -70,9 +71,14 @@ export function CertificateCard({ cert, onClick, className }: Props) {
         <p className="truncate text-sm font-semibold text-foreground">{cert.studentName}</p>
         <p className="truncate text-xs text-muted-foreground">{cert.courseName}</p>
         <div className="mt-3 flex items-center justify-between gap-2">
-          <span className="font-mono text-xs tabular-nums text-muted-foreground">
-            {cert.issuedAt}
-          </span>
+          <div className="flex min-w-0 items-baseline gap-2">
+            <span className="font-mono text-xs tabular-nums text-muted-foreground">
+              {cert.issuedAt}
+            </span>
+            <span className="font-mono text-xs font-semibold tabular-nums text-foreground">
+              {cert.grade}
+            </span>
+          </div>
           <Badge variant={cert.status === 'issued' ? 'success' : 'warning'} dot>
             {t(`certificates.status.${cert.status}`)}
           </Badge>

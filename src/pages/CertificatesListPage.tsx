@@ -23,6 +23,7 @@ interface CardItem {
   courseName: string
   programName: string
   score: number
+  grade: string
   issuedAtIso: string
   issuedAt: string
   status: 'issued' | 'pending'
@@ -30,7 +31,7 @@ interface CardItem {
 
 export function CertificatesListPage() {
   const { t } = useTranslation()
-  const { formatDate } = useFormat()
+  const { formatDate, formatGrade } = useFormat()
   const currentUser = useCurrentUser()
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
@@ -57,13 +58,14 @@ export function CertificatesListPage() {
         courseName: course.name,
         programName: course.programName,
         score: c.score,
+        grade: formatGrade(c.score),
         issuedAtIso: c.issuedAt,
         issuedAt: formatDate(c.issuedAt),
         status: 'issued',
       })
     }
     return result
-  }, [students, courses, grades, currentUser, formatDate])
+  }, [students, courses, grades, currentUser, formatDate, formatGrade])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -191,6 +193,7 @@ export function CertificatesListPage() {
                     studentName: c.studentName,
                     courseName: c.courseName,
                     issuedAt: c.issuedAt,
+                    grade: c.grade,
                     status: c.status,
                   }}
                   onClick={() =>

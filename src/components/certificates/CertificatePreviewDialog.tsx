@@ -1,11 +1,18 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, type Variants } from 'framer-motion'
 import { PDFViewer } from '@react-pdf/renderer'
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
-import { scaleIn, transitionDefaults } from '@/lib/motion'
+import { transitionDefaults } from '@/lib/motion'
+
+// motion controls the full `transform` style, so the centering translate must
+// live in the variants — Tailwind's -translate-x/y classes get overridden.
+const dialogVariants: Variants = {
+  hidden: { opacity: 0, scale: 0.96, x: '-50%', y: '-50%' },
+  visible: { opacity: 1, scale: 1, x: '-50%', y: '-50%' },
+}
 
 interface PreviewPayload {
   studentName: string
@@ -32,7 +39,7 @@ export function CertificatePreviewDialog({ open, payload, dataUrl, downloadName,
     anchor.setAttribute('href', dataUrl)
     anchor.style.display = 'none'
     document.body.appendChild(anchor)
-    anchor.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }))
+    anchor.click()
     setTimeout(() => anchor.remove(), 0)
   }
   return (
@@ -51,12 +58,12 @@ export function CertificatePreviewDialog({ open, payload, dataUrl, downloadName,
             </DialogPrimitive.Overlay>
             <DialogPrimitive.Content asChild>
               <motion.div
-                variants={scaleIn}
+                variants={dialogVariants}
                 initial="hidden"
                 animate="visible"
                 exit="hidden"
                 transition={transitionDefaults}
-                className="fixed left-1/2 top-1/2 z-50 flex w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-elevated"
+                className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-3xl flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-elevated"
               >
                 <div className="flex items-start justify-between gap-4">
                   <DialogPrimitive.Title className="text-lg font-semibold leading-none tracking-tight">
@@ -69,7 +76,7 @@ export function CertificatePreviewDialog({ open, payload, dataUrl, downloadName,
                     <X size={18} aria-hidden="true" />
                   </DialogPrimitive.Close>
                 </div>
-                <div className="h-[500px] overflow-hidden rounded-md border border-border">
+                <div className="min-h-[280px] flex-1 overflow-hidden rounded-md border border-border">
                   <PDFViewer width="100%" height="100%">
                     <CertificateTemplate
                       studentName={payload.studentName}

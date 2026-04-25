@@ -48,7 +48,9 @@ test('admin runs the full chain: create student, enroll, grade, certificate', as
 
   await page.getByRole('link', { name: 'Certificates' }).click()
   await expect(page.getByRole('heading', { name: 'Certificates' })).toBeVisible()
-  const certRow = page.getByRole('row').filter({ hasText: fullName })
-  await expect(certRow).toBeVisible()
-  await expect(certRow).toContainText('95')
+  const certCard = page.getByRole('button', {
+    name: new RegExp(`Open preview for ${firstName}`, 'i'),
+  })
+  await expect(certCard).toBeVisible()
+  await expect(certCard).toContainText('95')
 })
