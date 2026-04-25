@@ -39,30 +39,28 @@ export function AttendanceSnapshot({ ratePct, trend }: AttendanceSnapshotProps) 
         <p className="text-xs text-muted-foreground">{t('dashboard.attendance.rateLabel')}</p>
       </div>
       <div className="mt-4 flex-1 min-h-[80px]">
-        {data.length > 0 ? (
-          <ResponsiveContainer width="100%" height={80}>
-            <BarChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
-              <XAxis dataKey="label" hide />
-              <Tooltip
-                cursor={{ fill: 'oklch(var(--muted) / 0.4)' }}
-                contentStyle={{
-                  background: 'oklch(var(--card))',
-                  border: '1px solid oklch(var(--border))',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  padding: '6px 8px',
-                }}
-                labelFormatter={(label: string) => label}
-              />
-              <Bar
-                dataKey="value"
-                fill="oklch(var(--brand-green-500))"
-                radius={[3, 3, 0, 0]}
-                isAnimationActive={false}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        ) : null}
+        <ResponsiveContainer width="100%" height={80}>
+          <BarChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+            <XAxis dataKey="label" hide />
+            <Tooltip
+              cursor={{ fill: 'oklch(var(--muted) / 0.4)' }}
+              contentStyle={{
+                background: 'oklch(var(--card))',
+                border: '1px solid oklch(var(--border))',
+                borderRadius: '8px',
+                fontSize: '12px',
+                padding: '6px 8px',
+              }}
+              labelFormatter={(label: string) => label}
+            />
+            <Bar
+              dataKey="value"
+              fill="oklch(var(--brand-green-500))"
+              radius={[3, 3, 0, 0]}
+              isAnimationActive={false}
+            />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </article>
   )
