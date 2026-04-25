@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { isThisMonth, parseISO, startOfDay, subDays } from 'date-fns'
 import { useStore } from '@/data/store'
 import type { AuditLogEntry, Course, TcuActivity } from '@/types'
 
@@ -7,6 +8,11 @@ export interface TopCourse {
   name: string
   programName: string
   enrollmentCount: number
+}
+
+export interface AttendanceTrendPoint {
+  day: Date
+  count: number
 }
 
 export interface DashboardStats {
@@ -19,7 +25,7 @@ export interface DashboardStats {
   topCourses: TopCourse[]
   recentTcu: TcuActivity[]
   attendanceRate: number
-  attendanceTrend: number[]
+  attendanceTrend: AttendanceTrendPoint[]
   courses: Course[]
 }
 
@@ -71,27 +77,25 @@ export function useDashboardStats(): DashboardStats {
 
     const recentTcu = [...tcuActivities].sort((a, b) => (a.date > b.date ? -1 : 1)).slice(0, 5)
 
+    // Scope rate to the current calendar month so the label matches the data.
+    const monthRecords = attendance.filter((a) => isThisMonth(parseISO(a.sessionDate)))
     const attendanceRate =
-      attendance.length === 0
+      monthRecords.length === 0
         ? 0
         : Math.round(
-            (attendance.filter((a) => a.status === 'present').length / attendance.length) * 100
+            (monthRecords.filter((a) => a.status === 'present').length / monthRecords.length) * 100
           )
 
-    // Last 7 distinct session dates → present count per day (deterministic from seed).
-    const presentByDate = new Map<string, number>()
-    attendance.forEach((a) => {
-      const dayKey = a.sessionDate.slice(0, 10)
-      if (a.status === 'present') {
-        presentByDate.set(dayKey, (presentByDate.get(dayKey) ?? 0) + 1)
-      } else if (!presentByDate.has(dayKey)) {
-        presentByDate.set(dayKey, 0)
-      }
+    // Strict last-7-calendar-days window (today + 6 prior). Deterministic regardless of seed gaps.
+    const today = startOfDay(new Date())
+    const attendanceTrend: AttendanceTrendPoint[] = Array.from({ length: 7 }, (_, i) => {
+      const day = subDays(today, 6 - i)
+      const dayTime = day.getTime()
+      const count = attendance.filter(
+        (a) => a.status === 'present' && startOfDay(parseISO(a.sessionDate)).getTime() === dayTime
+      ).length
+      return { day, count }
     })
-    const attendanceTrend = Array.from(presentByDate.entries())
-      .sort(([a], [b]) => (a > b ? 1 : -1))
-      .slice(-7)
-      .map(([, count]) => count)
 
     return {
       totalStudents,

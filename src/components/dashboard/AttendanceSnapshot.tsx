@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next'
+import { format } from 'date-fns'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 import { useFormat } from '@/hooks/useFormat'
+import type { AttendanceTrendPoint } from '@/hooks/api/useDashboardStats'
 
 export interface AttendanceSnapshotProps {
   ratePct: number
-  trend: number[]
+  trend: AttendanceTrendPoint[]
 }
 
 interface TrendDatum {
@@ -16,10 +18,10 @@ interface TrendDatum {
 export function AttendanceSnapshot({ ratePct, trend }: AttendanceSnapshotProps) {
   const { t } = useTranslation()
   const { formatPercent } = useFormat()
-  const data: TrendDatum[] = trend.map((value, index) => ({
+  const data: TrendDatum[] = trend.map((point, index) => ({
     index,
-    label: `${index + 1}`,
-    value,
+    label: format(point.day, 'EEE'),
+    value: point.count,
   }))
 
   return (
@@ -50,7 +52,7 @@ export function AttendanceSnapshot({ ratePct, trend }: AttendanceSnapshotProps) 
                   fontSize: '12px',
                   padding: '6px 8px',
                 }}
-                labelFormatter={(label: string) => `#${label}`}
+                labelFormatter={(label: string) => label}
               />
               <Bar
                 dataKey="value"

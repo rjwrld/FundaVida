@@ -47,7 +47,7 @@ export function PendingApprovals({ count }: PendingApprovalsProps) {
             </p>
           </div>
           <Link
-            to="/app/grades"
+            to="/app/certificates?status=pending"
             className="inline-flex w-fit items-center gap-1 rounded-md bg-flame-yellow-500 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-flame-yellow-400"
           >
             {t('dashboard.pendingApprovals.cta')}

@@ -97,7 +97,7 @@ export function AdminDashboard() {
             action={
               stats.pendingApprovals > 0 ? (
                 <Link
-                  to="/app/grades"
+                  to="/app/certificates?status=pending"
                   className="inline-flex items-center gap-1 rounded-md bg-brand-green-500 px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-green-600"
                 >
                   {ctaLabel}
