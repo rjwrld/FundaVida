@@ -1,22 +1,33 @@
-import { useEffect, useState } from 'react'
-import { pdf, PDFViewer } from '@react-pdf/renderer'
+import { useEffect, useMemo, useState } from 'react'
+import { pdf } from '@react-pdf/renderer'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { motion } from 'framer-motion'
+import { Search } from 'lucide-react'
+import { Input } from '@/components/ui/input'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { CertificatesEmpty } from '@/components/empty-states/CertificatesEmpty'
+import { CertificateCard } from '@/components/certificates/CertificateCard'
+import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog'
 import { useStore } from '@/data/store'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useFormat } from '@/hooks/useFormat'
 import { buildEligibleList, type EligibleCertificate } from '@/lib/certificates'
 import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
+import { fadeUp, transitionDefaults } from '@/lib/motion'
+
+interface CardItem {
+  id: string
+  studentId: string
+  courseId: string
+  studentName: string
+  courseName: string
+  programName: string
+  score: number
+  grade: string
+  issuedAtIso: string
+  issuedAt: string
+  status: 'issued' | 'pending'
+}
 
 export function CertificatesListPage() {
   const { t } = useTranslation()
@@ -26,12 +37,41 @@ export function CertificatesListPage() {
   const courses = useStore((s) => s.courses)
   const grades = useStore((s) => s.grades)
 
-  const all = buildEligibleList(students, courses, grades)
-  const list: EligibleCertificate[] =
-    currentUser?.role === 'student' ? all.filter((c) => c.studentId === currentUser.id) : all
-
+  const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<EligibleCertificate | null>(null)
   const [dataUrl, setDataUrl] = useState<string | null>(null)
+
+  const items = useMemo<CardItem[]>(() => {
+    const all = buildEligibleList(students, courses, grades)
+    const scoped =
+      currentUser?.role === 'student' ? all.filter((c) => c.studentId === currentUser.id) : all
+    const result: CardItem[] = []
+    for (const c of scoped) {
+      const student = students.find((s) => s.id === c.studentId)
+      const course = courses.find((co) => co.id === c.courseId)
+      if (!student || !course) continue
+      result.push({
+        id: `${c.studentId}-${c.courseId}`,
+        studentId: c.studentId,
+        courseId: c.courseId,
+        studentName: `${student.firstName} ${student.lastName}`,
+        courseName: course.name,
+        programName: course.programName,
+        score: c.score,
+        grade: formatGrade(c.score),
+        issuedAtIso: c.issuedAt,
+        issuedAt: formatDate(c.issuedAt),
+        status: 'issued',
+      })
+    }
+    return result
+  }, [students, courses, grades, currentUser, formatDate, formatGrade])
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return items
+    return items.filter((c) => c.studentName.toLowerCase().includes(q))
+  }, [items, query])
 
   const selectedStudent = selected ? students.find((s) => s.id === selected.studentId) : null
   const selectedCourse = selected ? courses.find((c) => c.id === selected.courseId) : null
@@ -90,10 +130,19 @@ export function CertificatesListPage() {
       ? `certificate-${selectedStudent.id}-${selectedCourse.id}.pdf`
       : 'certificate.pdf'
 
-  const emptyMessage =
-    currentUser?.role === 'student'
-      ? t('certificates.list.emptyStudent')
-      : t('certificates.list.empty')
+  const previewPayload =
+    selected && selectedStudent && selectedCourse
+      ? {
+          studentName: `${selectedStudent.firstName} ${selectedStudent.lastName}`,
+          courseName: selectedCourse.name,
+          programName: selectedCourse.programName,
+          score: selected.score,
+          issuedAt: selected.issuedAt,
+        }
+      : null
+
+  const isEmpty = items.length === 0
+  const hasNoMatches = !isEmpty && filtered.length === 0
 
   return (
     <div className="space-y-6">
@@ -101,90 +150,74 @@ export function CertificatesListPage() {
         title={t('certificates.list.title')}
         description={t('certificates.list.subtitle')}
       />
-      {list.length === 0 ? (
-        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {emptyMessage}
-        </p>
+
+      {isEmpty ? (
+        <CertificatesEmpty />
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('certificates.list.columns.student')}</TableHead>
-              <TableHead>{t('certificates.list.columns.course')}</TableHead>
-              <TableHead>{t('certificates.list.columns.grade')}</TableHead>
-              <TableHead>{t('certificates.list.columns.issuedAt')}</TableHead>
-              <TableHead className="text-right">{t('certificates.list.columns.action')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {list.map((c) => {
-              const s = students.find((x) => x.id === c.studentId)
-              const cs = courses.find((x) => x.id === c.courseId)
-              return (
-                <TableRow key={`${c.studentId}-${c.courseId}`}>
-                  <TableCell>
-                    {s?.firstName} {s?.lastName}
-                  </TableCell>
-                  <TableCell>{cs?.name}</TableCell>
-                  <TableCell>{formatGrade(c.score)}</TableCell>
-                  <TableCell>{formatDate(c.issuedAt)}</TableCell>
-                  <TableCell className="text-right">
-                    <Button size="sm" onClick={() => setSelected(c)}>
-                      {t('certificates.list.previewButton')}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
+        <>
+          <section aria-label={t('common.a11y.filters')} className="max-w-md">
+            <div className="relative">
+              <Search
+                size={16}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <Input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t('certificates.list.search.placeholder')}
+                aria-label={t('certificates.list.search.ariaLabel')}
+                className="pl-9"
+              />
+            </div>
+          </section>
+
+          {hasNoMatches ? (
+            <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+              {t('certificates.list.noMatches', { query })}
+            </p>
+          ) : (
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              transition={transitionDefaults}
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            >
+              {filtered.map((c) => (
+                <CertificateCard
+                  key={c.id}
+                  cert={{
+                    id: c.id,
+                    studentName: c.studentName,
+                    courseName: c.courseName,
+                    issuedAt: c.issuedAt,
+                    grade: c.grade,
+                    status: c.status,
+                  }}
+                  onClick={() =>
+                    setSelected({
+                      studentId: c.studentId,
+                      courseId: c.courseId,
+                      score: c.score,
+                      issuedAt: c.issuedAtIso,
+                    })
+                  }
+                />
+              ))}
+            </motion.div>
+          )}
+        </>
       )}
 
-      <Dialog open={selected !== null} onOpenChange={(v) => !v && setSelected(null)}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>{t('certificates.list.dialog.title')}</DialogTitle>
-          </DialogHeader>
-          {selected && selectedStudent && selectedCourse && (
-            <div className="space-y-4">
-              <div className="h-[500px] overflow-hidden rounded-md border">
-                <PDFViewer width="100%" height="100%">
-                  <CertificateTemplate
-                    studentName={`${selectedStudent.firstName} ${selectedStudent.lastName}`}
-                    courseName={selectedCourse.name}
-                    programName={selectedCourse.programName}
-                    score={selected.score}
-                    issuedAt={selected.issuedAt}
-                  />
-                </PDFViewer>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setSelected(null)}>
-                  {t('common.actions.close')}
-                </Button>
-                <Button
-                  disabled={!dataUrl}
-                  aria-disabled={!dataUrl}
-                  onClick={() => {
-                    if (!dataUrl) return
-                    const anchor = document.createElement('a')
-                    anchor.setAttribute('download', downloadName)
-                    anchor.setAttribute('href', dataUrl)
-                    anchor.style.display = 'none'
-                    document.body.appendChild(anchor)
-                    anchor.dispatchEvent(
-                      new MouseEvent('click', { bubbles: true, cancelable: true, view: window })
-                    )
-                    setTimeout(() => anchor.remove(), 0)
-                  }}
-                >
-                  {t('certificates.list.downloadPdf')}
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <CertificatePreviewDialog
+        open={selected !== null}
+        payload={previewPayload}
+        dataUrl={dataUrl}
+        downloadName={downloadName}
+        onClose={() => setSelected(null)}
+      />
     </div>
   )
 }

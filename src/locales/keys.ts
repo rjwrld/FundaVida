@@ -61,6 +61,10 @@ t('attendance.list.status.present')
 t('attendance.list.status.absent')
 t('attendance.list.status.excused')
 
+// Keys referenced dynamically via t(`certificates.status.${cert.status}`) in CertificateCard
+t('certificates.status.issued')
+t('certificates.status.pending')
+
 // Keys declared in the dictionary skeleton for future tasks but not yet in use
 t('validation.max')
 t('validation.min')

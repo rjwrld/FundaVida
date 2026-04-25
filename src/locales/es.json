@@ -115,22 +115,22 @@
       "heading": "Aún no hay certificados emitidos"
     },
     "list": {
-      "columns": {
-        "action": "Acción",
-        "course": "Curso",
-        "grade": "Nota final",
-        "issuedAt": "Emitido",
-        "student": "Estudiante"
-      },
+      "cardAria": "Abrir vista previa de {{student}} — {{course}}",
       "dialog": {
         "title": "Vista previa del certificado"
       },
       "downloadPdf": "Descargar PDF",
-      "empty": "Aún no se han emitido certificados.",
-      "emptyStudent": "Aún no has obtenido certificados.",
-      "previewButton": "Vista previa",
+      "noMatches": "Ningún certificado coincide con \"{{query}}\".",
+      "search": {
+        "ariaLabel": "Buscar certificados por nombre del estudiante",
+        "placeholder": "Buscar por nombre del estudiante…"
+      },
       "subtitle": "Los estudiantes que aprueban un curso (nota ≥ 70) obtienen un certificado. Previsualiza y descarga el PDF.",
       "title": "Certificados"
+    },
+    "status": {
+      "issued": "Emitido",
+      "pending": "Pendiente"
     }
   },
   "common": {
@@ -417,32 +417,44 @@
     "title": "404"
   },
   "reports": {
-    "columns": {
-      "average": "Promedio",
-      "count": "Cantidad",
-      "course": "Curso",
-      "hours": "Horas",
-      "rate": "Porcentaje",
-      "student": "Estudiante"
+    "attendanceHeatmap": {
+      "legend": {
+        "high": "75–100%",
+        "low": "0–25%",
+        "midHigh": "50–75%",
+        "midLow": "25–50%"
+      },
+      "title": "Mapa de asistencia"
+    },
+    "averageGrade": {
+      "caption": "promedio",
+      "title": "Nota promedio"
+    },
+    "certsThisMonth": {
+      "delta": "vs mes anterior",
+      "title": "Certificados del mes"
     },
     "empty": {
       "body": "Genera el primer reporte cuando tengas datos suficientes.",
       "heading": "Aún no hay reportes"
     },
-    "noRecords": "Sin registros",
-    "sections": {
-      "averageGradeByCourse": "Nota promedio por curso",
-      "enrollmentsByCourse": "Matrículas por curso",
-      "presentRateByCourse": "Asistencia por curso",
-      "tcuHoursByStudent": "Horas TCU por estudiante"
+    "enrollmentTrend": {
+      "currentYear": "Año actual",
+      "priorYear": "Año anterior",
+      "title": "Tendencia de matrículas"
     },
+    "noRecords": "Sin registros",
     "subtitle": "Totales transversales del programa.",
+    "tcuProgress": {
+      "aria": "{{completed}} de {{target}} horas TCU",
+      "title": "Progreso TCU"
+    },
     "title": "Reportes",
-    "totals": {
-      "courses": "Cursos",
-      "enrollments": "Matrículas",
-      "students": "Estudiantes",
-      "teachers": "Docentes"
+    "topCourses": {
+      "title": "Cursos principales"
+    },
+    "upcoming": {
+      "title": "Próximos hitos"
     }
   },
   "roles": {
