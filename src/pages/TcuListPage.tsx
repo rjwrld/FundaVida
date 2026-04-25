@@ -16,6 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useTcuActivities } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
@@ -30,6 +31,8 @@ export function TcuListPage() {
   const students = useStore((s) => s.students)
 
   const totalHours = data.reduce((sum, a) => sum + a.hours, 0)
+  const hasFilters = Boolean(filters.studentId || filters.organizerId)
+  const count = data.length
 
   return (
     <div className="space-y-6">
@@ -37,9 +40,15 @@ export function TcuListPage() {
         title={t('tcu.list.title')}
         description={t('tcu.list.subtitle')}
         action={
-          <p className="text-sm text-muted-foreground">
-            {t('tcu.list.totalLabel', { hours: formatNumber(totalHours) })}
-          </p>
+          <div
+            className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
+            aria-label={t('tcu.list.totalLabel', { hours: formatNumber(totalHours) })}
+          >
+            <span className="font-mono tabular-nums text-foreground">
+              {formatNumber(totalHours)}
+            </span>
+            <span>{t('tcu.list.hoursUnit')}</span>
+          </div>
         }
       />
 
@@ -81,39 +90,52 @@ export function TcuListPage() {
       )}
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">…</p>
-      ) : data.length === 0 ? (
+        <SkeletonTable rows={8} columns={5} />
+      ) : count === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {t('tcu.list.empty')}
+          {hasFilters ? t('tcu.list.emptyFiltered') : t('tcu.list.empty')}
         </p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('tcu.list.columns.student')}</TableHead>
-              <TableHead>{t('tcu.list.columns.description')}</TableHead>
-              <TableHead>{t('tcu.list.columns.hours')}</TableHead>
-              <TableHead>{t('tcu.list.columns.date')}</TableHead>
-              <TableHead>{t('tcu.list.columns.organizer')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((a) => {
-              const s = students.find((x) => x.id === a.studentId)
-              return (
-                <TableRow key={a.id}>
-                  <TableCell>
-                    {s?.firstName} {s?.lastName}
-                  </TableCell>
-                  <TableCell>{a.title}</TableCell>
-                  <TableCell>{formatNumber(a.hours)}</TableCell>
-                  <TableCell>{formatDate(a.date)}</TableCell>
-                  <TableCell>{a.organizerId ?? '—'}</TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+          <div
+            className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground"
+            aria-hidden="true"
+          >
+            <span>{t('tcu.list.title')}</span>
+            <span className="font-mono normal-case tabular-nums text-foreground">{count}</span>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead>{t('tcu.list.columns.student')}</TableHead>
+                <TableHead>{t('tcu.list.columns.description')}</TableHead>
+                <TableHead className="text-right font-mono tabular-nums">
+                  {t('tcu.list.columns.hours')}
+                </TableHead>
+                <TableHead>{t('tcu.list.columns.date')}</TableHead>
+                <TableHead>{t('tcu.list.columns.organizer')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((a) => {
+                const s = students.find((x) => x.id === a.studentId)
+                return (
+                  <TableRow key={a.id} className="h-12 hover:bg-muted/40">
+                    <TableCell>
+                      {s?.firstName} {s?.lastName}
+                    </TableCell>
+                    <TableCell>{a.title}</TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {formatNumber(a.hours)}
+                    </TableCell>
+                    <TableCell>{formatDate(a.date)}</TableCell>
+                    <TableCell>{a.organizerId ?? '—'}</TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   )

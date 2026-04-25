@@ -8,7 +8,7 @@
         "student": "Student"
       },
       "empty": "No attendance recorded yet.",
-      "emptyFiltered": "No attendance records match.",
+      "emptyFiltered": "No attendance records match the current filters.",
       "filters": {
         "anyCourse": "Any course",
         "anyStatus": "Any status",
@@ -42,7 +42,11 @@
       "summary": "Summary",
       "timestamp": "When"
     },
-    "empty": "No audit entries match your filter.",
+    "empty": {
+      "body": "Administrative actions will appear here as they happen.",
+      "heading": "No audit entries yet"
+    },
+    "emptyFiltered": "No audit entries match your filter.",
     "entities": {
       "attendance": "Attendance",
       "course": "Course",
@@ -104,6 +108,11 @@
     "title": "Bulk email"
   },
   "certificates": {
+    "empty": {
+      "body": "Approve the first enrollment to issue a certificate.",
+      "cta": "View enrollments",
+      "heading": "No certificates issued yet"
+    },
     "list": {
       "columns": {
         "action": "Action",
@@ -136,6 +145,7 @@
       "delete": "Delete",
       "edit": "Edit",
       "new": "New",
+      "openMenu": "Open menu",
       "save": "Save"
     },
     "commandPalette": {
@@ -187,6 +197,11 @@
       "title": "Course",
       "unassignedTeacher": "Unassigned"
     },
+    "empty": {
+      "body": "Create your first course to start tracking enrollments and grades.",
+      "cta": "Add course",
+      "heading": "No courses yet"
+    },
     "form": {
       "editTitle": "Edit course",
       "fields": {
@@ -207,7 +222,7 @@
         "program": "Program",
         "teacher": "Teacher"
       },
-      "empty": "No courses yet.",
+      "emptyFiltered": "No courses match your filter.",
       "searchPlaceholder": "Search by name or program",
       "subtitle": "Catalog of courses offered across programs and headquarters.",
       "title": "Courses"
@@ -299,9 +314,9 @@
         "student": "Student"
       },
       "empty": "No enrollments yet.",
+      "emptyFiltered": "No enrollments match your filter.",
       "filterAnyCourse": "Any course",
       "filterAnyStudent": "Any student",
-      "loading": "Loading…",
       "subtitle": "Every student-course enrollment. Unenroll to also remove the matching grade.",
       "title": "Enrollments",
       "unenroll": "Unenroll",
@@ -406,6 +421,10 @@
       "rate": "Rate",
       "student": "Student"
     },
+    "empty": {
+      "body": "Generate your first report once you have enough data to summarize.",
+      "heading": "No reports yet"
+    },
     "noRecords": "No records",
     "sections": {
       "averageGradeByCourse": "Average grade by course",
@@ -459,6 +478,11 @@
       },
       "title": "Student"
     },
+    "empty": {
+      "body": "Add your first student to get started with enrollments and certificates.",
+      "cta": "Add student",
+      "heading": "No students yet"
+    },
     "form": {
       "editTitle": "Edit student",
       "fields": {
@@ -491,7 +515,6 @@
         "name": "Name",
         "province": "Province"
       },
-      "empty": "No students yet.",
       "emptyFiltered": "No students match your filter.",
       "searchPlaceholder": "Search by name or email",
       "subtitle": "Create, filter, and manage students enrolled in programs.",
@@ -508,12 +531,14 @@
         "student": "Student"
       },
       "empty": "No activities logged yet.",
+      "emptyFiltered": "No activities match your filter.",
       "filters": {
         "anyOrganizer": "Any organizer",
         "anyStudent": "Any student",
         "organizerPlaceholder": "Organizer",
         "studentPlaceholder": "Student"
       },
+      "hoursUnit": "hours",
       "subtitle": "Community service hours logged per student.",
       "title": "TCU activities",
       "totalLabel": "Total hours: {{hours}}"
@@ -532,6 +557,11 @@
       },
       "title": "Teacher"
     },
+    "empty": {
+      "body": "Add your first teacher to assign them to courses.",
+      "cta": "Add teacher",
+      "heading": "No teachers yet"
+    },
     "form": {
       "editTitle": "Edit teacher",
       "fields": {
@@ -549,7 +579,7 @@
         "email": "Email",
         "name": "Name"
       },
-      "empty": "No teachers yet.",
+      "emptyFiltered": "No teachers match your filter.",
       "searchPlaceholder": "Search by name or email",
       "subtitle": "Manage teachers and their course assignments.",
       "title": "Teachers"

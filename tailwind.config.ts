@@ -81,9 +81,16 @@ export default {
         },
         'flame-yellow': {
           50: 'oklch(var(--flame-yellow-50))',
+          100: 'oklch(var(--flame-yellow-100))',
+          200: 'oklch(var(--flame-yellow-200))',
+          300: 'oklch(var(--flame-yellow-300))',
           400: 'oklch(var(--flame-yellow-400))',
           500: 'oklch(var(--flame-yellow-500))',
           600: 'oklch(var(--flame-yellow-600))',
+          700: 'oklch(var(--flame-yellow-700))',
+          800: 'oklch(var(--flame-yellow-800))',
+          900: 'oklch(var(--flame-yellow-900))',
+          950: 'oklch(var(--flame-yellow-950))',
         },
         chart: {
           1: 'oklch(var(--chart-1))',

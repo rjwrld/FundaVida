@@ -8,7 +8,7 @@
         "student": "Estudiante"
       },
       "empty": "Aún no hay asistencia registrada.",
-      "emptyFiltered": "Ninguna asistencia coincide.",
+      "emptyFiltered": "Ninguna asistencia coincide con los filtros.",
       "filters": {
         "anyCourse": "Cualquier curso",
         "anyStatus": "Cualquier estado",
@@ -42,7 +42,11 @@
       "summary": "Resumen",
       "timestamp": "Cuándo"
     },
-    "empty": "Ningún registro coincide con el filtro.",
+    "empty": {
+      "body": "Las acciones administrativas aparecerán aquí a medida que ocurran.",
+      "heading": "Aún no hay registros de auditoría"
+    },
+    "emptyFiltered": "Ningún registro coincide con el filtro.",
     "entities": {
       "attendance": "Asistencia",
       "course": "Curso",
@@ -105,6 +109,11 @@
     "title": "Correos masivos"
   },
   "certificates": {
+    "empty": {
+      "body": "Aprueba la primera matrícula para emitir un certificado.",
+      "cta": "Ver matrículas",
+      "heading": "Aún no hay certificados emitidos"
+    },
     "list": {
       "columns": {
         "action": "Acción",
@@ -137,6 +146,7 @@
       "delete": "Eliminar",
       "edit": "Editar",
       "new": "Nuevo",
+      "openMenu": "Abrir menú",
       "save": "Guardar"
     },
     "commandPalette": {
@@ -188,6 +198,11 @@
       "title": "Curso",
       "unassignedTeacher": "Sin asignar"
     },
+    "empty": {
+      "body": "Crea el primer curso para empezar a registrar matrículas y notas.",
+      "cta": "Agregar curso",
+      "heading": "Aún no hay cursos"
+    },
     "form": {
       "editTitle": "Editar curso",
       "fields": {
@@ -208,7 +223,7 @@
         "program": "Programa",
         "teacher": "Docente"
       },
-      "empty": "Aún no hay cursos.",
+      "emptyFiltered": "Ningún curso coincide con el filtro.",
       "searchPlaceholder": "Buscar por nombre o programa",
       "subtitle": "Catálogo de cursos ofrecidos en los programas y sedes.",
       "title": "Cursos"
@@ -303,9 +318,9 @@
         "student": "Estudiante"
       },
       "empty": "Aún no hay matrículas.",
+      "emptyFiltered": "Ninguna matrícula coincide con el filtro.",
       "filterAnyCourse": "Cualquier curso",
       "filterAnyStudent": "Cualquier estudiante",
-      "loading": "Cargando…",
       "subtitle": "Cada matrícula estudiante-curso. Desmatricular también elimina la calificación correspondiente.",
       "title": "Matrículas",
       "unenroll": "Desmatricular",
@@ -410,6 +425,10 @@
       "rate": "Porcentaje",
       "student": "Estudiante"
     },
+    "empty": {
+      "body": "Genera el primer reporte cuando tengas datos suficientes.",
+      "heading": "Aún no hay reportes"
+    },
     "noRecords": "Sin registros",
     "sections": {
       "averageGradeByCourse": "Nota promedio por curso",
@@ -463,6 +482,11 @@
       },
       "title": "Estudiante"
     },
+    "empty": {
+      "body": "Agrega el primer estudiante para comenzar con matrículas y certificados.",
+      "cta": "Agregar estudiante",
+      "heading": "Aún no hay estudiantes"
+    },
     "form": {
       "editTitle": "Editar estudiante",
       "fields": {
@@ -495,7 +519,6 @@
         "name": "Nombre",
         "province": "Provincia"
       },
-      "empty": "Aún no hay estudiantes.",
       "emptyFiltered": "Ningún estudiante coincide con el filtro.",
       "searchPlaceholder": "Buscar por nombre o correo",
       "subtitle": "Crea, filtra y gestiona estudiantes matriculados en los programas.",
@@ -512,12 +535,14 @@
         "student": "Estudiante"
       },
       "empty": "Aún no hay actividades registradas.",
+      "emptyFiltered": "Ninguna actividad coincide con el filtro.",
       "filters": {
         "anyOrganizer": "Cualquier organizador",
         "anyStudent": "Cualquier estudiante",
         "organizerPlaceholder": "Organizador",
         "studentPlaceholder": "Estudiante"
       },
+      "hoursUnit": "horas",
       "subtitle": "Horas de servicio comunitario por estudiante.",
       "title": "Actividades TCU",
       "totalLabel": "Total de horas: {{hours}}"
@@ -537,6 +562,11 @@
       },
       "title": "Docente"
     },
+    "empty": {
+      "body": "Agrega al primer docente para asignarlo a cursos.",
+      "cta": "Agregar docente",
+      "heading": "Aún no hay docentes"
+    },
     "form": {
       "editTitle": "Editar docente",
       "fields": {
@@ -554,7 +584,7 @@
         "email": "Correo",
         "name": "Nombre"
       },
-      "empty": "Aún no hay docentes.",
+      "emptyFiltered": "Ningún docente coincide con el filtro.",
       "searchPlaceholder": "Buscar por nombre o correo",
       "subtitle": "Gestiona docentes y sus cursos asignados.",
       "title": "Docentes"
