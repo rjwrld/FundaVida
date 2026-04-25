@@ -414,6 +414,12 @@
   },
   "reports": {
     "attendanceHeatmap": {
+      "legend": {
+        "high": "75–100%",
+        "low": "0–25%",
+        "midHigh": "50–75%",
+        "midLow": "25–50%"
+      },
       "title": "Attendance heatmap"
     },
     "averageGrade": {
@@ -436,6 +442,7 @@
     "noRecords": "No records",
     "subtitle": "Cross-cutting totals across the program.",
     "tcuProgress": {
+      "aria": "{{completed}} of {{target}} TCU hours",
       "title": "TCU progress"
     },
     "title": "Reports",

@@ -418,6 +418,12 @@
   },
   "reports": {
     "attendanceHeatmap": {
+      "legend": {
+        "high": "75–100%",
+        "low": "0–25%",
+        "midHigh": "50–75%",
+        "midLow": "25–50%"
+      },
       "title": "Mapa de asistencia"
     },
     "averageGrade": {
@@ -440,6 +446,7 @@
     "noRecords": "Sin registros",
     "subtitle": "Totales transversales del programa.",
     "tcuProgress": {
+      "aria": "{{completed}} de {{target}} horas TCU",
       "title": "Progreso TCU"
     },
     "title": "Reportes",

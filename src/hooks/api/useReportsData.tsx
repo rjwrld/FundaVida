@@ -12,7 +12,6 @@ import {
   subYears,
 } from 'date-fns'
 import { GraduationCap, HeartHandshake } from 'lucide-react'
-import { createElement } from 'react'
 import { useStore } from '@/data/store'
 import { PASSING_SCORE } from '@/lib/certificates'
 import type { UpcomingItem } from '@/components/shared/UpcomingList'
@@ -89,10 +88,13 @@ export function useReportsData(): ReportsData {
     })
 
     // Attendance heatmap: last 84 days (12 weeks × 7 days), one cell per day.
+    // Both branches normalize through parseISO+format so the bucket key always
+    // matches the local-day key produced for the grid, regardless of whether
+    // sessionDate is a plain calendar string or an ISO datetime with offset.
     const today = startOfDay(now)
     const dailyTotals = new Map<string, { total: number; present: number }>()
     attendance.forEach((r) => {
-      const dayKey = r.sessionDate.slice(0, 10)
+      const dayKey = format(parseISO(r.sessionDate), 'yyyy-MM-dd')
       const bucket = dailyTotals.get(dayKey) ?? { total: 0, present: 0 }
       bucket.total += 1
       if (r.status === 'present') bucket.present += 1
@@ -148,7 +150,7 @@ export function useReportsData(): ReportsData {
         title: t('dashboard.upcoming.gradePending', { course: course?.name ?? e.courseId }),
         subtitle: course?.programName,
         variant: 'warning',
-        icon: createElement(GraduationCap, { className: 'size-4', 'aria-hidden': true }),
+        icon: <GraduationCap className="size-4" aria-hidden />,
       })
     })
 
@@ -159,7 +161,7 @@ export function useReportsData(): ReportsData {
         title: t('dashboard.upcoming.tcuLogged', { title: tcu.title }),
         subtitle: `${tcu.hours}h`,
         variant: 'success',
-        icon: createElement(HeartHandshake, { className: 'size-4', 'aria-hidden': true }),
+        icon: <HeartHandshake className="size-4" aria-hidden />,
       })
     })
 

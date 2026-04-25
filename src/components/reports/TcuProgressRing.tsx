@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { useFormat } from '@/hooks/useFormat'
 
 interface TcuProgressRingProps {
@@ -7,6 +8,7 @@ interface TcuProgressRingProps {
 }
 
 export function TcuProgressRing({ completed, target }: TcuProgressRingProps) {
+  const { t } = useTranslation()
   const { formatNumber } = useFormat()
   const safeTarget = target > 0 ? target : 1
   const ratio = Math.max(0, Math.min(1, completed / safeTarget))
@@ -26,7 +28,7 @@ export function TcuProgressRing({ completed, target }: TcuProgressRingProps) {
         viewBox={`0 0 ${size} ${size}`}
         className="-rotate-90"
         role="img"
-        aria-label={`${completed} of ${target} TCU hours`}
+        aria-label={t('reports.tcuProgress.aria', { completed, target })}
       >
         <circle
           cx={size / 2}

@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Area,
@@ -17,11 +18,12 @@ interface Point {
 
 export function EnrollmentTrendChart({ data }: { data: Point[] }) {
   const { t } = useTranslation()
+  const gradientId = useId()
   return (
     <ResponsiveContainer width="100%" height={280}>
       <AreaChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
         <defs>
-          <linearGradient id="reportsGradGreen" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="oklch(var(--chart-1))" stopOpacity="0.22" />
             <stop offset="100%" stopColor="oklch(var(--chart-1))" stopOpacity="0" />
           </linearGradient>
@@ -71,7 +73,7 @@ export function EnrollmentTrendChart({ data }: { data: Point[] }) {
           dataKey="current"
           stroke="oklch(var(--chart-1))"
           strokeWidth={2}
-          fill="url(#reportsGradGreen)"
+          fill={`url(#${gradientId})`}
           name={t('reports.enrollmentTrend.currentYear')}
           isAnimationActive={false}
         />

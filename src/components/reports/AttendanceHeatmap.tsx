@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useFormat } from '@/hooks/useFormat'
 
 interface Cell {
@@ -18,23 +19,23 @@ function bucketClass(rate: number, hasData: boolean): string {
 }
 
 export function AttendanceHeatmap({ data }: AttendanceHeatmapProps) {
+  const { t } = useTranslation()
   const { formatDate, formatPercent } = useFormat()
 
   // Build a 7-col × 12-row grid (cols = day of week, rows = week index).
-  const cellByIndex = data
   const cols = 7
   const rows = 12
   const totalCells = cols * rows
 
   // Pad / trim to exactly 84 cells.
-  const cells: Cell[] = cellByIndex.slice(-totalCells)
+  const cells: Cell[] = data.slice(-totalCells)
   while (cells.length < totalCells) cells.unshift({ date: '', rate: 0 })
 
   return (
     <div className="flex h-full flex-col items-center gap-3">
       <div
         role="grid"
-        aria-label="Attendance heatmap"
+        aria-label={t('reports.attendanceHeatmap.title')}
         className="grid grid-cols-7 grid-rows-12 gap-[3px]"
       >
         {Array.from({ length: rows }).map((_, rowIdx) =>
@@ -60,14 +61,24 @@ export function AttendanceHeatmap({ data }: AttendanceHeatmapProps) {
         )}
       </div>
       <div className="flex w-full items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
-        <span className="font-mono">12w</span>
+        <span className="font-mono" aria-hidden="true">
+          12w
+        </span>
         <div className="flex items-center gap-1.5">
-          <span>0%</span>
-          <span className="size-2.5 rounded-[2px] bg-flame-red-200" aria-hidden="true" />
-          <span className="size-2.5 rounded-[2px] bg-flame-yellow-200" aria-hidden="true" />
-          <span className="size-2.5 rounded-[2px] bg-brand-green-200" aria-hidden="true" />
-          <span className="size-2.5 rounded-[2px] bg-brand-green-500" aria-hidden="true" />
-          <span>100%</span>
+          <span aria-hidden="true">0%</span>
+          <span className="size-2.5 rounded-[2px] bg-flame-red-200">
+            <span className="sr-only">{t('reports.attendanceHeatmap.legend.low')}</span>
+          </span>
+          <span className="size-2.5 rounded-[2px] bg-flame-yellow-200">
+            <span className="sr-only">{t('reports.attendanceHeatmap.legend.midLow')}</span>
+          </span>
+          <span className="size-2.5 rounded-[2px] bg-brand-green-200">
+            <span className="sr-only">{t('reports.attendanceHeatmap.legend.midHigh')}</span>
+          </span>
+          <span className="size-2.5 rounded-[2px] bg-brand-green-500">
+            <span className="sr-only">{t('reports.attendanceHeatmap.legend.high')}</span>
+          </span>
+          <span aria-hidden="true">100%</span>
         </div>
       </div>
     </div>
