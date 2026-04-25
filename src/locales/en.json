@@ -531,12 +531,14 @@
         "student": "Student"
       },
       "empty": "No activities logged yet.",
+      "emptyFiltered": "No activities match your filter.",
       "filters": {
         "anyOrganizer": "Any organizer",
         "anyStudent": "Any student",
         "organizerPlaceholder": "Organizer",
         "studentPlaceholder": "Student"
       },
+      "hoursUnit": "hours",
       "subtitle": "Community service hours logged per student.",
       "title": "TCU activities",
       "totalLabel": "Total hours: {{hours}}"

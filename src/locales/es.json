@@ -535,12 +535,14 @@
         "student": "Estudiante"
       },
       "empty": "Aún no hay actividades registradas.",
+      "emptyFiltered": "Ninguna actividad coincide con el filtro.",
       "filters": {
         "anyOrganizer": "Cualquier organizador",
         "anyStudent": "Cualquier estudiante",
         "organizerPlaceholder": "Organizador",
         "studentPlaceholder": "Estudiante"
       },
+      "hoursUnit": "horas",
       "subtitle": "Horas de servicio comunitario por estudiante.",
       "title": "Actividades TCU",
       "totalLabel": "Total de horas: {{hours}}"
