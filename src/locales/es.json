@@ -224,7 +224,7 @@
     "pendingApprovals": {
       "cta": "Revisar",
       "description_one": "{{count}} matrícula está esperando calificación.",
-      "description_many": "",
+      "description_many": "{{count}} matrículas están esperando calificación.",
       "description_other": "{{count}} matrículas están esperando calificación.",
       "title": "Pendientes de aprobación",
       "zero": "¡Todo al día!",
@@ -264,7 +264,7 @@
     "topCourses": {
       "empty": "Aún no hay cursos.",
       "enrollments_one": "{{count}} estudiante",
-      "enrollments_many": "",
+      "enrollments_many": "{{count}} estudiantes",
       "enrollments_other": "{{count}} estudiantes",
       "title": "Cursos destacados"
     },
@@ -274,7 +274,7 @@
     },
     "welcome": {
       "context_one": "Tienes {{count}} matrícula esperando calificación.",
-      "context_many": "",
+      "context_many": "Tienes {{count}} matrículas esperando calificación.",
       "context_other": "Tienes {{count}} matrículas esperando calificación.",
       "contextZero": "Todo está calificado. Hora de un café.",
       "cta": "Revisar pendientes",
