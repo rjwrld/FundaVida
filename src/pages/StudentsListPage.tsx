@@ -152,7 +152,7 @@ export function StudentsListPage() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          aria-label={t('students.list.columns.actions')}
+                          aria-label={t('common.actions.openMenu')}
                         >
                           <MoreHorizontal size={16} />
                         </Button>

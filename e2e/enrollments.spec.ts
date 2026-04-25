@@ -22,4 +22,6 @@ test('list renders in Spanish when locale is ES', async ({ page }) => {
   await page.getByRole('link', { name: 'Matrículas' }).click()
   await expect(page.getByRole('heading', { name: 'Matrículas' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Abrir menú' }).first()).toBeVisible()
+  await page.getByRole('button', { name: 'Abrir menú' }).first().click()
+  await expect(page.getByRole('menuitem', { name: 'Desmatricular' })).toBeVisible()
 })

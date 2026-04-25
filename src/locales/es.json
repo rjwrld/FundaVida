@@ -8,7 +8,7 @@
         "student": "Estudiante"
       },
       "empty": "Aún no hay asistencia registrada.",
-      "emptyFiltered": "Ninguna asistencia coincide.",
+      "emptyFiltered": "Ninguna asistencia coincide con los filtros.",
       "filters": {
         "anyCourse": "Cualquier curso",
         "anyStatus": "Cualquier estado",

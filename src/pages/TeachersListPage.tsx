@@ -110,7 +110,7 @@ export function TeachersListPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            aria-label={t('teachers.list.columns.actions')}
+                            aria-label={t('common.actions.openMenu')}
                           >
                             <MoreHorizontal size={16} />
                           </Button>
