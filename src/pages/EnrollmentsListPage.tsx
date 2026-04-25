@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -16,7 +17,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useDeleteEnrollment, useEnrollments } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
@@ -30,6 +38,9 @@ export function EnrollmentsListPage() {
   const deleteEnrollment = useDeleteEnrollment()
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
+
+  const hasFilters = Boolean(filters.studentId || filters.courseId)
+  const count = data.length
 
   return (
     <div className="space-y-6">
@@ -78,50 +89,74 @@ export function EnrollmentsListPage() {
       </section>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">{t('enrollments.list.loading')}</p>
-      ) : data.length === 0 ? (
+        <SkeletonTable rows={8} columns={4} />
+      ) : count === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {t('enrollments.list.empty')}
+          {hasFilters ? t('enrollments.list.emptyFiltered') : t('enrollments.list.empty')}
         </p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('enrollments.list.columns.student')}</TableHead>
-              <TableHead>{t('enrollments.list.columns.course')}</TableHead>
-              <TableHead>{t('enrollments.list.columns.enrolledAt')}</TableHead>
-              <TableHead className="text-right">{t('enrollments.list.columns.actions')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((e) => {
-              const s = students.find((x) => x.id === e.studentId)
-              const c = courses.find((x) => x.id === e.courseId)
-              return (
-                <TableRow key={e.id}>
-                  <TableCell>
-                    {s?.firstName} {s?.lastName}
-                  </TableCell>
-                  <TableCell>{c?.name}</TableCell>
-                  <TableCell>{formatDate(e.enrolledAt)}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        if (confirm(t('enrollments.list.unenrollConfirm'))) {
-                          deleteEnrollment.mutate(e.id)
-                        }
-                      }}
-                    >
-                      {t('enrollments.list.unenroll')}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+          <div
+            className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground"
+            aria-hidden="true"
+          >
+            <span>{t('enrollments.list.title')}</span>
+            <span className="font-mono normal-case tabular-nums text-foreground">{count}</span>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead>{t('enrollments.list.columns.student')}</TableHead>
+                <TableHead>{t('enrollments.list.columns.course')}</TableHead>
+                <TableHead>{t('enrollments.list.columns.enrolledAt')}</TableHead>
+                <TableHead className="text-right">
+                  {t('enrollments.list.columns.actions')}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((e) => {
+                const s = students.find((x) => x.id === e.studentId)
+                const c = courses.find((x) => x.id === e.courseId)
+                return (
+                  <TableRow key={e.id} className="h-12 hover:bg-muted/40">
+                    <TableCell>
+                      {s?.firstName} {s?.lastName}
+                    </TableCell>
+                    <TableCell>{c?.name}</TableCell>
+                    <TableCell>{formatDate(e.enrolledAt)}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            aria-label={t('common.actions.openMenu')}
+                          >
+                            <MoreHorizontal size={16} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem
+                            className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                            onSelect={() => {
+                              if (confirm(t('enrollments.list.unenrollConfirm'))) {
+                                deleteEnrollment.mutate(e.id)
+                              }
+                            }}
+                          >
+                            {t('enrollments.list.unenroll')}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   )

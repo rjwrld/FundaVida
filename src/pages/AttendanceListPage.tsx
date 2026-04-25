@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import {
   Select,
   SelectContent,
@@ -25,12 +26,10 @@ import type { AttendanceStatus } from '@/types'
 
 const STATUS_OPTIONS: AttendanceStatus[] = ['present', 'absent', 'excused']
 
-function statusVariant(
-  status: AttendanceStatus
-): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (status === 'present') return 'default'
+function statusVariant(status: AttendanceStatus): 'success' | 'destructive' | 'info' {
+  if (status === 'present') return 'success'
   if (status === 'absent') return 'destructive'
-  return 'secondary'
+  return 'info'
 }
 
 export function AttendanceListPage() {
@@ -43,6 +42,7 @@ export function AttendanceListPage() {
   const courses = useStore((s) => s.courses)
 
   const hasFilters = Boolean(filters.studentId || filters.courseId || filters.status)
+  const count = data.length
 
   return (
     <div className="space-y-6">
@@ -108,42 +108,51 @@ export function AttendanceListPage() {
       </section>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">…</p>
-      ) : data.length === 0 ? (
+        <SkeletonTable rows={8} columns={4} />
+      ) : count === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
           {hasFilters ? t('attendance.list.emptyFiltered') : t('attendance.list.empty')}
         </p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('attendance.list.columns.student')}</TableHead>
-              <TableHead>{t('attendance.list.columns.course')}</TableHead>
-              <TableHead>{t('attendance.list.columns.date')}</TableHead>
-              <TableHead>{t('attendance.list.columns.status')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((r) => {
-              const s = students.find((x) => x.id === r.studentId)
-              const c = courses.find((x) => x.id === r.courseId)
-              return (
-                <TableRow key={r.id}>
-                  <TableCell>
-                    {s?.firstName} {s?.lastName}
-                  </TableCell>
-                  <TableCell>{c?.name}</TableCell>
-                  <TableCell>{formatDate(r.sessionDate)}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusVariant(r.status)}>
-                      {t(`attendance.list.status.${r.status}`)}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+          <div
+            className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground"
+            aria-hidden="true"
+          >
+            <span>{t('attendance.list.title')}</span>
+            <span className="font-mono normal-case tabular-nums text-foreground">{count}</span>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead>{t('attendance.list.columns.student')}</TableHead>
+                <TableHead>{t('attendance.list.columns.course')}</TableHead>
+                <TableHead>{t('attendance.list.columns.date')}</TableHead>
+                <TableHead>{t('attendance.list.columns.status')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((r) => {
+                const s = students.find((x) => x.id === r.studentId)
+                const c = courses.find((x) => x.id === r.courseId)
+                return (
+                  <TableRow key={r.id} className="h-12 hover:bg-muted/40">
+                    <TableCell>
+                      {s?.firstName} {s?.lastName}
+                    </TableCell>
+                    <TableCell>{c?.name}</TableCell>
+                    <TableCell>{formatDate(r.sessionDate)}</TableCell>
+                    <TableCell>
+                      <Badge variant={statusVariant(r.status)} dot>
+                        {t(`attendance.list.status.${r.status}`)}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   )

@@ -6,8 +6,8 @@ test('admin edits a grade score', async ({ page }) => {
   await page.getByRole('link', { name: 'Grades' }).click()
   await expect(page.getByRole('heading', { name: 'Grades' })).toBeVisible()
 
-  await expect(page.getByRole('button', { name: 'Edit' }).first()).toBeVisible()
-  await page.getByRole('button', { name: 'Edit' }).first().click()
+  await page.getByRole('button', { name: 'Open menu' }).first().click()
+  await page.getByRole('menuitem', { name: 'Edit' }).click()
   await expect(page.getByRole('heading', { name: 'Edit grade' })).toBeVisible()
 
   await page.getByLabel('Score').fill('42')

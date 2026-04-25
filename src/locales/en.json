@@ -145,6 +145,7 @@
       "delete": "Delete",
       "edit": "Edit",
       "new": "New",
+      "openMenu": "Open menu",
       "save": "Save"
     },
     "commandPalette": {
@@ -313,9 +314,9 @@
         "student": "Student"
       },
       "empty": "No enrollments yet.",
+      "emptyFiltered": "No enrollments match your filter.",
       "filterAnyCourse": "Any course",
       "filterAnyStudent": "Any student",
-      "loading": "Loading…",
       "subtitle": "Every student-course enrollment. Unenroll to also remove the matching grade.",
       "title": "Enrollments",
       "unenroll": "Unenroll",

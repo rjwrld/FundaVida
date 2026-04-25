@@ -146,6 +146,7 @@
       "delete": "Eliminar",
       "edit": "Editar",
       "new": "Nuevo",
+      "openMenu": "Abrir menú",
       "save": "Guardar"
     },
     "commandPalette": {
@@ -317,9 +318,9 @@
         "student": "Estudiante"
       },
       "empty": "Aún no hay matrículas.",
+      "emptyFiltered": "Ninguna matrícula coincide con el filtro.",
       "filterAnyCourse": "Cualquier curso",
       "filterAnyStudent": "Cualquier estudiante",
-      "loading": "Cargando…",
       "subtitle": "Cada matrícula estudiante-curso. Desmatricular también elimina la calificación correspondiente.",
       "title": "Matrículas",
       "unenroll": "Desmatricular",
