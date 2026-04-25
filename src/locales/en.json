@@ -114,22 +114,22 @@
       "heading": "No certificates issued yet"
     },
     "list": {
-      "columns": {
-        "action": "Action",
-        "course": "Course",
-        "grade": "Final grade",
-        "issuedAt": "Issued",
-        "student": "Student"
-      },
+      "cardAria": "Open preview for {{student}} — {{course}}",
       "dialog": {
         "title": "Certificate preview"
       },
       "downloadPdf": "Download PDF",
-      "empty": "No certificates earned yet.",
-      "emptyStudent": "You haven't earned any certificates yet.",
-      "previewButton": "Preview",
+      "noMatches": "No certificates match \"{{query}}\".",
+      "search": {
+        "ariaLabel": "Search certificates by student name",
+        "placeholder": "Search by student name…"
+      },
       "subtitle": "Students who passed a course (score ≥ 70) earn a certificate. Preview and download the PDF.",
       "title": "Certificates"
+    },
+    "status": {
+      "issued": "Issued",
+      "pending": "Pending"
     }
   },
   "common": {

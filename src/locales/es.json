@@ -115,22 +115,22 @@
       "heading": "Aún no hay certificados emitidos"
     },
     "list": {
-      "columns": {
-        "action": "Acción",
-        "course": "Curso",
-        "grade": "Nota final",
-        "issuedAt": "Emitido",
-        "student": "Estudiante"
-      },
+      "cardAria": "Abrir vista previa de {{student}} — {{course}}",
       "dialog": {
         "title": "Vista previa del certificado"
       },
       "downloadPdf": "Descargar PDF",
-      "empty": "Aún no se han emitido certificados.",
-      "emptyStudent": "Aún no has obtenido certificados.",
-      "previewButton": "Vista previa",
+      "noMatches": "Ningún certificado coincide con \"{{query}}\".",
+      "search": {
+        "ariaLabel": "Buscar certificados por nombre del estudiante",
+        "placeholder": "Buscar por nombre del estudiante…"
+      },
       "subtitle": "Los estudiantes que aprueban un curso (nota ≥ 70) obtienen un certificado. Previsualiza y descarga el PDF.",
       "title": "Certificados"
+    },
+    "status": {
+      "issued": "Emitido",
+      "pending": "Pendiente"
     }
   },
   "common": {
