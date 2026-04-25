@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test('admin edits a grade score', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Enter as Admin' }).click()
+  await page.getByRole('button', { name: 'Enter as admin' }).first().click()
   await page.getByRole('link', { name: 'Grades' }).click()
   await expect(page.getByRole('heading', { name: 'Grades' })).toBeVisible()
 
@@ -26,7 +26,7 @@ test('admin edits a grade score', async ({ page }) => {
 test('renders in Spanish when locale is ES', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'es' }).click()
-  await page.getByRole('button', { name: 'Ingresar como Administrador' }).click()
+  await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.getByRole('link', { name: 'Calificaciones' }).click()
   await expect(page.getByRole('heading', { name: 'Calificaciones' })).toBeVisible()
 })

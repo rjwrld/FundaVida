@@ -47,3 +47,25 @@ if (!window.ResizeObserver) {
   }
   window.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver
 }
+
+// framer-motion `whileInView` relies on IntersectionObserver; jsdom doesn't ship it
+if (!window.IntersectionObserver) {
+  class IntersectionObserverStub {
+    observe() {
+      /* noop */
+    }
+    unobserve() {
+      /* noop */
+    }
+    disconnect() {
+      /* noop */
+    }
+    takeRecords() {
+      return []
+    }
+    root = null
+    rootMargin = ''
+    thresholds = []
+  }
+  window.IntersectionObserver = IntersectionObserverStub as unknown as typeof IntersectionObserver
+}

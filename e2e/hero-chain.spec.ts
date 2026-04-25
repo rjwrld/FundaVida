@@ -7,7 +7,7 @@ test('admin runs the full chain: create student, enroll, grade, certificate', as
   const fullName = `${firstName} ${lastName}`
 
   await page.goto('/')
-  await page.getByRole('button', { name: 'Enter as Admin' }).click()
+  await page.getByRole('button', { name: 'Enter as admin' }).first().click()
 
   await page.getByRole('link', { name: 'Students' }).click()
   await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible()

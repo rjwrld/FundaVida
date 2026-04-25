@@ -5,7 +5,7 @@ test('admin sees audit log and a new create entry after making one', async ({ pa
   const firstName = `Aud${suffix}`
 
   await page.goto('/')
-  await page.getByRole('button', { name: 'Enter as Admin' }).click()
+  await page.getByRole('button', { name: 'Enter as admin' }).first().click()
 
   await page.getByRole('link', { name: 'Students' }).click()
   await page.getByRole('button', { name: 'Add student' }).click()
@@ -30,7 +30,7 @@ test('admin sees audit log and a new create entry after making one', async ({ pa
 test('renders in Spanish when locale is ES', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'es' }).click()
-  await page.getByRole('button', { name: 'Ingresar como Administrador' }).click()
+  await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.getByRole('link', { name: 'Bitácora' }).click()
   await expect(page.getByRole('heading', { name: 'Bitácora' })).toBeVisible()
 })

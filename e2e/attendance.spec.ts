@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test'
+import { enterAs } from './helpers/auth'
 
 test('teacher sees attendance only for their own courses', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Enter as Teacher' }).click()
+  await enterAs(page, 'teacher')
   await page.getByRole('link', { name: 'Attendance' }).click()
   await expect(page.getByRole('heading', { name: 'Attendance' })).toBeVisible()
 
@@ -26,7 +26,7 @@ test('teacher sees attendance only for their own courses', async ({ page }) => {
 test('renders in Spanish when locale is ES', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'es' }).click()
-  await page.getByRole('button', { name: 'Ingresar como Administrador' }).click()
+  await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.getByRole('link', { name: 'Asistencia' }).click()
   await expect(page.getByRole('heading', { name: 'Asistencia' })).toBeVisible()
 })

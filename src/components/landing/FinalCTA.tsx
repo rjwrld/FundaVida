@@ -4,11 +4,18 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { FlameHope } from '@/components/icons/flame'
+import { useStore } from '@/data/store'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 
 export function FinalCTA() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const setRole = useStore((s) => s.setRole)
+
+  const enterAsAdmin = () => {
+    setRole('admin')
+    navigate('/app')
+  }
   return (
     <section className="container mx-auto px-6 py-24 lg:px-10">
       <motion.div
@@ -37,11 +44,7 @@ export function FinalCTA() {
           <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-muted-foreground">
             {t('landing.finalCta.subline')}
           </p>
-          <Button
-            size="lg"
-            onClick={() => navigate('/app')}
-            className="mt-10 gap-2 shadow-glow-primary"
-          >
+          <Button size="lg" onClick={enterAsAdmin} className="mt-10 gap-2 shadow-glow-primary">
             {t('landing.finalCta.cta')}
             <ArrowRight size={16} />
           </Button>

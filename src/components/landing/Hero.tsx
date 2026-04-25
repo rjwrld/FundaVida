@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { useStore } from '@/data/store'
 import { AuroraBackground } from './AuroraBackground'
 import { GithubMark } from './GithubMark'
 import { fadeUp, staggerContainer, transitionDefaults } from '@/lib/motion'
@@ -10,6 +11,12 @@ import { fadeUp, staggerContainer, transitionDefaults } from '@/lib/motion'
 export function Hero() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const setRole = useStore((s) => s.setRole)
+
+  const enterAsAdmin = () => {
+    setRole('admin')
+    navigate('/app')
+  }
 
   return (
     <AuroraBackground className="min-h-[90vh]">
@@ -47,11 +54,7 @@ export function Hero() {
             transition={transitionDefaults}
             className="mt-8 flex flex-wrap items-center gap-3"
           >
-            <Button
-              size="lg"
-              onClick={() => navigate('/app')}
-              className="group gap-2 shadow-glow-primary"
-            >
+            <Button size="lg" onClick={enterAsAdmin} className="group gap-2 shadow-glow-primary">
               {t('landing.hero.primaryCta')}
               <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
             </Button>

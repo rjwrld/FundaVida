@@ -372,24 +372,6 @@
         "title": "PDF certificates in the browser"
       }
     },
-    "featurePreview": {
-      "certificate": {
-        "alt": "Certificate preview dialog with download button.",
-        "caption": "Eligible students earn a PDF certificate rendered in-browser via @react-pdf/renderer.",
-        "title": "Certificate PDF generation"
-      },
-      "heading": "A taste of what's inside",
-      "reports": {
-        "alt": "Reports dashboard with totals cards and ranking tables.",
-        "caption": "Enrollments, average grades, attendance rates, and community hours — computed client-side.",
-        "title": "Cross-cutting reports"
-      },
-      "students": {
-        "alt": "Students list page with filter controls and seeded data.",
-        "caption": "Create, filter, search, edit, and delete. Form validation, optimistic updates, and keyboard navigation.",
-        "title": "Full-CRUD students module"
-      }
-    },
     "finalCta": {
       "cta": "Enter as admin",
       "headline": "Ready to explore?",
@@ -407,7 +389,6 @@
       "illustrationAlt": "Isometric illustration of the FundaVida dashboard with a certificate and flame motif",
       "noSignup": "No signup · Data lives in your browser",
       "primaryCta": "Enter as admin",
-      "screenshotAlt": "Dashboard preview with student and course statistics.",
       "secondaryCta": "View on GitHub",
       "subhead": "A production educational platform, rearchitected as a browser-only portfolio demo. No backend. No auth. Just craft."
     },
@@ -435,9 +416,6 @@
           "before": "Spanish-only UI"
         }
       ]
-    },
-    "techStack": {
-      "heading": "Built with"
     },
     "trustStrip": {
       "headline": "Rearchitected from a production platform",

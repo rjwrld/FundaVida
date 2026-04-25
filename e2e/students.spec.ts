@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test('admin creates a student and sees them in the list', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Enter as Admin' }).click()
+  await page.getByRole('button', { name: 'Enter as admin' }).first().click()
   await page.getByRole('link', { name: 'Students' }).click()
   await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible()
 
@@ -30,7 +30,7 @@ test('admin creates a student and sees them in the list', async ({ page }) => {
 test('list renders in Spanish when locale is ES', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'es' }).click()
-  await page.getByRole('button', { name: 'Ingresar como Administrador' }).click()
+  await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.getByRole('link', { name: 'Estudiantes' }).click()
   await expect(page.getByRole('heading', { name: 'Estudiantes' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Agregar estudiante' })).toBeVisible()

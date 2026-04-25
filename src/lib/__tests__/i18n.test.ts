@@ -11,7 +11,7 @@ describe('i18n', () => {
 
   it('loads English as the default', async () => {
     await i18next.changeLanguage('en')
-    expect(i18next.t('landing.title')).toBe('FundaVida')
+    expect(i18next.t('landing.hero.headline')).toBe('Hope changes everything.')
     expect(i18next.t('nav.students')).toBe('Students')
   })
 

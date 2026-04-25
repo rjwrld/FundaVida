@@ -376,24 +376,6 @@
         "title": "Certificados PDF en el navegador"
       }
     },
-    "featurePreview": {
-      "certificate": {
-        "alt": "Diálogo de vista previa del certificado con botón de descarga.",
-        "caption": "Los estudiantes elegibles reciben un certificado en PDF renderizado en el navegador con @react-pdf/renderer.",
-        "title": "Generación de certificados en PDF"
-      },
-      "heading": "Una muestra de lo que hay adentro",
-      "reports": {
-        "alt": "Panel de reportes con tarjetas de totales y tablas de clasificación.",
-        "caption": "Matrículas, notas promedio, tasas de asistencia y horas de comunidad — calculadas en el cliente.",
-        "title": "Reportes transversales"
-      },
-      "students": {
-        "alt": "Página de lista de estudiantes con controles de filtro y datos de ejemplo.",
-        "caption": "Crear, filtrar, buscar, editar y eliminar. Validación de formularios, actualizaciones optimistas y navegación por teclado.",
-        "title": "Módulo de estudiantes con CRUD completo"
-      }
-    },
     "finalCta": {
       "cta": "Ingresar como administrador",
       "headline": "¿Listo para explorar?",
@@ -411,7 +393,6 @@
       "illustrationAlt": "Ilustración isométrica del panel FundaVida con un certificado y motivo de llama",
       "noSignup": "Sin registro · Los datos viven en tu navegador",
       "primaryCta": "Ingresar como administrador",
-      "screenshotAlt": "Vista previa del panel con estadísticas de estudiantes y cursos.",
       "secondaryCta": "Ver en GitHub",
       "subhead": "Una plataforma educativa de producción, rearquitecturada como demo de portafolio sin backend. Sin servidor. Sin autenticación. Solo oficio."
     },
@@ -439,9 +420,6 @@
           "before": "UI solo en español"
         }
       ]
-    },
-    "techStack": {
-      "heading": "Hecho con"
     },
     "trustStrip": {
       "headline": "Rearquitecturada desde una plataforma de producción",
