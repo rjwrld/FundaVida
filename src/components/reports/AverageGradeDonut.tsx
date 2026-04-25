@@ -23,7 +23,7 @@ export function AverageGradeDonut({ average }: AverageGradeDonutProps) {
           <Pie
             data={data}
             dataKey="value"
-            innerRadius="68%"
+            innerRadius="60%"
             outerRadius="92%"
             startAngle={90}
             endAngle={-270}

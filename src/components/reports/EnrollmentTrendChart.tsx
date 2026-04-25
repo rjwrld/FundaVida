@@ -50,7 +50,7 @@ export function EnrollmentTrendChart({ data }: { data: Point[] }) {
           contentStyle={{
             background: 'oklch(var(--popover))',
             border: '1px solid oklch(var(--border))',
-            borderRadius: '10px',
+            borderRadius: '8px',
             fontSize: '12px',
             padding: '8px 10px',
             boxShadow: '0 6px 24px -10px oklch(0 0 0 / 0.15)',
@@ -60,7 +60,7 @@ export function EnrollmentTrendChart({ data }: { data: Point[] }) {
           type="monotone"
           dataKey="prior"
           stroke="oklch(var(--chart-2))"
-          strokeWidth={1.5}
+          strokeWidth={1}
           strokeDasharray="4 4"
           fill="none"
           name={t('reports.enrollmentTrend.priorYear')}
@@ -70,7 +70,7 @@ export function EnrollmentTrendChart({ data }: { data: Point[] }) {
           type="monotone"
           dataKey="current"
           stroke="oklch(var(--chart-1))"
-          strokeWidth={2.25}
+          strokeWidth={2}
           fill="url(#reportsGradGreen)"
           name={t('reports.enrollmentTrend.currentYear')}
           isAnimationActive={false}

@@ -20,10 +20,10 @@ function bucketClass(rate: number, hasData: boolean): string {
 export function AttendanceHeatmap({ data }: AttendanceHeatmapProps) {
   const { formatDate, formatPercent } = useFormat()
 
-  // Build a 7-row × 12-col grid (rows = day of week, cols = week index).
+  // Build a 7-col × 12-row grid (cols = day of week, rows = week index).
   const cellByIndex = data
-  const cols = 12
-  const rows = 7
+  const cols = 7
+  const rows = 12
   const totalCells = cols * rows
 
   // Pad / trim to exactly 84 cells.
@@ -31,26 +31,25 @@ export function AttendanceHeatmap({ data }: AttendanceHeatmapProps) {
   while (cells.length < totalCells) cells.unshift({ date: '', rate: 0 })
 
   return (
-    <div className="flex h-full flex-col gap-3">
+    <div className="flex h-full flex-col items-center gap-3">
       <div
         role="grid"
         aria-label="Attendance heatmap"
-        className="grid flex-1 gap-[3px]"
-        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+        className="grid grid-cols-7 grid-rows-12 gap-[3px]"
       >
-        {Array.from({ length: cols }).map((_, colIdx) =>
-          Array.from({ length: rows }).map((__, rowIdx) => {
-            const flat = colIdx * rows + rowIdx
+        {Array.from({ length: rows }).map((_, rowIdx) =>
+          Array.from({ length: cols }).map((__, colIdx) => {
+            const flat = rowIdx * cols + colIdx
             const cell = cells[flat] ?? { date: '', rate: 0 }
             const hasDate = cell.date !== ''
             const tooltip = hasDate ? `${formatDate(cell.date)} · ${formatPercent(cell.rate)}` : ''
             return (
               <div
-                key={`${colIdx}-${rowIdx}`}
+                key={`${rowIdx}-${colIdx}`}
                 role="gridcell"
                 title={tooltip}
                 aria-label={tooltip}
-                className={`aspect-square rounded-[3px] transition-transform hover:scale-110 ${bucketClass(
+                className={`size-4 rounded-[3px] transition-transform hover:scale-110 ${bucketClass(
                   cell.rate,
                   hasDate
                 )}`}
@@ -60,7 +59,7 @@ export function AttendanceHeatmap({ data }: AttendanceHeatmapProps) {
           })
         )}
       </div>
-      <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
+      <div className="flex w-full items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
         <span className="font-mono">12w</span>
         <div className="flex items-center gap-1.5">
           <span>0%</span>

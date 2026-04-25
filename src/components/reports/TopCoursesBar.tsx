@@ -1,4 +1,4 @@
-import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 
 interface Datum {
   id: string
@@ -31,19 +31,12 @@ export function TopCoursesBar({ data }: TopCoursesBarProps) {
           tickLine={false}
           tick={{ fontSize: 12 }}
         />
-        <Bar dataKey="count" radius={[4, 4, 4, 4]} isAnimationActive={false}>
-          {rows.map((row, idx) => (
-            <Cell
-              key={row.id}
-              fill={
-                idx === 0
-                  ? 'oklch(var(--chart-1))'
-                  : idx === 1
-                    ? 'oklch(var(--chart-4))'
-                    : 'oklch(var(--chart-1) / 0.55)'
-              }
-            />
-          ))}
+        <Bar
+          dataKey="count"
+          radius={[4, 4, 4, 4]}
+          isAnimationActive={false}
+          fill="oklch(var(--chart-1))"
+        >
           <LabelList
             dataKey="count"
             position="right"
