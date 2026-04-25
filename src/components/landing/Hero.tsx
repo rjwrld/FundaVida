@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion'
-import { ArrowRight, Github } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { AuroraBackground } from './AuroraBackground'
+import { GithubMark } from './GithubMark'
 import { fadeUp, staggerContainer, transitionDefaults } from '@/lib/motion'
 
 export function Hero() {
@@ -61,7 +62,7 @@ export function Hero() {
                 rel="noopener noreferrer"
                 className="gap-2"
               >
-                <Github size={16} />
+                <GithubMark size={16} />
                 {t('landing.hero.secondaryCta')}
               </a>
             </Button>
