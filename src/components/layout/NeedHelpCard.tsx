@@ -6,7 +6,7 @@ const REPO_URL = 'https://github.com/rjwrld/FundaVida'
 export function NeedHelpCard() {
   const { t } = useTranslation()
   return (
-    <div className="m-3 mt-auto rounded-lg border border-brand-green-100 bg-gradient-to-br from-brand-green-50 via-background to-background p-4 shadow-sm dark:border-brand-green-500/20 dark:from-brand-green-500/10 dark:via-background dark:to-background">
+    <div className="m-3 mt-auto rounded-lg border border-border bg-card p-4">
       <div className="flex items-start gap-3">
         <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-green-500/15 text-brand-green-700 dark:text-brand-green-300">
           <LifeBuoy className="size-4" />
