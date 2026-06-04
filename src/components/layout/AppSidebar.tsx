@@ -47,26 +47,20 @@ function SidebarLink({ item }: { item: NavItem }) {
       end={item.to === '/app'}
       className={({ isActive }) =>
         cn(
-          'group relative flex items-center gap-2.5 rounded-md py-2 pl-3 pr-2.5 text-sm font-medium transition-colors',
+          'group relative flex items-center gap-2.5 rounded-lg py-2 pl-3 pr-2.5 text-sm font-medium transition-colors',
           isActive
-            ? 'bg-brand-green-50 font-semibold text-brand-green-700 dark:bg-brand-green-500/10 dark:text-brand-green-300'
-            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+            ? 'bg-primary font-semibold text-primary-foreground'
+            : 'text-muted-foreground hover:bg-accent hover:text-foreground'
         )
       }
     >
       {({ isActive }) => (
         <>
-          {isActive ? (
-            <span
-              aria-hidden
-              className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-brand-green-600 dark:bg-brand-green-400"
-            />
-          ) : null}
           <Icon
             className={cn(
               'size-4 shrink-0 transition-colors',
               isActive
-                ? 'text-brand-green-600 dark:text-brand-green-400'
+                ? 'text-primary-foreground'
                 : 'text-muted-foreground/70 group-hover:text-foreground'
             )}
           />
