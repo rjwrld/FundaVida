@@ -31,14 +31,6 @@ export function WelcomeBanner({
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand-green-500 to-transparent [--tw-gradient-to-position:40%]"
       />
-      <span
-        aria-hidden="true"
-        className="absolute left-6 top-5 size-0.5 rounded-full bg-flame-yellow-500"
-      />
-      <span
-        aria-hidden="true"
-        className="absolute left-10 top-7 size-0.5 rounded-full bg-flame-yellow-500"
-      />
       <div className="relative z-10 flex max-w-xl flex-col gap-2">
         {eyebrow ? (
           <span className="text-[12px] font-medium uppercase tracking-wider text-brand-green-700">
