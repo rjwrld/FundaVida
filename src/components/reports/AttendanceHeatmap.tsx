@@ -13,9 +13,9 @@ interface AttendanceHeatmapProps {
 function bucketClass(rate: number, hasData: boolean): string {
   if (!hasData) return 'bg-muted/50'
   if (rate >= 0.75) return 'bg-brand-green-500'
-  if (rate >= 0.5) return 'bg-brand-green-200'
-  if (rate >= 0.25) return 'bg-flame-yellow-200'
-  return 'bg-flame-red-200'
+  if (rate >= 0.5) return 'bg-brand-green-300'
+  if (rate >= 0.25) return 'bg-brand-green-200'
+  return 'bg-brand-green-100'
 }
 
 export function AttendanceHeatmap({ data }: AttendanceHeatmapProps) {
@@ -66,13 +66,13 @@ export function AttendanceHeatmap({ data }: AttendanceHeatmapProps) {
         </span>
         <div className="flex items-center gap-1.5">
           <span aria-hidden="true">0%</span>
-          <span className="size-2.5 rounded-[2px] bg-flame-red-200">
+          <span className="size-2.5 rounded-[2px] bg-brand-green-100">
             <span className="sr-only">{t('reports.attendanceHeatmap.legend.low')}</span>
           </span>
-          <span className="size-2.5 rounded-[2px] bg-flame-yellow-200">
+          <span className="size-2.5 rounded-[2px] bg-brand-green-200">
             <span className="sr-only">{t('reports.attendanceHeatmap.legend.midLow')}</span>
           </span>
-          <span className="size-2.5 rounded-[2px] bg-brand-green-200">
+          <span className="size-2.5 rounded-[2px] bg-brand-green-300">
             <span className="sr-only">{t('reports.attendanceHeatmap.legend.midHigh')}</span>
           </span>
           <span className="size-2.5 rounded-[2px] bg-brand-green-500">
