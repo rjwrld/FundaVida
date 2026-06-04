@@ -12,14 +12,13 @@ const badgeVariants = cva(
         secondary:
           'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
         destructive:
-          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-        outline: 'text-foreground',
+          'border-[oklch(0.64_0.21_25/0.4)] bg-[oklch(0.64_0.21_25/0.12)] text-[oklch(0.55_0.2_25)] dark:text-[oklch(0.72_0.17_22)]',
+        outline: 'border-border text-foreground',
         success:
-          'border-transparent bg-brand-green-50 text-brand-green-700 dark:bg-brand-green-900 dark:text-brand-green-200',
-        warning:
-          'border-transparent bg-flame-yellow-50 text-flame-yellow-700 dark:bg-flame-yellow-900 dark:text-flame-yellow-200',
-        info: 'border-transparent bg-brand-blue-50 text-brand-blue-700 dark:bg-brand-blue-900 dark:text-brand-blue-200',
-        neutral: 'border-transparent bg-muted text-muted-foreground',
+          'border-[oklch(0.73_0.18_149/0.4)] bg-[oklch(0.73_0.18_149/0.14)] text-[oklch(0.52_0.16_149)] dark:text-[oklch(0.78_0.18_149)]',
+        warning: 'border-border bg-muted text-foreground',
+        info: 'border-border bg-transparent text-muted-foreground',
+        neutral: 'border-border bg-transparent text-muted-foreground',
       },
     },
     defaultVariants: {

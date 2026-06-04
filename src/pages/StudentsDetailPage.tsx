@@ -88,7 +88,7 @@ export function StudentsDetailPage() {
                     <Link to={`/app/courses/${c.id}`} className="hover:underline">
                       {c.name}
                     </Link>
-                    <Badge variant="secondary" className="ml-2 text-xs">
+                    <Badge variant="neutral" className="ml-2 text-xs">
                       {c.programName}
                     </Badge>
                   </li>

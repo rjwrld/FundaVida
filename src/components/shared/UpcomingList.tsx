@@ -17,8 +17,8 @@ export interface UpcomingListProps extends React.HTMLAttributes<HTMLUListElement
 }
 
 const variantClasses: Record<UpcomingVariant, string> = {
-  info: 'text-brand-blue-500 bg-brand-blue-50',
-  warning: 'text-flame-yellow-600 bg-flame-yellow-50',
+  info: 'text-muted-foreground bg-muted',
+  warning: 'text-foreground bg-muted',
   success: 'text-brand-green-500 bg-brand-green-50',
   neutral: 'text-muted-foreground bg-muted',
 }

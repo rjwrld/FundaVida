@@ -25,7 +25,7 @@ export function AttendanceSnapshot({ ratePct, trend }: AttendanceSnapshotProps) 
   }))
 
   return (
-    <article className="flex h-full flex-col rounded-xl border border-border bg-card p-5 shadow-card">
+    <article className="flex h-full flex-col rounded-lg border border-border bg-card p-5">
       <header className="mb-4 flex items-baseline justify-between gap-3">
         <h3 className="font-display text-lg text-foreground">{t('dashboard.attendance.title')}</h3>
         <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
