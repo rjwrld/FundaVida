@@ -3,7 +3,7 @@ import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AnimatedNumber } from './AnimatedNumber'
 
-export type StatCardVariant = 'default' | 'primary' | 'flame' | 'blue'
+export type StatCardVariant = 'default' | 'primary'
 
 export interface StatCardDelta {
   value: number
@@ -22,10 +22,7 @@ export interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const variantClasses: Record<StatCardVariant, string> = {
   default: 'bg-card',
-  primary:
-    'bg-gradient-to-br from-brand-green-50 via-card to-card [--stop:65%] from-0% via-[var(--stop)] to-100%',
-  flame: 'bg-gradient-to-br from-flame-yellow-50 via-card to-card from-0% via-[50%] to-100%',
-  blue: 'bg-gradient-to-br from-brand-blue-50 via-card to-card from-0% via-[70%] to-100%',
+  primary: 'bg-card',
 }
 
 function Sparkline({ values, positive }: { values: number[]; positive: boolean }) {
@@ -71,9 +68,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-xl border border-border p-5 shadow-card transition-all duration-200',
-        'hover:-translate-y-px hover:shadow-elevated',
-        'before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-white/40',
+        'group relative overflow-hidden rounded-lg border border-border p-5 transition-colors hover:border-foreground/30',
         variantClasses[variant],
         className
       )}

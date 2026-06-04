@@ -27,13 +27,6 @@ describe('<StatCard />', () => {
     expect(screen.getByText('87%')).toBeInTheDocument()
   })
 
-  it('applies the flame variant class', () => {
-    const { container } = render(
-      <StatCard label="Hope" value={10} variant="flame" data-testid="card" />
-    )
-    expect(container.firstChild).toHaveClass('from-flame-yellow-50')
-  })
-
   it('renders a sparkline svg polyline when sparkline data is provided', () => {
     const { container } = render(<StatCard label="Trend" value={5} sparkline={[1, 2, 3, 4, 5]} />)
     expect(container.querySelector('svg polyline')).not.toBeNull()
