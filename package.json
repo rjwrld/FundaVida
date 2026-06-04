@@ -24,8 +24,8 @@
   },
   "dependencies": {
     "@fontsource/geist-mono": "^5.2.7",
-    "@fontsource/geist-sans": "^5.2.5",
-    "@fontsource/instrument-serif": "^5.2.8",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/inter-tight": "^5.2.7",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
