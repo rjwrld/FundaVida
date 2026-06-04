@@ -138,7 +138,7 @@ export function AdminDashboard() {
         aria-label={t('dashboard.rightPanel.calendarTitle')}
       >
         <CalendarWidget selected={new Date()} events={calendarEvents} />
-        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
+        <section className="rounded-lg border border-border bg-card p-5">
           <header className="mb-3 flex items-center gap-2">
             <CalendarDays className="size-4 text-brand-green-700" aria-hidden="true" />
             <h3 className="font-display text-base text-foreground">

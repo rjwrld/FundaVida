@@ -13,7 +13,7 @@ export function TopCourses({ courses }: TopCoursesProps) {
   const max = Math.max(1, ...courses.map((c) => c.enrollmentCount))
 
   return (
-    <article className="flex h-full flex-col rounded-xl border border-border bg-card p-5 shadow-card">
+    <article className="flex h-full flex-col rounded-lg border border-border bg-card p-5">
       <header className="mb-4 flex items-center justify-between">
         <h3 className="font-display text-lg text-foreground">{t('dashboard.topCourses.title')}</h3>
       </header>

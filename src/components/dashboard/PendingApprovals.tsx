@@ -17,7 +17,7 @@ export function PendingApprovals({ count }: PendingApprovalsProps) {
   return (
     <article
       className={cn(
-        'flex h-full flex-col rounded-xl border p-5 shadow-card',
+        'flex h-full flex-col rounded-lg border p-5',
         hasPending ? 'border-flame-yellow-400/40 bg-flame-yellow-50' : 'border-border bg-card'
       )}
     >
