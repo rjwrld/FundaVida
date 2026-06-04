@@ -14,8 +14,14 @@ test('admin previews and downloads a certificate', async ({ page }) => {
   const downloadBtn = page.getByRole('button', { name: 'Download PDF' })
   await expect(downloadBtn).not.toHaveAttribute('aria-disabled', 'true')
 
-  // Capture the PDF download event
-  const downloadPromise = page.waitForEvent('download')
+  // Capture the PDF download. The preview's <PDFViewer> loads the certificate
+  // blob in an iframe, which headless Chromium emits as a *second* download
+  // event with a blob-UUID filename — racing the anchor click. Wait for the
+  // specific download the button produces (named from the anchor's `download`
+  // attribute) so the assertion can't latch onto the preview's spurious one.
+  const downloadPromise = page.waitForEvent('download', (d) =>
+    /^certificate-.*\.pdf$/.test(d.suggestedFilename())
+  )
   await downloadBtn.click()
   const download = await downloadPromise
   expect(download.suggestedFilename()).toMatch(/^certificate-.*\.pdf$/)
