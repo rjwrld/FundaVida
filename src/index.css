@@ -76,7 +76,7 @@
     --card-foreground: 0.26 0 0;
     --popover: 1 0 0;
     --popover-foreground: 0.26 0 0;
-    --primary: 0.9 0.28 132; /* electric green #7CFC00 */
+    --primary: 0.882 0.263 136; /* electric green #7CFC00 */
     --primary-foreground: 0.26 0 0; /* Ink text ON green */
     --secondary: 0.26 0 0; /* Ink surface panel #202020 */
     --secondary-foreground: 0.96 0 0; /* Frost text on Ink */
@@ -110,7 +110,7 @@
     --card-foreground: 0.96 0 0;
     --popover: 0.26 0 0;
     --popover-foreground: 0.96 0 0;
-    --primary: 0.9 0.28 132; /* electric green (unchanged — pops on Ink) */
+    --primary: 0.882 0.263 136; /* electric green #7CFC00 (pops on Ink) */
     --primary-foreground: 0.26 0 0; /* Ink text ON green */
     --secondary: 0.3 0 0; /* lighter Ink panel #2a2a2a */
     --secondary-foreground: 0.96 0 0;
