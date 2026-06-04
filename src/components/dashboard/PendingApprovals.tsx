@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import { FlameCelebration } from '@/components/icons/flame/FlameCelebration'
 import { useFormat } from '@/hooks/useFormat'
-import { cn } from '@/lib/utils'
 
 export interface PendingApprovalsProps {
   count: number
@@ -15,23 +14,13 @@ export function PendingApprovals({ count }: PendingApprovalsProps) {
   const hasPending = count > 0
 
   return (
-    <article
-      className={cn(
-        'flex h-full flex-col rounded-lg border p-5',
-        hasPending ? 'border-flame-yellow-400/40 bg-flame-yellow-50' : 'border-border bg-card'
-      )}
-    >
+    <article className="flex h-full flex-col rounded-lg border border-border bg-card p-5">
       <header className="mb-4 flex items-center justify-between">
-        <h3
-          className={cn(
-            'font-display text-lg',
-            hasPending ? 'text-flame-yellow-600' : 'text-foreground'
-          )}
-        >
+        <h3 className="font-display text-lg text-foreground">
           {t('dashboard.pendingApprovals.title')}
         </h3>
         {hasPending ? (
-          <FlameCelebration size={28} aria-hidden="true" className="text-flame-yellow-500" />
+          <FlameCelebration size={28} aria-hidden="true" className="text-muted-foreground" />
         ) : (
           <CheckCircle2 className="size-5 text-brand-green-500" aria-hidden="true" />
         )}
@@ -39,7 +28,7 @@ export function PendingApprovals({ count }: PendingApprovalsProps) {
       {hasPending ? (
         <div className="flex flex-1 flex-col justify-between gap-4">
           <div>
-            <p className="font-mono text-[40px] font-semibold tabular-nums leading-none text-flame-yellow-600">
+            <p className="font-mono text-[40px] font-semibold tabular-nums leading-none text-foreground">
               {formatNumber(count)}
             </p>
             <p className="mt-3 text-sm leading-relaxed text-foreground/80">
@@ -48,7 +37,7 @@ export function PendingApprovals({ count }: PendingApprovalsProps) {
           </div>
           <Link
             to="/app/certificates?status=pending"
-            className="inline-flex w-fit items-center gap-1 rounded-md bg-flame-yellow-500 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-flame-yellow-400"
+            className="inline-flex w-fit items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             {t('dashboard.pendingApprovals.cta')}
             <ArrowRight className="size-3.5" aria-hidden="true" />
