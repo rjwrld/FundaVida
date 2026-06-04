@@ -104,28 +104,28 @@
   }
 
   .dark {
-    --background: var(--neutral-950);
-    --foreground: var(--neutral-100);
-    --card: var(--neutral-900);
-    --card-foreground: var(--neutral-100);
-    --popover: var(--neutral-900);
-    --popover-foreground: var(--neutral-100);
-    --primary: var(--brand-green-400);
-    --primary-foreground: var(--neutral-950);
-    --secondary: var(--brand-blue-400);
-    --secondary-foreground: var(--neutral-950);
-    --muted: var(--neutral-800);
-    --muted-foreground: var(--neutral-400);
-    --accent: var(--brand-green-900);
-    --accent-foreground: var(--brand-green-200);
-    --destructive: var(--flame-red-400);
-    --destructive-foreground: var(--neutral-50);
-    --success: var(--brand-green-400);
-    --warning: var(--flame-yellow-400);
-    --info: var(--brand-blue-400);
-    --border: var(--neutral-800);
-    --input: var(--neutral-800);
-    --ring: var(--brand-green-400);
+    --background: 0.2 0 0; /* dark canvas #161616 */
+    --foreground: 0.96 0 0; /* Frost text #f5f5f5 */
+    --card: 0.26 0 0; /* Ink card #202020 */
+    --card-foreground: 0.96 0 0;
+    --popover: 0.26 0 0;
+    --popover-foreground: 0.96 0 0;
+    --primary: 0.9 0.28 132; /* electric green (unchanged — pops on Ink) */
+    --primary-foreground: 0.26 0 0; /* Ink text ON green */
+    --secondary: 0.3 0 0; /* lighter Ink panel #2a2a2a */
+    --secondary-foreground: 0.96 0 0;
+    --muted: 0.24 0 0; /* subtle dark surface */
+    --muted-foreground: 0.68 0 0; /* dark muted #9a9a9a */
+    --accent: 0.3 0 0; /* hover #2a2a2a */
+    --accent-foreground: 0.96 0 0;
+    --destructive: 0.64 0.21 25; /* error #ef4444 */
+    --destructive-foreground: 0.96 0 0;
+    --success: 0.73 0.18 149; /* success #22c55e */
+    --warning: 0.84 0 0; /* neutralized to mono (light Carbon on Ink) — Resolved Decision #3 */
+    --info: 0.84 0 0; /* neutralized to mono */
+    --border: 0.3 0 0; /* soft dark border #2a2a2a */
+    --input: 0.3 0 0;
+    --ring: 0.96 0 0; /* light focus ring */
 
     --chart-1: var(--brand-green-400);
     --chart-2: var(--brand-blue-400);
