@@ -73,7 +73,7 @@ export function ReportsPage() {
                 <span className="flex items-center gap-1.5">
                   <span
                     aria-hidden="true"
-                    className="h-0.5 w-3 rounded-full border-t border-dashed border-brand-blue-500"
+                    className="h-0.5 w-3 rounded-full border-t border-dashed border-muted-foreground"
                   />
                   {t('reports.enrollmentTrend.priorYear')}
                 </span>
