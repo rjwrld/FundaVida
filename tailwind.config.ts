@@ -108,11 +108,11 @@ export default {
         '2xl': 'calc(var(--radius) + 12px)',
       },
       boxShadow: {
-        soft: '0 2px 15px -3px rgba(0,0,0,0.07), 0 10px 20px -2px rgba(0,0,0,0.04)',
-        card: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
+        soft: 'none',
+        card: 'none',
         elevated: '0 10px 40px -10px rgba(0,0,0,0.10), 0 2px 10px -2px rgba(0,0,0,0.04)',
-        'glow-primary': '0 8px 24px -8px oklch(0.57 0.17 138 / 0.35)',
-        'glow-flame': '0 8px 24px -8px oklch(0.85 0.17 90 / 0.40)',
+        'glow-primary': 'none',
+        'glow-flame': 'none',
       },
       keyframes: {
         'fade-in': {
