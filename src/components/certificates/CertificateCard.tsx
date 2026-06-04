@@ -36,30 +36,17 @@ export function CertificateCard({ cert, onClick, className }: Props) {
         course: cert.courseName,
       })}
       className={cn(
-        'group relative cursor-pointer overflow-hidden border-border/70 shadow-card transition-all duration-300',
-        'hover:-translate-y-0.5 hover:border-brand-green-200 hover:shadow-elevated',
+        'group relative cursor-pointer overflow-hidden border-border/70 transition-colors hover:border-foreground/30',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         className
       )}
     >
-      <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-gradient-to-br from-brand-green-50 via-card to-card">
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,oklch(var(--brand-green-100)/0.6),transparent_55%)]"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-x-6 top-6 h-px bg-gradient-to-r from-transparent via-brand-green-300/60 to-transparent"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-x-6 bottom-6 h-px bg-gradient-to-r from-transparent via-brand-green-300/60 to-transparent"
-        />
+      <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-card">
         <span
           aria-hidden="true"
-          className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-flame-yellow-100 ring-2 ring-flame-yellow-300/60"
+          className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-muted ring-2 ring-border"
         >
-          <span className="h-2 w-2 rounded-full bg-flame-yellow-500" />
+          <span className="h-2 w-2 rounded-full bg-foreground" />
         </span>
         <FileText
           size={48}

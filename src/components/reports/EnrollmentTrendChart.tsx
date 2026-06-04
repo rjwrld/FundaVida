@@ -61,7 +61,7 @@ export function EnrollmentTrendChart({ data }: { data: Point[] }) {
         <Area
           type="monotone"
           dataKey="prior"
-          stroke="oklch(var(--chart-2))"
+          stroke="oklch(var(--muted-foreground))"
           strokeWidth={1}
           strokeDasharray="4 4"
           fill="none"
