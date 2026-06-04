@@ -69,29 +69,29 @@
     --neutral-900: 0.18 0.015 220;
     --neutral-950: 0.13 0.012 220;
 
-    /* Semantic tokens — light mode */
-    --background: var(--neutral-50);
-    --foreground: 0.18 0 0;
-    --card: 1 0 0;
-    --card-foreground: 0.18 0 0;
+    /* Semantic tokens — light mode (blueprint: Frost/Paper/Ink + scarce green) */
+    --background: 0.96 0 0; /* Frost #f5f5f5 */
+    --foreground: 0.26 0 0; /* Ink #202020 */
+    --card: 1 0 0; /* Paper #ffffff */
+    --card-foreground: 0.26 0 0;
     --popover: 1 0 0;
-    --popover-foreground: 0.18 0 0;
-    --primary: var(--brand-green-600);
-    --primary-foreground: 0.99 0.003 95;
-    --secondary: var(--brand-blue-500);
-    --secondary-foreground: 0.99 0.003 95;
-    --muted: var(--neutral-100);
-    --muted-foreground: var(--neutral-500);
-    --accent: var(--brand-green-50);
-    --accent-foreground: var(--brand-green-700);
-    --destructive: var(--flame-red-500);
-    --destructive-foreground: 0.99 0.003 95;
-    --success: var(--brand-green-500);
-    --warning: var(--flame-yellow-500);
-    --info: var(--brand-blue-500);
-    --border: var(--neutral-200);
-    --input: var(--neutral-200);
-    --ring: var(--brand-green-500);
+    --popover-foreground: 0.26 0 0;
+    --primary: 0.9 0.28 132; /* electric green #7CFC00 */
+    --primary-foreground: 0.26 0 0; /* Ink text ON green */
+    --secondary: 0.26 0 0; /* Ink surface panel #202020 */
+    --secondary-foreground: 0.96 0 0; /* Frost text on Ink */
+    --muted: 0.96 0 0; /* Frost surface */
+    --muted-foreground: 0.52 0 0; /* muted #6b6b6b */
+    --accent: 0.95 0 0; /* hover frost #f0f0f0 (NOT green) */
+    --accent-foreground: 0.26 0 0; /* Ink */
+    --destructive: 0.64 0.21 25; /* error #ef4444 */
+    --destructive-foreground: 1 0 0;
+    --success: 0.73 0.18 149; /* success #22c55e */
+    --warning: 0.36 0 0; /* neutralized to mono (Carbon) — Resolved Decision #3 */
+    --info: 0.36 0 0; /* neutralized to mono (Carbon) */
+    --border: 0.91 0 0; /* soft #e5e5e5 */
+    --input: 0.91 0 0;
+    --ring: 0.26 0 0; /* Ink focus ring */
 
     /* Chart categorical palette */
     --chart-1: var(--brand-green-500);
