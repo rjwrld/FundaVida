@@ -95,10 +95,10 @@
 
     /* Chart categorical palette */
     --chart-1: var(--brand-green-500);
-    --chart-2: var(--brand-blue-500);
-    --chart-3: var(--flame-yellow-500);
-    --chart-4: var(--brand-green-700);
-    --chart-5: var(--brand-blue-700);
+    --chart-2: 0.45 0 0; /* mono ramp for future multi-series charts */
+    --chart-3: 0.6 0 0;
+    --chart-4: 0.72 0 0;
+    --chart-5: 0.82 0 0;
 
     --radius: 0.75rem;
   }
@@ -128,10 +128,10 @@
     --ring: 0.96 0 0; /* light focus ring */
 
     --chart-1: var(--brand-green-400);
-    --chart-2: var(--brand-blue-400);
-    --chart-3: var(--flame-yellow-400);
-    --chart-4: var(--brand-green-300);
-    --chart-5: var(--brand-blue-300);
+    --chart-2: 0.82 0 0; /* mono ramp for future multi-series charts */
+    --chart-3: 0.7 0 0;
+    --chart-4: 0.58 0 0;
+    --chart-5: 0.46 0 0;
   }
 
   * {

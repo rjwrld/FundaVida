@@ -142,7 +142,7 @@ export function ReportsPage() {
           transition={transitionDefaults}
           className="md:col-span-6 lg:col-span-6"
         >
-          <Card className="h-full overflow-hidden border-border/60 bg-gradient-to-br from-brand-green-50 via-card to-card shadow-card dark:from-brand-green-900/30">
+          <Card className="h-full overflow-hidden border-border/60 bg-card">
             <CardHeader className="pb-2">
               <CardTitle className="font-display text-base font-normal text-muted-foreground">
                 {t('reports.certsThisMonth.title')}
@@ -154,10 +154,10 @@ export function ReportsPage() {
                   {formatNumber(data.certsThisMonth)}
                 </span>
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${
                     deltaPositive
-                      ? 'bg-brand-green-50 text-brand-green-700 dark:bg-brand-green-900/40 dark:text-brand-green-200'
-                      : 'bg-flame-red-50 text-flame-red-700 dark:bg-flame-red-700/20 dark:text-flame-red-200'
+                      ? 'border-[oklch(0.73_0.18_149/0.4)] bg-[oklch(0.73_0.18_149/0.14)] text-[oklch(0.52_0.16_149)] dark:text-[oklch(0.78_0.18_149)]'
+                      : 'border-[oklch(0.64_0.21_25/0.4)] bg-[oklch(0.64_0.21_25/0.12)] text-[oklch(0.55_0.2_25)] dark:text-[oklch(0.72_0.17_22)]'
                   }`}
                 >
                   <DeltaIcon className="size-3" aria-hidden="true" />

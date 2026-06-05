@@ -21,8 +21,7 @@ export function WelcomeBanner({
   return (
     <div
       className={cn(
-        'relative min-h-[180px] overflow-hidden rounded-xl px-10 py-9 shadow-card',
-        'bg-[linear-gradient(135deg,oklch(var(--brand-green-50))_0%,oklch(var(--card))_40%,oklch(var(--card))_100%)]',
+        'relative min-h-[180px] overflow-hidden rounded-xl bg-card px-10 py-9',
         className
       )}
       {...props}
