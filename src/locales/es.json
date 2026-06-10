@@ -3,7 +3,7 @@
     "list": {
       "columns": {
         "course": "Curso",
-        "date": "Fecha",
+        "session": "Sesión",
         "status": "Estado",
         "student": "Estudiante"
       },
@@ -17,6 +17,7 @@
         "statusPlaceholder": "Estado",
         "studentPlaceholder": "Estudiante"
       },
+      "session": "Sesión {{ordinal}}",
       "status": {
         "absent": "Ausente",
         "excused": "Justificado",
