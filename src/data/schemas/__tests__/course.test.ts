@@ -11,10 +11,16 @@ describe('courseSchema', () => {
     headquartersName: 'San José HQ',
     programName: 'Literacy',
     teacherId: 'tea-1',
+    termStart: '2026-06-15',
+    termEnd: '2026-08-15',
+    meetingDays: ['mon', 'wed'],
   }
 
   it('accepts a valid course', () => {
-    expect(courseSchema.parse(valid)).toEqual(valid)
+    const parsed = courseSchema.parse(valid)
+    expect(parsed.name).toBe(valid.name)
+    expect(parsed.termStart).toBe(valid.termStart)
+    expect(parsed.meetingDays).toEqual(valid.meetingDays)
   })
 
   it('rejects empty name', () => {
@@ -27,5 +33,15 @@ describe('courseSchema', () => {
 
   it('rejects missing teacher', () => {
     expect(() => courseSchema.parse({ ...valid, teacherId: '' })).toThrow()
+  })
+
+  it('rejects term end before term start', () => {
+    expect(() =>
+      courseSchema.parse({ ...valid, termStart: '2026-08-15', termEnd: '2026-06-15' })
+    ).toThrow()
+  })
+
+  it('rejects empty meeting days', () => {
+    expect(() => courseSchema.parse({ ...valid, meetingDays: [] })).toThrow()
   })
 })

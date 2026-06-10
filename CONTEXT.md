@@ -32,7 +32,7 @@ The single 0–100 score a Teacher issues for one Enrollment after the Term ends
 _Avoid_: score (as an entity name), mark
 
 **Certificate**:
-Recognition of a passing Grade. Created automatically as *pending* when the passing Grade is saved; *approved* by an admin, which is what makes the PDF available.
+Recognition of a passing Grade. Created automatically as _pending_ when the passing Grade is saved; _approved_ by an admin, which is what makes the PDF available.
 _Avoid_: diploma, eligible/eligibility (the old derived-list vocabulary)
 
 **Attendance**:

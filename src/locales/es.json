@@ -208,12 +208,24 @@
       "fields": {
         "description": "Descripción",
         "headquartersName": "Sede",
+        "meetingDays": "Días de reunión",
         "name": "Nombre del curso",
         "programName": "Programa",
-        "teacherId": "Docente"
+        "teacherId": "Docente",
+        "termEnd": "Fin del semestre",
+        "termStart": "Inicio del semestre"
       },
       "newTitle": "Nuevo curso",
-      "teacherPlaceholder": "Selecciona un docente"
+      "teacherPlaceholder": "Selecciona un docente",
+      "weekdays": {
+        "fri": "Viernes",
+        "mon": "Lunes",
+        "sat": "Sábado",
+        "sun": "Domingo",
+        "thu": "Jueves",
+        "tue": "Martes",
+        "wed": "Miércoles"
+      }
     },
     "list": {
       "addButton": "Agregar curso",
@@ -663,6 +675,7 @@
     "max_one": "Máximo {{count}} carácter",
     "max_many": "Máximo {{count}} caracteres",
     "max_other": "Máximo {{count}} caracteres",
+    "meetingDaysRequired": "Se requiere al menos un día de reunión",
     "min": "Al menos {{count}} caracteres",
     "min_one": "Al menos {{count}} carácter",
     "min_many": "Al menos {{count}} caracteres",
@@ -671,6 +684,7 @@
     "numberMin": "Mínimo {{min}}",
     "numberRequired": "Debe ser un número",
     "required": "Completa {{field}}",
-    "selectValue": "Selecciona un valor para el filtro elegido"
+    "selectValue": "Selecciona un valor para el filtro elegido",
+    "termEndAfterStart": "La fecha de fin debe ser igual o posterior a la de inicio"
   }
 }

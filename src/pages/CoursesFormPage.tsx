@@ -3,7 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
+import { format, parseISO } from 'date-fns'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -18,6 +20,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { buildCourseSchema, type CourseFormValues } from '@/data/schemas/course'
 import { useCourse, useCreateCourse, useUpdateCourse } from '@/hooks/api'
 import { HEADQUARTERS, PROGRAMS } from '@/constants/course'
+import { WEEKDAYS, type Weekday } from '@/types/domain'
 import { useStore } from '@/data/store'
 
 export function CoursesFormPage() {
@@ -45,27 +48,50 @@ export function CoursesFormPage() {
       headquartersName: '',
       programName: '',
       teacherId: '',
+      termStart: '',
+      termEnd: '',
+      meetingDays: [],
     },
   })
 
   useEffect(() => {
     if (existing) {
+      const termStartDate = new Date(existing.term.start)
+      const termEndDate = new Date(existing.term.end)
       reset({
         name: existing.name,
         description: existing.description,
         headquartersName: existing.headquartersName,
         programName: existing.programName,
         teacherId: existing.teacherId,
+        termStart: format(termStartDate, 'yyyy-MM-dd'),
+        termEnd: format(termEndDate, 'yyyy-MM-dd'),
+        meetingDays: existing.meetingDays,
       })
     }
   }, [existing, reset])
 
   async function onSubmit(values: CourseFormValues) {
+    const termStart = parseISO(values.termStart).toISOString()
+    const termEnd = parseISO(values.termEnd).toISOString()
+
+    const courseData = {
+      ...values,
+      term: {
+        start: termStart,
+        end: termEnd,
+      },
+      meetingDays: values.meetingDays,
+    }
+
+    // Remove form-specific fields
+    const { termStart: _, termEnd: __, ...dataToSubmit } = courseData
+
     if (isEdit && id) {
-      await updateCourse.mutateAsync({ id, patch: values })
+      await updateCourse.mutateAsync({ id, patch: dataToSubmit })
       navigate(`/app/courses/${id}`)
     } else {
-      const created = await createCourse.mutateAsync(values)
+      const created = await createCourse.mutateAsync(dataToSubmit)
       navigate(`/app/courses/${created.id}`)
     }
   }
@@ -149,6 +175,60 @@ export function CoursesFormPage() {
           </Select>
           {errors.teacherId && (
             <p className="text-xs text-destructive">{errors.teacherId.message}</p>
+          )}
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="termStart">{t('courses.form.fields.termStart')}</Label>
+            <Input id="termStart" type="date" {...register('termStart')} />
+            {errors.termStart && (
+              <p className="text-xs text-destructive">{errors.termStart.message}</p>
+            )}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="termEnd">{t('courses.form.fields.termEnd')}</Label>
+            <Input id="termEnd" type="date" {...register('termEnd')} />
+            {errors.termEnd && <p className="text-xs text-destructive">{errors.termEnd.message}</p>}
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label>{t('courses.form.fields.meetingDays')}</Label>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {WEEKDAYS.map((day) => {
+              const dayLabels: Record<Weekday, string> = {
+                mon: t('courses.form.weekdays.mon'),
+                tue: t('courses.form.weekdays.tue'),
+                wed: t('courses.form.weekdays.wed'),
+                thu: t('courses.form.weekdays.thu'),
+                fri: t('courses.form.weekdays.fri'),
+                sat: t('courses.form.weekdays.sat'),
+                sun: t('courses.form.weekdays.sun'),
+              }
+              return (
+                <Checkbox
+                  key={day}
+                  value={day}
+                  label={dayLabels[day]}
+                  checked={watch('meetingDays').includes(day)}
+                  onChange={(e) => {
+                    const checked = e.currentTarget.checked
+                    const current = watch('meetingDays')
+                    if (checked) {
+                      setValue('meetingDays', [...current, day], { shouldValidate: true })
+                    } else {
+                      setValue(
+                        'meetingDays',
+                        current.filter((d) => d !== day),
+                        { shouldValidate: true }
+                      )
+                    }
+                  }}
+                />
+              )
+            })}
+          </div>
+          {errors.meetingDays && (
+            <p className="text-xs text-destructive">{errors.meetingDays.message}</p>
           )}
         </div>
         <div className="flex gap-2">

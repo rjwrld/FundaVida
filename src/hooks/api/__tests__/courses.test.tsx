@@ -11,6 +11,7 @@ import {
   useSetGrade,
 } from '../courses'
 import { useStore } from '@/data/store'
+import type { Weekday } from '@/types'
 import {
   clearPersistedState,
   clearPersistedRole,
@@ -74,6 +75,8 @@ describe('useCreateCourse', () => {
       headquartersName: 'HQ',
       programName: 'Program',
       teacherId: teacher.id,
+      term: { start: '2026-06-15T06:00:00.000Z', end: '2026-08-15T06:00:00.000Z' },
+      meetingDays: ['mon', 'wed'] as Weekday[],
     }
 
     await act(async () => {
@@ -105,6 +108,8 @@ describe('useCreateCourse', () => {
       headquartersName: 'HQ',
       programName: 'Program',
       teacherId: teacher.id,
+      term: { start: '2026-06-15T06:00:00.000Z', end: '2026-08-15T06:00:00.000Z' },
+      meetingDays: ['mon', 'wed'] as Weekday[],
     }
 
     await act(async () => {

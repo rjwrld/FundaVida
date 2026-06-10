@@ -58,6 +58,8 @@ const courses: Course[] = [
     headquartersName: 'HQ',
     programName: 'Culinary',
     teacherId: 'tea-1',
+    term: { start: iso(), end: iso() },
+    meetingDays: ['mon'],
     createdAt: iso(),
   },
   {
@@ -67,6 +69,8 @@ const courses: Course[] = [
     headquartersName: 'HQ',
     programName: 'Business',
     teacherId: 'tea-1',
+    term: { start: iso(), end: iso() },
+    meetingDays: ['tue'],
     createdAt: iso(),
   },
 ]
