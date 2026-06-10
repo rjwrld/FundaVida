@@ -1,4 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/data/api'
 import { useStore } from '@/data/store'
 import type { StudentFilters } from '@/data/api/students'
@@ -30,13 +32,20 @@ export function useStudent(id: string) {
 export function useCreateStudent() {
   const client = useQueryClient()
   const createStudent = useStore((s) => s.createStudent)
+  const { t } = useTranslation()
   return useMutation({
     mutationFn: async (input: Parameters<typeof createStudent>[0]) => {
       return createStudent(input)
     },
     onSuccess: () => {
+      toast.success(t('toasts.studentCreated'))
       client.invalidateQueries({ queryKey: STUDENTS_KEY })
       client.invalidateQueries({ queryKey: ['auditLog'] })
+    },
+    onError: (error) => {
+      toast.error(
+        t('toasts.error', { message: error instanceof Error ? error.message : String(error) })
+      )
     },
   })
 }
@@ -44,14 +53,21 @@ export function useCreateStudent() {
 export function useUpdateStudent() {
   const client = useQueryClient()
   const updateStudent = useStore((s) => s.updateStudent)
+  const { t } = useTranslation()
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<Student> }) => {
       updateStudent(id, patch)
     },
     onSuccess: (_, { id }) => {
+      toast.success(t('toasts.studentUpdated'))
       client.invalidateQueries({ queryKey: STUDENTS_KEY })
       client.invalidateQueries({ queryKey: studentKey(id) })
       client.invalidateQueries({ queryKey: ['auditLog'] })
+    },
+    onError: (error) => {
+      toast.error(
+        t('toasts.error', { message: error instanceof Error ? error.message : String(error) })
+      )
     },
   })
 }
@@ -59,17 +75,24 @@ export function useUpdateStudent() {
 export function useDeleteStudent() {
   const client = useQueryClient()
   const deleteStudent = useStore((s) => s.deleteStudent)
+  const { t } = useTranslation()
   return useMutation({
     mutationFn: async (id: string) => {
       deleteStudent(id)
     },
     onSuccess: () => {
+      toast.success(t('toasts.studentDeleted'))
       client.invalidateQueries({ queryKey: STUDENTS_KEY })
       client.invalidateQueries({ queryKey: ['enrollments'] })
       client.invalidateQueries({ queryKey: ['grades'] })
       client.invalidateQueries({ queryKey: ['attendance'] })
       client.invalidateQueries({ queryKey: ['tcu'] })
       client.invalidateQueries({ queryKey: ['auditLog'] })
+    },
+    onError: (error) => {
+      toast.error(
+        t('toasts.error', { message: error instanceof Error ? error.message : String(error) })
+      )
     },
   })
 }

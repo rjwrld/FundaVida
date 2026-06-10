@@ -640,6 +640,23 @@
       "title": "Docentes"
     }
   },
+  "toasts": {
+    "campaignSent": "Campaña enviada correctamente.",
+    "courseCreated": "Curso creado.",
+    "courseDeleted": "Curso eliminado.",
+    "courseUpdated": "Curso actualizado.",
+    "enrolled": "Estudiante matriculado.",
+    "error": "Algo salió mal: {{message}}",
+    "gradeDeleted": "Calificación eliminada.",
+    "gradeSaved": "Calificación guardada.",
+    "studentCreated": "Estudiante creado.",
+    "studentDeleted": "Estudiante eliminado.",
+    "studentUpdated": "Estudiante actualizado.",
+    "teacherCreated": "Docente creado.",
+    "teacherDeleted": "Docente eliminado.",
+    "teacherUpdated": "Docente actualizado.",
+    "unenrolled": "Estudiante desmatriculado."
+  },
   "validation": {
     "email": "Ingresa un correo válido",
     "max": "Máximo {{count}} caracteres",
