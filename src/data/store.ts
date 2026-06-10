@@ -376,9 +376,17 @@ export const useStore = create<StoreState>((set, get) => ({
     }))
   },
   enrollStudent: (studentId, courseId) => {
-    const { enrollments } = get()
+    const { enrollments, students, courses } = get()
     const existing = enrollments.find((e) => e.studentId === studentId && e.courseId === courseId)
     if (existing) return existing
+    // Defensive guards for direct store callers; the UI only enrolls from existing
+    // records, so this English text should never reach end users.
+    if (!students.some((s) => s.id === studentId)) {
+      throw new Error(`cannot enroll unknown student ${studentId}`)
+    }
+    if (!courses.some((c) => c.id === courseId)) {
+      throw new Error(`cannot enroll in unknown course ${courseId}`)
+    }
     const enrollment: Enrollment = {
       id: nextId('enr', enrollments),
       studentId,

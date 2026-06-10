@@ -282,3 +282,31 @@ describe('audit log instrumentation', () => {
     })
   })
 })
+
+describe('enrollment referential integrity', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+  })
+
+  it('enrollStudent throws on a courseId that does not exist', () => {
+    const student = useStore.getState().students[0]
+    if (!student) throw new Error('expected at least one seeded student')
+    const before = useStore.getState().enrollments.length
+    expect(() => useStore.getState().enrollStudent(student.id, 'cou-does-not-exist')).toThrow()
+    expect(useStore.getState().enrollments.length).toBe(before)
+    expect(
+      useStore.getState().students.find((s) => s.id === student.id)?.enrolledCourseIds
+    ).not.toContain('cou-does-not-exist')
+  })
+
+  it('enrollStudent throws on a studentId that does not exist', () => {
+    const course = useStore.getState().courses[0]
+    if (!course) throw new Error('expected at least one seeded course')
+    const before = useStore.getState().enrollments.length
+    expect(() => useStore.getState().enrollStudent('stu-does-not-exist', course.id)).toThrow()
+    expect(useStore.getState().enrollments.length).toBe(before)
+  })
+})
