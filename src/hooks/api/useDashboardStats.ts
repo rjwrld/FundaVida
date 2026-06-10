@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { isThisMonth, parseISO, startOfDay, subDays } from 'date-fns'
 import { useStore } from '@/data/store'
+import { mostRecentByDate } from '@/lib/utils'
 import type { AuditLogEntry, Course, TcuActivity } from '@/types'
 
 export interface TopCourse {
@@ -75,7 +76,7 @@ export function useDashboardStats(): DashboardStats {
       .sort((a, b) => b.enrollmentCount - a.enrollmentCount)
       .slice(0, 3)
 
-    const recentTcu = [...tcuActivities].sort((a, b) => (a.date > b.date ? -1 : 1)).slice(0, 5)
+    const recentTcu = mostRecentByDate(tcuActivities, 5)
 
     // Scope rate to the current calendar month so the label matches the data.
     const monthRecords = attendance.filter((a) => isThisMonth(parseISO(a.sessionDate)))

@@ -14,6 +14,7 @@ import {
 import { GraduationCap, HeartHandshake } from 'lucide-react'
 import { useStore } from '@/data/store'
 import { PASSING_SCORE } from '@/lib/certificates'
+import { mostRecentByDate } from '@/lib/utils'
 import type { UpcomingItem } from '@/components/shared/UpcomingList'
 
 export const TCU_TARGET_HOURS = 150
@@ -154,7 +155,7 @@ export function useReportsData(): ReportsData {
       })
     })
 
-    const recentTcu = [...tcuActivities].sort((a, b) => (a.date > b.date ? -1 : 1)).slice(0, 2)
+    const recentTcu = mostRecentByDate(tcuActivities, 2)
     recentTcu.forEach((tcu) => {
       upcoming.push({
         id: `up-tcu-${tcu.id}`,
