@@ -9,6 +9,7 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    poolOptions: { forks: { minForks: 1, maxForks: 4 } },
     globals: false,
     setupFiles: ['./src/test/setup.ts'],
     exclude: ['node_modules', 'dist', 'e2e/**', '.claude/**'],
