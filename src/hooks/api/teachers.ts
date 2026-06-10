@@ -36,7 +36,6 @@ export function useCreateTeacher() {
     onSuccess: () => {
       toast.success(t('toasts.teacherCreated'))
       client.invalidateQueries({ queryKey: TEACHERS_KEY })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(
@@ -58,7 +57,6 @@ export function useUpdateTeacher() {
       toast.success(t('toasts.teacherUpdated'))
       client.invalidateQueries({ queryKey: TEACHERS_KEY })
       client.invalidateQueries({ queryKey: teacherKey(id) })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(
@@ -79,7 +77,6 @@ export function useDeleteTeacher() {
     onSuccess: () => {
       toast.success(t('toasts.teacherDeleted'))
       client.invalidateQueries({ queryKey: TEACHERS_KEY })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(

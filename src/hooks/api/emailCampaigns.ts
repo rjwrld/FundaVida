@@ -29,7 +29,6 @@ export function useSendEmailCampaign() {
     onSuccess: () => {
       toast.success(t('toasts.campaignSent'))
       client.invalidateQueries({ queryKey: EMAIL_CAMPAIGNS_KEY })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(

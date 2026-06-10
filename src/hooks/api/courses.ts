@@ -38,7 +38,6 @@ export function useCreateCourse() {
     onSuccess: () => {
       toast.success(t('toasts.courseCreated'))
       client.invalidateQueries({ queryKey: COURSES_KEY })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(
@@ -60,7 +59,6 @@ export function useUpdateCourse() {
       toast.success(t('toasts.courseUpdated'))
       client.invalidateQueries({ queryKey: COURSES_KEY })
       client.invalidateQueries({ queryKey: courseKey(id) })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(
@@ -84,7 +82,6 @@ export function useDeleteCourse() {
       client.invalidateQueries({ queryKey: ['students'] })
       client.invalidateQueries({ queryKey: ['teachers'] })
       client.invalidateQueries({ queryKey: ['attendance'] })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(
@@ -105,7 +102,6 @@ export function useEnrollStudent() {
       toast.success(t('toasts.enrolled'))
       client.invalidateQueries({ queryKey: COURSES_KEY })
       client.invalidateQueries({ queryKey: ['students'] })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(
@@ -127,7 +123,6 @@ export function useUnenrollStudent() {
       client.invalidateQueries({ queryKey: ['students'] })
       client.invalidateQueries({ queryKey: ['grades'] })
       client.invalidateQueries({ queryKey: ['attendance'] })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(
@@ -155,7 +150,6 @@ export function useSetGrade() {
       toast.success(t('toasts.gradeSaved'))
       client.invalidateQueries({ queryKey: COURSES_KEY })
       client.invalidateQueries({ queryKey: ['students'] })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(
