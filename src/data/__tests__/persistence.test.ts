@@ -80,6 +80,14 @@ describe('persistence', () => {
     expect(loadPersistedState()).toBeNull()
   })
 
+  it('rejects snapshot with unknown meeting-day literals', () => {
+    const snapshot = buildSeedSnapshot()
+    const course = snapshot.courses[0] as unknown as Record<string, unknown>
+    course.meetingDays = ['mon', 'pwned']
+    savePersistedState(snapshot as never)
+    expect(loadPersistedState()).toBeNull()
+  })
+
   it('rejects snapshot with null course entry without throwing', () => {
     const snapshot = buildSeedSnapshot()
     ;(snapshot.courses as unknown[]) = [null, ...snapshot.courses]

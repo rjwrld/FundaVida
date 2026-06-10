@@ -1,5 +1,5 @@
 import type { SeedSnapshot } from './seed'
-import type { Role } from '@/types'
+import { WEEKDAYS, type Role, type Weekday } from '@/types'
 
 const STATE_KEY = 'fundavida:v1:state'
 const ROLE_KEY = 'fundavida:v1:role'
@@ -40,8 +40,10 @@ function isValidSnapshot(value: unknown): value is PersistedState {
     const term = c.term as Record<string, unknown>
     if (typeof term.start !== 'string' || typeof term.end !== 'string') return false
 
-    // Check meetingDays is an array
+    // Check meetingDays is an array of known weekday literals — an unknown
+    // literal would wrap to Sunday in the sessions module's weekday mapping
     if (!Array.isArray(c.meetingDays)) return false
+    if (!c.meetingDays.every((d) => WEEKDAYS.includes(d as Weekday))) return false
   }
 
   return true
