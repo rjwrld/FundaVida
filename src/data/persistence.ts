@@ -13,17 +13,38 @@ function isBrowser() {
 function isValidSnapshot(value: unknown): value is PersistedState {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
-  return (
-    Array.isArray(v.students) &&
-    Array.isArray(v.teachers) &&
-    Array.isArray(v.courses) &&
-    Array.isArray(v.enrollments) &&
-    Array.isArray(v.grades) &&
-    Array.isArray(v.tcuActivities) &&
-    Array.isArray(v.attendance) &&
-    Array.isArray(v.auditLog) &&
-    Array.isArray(v.emailCampaigns)
-  )
+
+  if (
+    !Array.isArray(v.students) ||
+    !Array.isArray(v.teachers) ||
+    !Array.isArray(v.courses) ||
+    !Array.isArray(v.enrollments) ||
+    !Array.isArray(v.grades) ||
+    !Array.isArray(v.tcuActivities) ||
+    !Array.isArray(v.attendance) ||
+    !Array.isArray(v.auditLog) ||
+    !Array.isArray(v.emailCampaigns)
+  ) {
+    return false
+  }
+
+  // Every course must have term (with start and end strings) and meetingDays (array)
+  const courses = v.courses as unknown[]
+  for (const course of courses) {
+    // Defensive: reject non-object entries
+    if (!course || typeof course !== 'object') return false
+
+    const c = course as Record<string, unknown>
+    // Check term exists and has start/end strings
+    if (!c.term || typeof c.term !== 'object') return false
+    const term = c.term as Record<string, unknown>
+    if (typeof term.start !== 'string' || typeof term.end !== 'string') return false
+
+    // Check meetingDays is an array
+    if (!Array.isArray(c.meetingDays)) return false
+  }
+
+  return true
 }
 
 export function loadPersistedState(): PersistedState | null {
