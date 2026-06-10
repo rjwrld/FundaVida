@@ -69,24 +69,6 @@
     "subtitle": "Chronological record of every create, update, and delete.",
     "title": "Audit logs"
   },
-  "toasts": {
-    "campaignSent": "Campaign sent successfully.",
-    "courseCreated": "Course created.",
-    "courseDeleted": "Course deleted.",
-    "courseUpdated": "Course updated.",
-    "demoReset": "Demo data reset.",
-    "enrolled": "Student enrolled.",
-    "error": "Something went wrong: {{message}}",
-    "gradeDeleted": "Grade deleted.",
-    "gradeSaved": "Grade saved.",
-    "studentCreated": "Student created.",
-    "studentDeleted": "Student deleted.",
-    "studentUpdated": "Student updated.",
-    "teacherCreated": "Teacher created.",
-    "teacherDeleted": "Teacher deleted.",
-    "teacherUpdated": "Teacher updated.",
-    "unenrolled": "Student unenrolled."
-  },
   "bulkEmail": {
     "compose": "Compose",
     "dimensions": {
@@ -652,6 +634,23 @@
       "subtitle": "Manage teachers and their course assignments.",
       "title": "Teachers"
     }
+  },
+  "toasts": {
+    "campaignSent": "Campaign sent successfully.",
+    "courseCreated": "Course created.",
+    "courseDeleted": "Course deleted.",
+    "courseUpdated": "Course updated.",
+    "enrolled": "Student enrolled.",
+    "error": "Something went wrong: {{message}}",
+    "gradeDeleted": "Grade deleted.",
+    "gradeSaved": "Grade saved.",
+    "studentCreated": "Student created.",
+    "studentDeleted": "Student deleted.",
+    "studentUpdated": "Student updated.",
+    "teacherCreated": "Teacher created.",
+    "teacherDeleted": "Teacher deleted.",
+    "teacherUpdated": "Teacher updated.",
+    "unenrolled": "Student unenrolled."
   },
   "validation": {
     "email": "Enter a valid email",
