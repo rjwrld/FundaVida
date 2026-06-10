@@ -27,6 +27,12 @@
 toast-people ‖ toast-academics ‖ toast-comms are file-disjoint (locale keys all land in
 toast-infra) and dispatch in parallel.
 
+**Key reuse (intentional):** both unenroll paths — `useUnenrollStudent` (courses.ts)
+and `useDeleteEnrollment` (enrollments.ts) — fire the same `toasts.unenrolled` key:
+same user-facing action, same copy. Likewise `useSetGrade` and `useUpdateGradeScore`
+both fire `toasts.gradeSaved`. `toasts.demoReset` was dropped — no demo-reset UI call
+site exists outside tests.
+
 **Tests:** mock `sonner`, render hooks with a QueryClient wrapper, assert
 `toast.success`/`toast.error` called with the translated copy; error paths force store
 throws (e.g. `enrollStudent` unknown-id guard).

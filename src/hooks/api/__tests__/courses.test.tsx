@@ -115,7 +115,7 @@ describe('useCreateCourse', () => {
       expect(toast.error).toHaveBeenCalled()
     })
 
-    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/Error:/))
+    expect(toast.error).toHaveBeenCalledWith('Error: boom')
 
     // Restore
     useStore.setState({ createCourse: originalCreateCourse })
@@ -179,7 +179,7 @@ describe('useUpdateCourse', () => {
       expect(toast.error).toHaveBeenCalled()
     })
 
-    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/Error:/))
+    expect(toast.error).toHaveBeenCalledWith('Error: update failed')
 
     useStore.setState({ updateCourse: originalUpdateCourse })
   })
@@ -242,7 +242,7 @@ describe('useDeleteCourse', () => {
       expect(toast.error).toHaveBeenCalled()
     })
 
-    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/Error:/))
+    expect(toast.error).toHaveBeenCalledWith('Error: delete failed')
 
     useStore.setState({ deleteCourse: originalDeleteCourse })
   })
@@ -311,7 +311,7 @@ describe('useEnrollStudent', () => {
       expect(toast.error).toHaveBeenCalled()
     })
 
-    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/Error:/))
+    expect(toast.error).toHaveBeenCalledWith('Error: enroll failed')
 
     useStore.setState({ enrollStudent: originalEnrollStudent })
   })
@@ -374,7 +374,7 @@ describe('useUnenrollStudent', () => {
       expect(toast.error).toHaveBeenCalled()
     })
 
-    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/Error:/))
+    expect(toast.error).toHaveBeenCalledWith('Error: unenroll failed')
 
     useStore.setState({ unenrollStudent: originalUnenrollStudent })
   })
@@ -445,7 +445,7 @@ describe('useSetGrade', () => {
       expect(toast.error).toHaveBeenCalled()
     })
 
-    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/Error:/))
+    expect(toast.error).toHaveBeenCalledWith('Error: grade setting failed')
 
     useStore.setState({ setGrade: originalSetGrade })
   })

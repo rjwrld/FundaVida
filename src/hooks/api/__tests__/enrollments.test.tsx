@@ -95,7 +95,7 @@ describe('useDeleteEnrollment', () => {
       expect(toast.error).toHaveBeenCalled()
     })
 
-    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/Error:/))
+    expect(toast.error).toHaveBeenCalledWith('Error: delete enrollment failed')
 
     useStore.setState({ unenrollStudent: originalUnenrollStudent })
   })

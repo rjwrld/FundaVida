@@ -4,5 +4,5 @@ import { useTheme } from '@/hooks/useTheme'
 export function AppToaster() {
   const { theme } = useTheme()
 
-  return <Toaster theme={theme === 'system' ? 'system' : theme} />
+  return <Toaster theme={theme} />
 }

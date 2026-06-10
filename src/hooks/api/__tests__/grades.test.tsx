@@ -95,7 +95,7 @@ describe('useUpdateGradeScore', () => {
       expect(toast.error).toHaveBeenCalled()
     })
 
-    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/Error:/))
+    expect(toast.error).toHaveBeenCalledWith('Error: update score failed')
 
     useStore.setState({ updateGradeScore: originalUpdateGradeScore })
   })
@@ -158,7 +158,7 @@ describe('useDeleteGrade', () => {
       expect(toast.error).toHaveBeenCalled()
     })
 
-    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/Error:/))
+    expect(toast.error).toHaveBeenCalledWith('Error: delete grade failed')
 
     useStore.setState({ deleteGrade: originalDeleteGrade })
   })
