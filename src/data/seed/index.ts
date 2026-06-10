@@ -55,7 +55,7 @@ export function buildSeedSnapshot(): SeedSnapshot {
 
   const grades = seedGrades(enrollments)
   const tcuActivities = seedTcuActivities(studentIds)
-  const attendance = seedAttendance(enrollments, courseIds)
+  const attendance = seedAttendance(enrollments, courses)
   const auditLog = seedAuditLog({ students, teachers, courses, enrollments, grades })
   const emailCampaigns = seedEmailCampaigns(students)
 

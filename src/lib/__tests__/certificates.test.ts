@@ -21,6 +21,8 @@ const course: Course = {
   headquartersName: 'HQ',
   programName: 'Program',
   teacherId: 'tea-1',
+  term: { start: new Date().toISOString(), end: new Date().toISOString() },
+  meetingDays: ['mon'],
   createdAt: new Date().toISOString(),
 }
 

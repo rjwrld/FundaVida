@@ -3,7 +3,7 @@
     "list": {
       "columns": {
         "course": "Course",
-        "date": "Date",
+        "session": "Session",
         "status": "Status",
         "student": "Student"
       },
@@ -17,6 +17,7 @@
         "statusPlaceholder": "Status",
         "studentPlaceholder": "Student"
       },
+      "session": "Session {{ordinal}}",
       "status": {
         "absent": "Absent",
         "excused": "Excused",
@@ -207,12 +208,24 @@
       "fields": {
         "description": "Description",
         "headquartersName": "Headquarters",
+        "meetingDays": "Meeting days",
         "name": "Course name",
         "programName": "Program",
-        "teacherId": "Teacher"
+        "teacherId": "Teacher",
+        "termEnd": "Term end",
+        "termStart": "Term start"
       },
       "newTitle": "New course",
-      "teacherPlaceholder": "Select a teacher"
+      "teacherPlaceholder": "Select a teacher",
+      "weekdays": {
+        "fri": "Friday",
+        "mon": "Monday",
+        "sat": "Saturday",
+        "sun": "Sunday",
+        "thu": "Thursday",
+        "tue": "Tuesday",
+        "wed": "Wednesday"
+      }
     },
     "list": {
       "addButton": "Add course",
@@ -657,6 +670,7 @@
     "max": "At most {{count}} characters",
     "max_one": "At most {{count}} character",
     "max_other": "At most {{count}} characters",
+    "meetingDaysRequired": "At least one meeting day is required",
     "min": "At least {{count}} characters",
     "min_one": "At least {{count}} character",
     "min_other": "At least {{count}} characters",
@@ -664,6 +678,7 @@
     "numberMin": "Minimum {{min}}",
     "numberRequired": "Must be a number",
     "required": "{{field}} is required",
-    "selectValue": "Select a value for the chosen filter"
+    "selectValue": "Select a value for the chosen filter",
+    "termEndAfterStart": "Term end must be on or after term start"
   }
 }

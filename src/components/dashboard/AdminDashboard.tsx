@@ -10,6 +10,7 @@ import { FlameWelcome } from '@/components/icons/flame'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useDashboardStats } from '@/hooks/api/useDashboardStats'
 import { useStore } from '@/data/store'
+import { sessionsFor } from '@/lib/sessions'
 import type { Variants } from 'framer-motion'
 import { StatRow } from './StatRow'
 import { RecentActivity } from './RecentActivity'
@@ -68,11 +69,8 @@ export function AdminDashboard() {
   }, [enrollments, grades, courses, stats.recentTcu, t])
 
   const calendarEvents = useMemo(() => {
-    const dates: Date[] = []
-    stats.recentActivity.forEach((entry) => dates.push(new Date(entry.timestamp)))
-    stats.recentTcu.forEach((tcu) => dates.push(new Date(tcu.date)))
-    return dates
-  }, [stats.recentActivity, stats.recentTcu])
+    return courses.flatMap((c) => sessionsFor(c)).map((s) => new Date(s.date))
+  }, [courses])
 
   const ctaLabel = t('dashboard.welcome.cta')
   const greetingName = t('dashboard.recentActivity.actor.admin')

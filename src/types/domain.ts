@@ -2,6 +2,14 @@ export type Role = 'admin' | 'teacher' | 'student' | 'tcu'
 
 export type Gender = 'F' | 'M' | 'X'
 
+export const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
+export type Weekday = (typeof WEEKDAYS)[number]
+
+export interface Term {
+  start: string
+  end: string
+}
+
 export interface Student {
   id: string
   firstName: string
@@ -31,6 +39,8 @@ export interface Course {
   headquartersName: string
   programName: string
   teacherId: string
+  term: Term
+  meetingDays: Weekday[]
   createdAt: string
 }
 

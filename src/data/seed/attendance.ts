@@ -1,5 +1,7 @@
 import { faker } from '@faker-js/faker'
-import type { AttendanceRecord, AttendanceStatus, Enrollment } from '@/types'
+import { startOfDay } from 'date-fns'
+import type { AttendanceRecord, AttendanceStatus, Enrollment, Course } from '@/types'
+import { sessionsFor } from '@/lib/sessions'
 
 function pickStatus(): AttendanceStatus {
   const roll = faker.number.float({ min: 0, max: 1 })
@@ -8,30 +10,45 @@ function pickStatus(): AttendanceStatus {
   return 'excused'
 }
 
-export function seedAttendance(enrollments: Enrollment[], courseIds: string[]): AttendanceRecord[] {
+export function seedAttendance(enrollments: Enrollment[], courses: Course[]): AttendanceRecord[] {
   faker.seed(48)
-  const sessionsByCourse = new Map<string, string[]>()
-  courseIds.forEach((cid) => {
-    const sessions = Array.from({ length: 5 }, () =>
-      faker.date.recent({ days: 90 }).toISOString()
-    ).sort((a, b) => (a > b ? -1 : 1))
-    sessionsByCourse.set(cid, sessions)
-  })
+
+  // Build a map of courseId -> Course for fast lookup
+  const courseMap = new Map(courses.map((c) => [c.id, c]))
 
   const records: AttendanceRecord[] = []
   let idCounter = 1
+
+  const today = startOfDay(new Date())
+
   enrollments.forEach((e) => {
-    const sessions = sessionsByCourse.get(e.courseId) ?? []
-    sessions.forEach((sessionDate) => {
+    const course = courseMap.get(e.courseId)
+    if (!course) return
+
+    // Get all sessions for this course
+    const sessions = sessionsFor(course)
+
+    // Filter to past sessions (before today)
+    const pastSessions = sessions.filter((s) => {
+      const sessionDate = startOfDay(new Date(s.date))
+      return sessionDate.getTime() < today.getTime()
+    })
+
+    // Cap at 10 most recent past sessions (already in ascending order from sessionsFor)
+    const sessionsToRecord = pastSessions.slice(-10)
+
+    // Create a record for each past session
+    sessionsToRecord.forEach((session) => {
       records.push({
         id: `att-${idCounter}`,
         courseId: e.courseId,
         studentId: e.studentId,
-        sessionDate,
+        sessionDate: session.date,
         status: pickStatus(),
       })
       idCounter += 1
     })
   })
+
   return records
 }

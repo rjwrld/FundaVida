@@ -21,6 +21,7 @@ import {
 import { useAttendance } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
+import { findSession } from '@/lib/sessions'
 import type { AttendanceFilters } from '@/data/api/attendance'
 import type { AttendanceStatus } from '@/types'
 
@@ -127,7 +128,7 @@ export function AttendanceListPage() {
               <TableRow className="bg-muted/50 hover:bg-muted/50">
                 <TableHead>{t('attendance.list.columns.student')}</TableHead>
                 <TableHead>{t('attendance.list.columns.course')}</TableHead>
-                <TableHead>{t('attendance.list.columns.date')}</TableHead>
+                <TableHead>{t('attendance.list.columns.session')}</TableHead>
                 <TableHead>{t('attendance.list.columns.status')}</TableHead>
               </TableRow>
             </TableHeader>
@@ -135,13 +136,18 @@ export function AttendanceListPage() {
               {data.map((r) => {
                 const s = students.find((x) => x.id === r.studentId)
                 const c = courses.find((x) => x.id === r.courseId)
+                const session = c ? findSession(c, r.sessionDate) : null
+                const sessionLabel = session
+                  ? `${t('attendance.list.session', { ordinal: String(session.ordinal) } as Record<string, string>)} · ${formatDate(r.sessionDate)}`
+                  : formatDate(r.sessionDate)
+
                 return (
                   <TableRow key={r.id} className="h-12 hover:bg-muted/40">
                     <TableCell>
                       {s?.firstName} {s?.lastName}
                     </TableCell>
                     <TableCell>{c?.name}</TableCell>
-                    <TableCell>{formatDate(r.sessionDate)}</TableCell>
+                    <TableCell>{sessionLabel}</TableCell>
                     <TableCell>
                       <Badge variant={statusVariant(r.status)} dot>
                         {t(`attendance.list.status.${r.status}`)}
