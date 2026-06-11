@@ -49,4 +49,5 @@ test-results/
 *.local
 
 # Claude Code local settings (plugin state, untracked by intent)
-.claude/
+.claude/*
+!.claude/settings.json
