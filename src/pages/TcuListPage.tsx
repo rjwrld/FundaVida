@@ -18,6 +18,7 @@ import {
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useTcuActivities } from '@/hooks/api'
+import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import type { TcuFilters } from '@/data/api/tcu'
@@ -25,10 +26,10 @@ import type { TcuFilters } from '@/data/api/tcu'
 export function TcuListPage() {
   const { t } = useTranslation()
   const { formatDate, formatNumber } = useFormat()
-  const role = useStore((s) => s.role)
   const [filters, setFilters] = useState<TcuFilters>({})
   const { data = [], isLoading } = useTcuActivities(filters)
   const students = useStore((s) => s.students)
+  const canView = useCan('view', 'tcu')
 
   const totalHours = data.reduce((sum, a) => sum + a.hours, 0)
   const hasFilters = Boolean(filters.studentId || filters.organizerId)
@@ -52,7 +53,7 @@ export function TcuListPage() {
         }
       />
 
-      {role === 'admin' && (
+      {canView && (
         <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
           <Select
             value={filters.studentId ?? 'any'}

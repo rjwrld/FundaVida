@@ -10,6 +10,7 @@ import { CertificateCard } from '@/components/certificates/CertificateCard'
 import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog'
 import { useStore } from '@/data/store'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { scopeFor } from '@/permissions'
 import { useFormat } from '@/hooks/useFormat'
 import { buildEligibleList, type EligibleCertificate } from '@/lib/certificates'
 import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
@@ -43,8 +44,11 @@ export function CertificatesListPage() {
 
   const items = useMemo<CardItem[]>(() => {
     const all = buildEligibleList(students, courses, grades)
+    const certificateScope = currentUser ? scopeFor(currentUser.role).certificates : 'none'
     const scoped =
-      currentUser?.role === 'student' ? all.filter((c) => c.studentId === currentUser.id) : all
+      certificateScope === 'own' && currentUser
+        ? all.filter((c) => c.studentId === currentUser.id)
+        : all
     const result: CardItem[] = []
     for (const c of scoped) {
       const student = students.find((s) => s.id === c.studentId)

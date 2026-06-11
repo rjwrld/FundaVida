@@ -29,6 +29,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { CoursesEmpty } from '@/components/empty-states/CoursesEmpty'
 import { useCourses, useDeleteCourse } from '@/hooks/api'
+import { useCan } from '@/hooks/useCan'
 import { HEADQUARTERS, PROGRAMS } from '@/constants/course'
 import type { CourseFilters } from '@/data/api/courses'
 import { useStore } from '@/data/store'
@@ -39,13 +40,14 @@ export function CoursesListPage() {
   const { data = [], isLoading } = useCourses(filters)
   const deleteCourse = useDeleteCourse()
   const navigate = useNavigate()
-  const role = useStore((s) => s.role)
   const teachers = useStore((s) => s.teachers)
-  const isAdmin = role === 'admin'
+  const canCreate = useCan('create', 'courses')
+  const canEdit = useCan('edit', 'courses')
+  const canDelete = useCan('delete', 'courses')
 
   const hasFilters = Boolean(filters.search || filters.headquartersName || filters.programName)
   const count = data.length
-  const columnCount = isAdmin ? 5 : 4
+  const columnCount = canCreate ? 5 : 4
 
   const teacherName = (teacherId: string) => {
     const teacher = teachers.find((x) => x.id === teacherId)
@@ -58,7 +60,7 @@ export function CoursesListPage() {
         title={t('courses.list.title')}
         description={t('courses.list.subtitle')}
         action={
-          isAdmin ? (
+          canCreate ? (
             <Button onClick={() => navigate('/app/courses/new')}>
               <Plus size={16} className="mr-2" />
               {t('courses.list.addButton')}
@@ -122,7 +124,7 @@ export function CoursesListPage() {
       {isLoading ? (
         <SkeletonTable rows={8} columns={columnCount} />
       ) : count === 0 && !hasFilters ? (
-        <CoursesEmpty onAdd={isAdmin ? () => navigate('/app/courses/new') : undefined} />
+        <CoursesEmpty onAdd={canCreate ? () => navigate('/app/courses/new') : undefined} />
       ) : count === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
           {t('courses.list.emptyFiltered')}
@@ -143,7 +145,7 @@ export function CoursesListPage() {
                 <TableHead>{t('courses.list.columns.program')}</TableHead>
                 <TableHead>{t('courses.form.fields.headquartersName')}</TableHead>
                 <TableHead>{t('courses.list.columns.teacher')}</TableHead>
-                {isAdmin && (
+                {canCreate && (
                   <TableHead className="text-right">{t('courses.list.columns.actions')}</TableHead>
                 )}
               </TableRow>
@@ -159,7 +161,7 @@ export function CoursesListPage() {
                   <TableCell>{c.programName}</TableCell>
                   <TableCell>{c.headquartersName}</TableCell>
                   <TableCell>{teacherName(c.teacherId)}</TableCell>
-                  {isAdmin && (
+                  {canCreate && (
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -173,19 +175,25 @@ export function CoursesListPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onSelect={() => navigate(`/app/courses/${c.id}/edit`)}>
-                            {t('courses.detail.edit')}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                            onSelect={() => {
-                              if (confirm(t('courses.detail.deleteConfirm'))) {
-                                deleteCourse.mutate(c.id)
-                              }
-                            }}
-                          >
-                            {t('common.actions.delete')}
-                          </DropdownMenuItem>
+                          {canEdit && (
+                            <DropdownMenuItem
+                              onSelect={() => navigate(`/app/courses/${c.id}/edit`)}
+                            >
+                              {t('courses.detail.edit')}
+                            </DropdownMenuItem>
+                          )}
+                          {canDelete && (
+                            <DropdownMenuItem
+                              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                              onSelect={() => {
+                                if (confirm(t('courses.detail.deleteConfirm'))) {
+                                  deleteCourse.mutate(c.id)
+                                }
+                              }}
+                            >
+                              {t('common.actions.delete')}
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

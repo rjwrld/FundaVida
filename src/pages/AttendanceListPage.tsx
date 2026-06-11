@@ -19,6 +19,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useAttendance } from '@/hooks/api'
+import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { findSession } from '@/lib/sessions'
@@ -36,11 +37,11 @@ function statusVariant(status: AttendanceStatus): 'success' | 'destructive' | 'i
 export function AttendanceListPage() {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
-  const role = useStore((s) => s.role)
   const [filters, setFilters] = useState<AttendanceFilters>({})
   const { data = [], isLoading } = useAttendance(filters)
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
+  const canView = useCan('view', 'attendance')
 
   const hasFilters = Boolean(filters.studentId || filters.courseId || filters.status)
   const count = data.length
@@ -50,7 +51,7 @@ export function AttendanceListPage() {
       <PageHeader title={t('attendance.list.title')} description={t('attendance.list.subtitle')} />
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-3">
-        {role === 'admin' && (
+        {canView && (
           <Select
             value={filters.studentId ?? 'any'}
             onValueChange={(v) =>

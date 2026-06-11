@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useCourse, useUnenrollStudent } from '@/hooks/api'
+import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { GradeDialog } from '@/components/courses/GradeDialog'
@@ -30,7 +31,6 @@ export function CoursesDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: course, isLoading } = useCourse(id ?? '')
-  const role = useStore((s) => s.role)
   const students = useStore((s) => s.students)
   const teachers = useStore((s) => s.teachers)
   const enrollments = useStore((s) => s.enrollments)
@@ -39,6 +39,11 @@ export function CoursesDetailPage() {
 
   const [gradingTarget, setGradingTarget] = useState<GradingTarget | null>(null)
   const [enrollOpen, setEnrollOpen] = useState(false)
+
+  const canEdit = useCan('edit', 'courses')
+  const canCreate = useCan('create', 'enrollments')
+  const canEnter = useCan('enter', 'grades', { course: course || undefined })
+  const canDelete = useCan('delete', 'enrollments')
 
   if (isLoading)
     return <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
@@ -55,8 +60,6 @@ export function CoursesDetailPage() {
 
   const teacher = teachers.find((tt) => tt.id === course.teacherId)
   const courseEnrollments = enrollments.filter((e) => e.courseId === course.id)
-  const isAdmin = role === 'admin'
-  const isTeacherOrAdmin = role === 'admin' || role === 'teacher'
 
   return (
     <div className="space-y-6">
@@ -69,7 +72,7 @@ export function CoursesDetailPage() {
             <Button variant="outline" onClick={() => navigate('/app/courses')}>
               {t('common.actions.backToHome')}
             </Button>
-            {isAdmin && (
+            {canEdit && (
               <Button onClick={() => navigate(`/app/courses/${course.id}/edit`)}>
                 {t('courses.detail.edit')}
               </Button>
@@ -115,7 +118,7 @@ export function CoursesDetailPage() {
           <h2 className="text-lg font-semibold tracking-tight">
             {t('courses.detail.sections.students')}
           </h2>
-          {isAdmin && (
+          {canCreate && (
             <Button size="sm" onClick={() => setEnrollOpen(true)}>
               {t('courses.detail.enrollButton')}
             </Button>
@@ -131,7 +134,7 @@ export function CoursesDetailPage() {
               <TableRow>
                 <TableHead>{t('courses.detail.enrolledTable.name')}</TableHead>
                 <TableHead>{t('courses.detail.enrolledTable.grade')}</TableHead>
-                {isTeacherOrAdmin && (
+                {(canEnter || canDelete) && (
                   <TableHead className="text-right">
                     {t('courses.detail.enrolledTable.actions')}
                   </TableHead>
@@ -157,22 +160,24 @@ export function CoursesDetailPage() {
                         ? formatGrade(grade.score)
                         : t('courses.detail.enrolledTable.notGraded')}
                     </TableCell>
-                    {isTeacherOrAdmin && (
+                    {(canEnter || canDelete) && (
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            setGradingTarget({
-                              studentId: student.id,
-                              studentName: `${student.firstName} ${student.lastName}`,
-                              initialScore: grade?.score,
-                            })
-                          }
-                        >
-                          {t('courses.detail.enrolledTable.gradeButton')}
-                        </Button>
-                        {isAdmin && (
+                        {canEnter && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              setGradingTarget({
+                                studentId: student.id,
+                                studentName: `${student.firstName} ${student.lastName}`,
+                                initialScore: grade?.score,
+                              })
+                            }
+                          >
+                            {t('courses.detail.enrolledTable.gradeButton')}
+                          </Button>
+                        )}
+                        {canDelete && (
                           <Button
                             variant="ghost"
                             size="sm"
