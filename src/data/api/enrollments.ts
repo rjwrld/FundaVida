@@ -1,16 +1,12 @@
 import type { Enrollment } from '@/types'
+import { scopeFor } from '@/permissions'
 import { useStore } from '../store'
+import { applyScope } from './scope'
 import { delay } from './_delay'
 
 export interface EnrollmentFilters {
   studentId?: string
   courseId?: string
-}
-
-function applyRoleFilter(enrollments: Enrollment[]): Enrollment[] {
-  const role = useStore.getState().role
-  if (role === 'admin') return enrollments
-  return []
 }
 
 function applyFilters(enrollments: Enrollment[], filters: EnrollmentFilters): Enrollment[] {
@@ -24,6 +20,11 @@ function applyFilters(enrollments: Enrollment[], filters: EnrollmentFilters): En
 export const enrollmentsApi = {
   async list(filters: EnrollmentFilters = {}): Promise<Enrollment[]> {
     await delay()
-    return applyFilters(applyRoleFilter(useStore.getState().enrollments), filters)
+    const state = useStore.getState()
+    const role = state.role ?? 'student'
+    const enrollments = state.enrollments
+    const scope = scopeFor(role)['enrollments']
+    const scoped = applyScope('enrollments', scope, enrollments)
+    return applyFilters(scoped, filters)
   },
 }

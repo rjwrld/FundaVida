@@ -1,16 +1,12 @@
 import type { Grade } from '@/types'
+import { scopeFor } from '@/permissions'
 import { useStore } from '../store'
+import { applyScope } from './scope'
 import { delay } from './_delay'
 
 export interface GradeFilters {
   studentId?: string
   courseId?: string
-}
-
-function applyRoleFilter(grades: Grade[]): Grade[] {
-  const role = useStore.getState().role
-  if (role === 'admin') return grades
-  return []
 }
 
 function applyFilters(grades: Grade[], filters: GradeFilters): Grade[] {
@@ -24,6 +20,11 @@ function applyFilters(grades: Grade[], filters: GradeFilters): Grade[] {
 export const gradesApi = {
   async list(filters: GradeFilters = {}): Promise<Grade[]> {
     await delay()
-    return applyFilters(applyRoleFilter(useStore.getState().grades), filters)
+    const state = useStore.getState()
+    const role = state.role ?? 'student'
+    const grades = state.grades
+    const scope = scopeFor(role)['grades']
+    const scoped = applyScope('grades', scope, grades)
+    return applyFilters(scoped, filters)
   },
 }

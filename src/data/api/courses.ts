@@ -1,26 +1,13 @@
 import type { Course } from '@/types'
+import { scopeFor } from '@/permissions'
 import { useStore } from '../store'
+import { applyScope } from './scope'
 import { delay } from './_delay'
 
 export interface CourseFilters {
   search?: string
   headquartersName?: string
   programName?: string
-}
-
-function applyRoleFilter(courses: Course[]): Course[] {
-  const state = useStore.getState()
-  const role = state.role
-  if (role === 'admin') return courses
-  if (role === 'teacher' && state.currentUserId) {
-    return courses.filter((c) => c.teacherId === state.currentUserId)
-  }
-  if (role === 'student' && state.currentUserId) {
-    const enrollments = state.enrollments.filter((e) => e.studentId === state.currentUserId)
-    const courseIds = new Set(enrollments.map((e) => e.courseId))
-    return courses.filter((c) => courseIds.has(c.id))
-  }
-  return []
 }
 
 function applyFilters(courses: Course[], filters: CourseFilters): Course[] {
@@ -38,12 +25,20 @@ function applyFilters(courses: Course[], filters: CourseFilters): Course[] {
 export const coursesApi = {
   async list(filters: CourseFilters = {}): Promise<Course[]> {
     await delay()
-    const courses = useStore.getState().courses
-    return applyFilters(applyRoleFilter(courses), filters)
+    const state = useStore.getState()
+    const role = state.role ?? 'student'
+    const courses = state.courses
+    const scope = scopeFor(role)['courses']
+    const scoped = applyScope('courses', scope, courses)
+    return applyFilters(scoped, filters)
   },
   async get(id: string): Promise<Course | null> {
     await delay()
-    const visible = applyRoleFilter(useStore.getState().courses)
-    return visible.find((c) => c.id === id) ?? null
+    const state = useStore.getState()
+    const role = state.role ?? 'student'
+    const courses = state.courses
+    const scope = scopeFor(role)['courses']
+    const scoped = applyScope('courses', scope, courses)
+    return scoped.find((c) => c.id === id) ?? null
   },
 }

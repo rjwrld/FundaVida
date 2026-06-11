@@ -1,16 +1,17 @@
 import type { EmailCampaign } from '@/types'
+import { scopeFor } from '@/permissions'
 import { useStore } from '../store'
+import { applyScope } from './scope'
 import { delay } from './_delay'
-
-function applyRoleFilter(campaigns: EmailCampaign[]): EmailCampaign[] {
-  const role = useStore.getState().role
-  if (role === 'admin') return campaigns
-  return []
-}
 
 export const emailCampaignsApi = {
   async list(): Promise<EmailCampaign[]> {
     await delay()
-    return applyRoleFilter(useStore.getState().emailCampaigns)
+    const state = useStore.getState()
+    const role = state.role ?? 'student'
+    const campaigns = state.emailCampaigns
+    const scope = scopeFor(role)['bulkEmail']
+    const scoped = applyScope('emailCampaigns', scope, campaigns)
+    return scoped
   },
 }

@@ -1,27 +1,13 @@
 import type { AttendanceRecord } from '@/types'
+import { scopeFor } from '@/permissions'
 import { useStore } from '../store'
+import { applyScope } from './scope'
 import { delay } from './_delay'
 
 export interface AttendanceFilters {
   studentId?: string
   courseId?: string
   status?: AttendanceRecord['status']
-}
-
-function applyRoleFilter(records: AttendanceRecord[]): AttendanceRecord[] {
-  const state = useStore.getState()
-  const role = state.role
-  if (role === 'admin') return records
-  if (role === 'teacher' && state.currentUserId) {
-    const ownedCourseIds = new Set(
-      state.courses.filter((c) => c.teacherId === state.currentUserId).map((c) => c.id)
-    )
-    return records.filter((r) => ownedCourseIds.has(r.courseId))
-  }
-  if (role === 'student' && state.currentUserId) {
-    return records.filter((r) => r.studentId === state.currentUserId)
-  }
-  return []
 }
 
 function applyFilters(records: AttendanceRecord[], filters: AttendanceFilters): AttendanceRecord[] {
@@ -36,6 +22,11 @@ function applyFilters(records: AttendanceRecord[], filters: AttendanceFilters): 
 export const attendanceApi = {
   async list(filters: AttendanceFilters = {}): Promise<AttendanceRecord[]> {
     await delay()
-    return applyFilters(applyRoleFilter(useStore.getState().attendance), filters)
+    const state = useStore.getState()
+    const role = state.role ?? 'student'
+    const attendance = state.attendance
+    const scope = scopeFor(role)['attendance']
+    const scoped = applyScope('attendance', scope, attendance)
+    return applyFilters(scoped, filters)
   },
 }
