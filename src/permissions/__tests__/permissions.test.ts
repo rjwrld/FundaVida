@@ -302,7 +302,7 @@ describe('Permissions Matrix', () => {
           enter: false,
         },
         tcu: {
-          view: false,
+          view: true,
           create: false,
           edit: false,
           delete: false,
@@ -760,7 +760,7 @@ describe('Permissions Matrix', () => {
         grades: 'own',
         certificates: 'own',
         attendance: 'own',
-        tcu: 'none',
+        tcu: 'own',
         reports: 'none',
         bulkEmail: 'none',
         auditLog: 'none',

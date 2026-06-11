@@ -220,8 +220,12 @@ function applyEmailCampaignsScope(
 function applyTcuScope(activities: TcuList, token: Scope, userId: string): TcuList {
   switch (token) {
     case 'self': {
-      // Activities organized by the current user
+      // Activities organized by the current user (tcu trainee)
       return activities.filter((a) => a.organizerId === userId)
+    }
+    case 'own': {
+      // Activities belonging to the current user (student)
+      return activities.filter((a) => a.studentId === userId)
     }
     default:
       return []

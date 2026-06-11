@@ -17,10 +17,11 @@ describe('tcuApi', () => {
     expect(result.length).toBeGreaterThan(0)
   })
 
-  it('student sees empty activities (no tcu visibility)', async () => {
+  it('returns only own activities for student (stu-1)', async () => {
     useStore.getState().setRole('student')
     const result = await tcuApi.list()
-    expect(result).toEqual([])
+    expect(result.length).toBeGreaterThan(0)
+    expect(result.every((a) => a.studentId === 'stu-1')).toBe(true)
   })
 
   it('returns only organized activities for tcu (tcu-1)', async () => {
