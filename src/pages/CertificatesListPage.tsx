@@ -46,9 +46,11 @@ export function CertificatesListPage() {
     const all = buildEligibleList(students, courses, grades)
     const certificateScope = currentUser ? scopeFor(currentUser.role).certificates : 'none'
     const scoped =
-      certificateScope === 'own' && currentUser
-        ? all.filter((c) => c.studentId === currentUser.id)
-        : all
+      certificateScope === 'all'
+        ? all
+        : certificateScope === 'own' && currentUser
+          ? all.filter((c) => c.studentId === currentUser.id)
+          : []
     const result: CardItem[] = []
     for (const c of scoped) {
       const student = students.find((s) => s.id === c.studentId)
