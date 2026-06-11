@@ -13,6 +13,8 @@ import {
   UserCog,
   Users,
 } from 'lucide-react'
+import { can } from '@/permissions'
+import type { Resource } from '@/permissions'
 import type { Role } from '@/types'
 
 export type NavSection = 'programs' | 'people' | 'reports'
@@ -20,7 +22,7 @@ export type NavSection = 'programs' | 'people' | 'reports'
 export interface NavItem {
   to: string
   labelKey: string
-  roles: Role[]
+  resource?: Resource
   section: NavSection
   icon: LucideIcon
 }
@@ -29,84 +31,83 @@ export const NAV_ITEMS: NavItem[] = [
   {
     to: '/app',
     labelKey: 'nav.dashboard',
-    roles: ['admin', 'teacher', 'student', 'tcu'],
     section: 'programs',
     icon: LayoutDashboard,
   },
   {
     to: '/app/courses',
     labelKey: 'nav.courses',
-    roles: ['admin', 'teacher', 'student'],
+    resource: 'courses',
     section: 'programs',
     icon: BookOpen,
   },
   {
     to: '/app/certificates',
     labelKey: 'nav.certificates',
-    roles: ['admin', 'student'],
+    resource: 'certificates',
     section: 'programs',
     icon: Award,
   },
   {
     to: '/app/students',
     labelKey: 'nav.students',
-    roles: ['admin', 'teacher'],
+    resource: 'students',
     section: 'people',
     icon: GraduationCap,
   },
   {
     to: '/app/teachers',
     labelKey: 'nav.teachers',
-    roles: ['admin'],
+    resource: 'teachers',
     section: 'people',
     icon: UserCog,
   },
   {
     to: '/app/enrollments',
     labelKey: 'nav.enrollments',
-    roles: ['admin'],
+    resource: 'enrollments',
     section: 'people',
     icon: Users,
   },
   {
     to: '/app/reports',
     labelKey: 'nav.reports',
-    roles: ['admin'],
+    resource: 'reports',
     section: 'reports',
     icon: ClipboardList,
   },
   {
     to: '/app/grades',
     labelKey: 'nav.grades',
-    roles: ['admin'],
+    resource: 'grades',
     section: 'reports',
     icon: FileText,
   },
   {
     to: '/app/attendance',
     labelKey: 'nav.attendance',
-    roles: ['admin', 'teacher', 'student'],
+    resource: 'attendance',
     section: 'reports',
     icon: CalendarCheck2,
   },
   {
     to: '/app/tcu',
     labelKey: 'nav.tcu',
-    roles: ['admin', 'student', 'tcu'],
+    resource: 'tcu',
     section: 'reports',
     icon: HandHeart,
   },
   {
     to: '/app/bulk-email',
     labelKey: 'nav.bulkEmail',
-    roles: ['admin'],
+    resource: 'bulkEmail',
     section: 'reports',
     icon: Mail,
   },
   {
     to: '/app/audit-log',
     labelKey: 'nav.auditLog',
-    roles: ['admin'],
+    resource: 'auditLog',
     section: 'reports',
     icon: ScrollText,
   },
@@ -115,7 +116,10 @@ export const NAV_ITEMS: NavItem[] = [
 export const NAV_SECTIONS: NavSection[] = ['programs', 'people', 'reports']
 
 export function navItemsForRole(role: Role): NavItem[] {
-  return NAV_ITEMS.filter((item) => item.roles.includes(role))
+  return NAV_ITEMS.filter((item) => {
+    if (!item.resource) return true
+    return can(role, 'view', item.resource)
+  })
 }
 
 export function groupNavByRole(role: Role): { section: NavSection; items: NavItem[] }[] {

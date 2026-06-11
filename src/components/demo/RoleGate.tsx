@@ -1,9 +1,10 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useStore } from '@/data/store'
-import type { Role } from '@/types'
+import { can } from '@/permissions'
+import type { Resource } from '@/permissions'
 
-export function RoleGate({ allow }: { allow: Role[] }) {
+export function RoleGate({ resource }: { resource: Resource }) {
   const role = useStore((s) => s.role)
-  if (!role || !allow.includes(role)) return <Navigate to="/app" replace />
+  if (!role || !can(role, 'view', resource)) return <Navigate to="/app" replace />
   return <Outlet />
 }
