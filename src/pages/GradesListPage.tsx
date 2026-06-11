@@ -26,8 +26,7 @@ import {
 import { EditGradeDialog } from '@/components/grades/EditGradeDialog'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
-import { useDeleteGrade, useGrades } from '@/hooks/api'
-import { useStore } from '@/data/store'
+import { useCourses, useDeleteGrade, useGrades, useStudents } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import type { GradeFilters } from '@/data/api/grades'
 
@@ -45,8 +44,8 @@ export function GradesListPage() {
   const [editTarget, setEditTarget] = useState<EditTarget | null>(null)
   const { data = [], isLoading } = useGrades(filters)
   const deleteGrade = useDeleteGrade()
-  const students = useStore((s) => s.students)
-  const courses = useStore((s) => s.courses)
+  const { data: students = [] } = useStudents()
+  const { data: courses = [] } = useCourses()
 
   const hasFilters = Boolean(filters.studentId || filters.courseId)
   const count = data.length
@@ -56,24 +55,26 @@ export function GradesListPage() {
       <PageHeader title={t('grades.list.title')} description={t('grades.list.subtitle')} />
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
-        <Select
-          value={filters.studentId ?? 'any'}
-          onValueChange={(v) =>
-            setFilters((f) => ({ ...f, studentId: v === 'any' ? undefined : v }))
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={t('grades.list.filters.studentPlaceholder')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any">{t('grades.list.filters.anyStudent')}</SelectItem>
-            {students.map((s) => (
-              <SelectItem key={s.id} value={s.id}>
-                {s.firstName} {s.lastName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {students.length > 0 && (
+          <Select
+            value={filters.studentId ?? 'any'}
+            onValueChange={(v) =>
+              setFilters((f) => ({ ...f, studentId: v === 'any' ? undefined : v }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={t('grades.list.filters.studentPlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">{t('grades.list.filters.anyStudent')}</SelectItem>
+              {students.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.firstName} {s.lastName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <Select
           value={filters.courseId ?? 'any'}
           onValueChange={(v) =>
