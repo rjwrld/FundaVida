@@ -126,4 +126,60 @@ describe('<RoleGate />', () => {
     )
     expect(screen.getByText('courses list')).toBeInTheDocument()
   })
+
+  it('redirects a teacher away from a create-gated courses route', () => {
+    useStore.getState().setRole('teacher')
+    render(
+      <MemoryRouter
+        initialEntries={['/courses/new']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Routes>
+          <Route path="/app" element={<div>dashboard</div>} />
+          <Route element={<RoleGate resource="courses" action="create" />}>
+            <Route path="/courses/new" element={<div>course form</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    )
+    expect(screen.getByText('dashboard')).toBeInTheDocument()
+    expect(screen.queryByText('course form')).not.toBeInTheDocument()
+  })
+
+  it('allows an admin through a create-gated courses route', () => {
+    useStore.getState().setRole('admin')
+    render(
+      <MemoryRouter
+        initialEntries={['/courses/new']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Routes>
+          <Route path="/app" element={<div>dashboard</div>} />
+          <Route element={<RoleGate resource="courses" action="create" />}>
+            <Route path="/courses/new" element={<div>course form</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    )
+    expect(screen.getByText('course form')).toBeInTheDocument()
+  })
+
+  it('redirects a teacher away from an edit-gated students route', () => {
+    useStore.getState().setRole('teacher')
+    render(
+      <MemoryRouter
+        initialEntries={['/students/stu-1/edit']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Routes>
+          <Route path="/app" element={<div>dashboard</div>} />
+          <Route element={<RoleGate resource="students" action="edit" />}>
+            <Route path="/students/:id/edit" element={<div>student form</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    )
+    expect(screen.getByText('dashboard')).toBeInTheDocument()
+    expect(screen.queryByText('student form')).not.toBeInTheDocument()
+  })
 })

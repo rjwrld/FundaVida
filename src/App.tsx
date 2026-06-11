@@ -35,14 +35,22 @@ export function App() {
             <Route index element={<DashboardPage />} />
             <Route element={<RoleGate resource="students" />}>
               <Route path="students" element={<StudentsListPage />} />
-              <Route path="students/new" element={<StudentsFormPage />} />
               <Route path="students/:id" element={<StudentsDetailPage />} />
+            </Route>
+            <Route element={<RoleGate resource="students" action="create" />}>
+              <Route path="students/new" element={<StudentsFormPage />} />
+            </Route>
+            <Route element={<RoleGate resource="students" action="edit" />}>
               <Route path="students/:id/edit" element={<StudentsFormPage />} />
             </Route>
             <Route element={<RoleGate resource="teachers" />}>
               <Route path="teachers" element={<TeachersListPage />} />
-              <Route path="teachers/new" element={<TeachersFormPage />} />
               <Route path="teachers/:id" element={<TeachersDetailPage />} />
+            </Route>
+            <Route element={<RoleGate resource="teachers" action="create" />}>
+              <Route path="teachers/new" element={<TeachersFormPage />} />
+            </Route>
+            <Route element={<RoleGate resource="teachers" action="edit" />}>
               <Route path="teachers/:id/edit" element={<TeachersFormPage />} />
             </Route>
             <Route element={<RoleGate resource="enrollments" />}>
@@ -52,8 +60,10 @@ export function App() {
               <Route path="courses" element={<CoursesListPage />} />
               <Route path="courses/:id" element={<CoursesDetailPage />} />
             </Route>
-            <Route element={<RoleGate resource="courses" />}>
+            <Route element={<RoleGate resource="courses" action="create" />}>
               <Route path="courses/new" element={<CoursesFormPage />} />
+            </Route>
+            <Route element={<RoleGate resource="courses" action="edit" />}>
               <Route path="courses/:id/edit" element={<CoursesFormPage />} />
             </Route>
             <Route element={<RoleGate resource="grades" />}>
