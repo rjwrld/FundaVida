@@ -43,6 +43,7 @@ export function CoursesDetailPage() {
   const canEdit = useCan('edit', 'courses')
   const canCreate = useCan('create', 'enrollments')
   const canEnter = useCan('enter', 'grades', { course: course || undefined })
+  const canEditGrade = useCan('edit', 'grades', { course: course || undefined })
   const canDelete = useCan('delete', 'enrollments')
 
   if (isLoading)
@@ -134,7 +135,7 @@ export function CoursesDetailPage() {
               <TableRow>
                 <TableHead>{t('courses.detail.enrolledTable.name')}</TableHead>
                 <TableHead>{t('courses.detail.enrolledTable.grade')}</TableHead>
-                {(canEnter || canDelete) && (
+                {(canEnter || canEditGrade || canDelete) && (
                   <TableHead className="text-right">
                     {t('courses.detail.enrolledTable.actions')}
                   </TableHead>
@@ -160,9 +161,9 @@ export function CoursesDetailPage() {
                         ? formatGrade(grade.score)
                         : t('courses.detail.enrolledTable.notGraded')}
                     </TableCell>
-                    {(canEnter || canDelete) && (
+                    {(canEnter || canEditGrade || canDelete) && (
                       <TableCell className="text-right">
-                        {canEnter && (
+                        {(grade ? canEditGrade : canEnter) && (
                           <Button
                             variant="ghost"
                             size="sm"

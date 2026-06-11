@@ -88,7 +88,7 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     teachers: {},
     courses: { view: true },
     enrollments: {},
-    grades: { view: true, enter: courseOwnedAndEnded },
+    grades: { view: true, enter: courseOwnedAndEnded, edit: courseOwnedAndEnded },
     certificates: {},
     attendance: { view: true, mark: courseOwned },
     tcu: {},

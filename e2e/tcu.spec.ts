@@ -1,17 +1,29 @@
 import { test, expect } from '@playwright/test'
 import { enterAs } from './helpers/auth'
 
-test('student sees only their own TCU activities', async ({ page }) => {
+test('student has no TCU access (per the permissions matrix)', async ({ page }) => {
   await enterAs(page, 'student')
+
+  // No TCU nav entry for students.
+  await expect(page.getByRole('link', { name: 'TCU' })).toHaveCount(0)
+
+  // Deep-linking redirects back to the dashboard.
+  await page.goto('/app/tcu')
+  await expect(page).toHaveURL(/\/app$/)
+  await expect(page.getByRole('heading', { name: 'TCU activities' })).toHaveCount(0)
+})
+
+test('tcu trainee sees only their own TCU activities', async ({ page }) => {
+  await enterAs(page, 'tcu')
   await page.getByRole('link', { name: 'TCU' }).click()
   await expect(page.getByRole('heading', { name: 'TCU activities' })).toBeVisible()
 
-  // At least one row should be visible once the table renders; the Student role
-  // sees only stu-1's activities, and the seeded snapshot guarantees stu-1 has
-  // at least one activity.
+  // At least one row should be visible once the table renders; the trainee role
+  // sees only tcu-1's organized activities, and the seeded snapshot guarantees
+  // tcu-1 organizes at least one activity.
   await expect(page.getByRole('row').nth(1)).toBeVisible()
 
-  // The page must NOT show the student filter select (admin-only).
+  // The trainee has no visible students, so the filter section stays hidden.
   await expect(page.getByRole('combobox', { name: /student/i })).toHaveCount(0)
 })
 

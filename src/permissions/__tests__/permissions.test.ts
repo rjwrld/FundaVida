@@ -162,7 +162,7 @@ describe('Permissions Matrix', () => {
         grades: {
           view: true,
           create: false,
-          edit: false,
+          edit: 'courseOwnedAndEnded',
           delete: false,
           approve: false,
           mark: false,
@@ -570,6 +570,48 @@ describe('Permissions Matrix', () => {
           },
         }
         expect(can('teacher', 'enter', 'grades', context)).toBe(false)
+      })
+
+      it('teacher edit grades: true when course is owned and has ended', () => {
+        const context: PermissionContext = {
+          userId: 'teacher-1',
+          course: {
+            id: 'course-1',
+            name: 'Math 101',
+            description: 'Advanced calculus',
+            headquartersName: 'HQ',
+            programName: 'Science',
+            teacherId: 'teacher-1',
+            term: {
+              start: '2025-01-01T00:00:00.000Z',
+              end: '2025-06-01T00:00:00.000Z', // in the past
+            },
+            meetingDays: ['mon', 'wed'],
+            createdAt: '2025-01-01T00:00:00.000Z',
+          },
+        }
+        expect(can('teacher', 'edit', 'grades', context)).toBe(true)
+      })
+
+      it('teacher edit grades: false when course is not owned', () => {
+        const context: PermissionContext = {
+          userId: 'teacher-1',
+          course: {
+            id: 'course-1',
+            name: 'Math 101',
+            description: 'Advanced calculus',
+            headquartersName: 'HQ',
+            programName: 'Science',
+            teacherId: 'teacher-2', // different teacher
+            term: {
+              start: '2025-01-01T00:00:00.000Z',
+              end: '2025-06-01T00:00:00.000Z',
+            },
+            meetingDays: ['mon', 'wed'],
+            createdAt: '2025-01-01T00:00:00.000Z',
+          },
+        }
+        expect(can('teacher', 'edit', 'grades', context)).toBe(false)
       })
 
       it('teacher mark attendance: true when course is owned', () => {

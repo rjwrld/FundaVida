@@ -104,6 +104,42 @@ describe('store permission guards', () => {
       expect(storeAfter.auditLog.length).toBe(auditLogLengthBefore + 1)
     })
 
+    it('teacher can update an existing grade in a course they own that has ended', () => {
+      const store = useStore.getState()
+
+      const endedCourse = store.courses.find((c) => c.id === 'cou-3')
+      if (!endedCourse) throw new Error('no cou-3 in seed')
+      if (new Date() < new Date(endedCourse.term.end)) {
+        throw new Error('test setup: cou-3 not ended yet')
+      }
+
+      const student = store.students[0]
+      if (!student) throw new Error('no student in seed')
+
+      // Setup: admin creates enrollment (teachers can't create enrollments)
+      useStore.getState().setRole('admin')
+      const enrollment = store.enrollments.find(
+        (e) => e.studentId === student.id && e.courseId === endedCourse.id
+      )
+      if (!enrollment) {
+        useStore.getState().enrollStudent(student.id, endedCourse.id)
+      }
+
+      useStore.setState({ currentUserId: endedCourse.teacherId, role: 'teacher' })
+
+      // Enter the grade, then re-grade: edit is allowed within own ended courses
+      useStore.getState().setGrade(student.id, endedCourse.id, 80)
+      const auditLogLengthBefore = useStore.getState().auditLog.length
+      useStore.getState().setGrade(student.id, endedCourse.id, 95)
+
+      const after = useStore.getState()
+      const grade = after.grades.find(
+        (g) => g.studentId === student.id && g.courseId === endedCourse.id
+      )
+      expect(grade?.score).toBe(95)
+      expect(after.auditLog.length).toBe(auditLogLengthBefore + 1)
+    })
+
     it('teacher cannot enter a grade for a course they do not own', () => {
       useStore.getState().setRole('teacher')
       const store = useStore.getState()
