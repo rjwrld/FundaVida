@@ -116,16 +116,14 @@ describe('grade admin actions', () => {
     expect(after.issuedAt).not.toBe(originalIssuedAt)
   })
 
-  // Note: deleteGrade is not allowed by admin per the permissions matrix.
-  // Grades are not meant to be deleted once issued; see the permissions module.
-  // it('deleteGrade removes only the target grade', () => {
-  //   const first = useStore.getState().grades[0]
-  //   if (!first) throw new Error('expected at least one seeded grade')
-  //   const before = useStore.getState().grades.length
-  //   useStore.getState().deleteGrade(first.id)
-  //   expect(useStore.getState().grades.length).toBe(before - 1)
-  //   expect(useStore.getState().grades.some((g) => g.id === first.id)).toBe(false)
-  // })
+  it('deleteGrade removes only the target grade', () => {
+    const first = useStore.getState().grades[0]
+    if (!first) throw new Error('expected at least one seeded grade')
+    const before = useStore.getState().grades.length
+    useStore.getState().deleteGrade(first.id)
+    expect(useStore.getState().grades.length).toBe(before - 1)
+    expect(useStore.getState().grades.some((g) => g.id === first.id)).toBe(false)
+  })
 })
 
 describe('attendance cascades', () => {

@@ -51,7 +51,7 @@ describe('Permissions Matrix', () => {
           view: true,
           create: false,
           edit: true,
-          delete: false,
+          delete: true,
           approve: false,
           mark: false,
           log: false,

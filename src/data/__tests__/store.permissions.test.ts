@@ -250,7 +250,7 @@ describe('store permission guards', () => {
         useStore.getState().sendEmailCampaign({
           subject: 'Test',
           body: 'Body',
-          filter: { type: 'all' },
+          filter: { kind: 'all' },
           recipientIds: [],
         })
       }).toThrow()
