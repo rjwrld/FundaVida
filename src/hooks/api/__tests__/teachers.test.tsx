@@ -39,6 +39,7 @@ describe('useCreateTeacher', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
   })
 
   afterEach(() => {
@@ -97,6 +98,7 @@ describe('useUpdateTeacher', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
   })
 
   afterEach(() => {
@@ -156,6 +158,7 @@ describe('useDeleteTeacher', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
   })
 
   afterEach(() => {

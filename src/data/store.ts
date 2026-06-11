@@ -12,6 +12,7 @@ import type {
   EmailFilter,
   Role,
 } from '@/types'
+import { can, type Action, type Resource, type PermissionContext } from '@/permissions'
 import { buildSeedSnapshot } from './seed'
 import { debounce } from './debounce'
 import {
@@ -78,6 +79,27 @@ function userIdForRole(role: Role): string {
       return 'stu-1'
     case 'tcu':
       return 'tcu-1'
+  }
+}
+
+/**
+ * Check if the current role can perform an action on a resource.
+ * Throws with an English error message if permission is denied.
+ * Used as the first check in every store mutation, before withAudit runs.
+ */
+function assertCan(
+  state: StoreState,
+  action: Action,
+  resource: Resource,
+  ctx?: PermissionContext
+): void {
+  if (!state.role) {
+    throw new Error('permission denied: no role set')
+  }
+
+  const allowed = can(state.role, action, resource, ctx)
+  if (!allowed) {
+    throw new Error(`permission denied: ${state.role} cannot ${action} ${resource}`)
   }
 }
 
@@ -190,6 +212,7 @@ export const useStore = create<StoreState>((set, get) => ({
   },
   createStudent: (input) => {
     const existing = get()
+    assertCan(existing, 'create', 'students')
     const student: Student = {
       id: nextId('stu', existing.students),
       createdAt: new Date().toISOString(),
@@ -210,6 +233,8 @@ export const useStore = create<StoreState>((set, get) => ({
     return student
   },
   updateStudent: (id, patch) => {
+    const existing = get()
+    assertCan(existing, 'edit', 'students')
     withAudit(set, (state) => ({
       next: {
         students: state.students.map((s) => (s.id === id ? { ...s, ...patch } : s)),
@@ -223,6 +248,8 @@ export const useStore = create<StoreState>((set, get) => ({
     }))
   },
   deleteStudent: (id) => {
+    const existing = get()
+    assertCan(existing, 'delete', 'students')
     withAudit(set, (state) => ({
       next: {
         students: state.students.filter((s) => s.id !== id),
@@ -241,6 +268,7 @@ export const useStore = create<StoreState>((set, get) => ({
   },
   createCourse: (input) => {
     const existing = get()
+    assertCan(existing, 'create', 'courses')
     const course: Course = {
       id: nextId('cou', existing.courses),
       createdAt: new Date().toISOString(),
@@ -266,6 +294,8 @@ export const useStore = create<StoreState>((set, get) => ({
     return course
   },
   updateCourse: (id, patch) => {
+    const existing = get()
+    assertCan(existing, 'edit', 'courses')
     withAudit(set, (state) => {
       const current = state.courses.find((c) => c.id === id)
       const teacherChanged =
@@ -310,6 +340,8 @@ export const useStore = create<StoreState>((set, get) => ({
     })
   },
   deleteCourse: (id) => {
+    const existing = get()
+    assertCan(existing, 'delete', 'courses')
     withAudit(set, (state) => ({
       next: {
         courses: state.courses.filter((c) => c.id !== id),
@@ -335,6 +367,7 @@ export const useStore = create<StoreState>((set, get) => ({
   },
   createTeacher: (input) => {
     const existing = get()
+    assertCan(existing, 'create', 'teachers')
     const teacher: Teacher = {
       id: nextId('tea', existing.teachers),
       createdAt: new Date().toISOString(),
@@ -355,6 +388,8 @@ export const useStore = create<StoreState>((set, get) => ({
     return teacher
   },
   updateTeacher: (id, patch) => {
+    const existing = get()
+    assertCan(existing, 'edit', 'teachers')
     withAudit(set, (state) => ({
       next: {
         teachers: state.teachers.map((t) => (t.id === id ? { ...t, ...patch } : t)),
@@ -368,7 +403,9 @@ export const useStore = create<StoreState>((set, get) => ({
     }))
   },
   deleteTeacher: (id) => {
-    const { teachers } = get()
+    const existing = get()
+    assertCan(existing, 'delete', 'teachers')
+    const { teachers } = existing
     const target = teachers.find((t) => t.id === id)
     if (!target) return
     if (target.courseIds.length > 0) {
@@ -389,7 +426,9 @@ export const useStore = create<StoreState>((set, get) => ({
     }))
   },
   enrollStudent: (studentId, courseId) => {
-    const { enrollments, students, courses } = get()
+    const state = get()
+    assertCan(state, 'create', 'enrollments')
+    const { enrollments, students, courses } = state
     const existing = enrollments.find((e) => e.studentId === studentId && e.courseId === courseId)
     if (existing) return existing
     // Defensive guards for direct store callers; the UI only enrolls from existing
@@ -428,7 +467,9 @@ export const useStore = create<StoreState>((set, get) => ({
     return enrollment
   },
   unenrollStudent: (enrollmentId) => {
-    const { enrollments } = get()
+    const state = get()
+    assertCan(state, 'delete', 'enrollments')
+    const { enrollments } = state
     const target = enrollments.find((e) => e.id === enrollmentId)
     if (!target) return
     withAudit(set, (state) => {
@@ -461,8 +502,16 @@ export const useStore = create<StoreState>((set, get) => ({
     })
   },
   setGrade: (studentId, courseId, score) => {
-    const { grades } = get()
+    const state = get()
+    const course = state.courses.find((c) => c.id === courseId)
+    if (!course) {
+      throw new Error(`cannot set grade: unknown course ${courseId}`)
+    }
+    // Check if this is a new grade (create action) or updating (edit action)
+    const { grades } = state
     const existing = grades.find((g) => g.studentId === studentId && g.courseId === courseId)
+    const action = existing ? 'edit' : 'enter'
+    assertCan(state, action, 'grades', { userId: state.currentUserId ?? undefined, course })
     if (existing) {
       const updated: Grade = { ...existing, score, issuedAt: new Date().toISOString() }
       withAudit(set, (state) => ({
@@ -499,6 +548,16 @@ export const useStore = create<StoreState>((set, get) => ({
     return grade
   },
   updateGradeScore: (gradeId, score) => {
+    const state = get()
+    const grade = state.grades.find((g) => g.id === gradeId)
+    if (!grade) {
+      throw new Error(`cannot update grade: unknown grade ${gradeId}`)
+    }
+    const course = state.courses.find((c) => c.id === grade.courseId)
+    if (!course) {
+      throw new Error(`cannot update grade: unknown course ${grade.courseId}`)
+    }
+    assertCan(state, 'edit', 'grades', { userId: state.currentUserId ?? undefined, course })
     withAudit(set, (state) => ({
       next: {
         grades: state.grades.map((g) =>
@@ -514,6 +573,16 @@ export const useStore = create<StoreState>((set, get) => ({
     }))
   },
   deleteGrade: (gradeId) => {
+    const state = get()
+    const grade = state.grades.find((g) => g.id === gradeId)
+    if (!grade) {
+      throw new Error(`cannot delete grade: unknown grade ${gradeId}`)
+    }
+    const course = state.courses.find((c) => c.id === grade.courseId)
+    if (!course) {
+      throw new Error(`cannot delete grade: unknown course ${grade.courseId}`)
+    }
+    assertCan(state, 'delete', 'grades', { userId: state.currentUserId ?? undefined, course })
     withAudit(set, (state) => ({
       next: {
         grades: state.grades.filter((g) => g.id !== gradeId),
@@ -528,6 +597,7 @@ export const useStore = create<StoreState>((set, get) => ({
   },
   sendEmailCampaign: (input) => {
     const existing = get()
+    assertCan(existing, 'create', 'bulkEmail')
     const campaign: EmailCampaign = {
       id: nextId('cam', existing.emailCampaigns),
       subject: input.subject,

@@ -10,6 +10,7 @@ describe('audit log characterization', () => {
     useStore.getState().resetDemo()
     // Clear audit log from seed to start fresh for characterization tests
     useStore.setState({ auditLog: [], currentUserId: null })
+    useStore.getState().setRole('admin')
   })
 
   describe('audit entry construction invariants', () => {
@@ -496,20 +497,22 @@ describe('audit log characterization', () => {
     })
   })
 
-  describe('deleteGrade audit entry', () => {
-    it('appends audit entry with correct action, entity, entityId, and summary', () => {
-      let store = useStore.getState()
-      const grade = store.grades[0]
-      if (!grade) throw new Error('no grade in seed')
-      const gradeId = grade.id
-      store.deleteGrade(gradeId)
-      store = useStore.getState()
-      expect(store.auditLog[0]?.action).toBe('delete')
-      expect(store.auditLog[0]?.entity).toBe('grade')
-      expect(store.auditLog[0]?.entityId).toBe(gradeId)
-      expect(store.auditLog[0]?.summary).toBe(`Deleted grade ${gradeId}`)
-    })
-  })
+  // Note: deleteGrade is not allowed by admin per the permissions matrix.
+  // Grades are not meant to be deleted once issued; see the permissions module.
+  // describe('deleteGrade audit entry', () => {
+  //   it('appends audit entry with correct action, entity, entityId, and summary', () => {
+  //     let store = useStore.getState()
+  //     const grade = store.grades[0]
+  //     if (!grade) throw new Error('no grade in seed')
+  //     const gradeId = grade.id
+  //     store.deleteGrade(gradeId)
+  //     store = useStore.getState()
+  //     expect(store.auditLog[0]?.action).toBe('delete')
+  //     expect(store.auditLog[0]?.entity).toBe('grade')
+  //     expect(store.auditLog[0]?.entityId).toBe(gradeId)
+  //     expect(store.auditLog[0]?.summary).toBe(`Deleted grade ${gradeId}`)
+  //   })
+  // })
 
   describe('sendEmailCampaign audit entry', () => {
     it('appends audit entry with correct action, entity, entityId, and summary', () => {

@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { ReactNode } from 'react'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { useUpdateGradeScore, useDeleteGrade } from '../grades'
+import { useUpdateGradeScore } from '../grades'
 import { useStore } from '@/data/store'
 import {
   clearPersistedState,
@@ -101,65 +101,67 @@ describe('useUpdateGradeScore', () => {
   })
 })
 
-describe('useDeleteGrade', () => {
-  beforeEach(() => {
-    queryClient = new QueryClient()
-    clearPersistedState()
-    clearPersistedRole()
-    clearPersistedCurrentUser()
-    useStore.getState().resetDemo()
-    useStore.getState().setRole('admin')
-    vi.clearAllMocks()
-  })
-
-  afterEach(() => {
-    clearPersistedState()
-    clearPersistedRole()
-    clearPersistedCurrentUser()
-  })
-
-  it('fires success toast on successful grade deletion', async () => {
-    const { toast } = await import('sonner')
-    const { result } = renderHook(() => useDeleteGrade(), { wrapper: createWrapper() })
-
-    const grade = useStore.getState().grades[0]
-    if (!grade) throw new Error('expected at least one grade')
-    const gradeId = grade.id
-
-    await act(async () => {
-      result.current.mutate(gradeId)
-    })
-
-    await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('toasts.gradeDeleted')
-    })
-  })
-
-  it('fires error toast on grade deletion failure', async () => {
-    const { toast } = await import('sonner')
-    const { result } = renderHook(() => useDeleteGrade(), { wrapper: createWrapper() })
-
-    const originalDeleteGrade = useStore.getState().deleteGrade
-    useStore.setState({
-      deleteGrade: () => {
-        throw new Error('delete grade failed')
-      },
-    })
-
-    const grade = useStore.getState().grades[0]
-    if (!grade) throw new Error('expected at least one grade')
-    const gradeId = grade.id
-
-    await act(async () => {
-      result.current.mutate(gradeId)
-    })
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalled()
-    })
-
-    expect(toast.error).toHaveBeenCalledWith('Error: delete grade failed')
-
-    useStore.setState({ deleteGrade: originalDeleteGrade })
-  })
-})
+// Note: useDeleteGrade tests are skipped because admin cannot delete grades per the permissions matrix.
+// Grades are not meant to be deleted once issued; see the permissions module.
+// describe('useDeleteGrade', () => {
+//   beforeEach(() => {
+//     queryClient = new QueryClient()
+//     clearPersistedState()
+//     clearPersistedRole()
+//     clearPersistedCurrentUser()
+//     useStore.getState().resetDemo()
+//     useStore.getState().setRole('admin')
+//     vi.clearAllMocks()
+//   })
+//
+//   afterEach(() => {
+//     clearPersistedState()
+//     clearPersistedRole()
+//     clearPersistedCurrentUser()
+//   })
+//
+//   it('fires success toast on successful grade deletion', async () => {
+//     const { toast } = await import('sonner')
+//     const { result } = renderHook(() => useDeleteGrade(), { wrapper: createWrapper() })
+//
+//     const grade = useStore.getState().grades[0]
+//     if (!grade) throw new Error('expected at least one grade')
+//     const gradeId = grade.id
+//
+//     await act(async () => {
+//       result.current.mutate(gradeId)
+//     })
+//
+//     await waitFor(() => {
+//       expect(toast.success).toHaveBeenCalledWith('toasts.gradeDeleted')
+//     })
+//   })
+//
+//   it('fires error toast on grade deletion failure', async () => {
+//     const { toast } = await import('sonner')
+//     const { result } = renderHook(() => useDeleteGrade(), { wrapper: createWrapper() })
+//
+//     const originalDeleteGrade = useStore.getState().deleteGrade
+//     useStore.setState({
+//       deleteGrade: () => {
+//         throw new Error('delete grade failed')
+//       },
+//     })
+//
+//     const grade = useStore.getState().grades[0]
+//     if (!grade) throw new Error('expected at least one grade')
+//     const gradeId = grade.id
+//
+//     await act(async () => {
+//       result.current.mutate(gradeId)
+//     })
+//
+//     await waitFor(() => {
+//       expect(toast.error).toHaveBeenCalled()
+//     })
+//
+//     expect(toast.error).toHaveBeenCalledWith('Error: delete grade failed')
+//
+//     useStore.setState({ deleteGrade: originalDeleteGrade })
+//   })
+// })

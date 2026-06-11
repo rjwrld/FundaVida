@@ -39,6 +39,7 @@ describe('useSendEmailCampaign', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
   })
 
   afterEach(() => {

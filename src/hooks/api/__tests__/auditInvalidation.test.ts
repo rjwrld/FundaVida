@@ -13,6 +13,7 @@ describe('wireAuditInvalidation', () => {
     clearPersistedRole()
     clearPersistedCurrentUser()
     useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
   })
 
   it('invalidates auditLog cache when auditLog slice changes', async () => {

@@ -39,6 +39,7 @@ describe('useCreateStudent', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
   })
 
   afterEach(() => {
@@ -104,6 +105,7 @@ describe('useUpdateStudent', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
   })
 
   afterEach(() => {
@@ -163,6 +165,7 @@ describe('useDeleteStudent', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
   })
 
   afterEach(() => {
