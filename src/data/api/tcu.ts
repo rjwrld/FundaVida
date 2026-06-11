@@ -1,23 +1,12 @@
 import type { TcuActivity } from '@/types'
+import { scopeFor } from '@/permissions'
 import { useStore } from '../store'
+import { applyScope } from './scope'
 import { delay } from './_delay'
 
 export interface TcuFilters {
   studentId?: string
   organizerId?: string
-}
-
-function applyRoleFilter(activities: TcuActivity[]): TcuActivity[] {
-  const state = useStore.getState()
-  const role = state.role
-  if (role === 'admin') return activities
-  if (role === 'student' && state.currentUserId) {
-    return activities.filter((a) => a.studentId === state.currentUserId)
-  }
-  if (role === 'tcu' && state.currentUserId) {
-    return activities.filter((a) => a.organizerId === state.currentUserId)
-  }
-  return []
 }
 
 function applyFilters(activities: TcuActivity[], filters: TcuFilters): TcuActivity[] {
@@ -31,6 +20,11 @@ function applyFilters(activities: TcuActivity[], filters: TcuFilters): TcuActivi
 export const tcuApi = {
   async list(filters: TcuFilters = {}): Promise<TcuActivity[]> {
     await delay()
-    return applyFilters(applyRoleFilter(useStore.getState().tcuActivities), filters)
+    const state = useStore.getState()
+    const role = state.role ?? 'student'
+    const activities = state.tcuActivities
+    const scope = scopeFor(role)['tcu']
+    const scoped = applyScope('tcu', scope, activities)
+    return applyFilters(scoped, filters)
   },
 }

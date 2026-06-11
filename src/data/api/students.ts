@@ -1,17 +1,13 @@
 import type { Student } from '@/types'
+import { scopeFor } from '@/permissions'
 import { useStore } from '../store'
+import { applyScope } from './scope'
 import { delay } from './_delay'
 
 export interface StudentFilters {
   search?: string
   province?: string
   educationalLevel?: string
-}
-
-function applyRoleFilter(students: Student[]): Student[] {
-  const role = useStore.getState().role
-  if (role === 'admin' || role === 'teacher') return students
-  return []
 }
 
 function applyFilters(students: Student[], filters: StudentFilters): Student[] {
@@ -32,12 +28,20 @@ function applyFilters(students: Student[], filters: StudentFilters): Student[] {
 export const studentsApi = {
   async list(filters: StudentFilters = {}): Promise<Student[]> {
     await delay()
-    const students = useStore.getState().students
-    return applyFilters(applyRoleFilter(students), filters)
+    const state = useStore.getState()
+    const role = state.role ?? 'student'
+    const students = state.students
+    const scope = scopeFor(role)['students']
+    const scoped = applyScope('students', scope, students)
+    return applyFilters(scoped, filters)
   },
   async get(id: string): Promise<Student | null> {
     await delay()
-    const students = useStore.getState().students
-    return students.find((s) => s.id === id) ?? null
+    const state = useStore.getState()
+    const role = state.role ?? 'student'
+    const students = state.students
+    const scope = scopeFor(role)['students']
+    const scoped = applyScope('students', scope, students)
+    return scoped.find((s) => s.id === id) ?? null
   },
 }

@@ -17,11 +17,25 @@ describe('gradesApi', () => {
     expect(result.length).toBeGreaterThan(0)
   })
 
-  it('returns empty for non-admin roles', async () => {
+  it('teacher sees grades from their own courses', async () => {
     useStore.getState().setRole('teacher')
-    expect(await gradesApi.list()).toEqual([])
+    const state = useStore.getState()
+    const ownCourseIds = new Set(
+      state.courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id)
+    )
+    const result = await gradesApi.list()
+    expect(result.length).toBeGreaterThan(0)
+    expect(result.every((g) => ownCourseIds.has(g.courseId))).toBe(true)
+  })
+
+  it('student sees only their own grades', async () => {
     useStore.getState().setRole('student')
-    expect(await gradesApi.list()).toEqual([])
+    const result = await gradesApi.list()
+    expect(result.length).toBeGreaterThan(0)
+    expect(result.every((g) => g.studentId === 'stu-1')).toBe(true)
+  })
+
+  it('tcu sees empty grades', async () => {
     useStore.getState().setRole('tcu')
     expect(await gradesApi.list()).toEqual([])
   })

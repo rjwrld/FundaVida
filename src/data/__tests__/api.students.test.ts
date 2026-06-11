@@ -51,4 +51,19 @@ describe('api.students', () => {
     const result = await api.students.list({ province: 'San José' })
     expect(result.every((s) => s.province === 'San José')).toBe(true)
   })
+
+  it('teacher sees ONLY students enrolled in their courses', async () => {
+    useStore.getState().setRole('teacher')
+    const state = useStore.getState()
+    // tea-1 should see only students enrolled in their courses
+    const teacherCourseIds = new Set(
+      state.courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id)
+    )
+    const enrolledStudentIds = new Set(
+      state.enrollments.filter((e) => teacherCourseIds.has(e.courseId)).map((e) => e.studentId)
+    )
+    const list = await api.students.list()
+    expect(list.length).toBe(enrolledStudentIds.size)
+    expect(list.every((s) => enrolledStudentIds.has(s.id))).toBe(true)
+  })
 })

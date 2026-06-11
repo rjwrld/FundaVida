@@ -52,6 +52,7 @@ describe('teacher CRUD', () => {
     clearPersistedRole()
     clearPersistedCurrentUser()
     useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
   })
 
   it('creates a teacher with id and empty courseIds', () => {
@@ -101,6 +102,7 @@ describe('grade admin actions', () => {
     clearPersistedRole()
     clearPersistedCurrentUser()
     useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
   })
 
   it('updateGradeScore refreshes score and issuedAt', () => {
@@ -130,6 +132,7 @@ describe('attendance cascades', () => {
     clearPersistedRole()
     clearPersistedCurrentUser()
     useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
   })
 
   it('deleteStudent removes attendance records for that student', () => {
@@ -174,6 +177,7 @@ describe('tcu cascade on deleteStudent', () => {
     clearPersistedRole()
     clearPersistedCurrentUser()
     useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
   })
 
   it('deleteStudent removes tcuActivities for that student', () => {

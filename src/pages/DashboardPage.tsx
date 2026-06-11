@@ -2,8 +2,10 @@ import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard'
+import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
+import type { Role } from '@/types'
 
 function TeacherCards() {
   const { t } = useTranslation()
@@ -62,10 +64,13 @@ function PlaceholderPanel({ role }: { role: 'student' | 'tcu' }) {
 export function DashboardPage() {
   const { t } = useTranslation()
   const roleOrNull = useStore((s) => s.role)
-  if (!roleOrNull) return null
-  const role = roleOrNull
+  const canViewAdminDashboard = useCan('view', 'reports')
+  const canViewTeacherCards = useCan('view', 'students')
 
-  if (role === 'admin') {
+  if (!roleOrNull) return null
+  const role: Role = roleOrNull
+
+  if (canViewAdminDashboard) {
     return <AdminDashboard />
   }
 
@@ -75,8 +80,10 @@ export function DashboardPage() {
         title={t('dashboard.title', { role: t(`roles.${role}.label`) })}
         description={t('dashboard.subtitle')}
       />
-      {role === 'teacher' && <TeacherCards />}
-      {(role === 'student' || role === 'tcu') && <PlaceholderPanel role={role} />}
+      {canViewTeacherCards && <TeacherCards />}
+      {!canViewAdminDashboard && !canViewTeacherCards && (
+        <PlaceholderPanel role={role as 'student' | 'tcu'} />
+      )}
     </div>
   )
 }

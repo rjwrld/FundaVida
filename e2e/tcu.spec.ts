@@ -11,7 +11,21 @@ test('student sees only their own TCU activities', async ({ page }) => {
   // at least one activity.
   await expect(page.getByRole('row').nth(1)).toBeVisible()
 
-  // The page must NOT show the student filter select (admin-only).
+  // The student has no visible students list, so the filter section stays hidden.
+  await expect(page.getByRole('combobox', { name: /student/i })).toHaveCount(0)
+})
+
+test('tcu trainee sees only their own TCU activities', async ({ page }) => {
+  await enterAs(page, 'tcu')
+  await page.getByRole('link', { name: 'TCU' }).click()
+  await expect(page.getByRole('heading', { name: 'TCU activities' })).toBeVisible()
+
+  // At least one row should be visible once the table renders; the trainee role
+  // sees only tcu-1's organized activities, and the seeded snapshot guarantees
+  // tcu-1 organizes at least one activity.
+  await expect(page.getByRole('row').nth(1)).toBeVisible()
+
+  // The trainee has no visible students, so the filter section stays hidden.
   await expect(page.getByRole('combobox', { name: /student/i })).toHaveCount(0)
 })
 

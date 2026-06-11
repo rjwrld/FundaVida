@@ -10,6 +10,7 @@ describe('audit log characterization', () => {
     useStore.getState().resetDemo()
     // Clear audit log from seed to start fresh for characterization tests
     useStore.setState({ auditLog: [], currentUserId: null })
+    useStore.getState().setRole('admin')
   })
 
   describe('audit entry construction invariants', () => {

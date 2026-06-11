@@ -33,36 +33,58 @@ export function App() {
         <Route element={<RoleRequired />}>
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<DashboardPage />} />
-            <Route element={<RoleGate allow={['admin', 'teacher']} />}>
+            <Route element={<RoleGate resource="students" />}>
               <Route path="students" element={<StudentsListPage />} />
-              <Route path="students/new" element={<StudentsFormPage />} />
               <Route path="students/:id" element={<StudentsDetailPage />} />
+            </Route>
+            <Route element={<RoleGate resource="students" action="create" />}>
+              <Route path="students/new" element={<StudentsFormPage />} />
+            </Route>
+            <Route element={<RoleGate resource="students" action="edit" />}>
               <Route path="students/:id/edit" element={<StudentsFormPage />} />
             </Route>
-            <Route element={<RoleGate allow={['admin']} />}>
+            <Route element={<RoleGate resource="teachers" />}>
               <Route path="teachers" element={<TeachersListPage />} />
-              <Route path="teachers/new" element={<TeachersFormPage />} />
               <Route path="teachers/:id" element={<TeachersDetailPage />} />
+            </Route>
+            <Route element={<RoleGate resource="teachers" action="create" />}>
+              <Route path="teachers/new" element={<TeachersFormPage />} />
+            </Route>
+            <Route element={<RoleGate resource="teachers" action="edit" />}>
               <Route path="teachers/:id/edit" element={<TeachersFormPage />} />
+            </Route>
+            <Route element={<RoleGate resource="enrollments" />}>
               <Route path="enrollments" element={<EnrollmentsListPage />} />
             </Route>
-            <Route element={<RoleGate allow={['admin', 'teacher', 'student']} />}>
+            <Route element={<RoleGate resource="courses" />}>
               <Route path="courses" element={<CoursesListPage />} />
               <Route path="courses/:id" element={<CoursesDetailPage />} />
-              <Route path="attendance" element={<AttendanceListPage />} />
             </Route>
-            <Route element={<RoleGate allow={['admin']} />}>
+            <Route element={<RoleGate resource="courses" action="create" />}>
               <Route path="courses/new" element={<CoursesFormPage />} />
+            </Route>
+            <Route element={<RoleGate resource="courses" action="edit" />}>
               <Route path="courses/:id/edit" element={<CoursesFormPage />} />
+            </Route>
+            <Route element={<RoleGate resource="grades" />}>
               <Route path="grades" element={<GradesListPage />} />
+            </Route>
+            <Route element={<RoleGate resource="reports" />}>
               <Route path="reports" element={<ReportsPage />} />
+            </Route>
+            <Route element={<RoleGate resource="auditLog" />}>
               <Route path="audit-log" element={<AuditLogPage />} />
+            </Route>
+            <Route element={<RoleGate resource="bulkEmail" />}>
               <Route path="bulk-email" element={<BulkEmailPage />} />
             </Route>
-            <Route element={<RoleGate allow={['admin', 'student']} />}>
+            <Route element={<RoleGate resource="certificates" />}>
               <Route path="certificates" element={<CertificatesListPage />} />
             </Route>
-            <Route element={<RoleGate allow={['admin', 'student', 'tcu']} />}>
+            <Route element={<RoleGate resource="attendance" />}>
+              <Route path="attendance" element={<AttendanceListPage />} />
+            </Route>
+            <Route element={<RoleGate resource="tcu" />}>
               <Route path="tcu" element={<TcuListPage />} />
             </Route>
           </Route>

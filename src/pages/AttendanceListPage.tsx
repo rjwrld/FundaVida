@@ -18,8 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { useAttendance } from '@/hooks/api'
-import { useStore } from '@/data/store'
+import { useAttendance, useCourses, useStudents } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import { findSession } from '@/lib/sessions'
 import type { AttendanceFilters } from '@/data/api/attendance'
@@ -36,11 +35,10 @@ function statusVariant(status: AttendanceStatus): 'success' | 'destructive' | 'i
 export function AttendanceListPage() {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
-  const role = useStore((s) => s.role)
   const [filters, setFilters] = useState<AttendanceFilters>({})
   const { data = [], isLoading } = useAttendance(filters)
-  const students = useStore((s) => s.students)
-  const courses = useStore((s) => s.courses)
+  const { data: students = [] } = useStudents()
+  const { data: courses = [] } = useCourses()
 
   const hasFilters = Boolean(filters.studentId || filters.courseId || filters.status)
   const count = data.length
@@ -50,7 +48,7 @@ export function AttendanceListPage() {
       <PageHeader title={t('attendance.list.title')} description={t('attendance.list.subtitle')} />
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-3">
-        {role === 'admin' && (
+        {students.length > 0 && (
           <Select
             value={filters.studentId ?? 'any'}
             onValueChange={(v) =>

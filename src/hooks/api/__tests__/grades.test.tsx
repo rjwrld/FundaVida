@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { ReactNode } from 'react'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { useUpdateGradeScore, useDeleteGrade } from '../grades'
+import { useDeleteGrade, useUpdateGradeScore } from '../grades'
 import { useStore } from '@/data/store'
 import {
   clearPersistedState,

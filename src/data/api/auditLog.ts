@@ -1,16 +1,12 @@
 import type { AuditLogEntry, AuditAction, AuditEntity } from '@/types'
+import { scopeFor } from '@/permissions'
 import { useStore } from '../store'
+import { applyScope } from './scope'
 import { delay } from './_delay'
 
 export interface AuditLogFilters {
   action?: AuditAction
   entity?: AuditEntity
-}
-
-function applyRoleFilter(entries: AuditLogEntry[]): AuditLogEntry[] {
-  const role = useStore.getState().role
-  if (role === 'admin') return entries
-  return []
 }
 
 function applyFilters(entries: AuditLogEntry[], filters: AuditLogFilters): AuditLogEntry[] {
@@ -24,6 +20,11 @@ function applyFilters(entries: AuditLogEntry[], filters: AuditLogFilters): Audit
 export const auditLogApi = {
   async list(filters: AuditLogFilters = {}): Promise<AuditLogEntry[]> {
     await delay()
-    return applyFilters(applyRoleFilter(useStore.getState().auditLog), filters)
+    const state = useStore.getState()
+    const role = state.role ?? 'student'
+    const auditLog = state.auditLog
+    const scope = scopeFor(role)['auditLog']
+    const scoped = applyScope('auditLog', scope, auditLog)
+    return applyFilters(scoped, filters)
   },
 }
