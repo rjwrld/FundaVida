@@ -26,7 +26,6 @@ export function useUpdateGradeScore() {
     onSuccess: () => {
       toast.success(t('toasts.gradeSaved'))
       client.invalidateQueries({ queryKey: GRADES_KEY })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(
@@ -47,7 +46,6 @@ export function useDeleteGrade() {
     onSuccess: () => {
       toast.success(t('toasts.gradeDeleted'))
       client.invalidateQueries({ queryKey: GRADES_KEY })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(

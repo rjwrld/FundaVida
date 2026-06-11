@@ -40,7 +40,6 @@ export function useCreateStudent() {
     onSuccess: () => {
       toast.success(t('toasts.studentCreated'))
       client.invalidateQueries({ queryKey: STUDENTS_KEY })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(
@@ -62,7 +61,6 @@ export function useUpdateStudent() {
       toast.success(t('toasts.studentUpdated'))
       client.invalidateQueries({ queryKey: STUDENTS_KEY })
       client.invalidateQueries({ queryKey: studentKey(id) })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(
@@ -87,7 +85,6 @@ export function useDeleteStudent() {
       client.invalidateQueries({ queryKey: ['grades'] })
       client.invalidateQueries({ queryKey: ['attendance'] })
       client.invalidateQueries({ queryKey: ['tcu'] })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(

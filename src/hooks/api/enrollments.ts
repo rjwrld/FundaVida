@@ -30,7 +30,6 @@ export function useDeleteEnrollment() {
       client.invalidateQueries({ queryKey: ['courses'] })
       client.invalidateQueries({ queryKey: ['grades'] })
       client.invalidateQueries({ queryKey: ['attendance'] })
-      client.invalidateQueries({ queryKey: ['auditLog'] })
     },
     onError: (error) => {
       toast.error(

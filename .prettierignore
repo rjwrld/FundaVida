@@ -7,3 +7,5 @@ package-lock.json
 *.lockb
 .claude
 .playwright-mcp
+/report*.md
+/memory-incident-annotation.md
