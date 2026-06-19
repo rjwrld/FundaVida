@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AppToaster } from '@/components/shared/AppToaster'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LandingPage } from '@/pages/LandingPage'
+import { WelcomePage } from '@/pages/WelcomePage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { StudentsListPage } from '@/pages/StudentsListPage'
 import { StudentsDetailPage } from '@/pages/StudentsDetailPage'
@@ -30,6 +31,7 @@ export function App() {
       <AppToaster />
       <Routes>
         <Route index element={<LandingPage />} />
+        <Route path="/welcome" element={<WelcomePage />} />
         <Route element={<RoleRequired />}>
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<DashboardPage />} />

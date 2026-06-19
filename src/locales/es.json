@@ -687,5 +687,10 @@
     "required": "Completa {{field}}",
     "selectValue": "Selecciona un valor para el filtro elegido",
     "termEndAfterStart": "La fecha de fin debe ser igual o posterior a la de inicio"
+  },
+  "welcome": {
+    "eyebrow": "FundaVida",
+    "heading": "Bienvenido de nuevo.",
+    "subtitle": "Elige tu sede y rol para continuar."
   }
 }
