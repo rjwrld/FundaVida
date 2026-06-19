@@ -1,6 +1,0 @@
-export { FlameHope } from './FlameHope'
-export { FlameCertificate } from './FlameCertificate'
-export { FlameMilestone } from './FlameMilestone'
-export { FlameWelcome } from './FlameWelcome'
-export { FlameEmpty } from './FlameEmpty'
-export { FlameCelebration } from './FlameCelebration'

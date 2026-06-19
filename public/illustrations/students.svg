@@ -1,1 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" aria-labelledby="students-empty-title" viewBox="0 0 480 360"><title id="students-empty-title">An open notebook with a pencil and an apple on a desk</title><style>.ink{fill:#1b2230}.green-500{fill:#32982d}.green-600{fill:#287a24}.yellow-500{fill:#e6bd30}@media (prefers-color-scheme:dark){.ink{fill:#eceef2}}</style><ellipse cx="240" cy="320" rx="180" ry="14" style="fill:#f5f8f4"/><path d="m120 240 120-60 120 60-120 60Z" style="fill:#d5edd3"/><path d="m240 180 120 60-120 60Z" class="green-500" opacity=".55"/><path d="M0 96V24L90 0v72Z" style="fill:#fff" transform="translate(150 130)"/><path d="m90 0 90 24v72L90 72Z" opacity=".7" style="fill:#c9d2dd" transform="translate(150 130)"/><path d="m150 226 90-24 90 24-90 24Z" class="ink" opacity=".15"/><g class="ink" opacity=".5" transform="translate(150 130)"><rect width="60" height="3" x="14" y="42" rx="1.5"/><rect width="48" height="3" x="14" y="54" rx="1.5"/><rect width="54" height="3" x="14" y="66" rx="1.5"/></g><g class="ink" opacity=".35" transform="translate(150 130)"><rect width="60" height="3" x="100" y="34" rx="1.5"/><rect width="50" height="3" x="100" y="46" rx="1.5"/><rect width="56" height="3" x="100" y="58" rx="1.5"/></g><g transform="rotate(28 -256.078 681.563)"><rect width="86" height="10" class="yellow-500" rx="2"/><rect width="86" height="4" rx="2" style="fill:#f1d560"/><path d="m86 0 14 5-14 5z" class="ink"/><rect width="6" height="10" x="-6" class="green-600" rx="1"/></g><g transform="translate(120 200)"><circle cx="20" cy="20" r="20" class="green-500"/><path d="M20 0a20 20 0 0 1 0 40 20 20 0 0 1 0-40" class="green-600" opacity=".25"/><path d="M20 4q3-8 10-6-2 6-10 6" class="green-600"/><ellipse cx="14" cy="14" fill="#fff" opacity=".6" rx="4" ry="3"/></g><g transform="translate(232 96)"><circle cx="8" cy="8" r="4" style="fill:#2961cd"/><circle cx="-12" cy="22" r="3" class="yellow-500"/><circle cx="22" cy="26" r="3" class="green-500"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 330">
+  
+  <ellipse cx="220" cy="298" rx="150" ry="28" fill="#C66A3A"></ellipse>
+  <path d="M70 298a150 28 0 0 0 300 0Z" fill="#9E4E22"></path>
+  <g transform="translate(330,96)">
+    <rect x="-26" y="-16" width="52" height="36" rx="5" fill="#155ED0"></rect>
+    <rect x="-21" y="-11" width="42" height="26" rx="3" fill="#EBD9C0"></rect>
+    <line x1="0" y1="-11" x2="0" y2="15" stroke="#c9b894" stroke-width="2"></line>
+  </g>
+  <g transform="translate(96,120)">
+    <circle cx="0" cy="6" r="15" fill="#D40000"></circle>
+    <path d="M0 -9q3-7 9-6" stroke="#1C5D00" stroke-width="3.5" fill="none" stroke-linecap="round"></path>
+    <ellipse cx="-5" cy="0" rx="4" ry="6" fill="#fff" opacity="0.25"></ellipse>
+  </g>
+  <g transform="translate(300,180)" fill="#F9C718">
+    <path d="M0 -12 3 -3 12 0 3 3 0 12 -3 3 -12 0 -3 -3Z"></path>
+  </g>
+  <g>
+    <rect x="196" y="232" width="15" height="46" rx="7" fill="#1C5D00"></rect>
+    <rect x="214" y="232" width="15" height="46" rx="7" fill="#1C5D00"></rect>
+    <path d="M188 240q-6-58 24-60 30 2 24 60Z" fill="#3C8D0F"></path>
+    <rect x="184" y="200" width="12" height="38" rx="6" fill="#3C8D0F"></rect>
+    <rect x="180" y="220" width="34" height="24" rx="4" fill="#EBD9C0"></rect>
+    <line x1="197" y1="222" x2="197" y2="242" stroke="#c9b894" stroke-width="1.6"></line>
+    <circle cx="186" cy="234" r="6.5" fill="#C2855A"></circle>
+    <path d="M232 204q12-2 18-14" stroke="#3C8D0F" stroke-width="12" fill="none" stroke-linecap="round"></path>
+    <circle cx="252" cy="186" r="6.5" fill="#C2855A"></circle>
+    <rect x="206" y="184" width="11" height="13" fill="#C2855A"></rect>
+    <ellipse class="st-hair" cx="211" cy="168" rx="22" ry="21" fill="#1E1A17"></ellipse>
+    <circle cx="211" cy="170" r="18" fill="#C2855A"></circle>
+    <path class="st-hair" d="M192 166q3-17 19-17 16 0 19 17-5-8-19-8-14 0-19 8Z" fill="#1E1A17"></path>
+    <circle cx="204" cy="171" r="2.3" fill="#242424"></circle>
+    <circle cx="218" cy="171" r="2.3" fill="#242424"></circle>
+    <path d="M204 177q7 5 14 0" stroke="#242424" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+    <circle cx="199" cy="176" r="3.2" fill="#D40000" opacity="0.2"></circle>
+    <circle cx="223" cy="176" r="3.2" fill="#D40000" opacity="0.2"></circle>
+  </g>
+</svg>

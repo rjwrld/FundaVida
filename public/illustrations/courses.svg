@@ -1,1 +1,48 @@
-<svg xmlns="http://www.w3.org/2000/svg" aria-labelledby="courses-empty-title" viewBox="0 0 480 360"><title id="courses-empty-title">A stack of books with a bookmark</title><style>.ink{fill:#1b2230}.green-500{fill:#32982d}.green-300{fill:#95c691}.blue-500{fill:#2961cd}.yellow-500{fill:#e6bd30}.ivory{fill:#f8f4e6}@media (prefers-color-scheme:dark){.ink{fill:#eceef2}.ivory{fill:#e0dbc9}}</style><ellipse cx="240" cy="318" rx="170" ry="12" style="fill:#f5f8f4"/><g transform="translate(120 240)"><rect width="240" height="36" class="green-500" rx="4"/><rect width="240" height="6" y="30" rx="3" style="fill:#287a24"/><rect width="50" height="4" x="14" y="10" class="ivory" rx="2"/><rect width="38" height="3" x="14" y="20" class="ivory" rx="1.5"/><circle cx="220" cy="18" r="6" class="yellow-500"/></g><g transform="translate(150 196)"><rect width="200" height="44" class="blue-500" rx="4"/><rect width="200" height="6" y="38" rx="3" style="fill:#1f4da6"/><rect width="60" height="4" x="14" y="14" class="ivory" rx="2"/><rect width="44" height="3" x="14" y="24" class="ivory" rx="1.5"/><rect width="14" height="34" x="160" y="-4" class="green-300" rx="1"/></g><g transform="translate(140 150)"><rect width="180" height="46" class="yellow-500" rx="4"/><rect width="180" height="6" y="40" rx="3" style="fill:#c49e1f"/><rect width="56" height="4" x="14" y="14" class="ink" opacity=".7" rx="2"/><rect width="40" height="3" x="14" y="24" class="ink" opacity=".5" rx="1.5"/><circle cx="156" cy="22" r="8" class="blue-500"/><circle cx="156" cy="22" r="3" class="ivory"/></g><g transform="translate(170 100)"><rect width="130" height="44" class="green-300" rx="4"/><rect width="130" height="6" y="38" class="green-500" rx="3"/><rect width="44" height="4" x="14" y="12" class="ivory" rx="2"/><rect width="34" height="3" x="14" y="22" class="ivory" rx="1.5"/></g><g class="ink" opacity=".4"><circle cx="380" cy="120" r="3"/><circle cx="100" cy="160" r="2"/><circle cx="370" cy="200" r="2"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 330">
+  
+  <ellipse cx="220" cy="298" rx="182" ry="30" fill="#4E9E2A"></ellipse>
+  <path d="M38 298a182 30 0 0 0 364 0Z" fill="#2E7D14"></path>
+  <path d="M300 160 280 256M360 160 380 256" stroke="#1C5D00" stroke-width="7" stroke-linecap="round"></path>
+  <rect x="286" y="62" width="118" height="92" rx="9" fill="#EBD9C0"></rect>
+  <rect x="286" y="62" width="118" height="92" rx="9" fill="none" stroke="#155ED0" stroke-width="6"></rect>
+  <rect x="300" y="78" width="56" height="7" rx="3.5" fill="#155ED0"></rect>
+  <rect x="300" y="92" width="40" height="7" rx="3.5" fill="#9bb4d8"></rect>
+  <rect x="300" y="124" width="11" height="20" rx="3" fill="#3C8D0F"></rect>
+  <rect x="316" y="116" width="11" height="28" rx="3" fill="#F9C718"></rect>
+  <rect x="332" y="108" width="11" height="36" rx="3" fill="#D40000"></rect>
+  <rect x="348" y="120" width="11" height="24" rx="3" fill="#155ED0"></rect>
+  <rect x="286" y="156" width="118" height="8" rx="4" fill="#1C5D00"></rect>
+  <g>
+    <path d="M236 282q-5-60 22-62 27 2 22 62Z" fill="#003792"></path>
+    <rect x="240" y="194" width="38" height="36" rx="14" fill="#3C8D0F"></rect>
+    <rect x="236" y="200" width="11" height="34" rx="5.5" fill="#3C8D0F"></rect>
+    <circle cx="241" cy="236" r="6" fill="#C2855A"></circle>
+    <path d="M276 206q12 0 22-6" stroke="#3C8D0F" stroke-width="12" fill="none" stroke-linecap="round"></path>
+    <circle cx="300" cy="198" r="6" fill="#C2855A"></circle>
+    <rect x="253" y="184" width="10" height="11" fill="#C2855A"></rect>
+    <ellipse class="co-hair" cx="258" cy="170" rx="20" ry="19" fill="#241a14"></ellipse>
+    <circle cx="258" cy="172" r="16" fill="#C2855A"></circle>
+    <path class="co-hair" d="M242 168q3-15 16-15 13 0 16 15-5-6-16-6-11 0-16 6Z" fill="#241a14"></path>
+    <circle cx="252" cy="173" r="2.1" fill="#242424"></circle>
+    <circle cx="265" cy="173" r="2.1" fill="#242424"></circle>
+    <path d="M252 179q6 4 12 0" stroke="#242424" stroke-width="2.2" fill="none" stroke-linecap="round"></path>
+    <circle cx="247" cy="178" r="2.8" fill="#D40000" opacity="0.18"></circle>
+    <circle cx="270" cy="178" r="2.8" fill="#D40000" opacity="0.18"></circle>
+  </g>
+  <g>
+    <rect x="74" y="238" width="40" height="11" rx="5" fill="#1C5D00"></rect>
+    <rect x="80" y="248" width="8" height="22" rx="4" fill="#1C5D00"></rect>
+    <rect x="100" y="248" width="8" height="22" rx="4" fill="#1C5D00"></rect>
+    <path d="M76 244q-4-46 18-48 22 2 18 48Z" fill="#155ED0"></path>
+    <rect x="86" y="180" width="16" height="14" fill="#C2855A"></rect>
+    <ellipse class="co-hair" cx="94" cy="176" rx="18" ry="17" fill="#2B221C"></ellipse>
+  </g>
+  <g>
+    <rect x="146" y="240" width="40" height="11" rx="5" fill="#1C5D00"></rect>
+    <rect x="152" y="250" width="8" height="22" rx="4" fill="#1C5D00"></rect>
+    <rect x="172" y="250" width="8" height="22" rx="4" fill="#1C5D00"></rect>
+    <path d="M148 246q-4-46 18-48 22 2 18 48Z" fill="#D40000"></path>
+    <rect x="158" y="182" width="16" height="14" fill="#9A6440"></rect>
+    <ellipse class="co-hair" cx="166" cy="178" rx="18" ry="17" fill="#4A3526"></ellipse>
+  </g>
+</svg>

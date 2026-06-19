@@ -566,38 +566,9 @@ Stroke weight: default (`strokeWidth={2}`). For visual breathing room at ≥ 24p
 
 Always set `aria-hidden="true"` on decorative icons; provide `aria-label` on interactive icon-only buttons.
 
-### 8.2 Custom flame-motif set
-
-Six icons riffing on the brand flame, for brand/celebration moments. Live in `src/components/icons/flame/`.
-
-| Icon                | File                   | Use                                                 |
-| ------------------- | ---------------------- | --------------------------------------------------- |
-| `flame-hope`        | `FlameHope.tsx`        | Landing hero accent, large feature decoration       |
-| `flame-certificate` | `FlameCertificate.tsx` | Certificate issued, certificate empty state         |
-| `flame-milestone`   | `FlameMilestone.tsx`   | Achievement unlocked, stat-card celebration variant |
-| `flame-welcome`     | `FlameWelcome.tsx`     | Dashboard WelcomeBanner illustration                |
-| `flame-empty`       | `FlameEmpty.tsx`       | Generic empty-state accent                          |
-| `flame-celebration` | `FlameCelebration.tsx` | Toast success decoration, celebration moments       |
-
-Each icon is hand-drafted in Figma, exported as optimized SVG, wrapped in a React component:
-
-```tsx
-export function FlameHope({ size = 24, className, ...rest }: SVGProps) {
-  return (
-    <svg width={size} height={size} className={className} aria-hidden="true" {...rest}>
-      ...
-    </svg>
-  )
-}
-```
-
-Icons inherit `currentColor`. For multi-color brand renderings, pass `className="text-[var(--flame-red)]"` or compose via gradients defined inline in the SVG.
-
-### 8.3 Icon selection rules
+### 8.2 Icon selection rules
 
 - Prefer Lucide for UI (nav, buttons, form, statuses).
-- Use flame icons only for brand/emotional moments — never as generic UI.
-- Never mix Lucide and flame icons in the same visual group.
 - Never use emoji as UI icons (except the 👋 greeting in the WelcomeBanner, which is intentional).
 
 ---
@@ -818,7 +789,7 @@ New `Badge` variants (soft tinted background + saturated foreground, optional do
 
 ```tsx
 <EmptyState
-  illustration={<FlameEmpty size={240} />}
+  illustration={<img src="/illustrations/students.svg" alt="" className="w-full" />}
   heading="Aún no hay estudiantes"
   body="Agrega el primero para comenzar."
   action={<Button>Agregar estudiante</Button>}
@@ -1013,7 +984,7 @@ These are the markers that read as generic AI-slop or template-grade work. Avoid
 8. ❌ **Dropdown menus overlapping active table rows.** → `collisionBoundary="viewport"` + `align="end"` defaults.
 9. ❌ **Default font stacks** (browser fallback only). → Geist Sans self-hosted.
 10. ❌ **Stock enterprise photography** (suits + handshakes). → Custom illustration or curated community photos only.
-11. ❌ **Emoji as UI icons.** → Lucide + flame-motif set. (👋 in the WelcomeBanner is a deliberate exception.)
+11. ❌ **Emoji as UI icons.** → Lucide icons. (👋 in the WelcomeBanner is a deliberate exception.)
 12. ❌ **"Oops!" or "Something went wrong"** error copy. → Specific, actionable, warm.
 13. ❌ **Route transitions that bounce or spring.** → Linear `fadeUp` with cubic ease-out.
 14. ❌ **Orchestrated animations across routes** (shared-layout on admin pages). → Route-level `fadeUp` only.
@@ -1035,8 +1006,7 @@ If a PR introduces any of these, push back in review.
 | Design tokens (CSS)       | `src/index.css`                | CSS custom properties, `:root` + `.dark`    |
 | Tailwind tokens (TS)      | `tailwind.config.ts`           | Semantic color mapping, shadows, animations |
 | Motion presets (TS)       | `src/lib/motion.ts`            | Framer Motion `Variants` + `Transition`     |
-| Flame icon set            | `src/components/icons/flame/`  | 6 custom React components                   |
-| Brand components          | `src/components/brand/`        | `LogoMark`, `FlameSeparator`                |
+| Brand components          | `src/components/brand/`        | `LogoMark`                                  |
 | Shared components         | `src/components/shared/`       | `StatCard`, `EmptyState`, etc.              |
 | Landing components        | `src/components/landing/`      | Hero, TrustStrip, FeatureBento, etc.        |
 | Empty-state illustrations | `src/components/empty-states/` | SVG, light + dark variants                  |

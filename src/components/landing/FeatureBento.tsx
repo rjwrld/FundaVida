@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { FlameCertificate } from '@/components/icons/flame'
 import { fadeUp, staggerContainer, transitionDefaults } from '@/lib/motion'
 import { BentoCell, BentoGrid } from './BentoGrid'
 
@@ -58,10 +57,6 @@ export function FeatureBento() {
 
           <motion.div variants={fadeUp} transition={transitionDefaults} className="contents">
             <BentoCell className="bg-gradient-to-br from-flame-yellow-50 via-card to-card ring-1 ring-flame-yellow-200/60">
-              <FlameCertificate
-                size={180}
-                className="pointer-events-none absolute -bottom-4 -right-4 text-flame-yellow-200/70 transition-transform duration-500 group-hover:scale-105"
-              />
               <div className="relative flex h-full flex-col">
                 <span className="inline-flex w-fit items-center rounded-sm bg-flame-yellow-100 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-widest text-flame-yellow-700">
                   pdf

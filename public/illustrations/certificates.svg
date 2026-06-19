@@ -1,1 +1,62 @@
-<svg xmlns="http://www.w3.org/2000/svg" aria-labelledby="certificates-empty-title" viewBox="0 0 480 360"><title id="certificates-empty-title">A certificate with a gold seal and ribbon</title><style>.ink{fill:#1b2230}.green-500{fill:#32982d}.yellow-600{fill:#c49e1f}.ivory{fill:#faf6e8}@media (prefers-color-scheme:dark){.ink{fill:#eceef2}.ivory{fill:#dcd4b4}}</style><ellipse cx="240" cy="320" rx="170" ry="12" style="fill:#f5f8f4"/><g transform="translate(96 88)"><rect width="288" height="200" rx="6" style="fill:#fff"/><rect width="276" height="188" x="6" y="6" class="ivory" rx="4"/><rect width="276" height="10" x="6" y="6" class="green-500" rx="4"/><rect width="276" height="10" x="6" y="184" class="green-500" rx="4"/><rect width="216" height="6" x="36" y="40" class="ink" opacity=".75" rx="3"/><rect width="160" height="3" x="64" y="60" class="ink" opacity=".4" rx="1.5"/><rect width="120" height="4" x="36" y="84" class="ink" opacity=".55" rx="2"/><rect width="180" height="3" x="36" y="96" class="ink" opacity=".35" rx="1.5"/><rect width="150" height="3" x="36" y="106" class="ink" opacity=".35" rx="1.5"/><rect width="60" height="3" x="36" y="146" opacity=".7" rx="1.5" style="fill:#2961cd"/><rect width="46" height="2" x="36" y="156" class="ink" opacity=".4" rx="1"/><rect width="60" height="3" x="172" y="146" class="green-500" opacity=".7" rx="1.5"/><rect width="46" height="2" x="172" y="156" class="ink" opacity=".4" rx="1"/></g><g transform="translate(330 196)"><path d="M-2 0h16l-2 40-8-10-8 10z" class="green-500"/><path d="M-2 0h16L6 16z" style="fill:#287a24"/><circle cx="6" cy="-6" r="22" style="fill:#e6bd30"/><circle cx="6" cy="-6" r="22" fill="none" stroke="#c49e1f" stroke-width="2" class="yellow-600" opacity=".4"/><circle cx="6" cy="-6" r="14" class="yellow-600"/><path d="m-1-10 5 8 9-1-6 7 2 8-8-4-8 4 2-8-6-6 8-1Z" class="ivory"/></g><g class="ink" opacity=".35"><circle cx="80" cy="120" r="3"/><circle cx="400" cy="100" r="2"/><circle cx="100" cy="270" r="2"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 330">
+  
+  <ellipse cx="220" cy="298" rx="178" ry="30" fill="#F9C718"></ellipse>
+  <path d="M42 298a178 30 0 0 0 356 0Z" fill="#E0A800"></path>
+  <g transform="translate(232,52)">
+    <path d="M0 -26C13 -8 14 7 0 20C-14 7 -13 -8 0 -26Z" fill="#D40000"></path>
+    <path d="M-18 -16C-9 -3 -8 9 -18 17C-28 9 -28 -5 -18 -16Z" fill="#3C8D0F"></path>
+    <path d="M18 -16C28 -5 28 9 18 17C8 9 9 -3 18 -16Z" fill="#155ED0"></path>
+    <path d="M0 -10 2 -3 9 -1 2 1 0 8 -2 1 -9 -1 -2 -3Z" fill="#7DFC00"></path>
+  </g>
+  <g>
+    <circle cx="110" cy="70" r="5" fill="#155ED0"></circle>
+    <rect x="160" y="44" width="9" height="9" rx="2" fill="#D40000" transform="rotate(20 164 48)"></rect>
+    <circle cx="316" cy="64" r="5" fill="#3C8D0F"></circle>
+    <rect x="346" y="92" width="9" height="9" rx="2" fill="#F9C718" transform="rotate(-15 350 96)"></rect>
+    <circle cx="74" cy="120" r="4.5" fill="#D40000"></circle>
+    <rect x="360" y="150" width="8" height="8" rx="2" fill="#155ED0" transform="rotate(25 364 154)"></rect>
+  </g>
+  <g>
+    <path d="M96 284q-5-62 24-64 29 2 24 64Z" fill="#3C8D0F"></path>
+    <rect x="100" y="192" width="40" height="38" rx="15" fill="#155ED0"></rect>
+    <rect x="96" y="198" width="12" height="38" rx="6" fill="#155ED0"></rect>
+    <circle cx="102" cy="238" r="6.5" fill="#9A6440"></circle>
+    <path d="M138 206q20 4 38 12" stroke="#155ED0" stroke-width="12" fill="none" stroke-linecap="round"></path>
+    <rect x="116" y="182" width="11" height="12" fill="#9A6440"></rect>
+    <ellipse class="ce-hair" cx="121" cy="167" rx="21" ry="20" fill="#241a14"></ellipse>
+    <circle cx="121" cy="169" r="17" fill="#9A6440"></circle>
+    <path class="ce-hair" d="M104 165q3-16 17-16 14 0 17 16-5-7-17-7-12 0-17 7Z" fill="#241a14"></path>
+    <circle cx="114" cy="170" r="2.2" fill="#242424"></circle>
+    <circle cx="127" cy="170" r="2.2" fill="#242424"></circle>
+    <path d="M114 176q6 4 12 0" stroke="#242424" stroke-width="2.3" fill="none" stroke-linecap="round"></path>
+    <circle cx="109" cy="175" r="3" fill="#D40000" opacity="0.18"></circle>
+    <circle cx="132" cy="175" r="3" fill="#D40000" opacity="0.18"></circle>
+  </g>
+  <g transform="translate(192,214)">
+    <rect x="-22" y="-9" width="44" height="18" rx="9" fill="#EBD9C0"></rect>
+    <circle cx="-22" cy="0" r="9" fill="#DCC79E"></circle>
+    <circle cx="22" cy="0" r="9" fill="#DCC79E"></circle>
+    <rect x="-4" y="-9" width="8" height="18" fill="#D40000"></rect>
+    <path d="M0 9l-6 12 6-4 6 4Z" fill="#D40000"></path>
+  </g>
+  <g>
+    <path d="M212 286q-6-70 30-72 36 2 30 72Z" fill="#003792"></path>
+    <path d="M242 216l-14 56h28Z" fill="#D40000"></path>
+    <rect x="220" y="196" width="44" height="34" rx="15" fill="#003792"></rect>
+    <rect x="220" y="202" width="12" height="34" rx="6" fill="#003792"></rect>
+    <circle cx="226" cy="236" r="6.5" fill="#C2855A"></circle>
+    <rect x="232" y="186" width="11" height="12" fill="#C2855A"></rect>
+    <ellipse class="ce-hair" cx="238" cy="172" rx="20" ry="18" fill="#1E1A17"></ellipse>
+    <circle cx="238" cy="174" r="16" fill="#C2855A"></circle>
+    <circle cx="232" cy="174" r="2.2" fill="#242424"></circle>
+    <circle cx="245" cy="174" r="2.2" fill="#242424"></circle>
+    <path d="M231 180q7 5 14 0" stroke="#242424" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+    <circle cx="226" cy="179" r="3" fill="#D40000" opacity="0.2"></circle>
+    <circle cx="250" cy="179" r="3" fill="#D40000" opacity="0.2"></circle>
+    <rect class="ce-cap" x="228" y="150" width="20" height="11" rx="3" fill="#161210"></rect>
+    <path class="ce-cap" d="M214 150l24-9 24 9-24 9Z" fill="#161210"></path>
+    <circle cx="262" cy="150" r="3" fill="#F9C718"></circle>
+    <path d="M262 150v12" stroke="#F9C718" stroke-width="2.4"></path>
+    <circle cx="262" cy="164" r="3.5" fill="#F9C718"></circle>
+  </g>
+</svg>

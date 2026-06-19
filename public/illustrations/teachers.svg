@@ -1,1 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" aria-labelledby="teachers-empty-title" viewBox="0 0 480 360"><title id="teachers-empty-title">A chalkboard with notes and a piece of chalk</title><style>.ink{fill:#1b2230}@media (prefers-color-scheme:dark){.ink{fill:#eceef2}}</style><ellipse cx="240" cy="320" rx="170" ry="12" style="fill:#f5f8f4"/><g transform="translate(86 64)"><rect width="320" height="220" x="-6" y="-6" rx="6" style="fill:#faf6e8"/><rect width="308" height="208" rx="4" style="fill:#143f11"/><rect width="308" height="208" opacity=".5" rx="4" style="fill:#1b5c18"/><g opacity=".88" style="fill:#f0f2ee"><rect width="120" height="4" x="22" y="30" rx="2"/><rect width="86" height="3" x="22" y="44" opacity=".7" rx="1.5"/><path fill="none" stroke="#f0f2ee" stroke-linecap="round" stroke-width="2.5" d="M22 78q22-16 44 0t44 0 44 0"/><rect width="68" height="3" x="22" y="108" opacity=".75" rx="1.5"/><rect width="92" height="3" x="22" y="120" opacity=".55" rx="1.5"/><rect width="56" height="3" x="22" y="132" opacity=".55" rx="1.5"/></g><g transform="translate(196 90)"><circle cx="40" cy="40" r="42" fill="#f0f2ee" opacity=".15"/><circle cx="40" cy="40" r="34" fill="none" stroke="#f0f2ee" stroke-width="2.4" opacity=".7"/><text x="40" y="46" fill="#f0f2ee" font-family="serif" font-size="20" font-style="italic" opacity=".9" text-anchor="middle">A+</text></g><rect width="320" height="14" x="-6" y="200" opacity=".7" rx="2" style="fill:#c9d2dd"/><rect width="320" height="6" x="-6" y="208" class="ink" opacity=".25" rx="2"/><rect width="40" height="8" x="40" y="202" rx="2" style="fill:#e6bd30"/><path d="M40 208h40v2H40z" class="ink" opacity=".25"/><rect width="48" height="8" x="200" y="202" rx="2" style="fill:#2961cd"/></g><g class="ink" opacity=".4"><circle cx="60" cy="120" r="3"/><circle cx="420" cy="160" r="2"/><circle cx="60" cy="260" r="2"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 330">
+  
+  <ellipse cx="220" cy="298" rx="184" ry="30" fill="#2E78D8"></ellipse>
+  <path d="M36 298a184 30 0 0 0 368 0Z" fill="#155ED0"></path>
+  <rect x="232" y="226" width="150" height="12" rx="6" fill="#C66A3A"></rect>
+  <rect x="240" y="238" width="9" height="42" rx="4" fill="#9E4E22"></rect>
+  <rect x="366" y="238" width="9" height="42" rx="4" fill="#9E4E22"></rect>
+  <rect x="318" y="202" width="44" height="26" rx="3" fill="#1C5D00"></rect>
+  <rect x="323" y="207" width="34" height="16" rx="2" fill="#7DFC00"></rect>
+  <rect x="312" y="226" width="56" height="5" rx="2.5" fill="#3C8D0F"></rect>
+  <g>
+    <rect x="300" y="246" width="14" height="40" rx="7" fill="#003792"></rect>
+    <rect x="318" y="246" width="14" height="40" rx="7" fill="#003792"></rect>
+    <path d="M292 252q-3-44 24-46 27 2 24 46Z" fill="#F9C718"></path>
+    <rect x="290" y="214" width="12" height="34" rx="6" fill="#F9C718"></rect>
+    <circle cx="296" cy="234" r="6.5" fill="#9A6440"></circle>
+    <rect x="310" y="200" width="11" height="13" fill="#9A6440"></rect>
+    <ellipse class="te-hair" cx="315" cy="186" rx="20" ry="19" fill="#2B221C"></ellipse>
+    <circle cx="315" cy="188" r="17" fill="#9A6440"></circle>
+    <path class="te-hair" d="M298 184q3-15 17-15 14 0 17 15-5-7-17-7-12 0-17 7Z" fill="#2B221C"></path>
+    <circle cx="308" cy="189" r="2.2" fill="#242424"></circle>
+    <circle cx="321" cy="189" r="2.2" fill="#242424"></circle>
+    <path d="M308 195q6 4 12 0" stroke="#242424" stroke-width="2.3" fill="none" stroke-linecap="round"></path>
+    <circle cx="303" cy="194" r="3" fill="#D40000" opacity="0.18"></circle>
+    <circle cx="326" cy="194" r="3" fill="#D40000" opacity="0.18"></circle>
+  </g>
+  <g>
+    <path d="M150 284q-6-66 26-68 32 2 26 68Z" fill="#1C5D00"></path>
+    <rect x="154" y="190" width="44" height="40" rx="16" fill="#D40000"></rect>
+    <rect x="150" y="196" width="12" height="40" rx="6" fill="#D40000"></rect>
+    <circle cx="156" cy="238" r="6.5" fill="#784B30"></circle>
+    <path d="M196 206q26 2 50 8" stroke="#D40000" stroke-width="12" fill="none" stroke-linecap="round"></path>
+    <circle cx="250" cy="216" r="6.5" fill="#784B30"></circle>
+    <rect x="170" y="180" width="11" height="12" fill="#784B30"></rect>
+    <ellipse class="te-hair" cx="176" cy="165" rx="22" ry="20" fill="#161210"></ellipse>
+    <circle cx="176" cy="167" r="18" fill="#784B30"></circle>
+    <path class="te-hair" d="M157 162q3-16 19-16 16 0 19 16-5-7-19-7-14 0-19 7Z" fill="#161210"></path>
+    <circle cx="169" cy="168" r="2.3" fill="#242424"></circle>
+    <circle cx="183" cy="168" r="2.3" fill="#242424"></circle>
+    <path d="M170 174q6 5 12 0" stroke="#242424" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+    <circle cx="164" cy="173" r="3.2" fill="#D40000" opacity="0.2"></circle>
+    <circle cx="188" cy="173" r="3.2" fill="#D40000" opacity="0.2"></circle>
+  </g>
+</svg>
