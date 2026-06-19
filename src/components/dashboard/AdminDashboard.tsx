@@ -6,7 +6,6 @@ import { ArrowRight, CalendarDays, GraduationCap, HeartHandshake } from 'lucide-
 import { WelcomeBanner } from '@/components/shared/WelcomeBanner'
 import { CalendarWidget } from '@/components/shared/CalendarWidget'
 import { UpcomingList, type UpcomingItem } from '@/components/shared/UpcomingList'
-import { FlameWelcome } from '@/components/icons/flame'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useDashboardStats } from '@/hooks/api/useDashboardStats'
 import { useStore } from '@/data/store'
@@ -103,7 +102,6 @@ export function AdminDashboard() {
                 </Link>
               ) : null
             }
-            illustration={<FlameWelcome size={140} className="text-brand-green-500/85" />}
           />
         </motion.div>
 

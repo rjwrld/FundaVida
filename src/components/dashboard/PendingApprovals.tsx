@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
-import { FlameCelebration } from '@/components/icons/flame/FlameCelebration'
+import { ArrowRight, CheckCircle2, Clock } from 'lucide-react'
 import { useFormat } from '@/hooks/useFormat'
 
 export interface PendingApprovalsProps {
@@ -20,7 +19,7 @@ export function PendingApprovals({ count }: PendingApprovalsProps) {
           {t('dashboard.pendingApprovals.title')}
         </h3>
         {hasPending ? (
-          <FlameCelebration size={28} aria-hidden="true" className="text-muted-foreground" />
+          <Clock size={28} aria-hidden="true" className="text-muted-foreground" />
         ) : (
           <CheckCircle2 className="size-5 text-brand-green-500" aria-hidden="true" />
         )}
