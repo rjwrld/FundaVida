@@ -16,7 +16,6 @@ export interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
   format?: (value: number) => string
   delta?: StatCardDelta
   icon?: React.ReactNode
-  sparkline?: number[]
   variant?: StatCardVariant
 }
 
@@ -25,39 +24,12 @@ const variantClasses: Record<StatCardVariant, string> = {
   primary: 'bg-card',
 }
 
-function Sparkline({ values, positive }: { values: number[]; positive: boolean }) {
-  if (values.length < 2) return null
-  const max = Math.max(...values)
-  const min = Math.min(...values)
-  const range = max - min || 1
-  const points = values
-    .map((v, i) => {
-      const x = (i / (values.length - 1)) * 80
-      const y = 24 - ((v - min) / range) * 20
-      return `${x.toFixed(1)},${y.toFixed(1)}`
-    })
-    .join(' ')
-  return (
-    <svg width="80" height="24" viewBox="0 0 80 24" aria-hidden>
-      <polyline
-        fill="none"
-        strokeWidth="2"
-        stroke={positive ? 'oklch(var(--success))' : 'oklch(var(--destructive))'}
-        points={points}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
 export function StatCard({
   label,
   value,
   format,
   delta,
   icon,
-  sparkline,
   variant = 'default',
   className,
   ...props
@@ -87,31 +59,22 @@ export function StatCard({
           className="font-mono text-[32px] font-semibold tabular-nums text-foreground"
         />
       </div>
-      {(delta || sparkline) && (
-        <div className="mt-3 flex items-end justify-between gap-3">
-          {delta ? (
-            <div
-              className={cn(
-                'inline-flex items-center gap-1 text-[13px]',
-                positive ? 'text-success' : 'text-destructive'
-              )}
-            >
-              {positive ? (
-                <ArrowUpRight className="size-3.5" aria-hidden="true" />
-              ) : (
-                <ArrowDownRight className="size-3.5" aria-hidden="true" />
-              )}
-              <span className="font-medium tabular-nums">{deltaPct}</span>
-              {delta.label ? <span className="text-muted-foreground">{delta.label}</span> : null}
-            </div>
-          ) : (
-            <span />
-          )}
-          {sparkline ? (
-            <div className="opacity-70 transition-opacity duration-200 group-hover:opacity-100">
-              <Sparkline values={sparkline} positive={positive} />
-            </div>
-          ) : null}
+      {delta && (
+        <div className="mt-3">
+          <div
+            className={cn(
+              'inline-flex items-center gap-1 text-[13px]',
+              positive ? 'text-success' : 'text-destructive'
+            )}
+          >
+            {positive ? (
+              <ArrowUpRight className="size-3.5" aria-hidden="true" />
+            ) : (
+              <ArrowDownRight className="size-3.5" aria-hidden="true" />
+            )}
+            <span className="font-medium tabular-nums">{deltaPct}</span>
+            {delta.label ? <span className="text-muted-foreground">{delta.label}</span> : null}
+          </div>
         </div>
       )}
     </div>
