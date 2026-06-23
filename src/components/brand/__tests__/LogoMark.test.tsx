@@ -16,6 +16,12 @@ describe('<LogoMark />', () => {
     expect(img).toHaveAttribute('src', '/logo.svg')
   })
 
+  it('renders an img with /logo-mark.svg for variant="mark"', () => {
+    render(<LogoMark variant="mark" />)
+    const img = screen.getByRole('img', { name: /fundavida/i })
+    expect(img).toHaveAttribute('src', '/logo-mark.svg')
+  })
+
   it('renders an img with /logo.svg for variant="wordmark"', () => {
     render(<LogoMark variant="wordmark" />)
     const img = screen.getByRole('img', { name: /fundavida/i })

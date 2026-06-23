@@ -2,6 +2,7 @@ import { Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { RoleSwitcher } from '@/components/demo/RoleSwitcher'
+import { BrandLockup } from '@/components/brand/BrandLockup'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 import { LanguageToggle } from '@/components/layout/LanguageToggle'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
@@ -13,7 +14,11 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border/60 bg-background/85 px-4 backdrop-blur-md md:px-6">
-      <Breadcrumbs />
+      <div className="flex min-w-0 items-center gap-3">
+        <BrandLockup />
+        <div aria-hidden className="hidden h-5 w-px bg-border/60 sm:block" />
+        <Breadcrumbs />
+      </div>
       <div className="flex-1" />
       <Button
         type="button"
