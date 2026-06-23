@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { MoreHorizontal, Plus, Search } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -19,19 +19,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { RowActions } from '@/components/shared/RowActions'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { CoursesEmpty } from '@/components/empty-states/CoursesEmpty'
+import { CourseFormDialog } from '@/components/courses/CourseFormDialog'
 import { useCourses, useDeleteCourse } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
+import { useFormDialogParams } from '@/hooks/useFormDialogParams'
 import { HEADQUARTERS, PROGRAMS } from '@/constants/course'
 import type { CourseFilters } from '@/data/api/courses'
+import type { Course } from '@/types'
 import { useStore } from '@/data/store'
 
 export function CoursesListPage() {
@@ -39,15 +38,17 @@ export function CoursesListPage() {
   const [filters, setFilters] = useState<CourseFilters>({})
   const { data = [], isLoading } = useCourses(filters)
   const deleteCourse = useDeleteCourse()
-  const navigate = useNavigate()
+  const { isOpen, mode, editId, openCreate, openEdit, close } = useFormDialogParams()
+  const [pendingDelete, setPendingDelete] = useState<Course | null>(null)
   const teachers = useStore((s) => s.teachers)
   const canCreate = useCan('create', 'courses')
   const canEdit = useCan('edit', 'courses')
   const canDelete = useCan('delete', 'courses')
+  const canActOnRows = canEdit || canDelete
 
   const hasFilters = Boolean(filters.search || filters.headquartersName || filters.programName)
   const count = data.length
-  const columnCount = canCreate ? 5 : 4
+  const columnCount = canActOnRows ? 5 : 4
 
   const teacherName = (teacherId: string) => {
     const teacher = teachers.find((x) => x.id === teacherId)
@@ -61,7 +62,7 @@ export function CoursesListPage() {
         description={t('courses.list.subtitle')}
         action={
           canCreate ? (
-            <Button onClick={() => navigate('/app/courses/new')}>
+            <Button onClick={openCreate}>
               <Plus size={16} className="mr-2" />
               {t('courses.list.addButton')}
             </Button>
@@ -124,7 +125,7 @@ export function CoursesListPage() {
       {isLoading ? (
         <SkeletonTable rows={8} columns={columnCount} />
       ) : count === 0 && !hasFilters ? (
-        <CoursesEmpty onAdd={canCreate ? () => navigate('/app/courses/new') : undefined} />
+        <CoursesEmpty onAdd={canCreate ? openCreate : undefined} />
       ) : count === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
           {t('courses.list.emptyFiltered')}
@@ -145,7 +146,7 @@ export function CoursesListPage() {
                 <TableHead>{t('courses.list.columns.program')}</TableHead>
                 <TableHead>{t('courses.form.fields.headquartersName')}</TableHead>
                 <TableHead>{t('courses.list.columns.teacher')}</TableHead>
-                {canCreate && (
+                {canActOnRows && (
                   <TableHead className="text-right">{t('courses.list.columns.actions')}</TableHead>
                 )}
               </TableRow>
@@ -161,41 +162,14 @@ export function CoursesListPage() {
                   <TableCell>{c.programName}</TableCell>
                   <TableCell>{c.headquartersName}</TableCell>
                   <TableCell>{teacherName(c.teacherId)}</TableCell>
-                  {canCreate && (
+                  {canActOnRows && (
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            aria-label={t('common.actions.openMenu')}
-                          >
-                            <MoreHorizontal size={16} />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          {canEdit && (
-                            <DropdownMenuItem
-                              onSelect={() => navigate(`/app/courses/${c.id}/edit`)}
-                            >
-                              {t('courses.detail.edit')}
-                            </DropdownMenuItem>
-                          )}
-                          {canDelete && (
-                            <DropdownMenuItem
-                              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                              onSelect={() => {
-                                if (confirm(t('courses.detail.deleteConfirm'))) {
-                                  deleteCourse.mutate(c.id)
-                                }
-                              }}
-                            >
-                              {t('common.actions.delete')}
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <RowActions
+                        editLabel={t('common.actions.editItem', { name: c.name })}
+                        deleteLabel={t('common.actions.deleteItem', { name: c.name })}
+                        onEdit={canEdit ? () => openEdit(c.id) : undefined}
+                        onDelete={canDelete ? () => setPendingDelete(c) : undefined}
+                      />
                     </TableCell>
                   )}
                 </TableRow>
@@ -204,6 +178,27 @@ export function CoursesListPage() {
           </Table>
         </div>
       )}
+
+      <CourseFormDialog
+        open={isOpen && (mode === 'edit' ? canEdit : canCreate)}
+        mode={mode}
+        courseId={editId}
+        onClose={close}
+      />
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={t('common.confirmDelete.title')}
+        description={t('courses.detail.deleteConfirm')}
+        confirmLabel={t('common.actions.delete')}
+        destructive
+        onConfirm={() => {
+          if (pendingDelete) deleteCourse.mutate(pendingDelete.id)
+        }}
+        onOpenChange={(o) => {
+          if (!o) setPendingDelete(null)
+        }}
+      />
     </div>
   )
 }

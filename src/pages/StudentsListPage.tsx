@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { MoreHorizontal, Plus, Search } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -19,17 +19,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { RowActions } from '@/components/shared/RowActions'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { StudentsEmpty } from '@/components/empty-states/StudentsEmpty'
+import { StudentFormDialog } from '@/components/students/StudentFormDialog'
 import { useDeleteStudent, useStudents } from '@/hooks/api'
+import { useCan } from '@/hooks/useCan'
+import { useFormDialogParams } from '@/hooks/useFormDialogParams'
 import type { StudentFilters } from '@/data/api/students'
+import type { Student } from '@/types'
 import { EDUCATIONAL_LEVELS, PROVINCES } from '@/constants/student'
 
 export function StudentsListPage() {
@@ -37,7 +37,12 @@ export function StudentsListPage() {
   const [filters, setFilters] = useState<StudentFilters>({})
   const { data = [], isLoading } = useStudents(filters)
   const deleteStudent = useDeleteStudent()
-  const navigate = useNavigate()
+  const { isOpen, mode, editId, openCreate, openEdit, close } = useFormDialogParams()
+  const [pendingDelete, setPendingDelete] = useState<Student | null>(null)
+
+  const canCreate = useCan('create', 'students')
+  const canEdit = useCan('edit', 'students')
+  const canDelete = useCan('delete', 'students')
 
   const hasFilters = Boolean(filters.search || filters.province || filters.educationalLevel)
   const count = data.length
@@ -48,10 +53,12 @@ export function StudentsListPage() {
         title={t('students.list.title')}
         description={t('students.list.subtitle')}
         action={
-          <Button onClick={() => navigate('/app/students/new')}>
-            <Plus size={16} className="mr-2" />
-            {t('students.list.addButton')}
-          </Button>
+          canCreate ? (
+            <Button onClick={openCreate}>
+              <Plus size={16} className="mr-2" />
+              {t('students.list.addButton')}
+            </Button>
+          ) : undefined
         }
       />
 
@@ -110,7 +117,7 @@ export function StudentsListPage() {
       {isLoading ? (
         <SkeletonTable rows={8} columns={5} />
       ) : count === 0 && !hasFilters ? (
-        <StudentsEmpty onAdd={() => navigate('/app/students/new')} />
+        <StudentsEmpty onAdd={canCreate ? openCreate : undefined} />
       ) : count === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
           {t('students.list.emptyFiltered')}
@@ -135,51 +142,54 @@ export function StudentsListPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((s) => (
-                <TableRow key={s.id} className="h-12 hover:bg-muted/40">
-                  <TableCell>
-                    <Link to={`/app/students/${s.id}`} className="hover:underline">
-                      {s.firstName} {s.lastName}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{s.email}</TableCell>
-                  <TableCell>{s.province}</TableCell>
-                  <TableCell>{t(`students.form.level.${s.educationalLevel}`)}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          aria-label={t('common.actions.openMenu')}
-                        >
-                          <MoreHorizontal size={16} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onSelect={() => navigate(`/app/students/${s.id}/edit`)}>
-                          {t('students.detail.edit')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                          onSelect={() => {
-                            if (confirm(t('students.detail.deleteConfirm'))) {
-                              deleteStudent.mutate(s.id)
-                            }
-                          }}
-                        >
-                          {t('common.actions.delete')}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {data.map((s) => {
+                const name = `${s.firstName} ${s.lastName}`
+                return (
+                  <TableRow key={s.id} className="h-12 hover:bg-muted/40">
+                    <TableCell>
+                      <Link to={`/app/students/${s.id}`} className="hover:underline">
+                        {name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{s.email}</TableCell>
+                    <TableCell>{s.province}</TableCell>
+                    <TableCell>{t(`students.form.level.${s.educationalLevel}`)}</TableCell>
+                    <TableCell className="text-right">
+                      <RowActions
+                        editLabel={t('common.actions.editItem', { name })}
+                        deleteLabel={t('common.actions.deleteItem', { name })}
+                        onEdit={canEdit ? () => openEdit(s.id) : undefined}
+                        onDelete={canDelete ? () => setPendingDelete(s) : undefined}
+                      />
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </div>
       )}
+
+      <StudentFormDialog
+        open={isOpen && (mode === 'edit' ? canEdit : canCreate)}
+        mode={mode}
+        studentId={editId}
+        onClose={close}
+      />
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={t('common.confirmDelete.title')}
+        description={t('students.detail.deleteConfirm')}
+        confirmLabel={t('common.actions.delete')}
+        destructive
+        onConfirm={() => {
+          if (pendingDelete) deleteStudent.mutate(pendingDelete.id)
+        }}
+        onOpenChange={(o) => {
+          if (!o) setPendingDelete(null)
+        }}
+      />
     </div>
   )
 }
