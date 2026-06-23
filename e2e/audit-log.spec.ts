@@ -19,7 +19,8 @@ test('admin sees audit log and a new create entry after making one', async ({ pa
 
   await page.getByRole('button', { name: 'Save' }).click()
 
-  await expect(page.getByRole('heading', { name: `${firstName} Log` })).toBeVisible()
+  // Modal closes; the audit entry below confirms the create.
+  await expect(page.getByRole('heading', { name: 'New student' })).toBeHidden()
 
   await page.getByRole('link', { name: 'Audit Logs' }).click()
   await expect(page.getByRole('heading', { name: 'Audit logs' })).toBeVisible()

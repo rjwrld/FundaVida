@@ -19,12 +19,11 @@ test('admin creates a student and sees them in the list', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Save' }).click()
 
-  await expect(page.getByRole('heading', { name: 'Ada Lovelace' })).toBeVisible()
-  await expect(page.getByText('ada+e2e@example.com')).toBeVisible()
-
-  await page.getByRole('button', { name: 'Back to home' }).click()
+  // The modal closes and the new student shows up in the list.
+  await expect(page.getByRole('heading', { name: 'New student' })).toBeHidden()
   await page.getByPlaceholder('Search by name or email').fill('Ada')
-  await expect(page.getByText('Ada Lovelace')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Ada Lovelace' })).toBeVisible()
+  await expect(page.getByText('ada+e2e@example.com')).toBeVisible()
 })
 
 test('list renders in Spanish when locale is ES', async ({ page }) => {

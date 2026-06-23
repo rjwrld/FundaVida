@@ -22,7 +22,8 @@ test('admin runs the full chain: create student, enroll, grade, certificate', as
   await page.getByRole('option', { name: 'San José' }).click()
   await page.getByRole('button', { name: 'Save' }).click()
 
-  await expect(page.getByRole('heading', { name: fullName })).toBeVisible()
+  // Modal closes; the student now exists (selected via the Enroll dialog below).
+  await expect(page.getByRole('heading', { name: 'New student' })).toBeHidden()
 
   await page.getByRole('link', { name: 'Courses' }).click()
   await expect(page.getByRole('heading', { name: 'Courses' })).toBeVisible()

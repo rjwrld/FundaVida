@@ -17,7 +17,9 @@ test('admin creates a teacher', async ({ page }) => {
   await page.getByLabel('Email').fill(`e2e${suffix}@fv.cr`)
   await page.getByRole('button', { name: 'Save' }).click()
 
-  await expect(page.getByRole('heading', { name: `${firstName} Smith` })).toBeVisible()
+  // The modal closes and the new teacher shows up in the list.
+  await expect(page.getByRole('heading', { name: 'New teacher' })).toBeHidden()
+  await expect(page.getByRole('link', { name: `${firstName} Smith` })).toBeVisible()
 })
 
 test('list renders in Spanish when locale is ES', async ({ page }) => {
