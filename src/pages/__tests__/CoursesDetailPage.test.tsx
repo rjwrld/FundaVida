@@ -132,4 +132,27 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     // One row per own Attendance record, plus the table header row.
     expect(screen.getAllByRole('row')).toHaveLength(ownAttendance.length + 1)
   })
+
+  it('denies a Student a Course they are not enrolled in', async () => {
+    const { notEnrolled } = fixtures()
+    asRole('student')
+    renderPage(notEnrolled.id)
+
+    // The scoped read returns null → not-found fallback (back link), never the Course.
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: /back to home/i })).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('heading', { name: notEnrolled.name })).not.toBeInTheDocument()
+  })
+
+  it('shows an admin the full enrollment roster', async () => {
+    const { gradedCourse, classmate } = fixtures()
+    asRole('admin')
+    renderPage(gradedCourse.id)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: gradedCourse.name })).toBeInTheDocument()
+    })
+    expect(screen.getByText(`${classmate.firstName} ${classmate.lastName}`)).toBeInTheDocument()
+  })
 })
