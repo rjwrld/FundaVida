@@ -656,6 +656,48 @@ describe('Permissions Matrix', () => {
         expect(can('teacher', 'mark', 'attendance', context)).toBe(false)
       })
 
+      it('teacher view enrollments: true when course is owned', () => {
+        const context: PermissionContext = {
+          userId: 'teacher-1',
+          course: {
+            id: 'course-1',
+            name: 'Math 101',
+            description: 'Advanced calculus',
+            sede: 'Linda Vista',
+            programName: 'Science',
+            teacherId: 'teacher-1',
+            term: {
+              start: '2025-01-01T00:00:00.000Z',
+              end: '2025-06-01T00:00:00.000Z',
+            },
+            meetingDays: ['mon', 'wed'],
+            createdAt: '2025-01-01T00:00:00.000Z',
+          },
+        }
+        expect(can('teacher', 'view', 'enrollments', context)).toBe(true)
+      })
+
+      it('teacher view enrollments: false when course is not owned', () => {
+        const context: PermissionContext = {
+          userId: 'teacher-1',
+          course: {
+            id: 'course-1',
+            name: 'Math 101',
+            description: 'Advanced calculus',
+            sede: 'Linda Vista',
+            programName: 'Science',
+            teacherId: 'teacher-2', // different teacher
+            term: {
+              start: '2025-01-01T00:00:00.000Z',
+              end: '2025-06-01T00:00:00.000Z',
+            },
+            meetingDays: ['mon', 'wed'],
+            createdAt: '2025-01-01T00:00:00.000Z',
+          },
+        }
+        expect(can('teacher', 'view', 'enrollments', context)).toBe(false)
+      })
+
       it('tcu log activity: true when activity organizerId matches userId', () => {
         const context: PermissionContext = {
           userId: 'tcu-user-1',
@@ -709,6 +751,8 @@ describe('Permissions Matrix', () => {
         expect(can('teacher', 'enter', 'grades')).toBe(false)
         // teacher mark attendance without context
         expect(can('teacher', 'mark', 'attendance')).toBe(false)
+        // teacher view enrollments without context
+        expect(can('teacher', 'view', 'enrollments')).toBe(false)
         // tcu log without context
         expect(can('tcu', 'log', 'tcu')).toBe(false)
       })

@@ -155,4 +155,17 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     })
     expect(screen.getByText(`${classmate.firstName} ${classmate.lastName}`)).toBeInTheDocument()
   })
+
+  it('shows the Course’s Teacher the full enrollment roster', async () => {
+    const { gradedCourse, classmate } = fixtures()
+    // cou-1 is owned by tea-1, the seeded teacher persona.
+    expect(gradedCourse.teacherId).toBe('tea-1')
+    asRole('teacher')
+    renderPage(gradedCourse.id)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: gradedCourse.name })).toBeInTheDocument()
+    })
+    expect(screen.getByText(`${classmate.firstName} ${classmate.lastName}`)).toBeInTheDocument()
+  })
 })
