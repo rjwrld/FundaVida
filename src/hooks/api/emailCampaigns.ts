@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useStore } from '@/data/store'
 import { api } from '@/data/api'
-import type { EmailFilter } from '@/types'
 import { makeEntityMutation } from './makeEntityMutation'
 
 const EMAIL_CAMPAIGNS_KEY = ['emailCampaigns'] as const
@@ -14,13 +13,7 @@ export function useEmailCampaigns() {
   })
 }
 
-export const useSendEmailCampaign = makeEntityMutation<{
-  subject: string
-  body: string
-  filter: EmailFilter
-  recipientIds: string[]
-}>({
-  method: 'sendEmailCampaign',
+export const useSendEmailCampaign = makeEntityMutation('sendEmailCampaign')({
   toastKey: 'toasts.campaignSent',
   invalidates: [EMAIL_CAMPAIGNS_KEY],
 })

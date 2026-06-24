@@ -14,8 +14,7 @@ export function useEnrollments(filters: EnrollmentFilters = {}) {
   })
 }
 
-export const useDeleteEnrollment = makeEntityMutation<string>({
-  method: 'unenrollStudent',
+export const useDeleteEnrollment = makeEntityMutation('unenrollStudent')({
   toastKey: 'toasts.unenrolled',
   invalidates: [ENROLLMENTS_KEY, ['students'], ['courses'], ['grades'], ['attendance']],
 })

@@ -69,8 +69,7 @@ describe('makeEntityMutation', () => {
 
   it('fires the configured success toast after the store method succeeds', async () => {
     const { toast } = await import('sonner')
-    const useThing = makeEntityMutation<typeof validStudent>({
-      method: 'createStudent',
+    const useThing = makeEntityMutation('createStudent')({
       toastKey: 'toasts.studentCreated',
       invalidates: [['students']],
     })
@@ -88,8 +87,7 @@ describe('makeEntityMutation', () => {
     vi.spyOn(useStore.getState(), 'createStudent').mockImplementation(() => {
       throw new Error('boom')
     })
-    const useThing = makeEntityMutation<typeof validStudent>({
-      method: 'createStudent',
+    const useThing = makeEntityMutation('createStudent')({
       toastKey: 'toasts.studentCreated',
       invalidates: [['students']],
     })
@@ -105,8 +103,7 @@ describe('makeEntityMutation', () => {
 
   it('invalidates the configured entity keys plus the audit key on success', async () => {
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
-    const useThing = makeEntityMutation<typeof validStudent>({
-      method: 'createStudent',
+    const useThing = makeEntityMutation('createStudent')({
       toastKey: 'toasts.studentCreated',
       invalidates: [['students'], ['enrollments']],
     })
@@ -126,8 +123,7 @@ describe('makeEntityMutation', () => {
       throw new Error('boom')
     })
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
-    const useThing = makeEntityMutation<typeof validStudent>({
-      method: 'createStudent',
+    const useThing = makeEntityMutation('createStudent')({
       toastKey: 'toasts.studentCreated',
       invalidates: [['students']],
     })
@@ -143,8 +139,10 @@ describe('makeEntityMutation', () => {
   it('maps variables to positional args and derives invalidation keys from them', async () => {
     const { toast } = await import('sonner')
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
-    const useThing = makeEntityMutation<{ id: string; patch: { firstName: string } }>({
-      method: 'updateStudent',
+    const useThing = makeEntityMutation('updateStudent')<{
+      id: string
+      patch: { firstName: string }
+    }>({
       toastKey: 'toasts.studentUpdated',
       invalidates: ({ id }) => [['students'], ['students', id]],
       args: ({ id, patch }) => [id, patch],

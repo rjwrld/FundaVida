@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/data/api'
-import { useStore, type StoreState } from '@/data/store'
+import { useStore } from '@/data/store'
 import type { StudentFilters } from '@/data/api/students'
 import type { Student } from '@/types'
 import { makeEntityMutation } from './makeEntityMutation'
@@ -28,21 +28,21 @@ export function useStudent(id: string) {
   })
 }
 
-export const useCreateStudent = makeEntityMutation<Parameters<StoreState['createStudent']>[0]>({
-  method: 'createStudent',
+export const useCreateStudent = makeEntityMutation('createStudent')({
   toastKey: 'toasts.studentCreated',
   invalidates: [STUDENTS_KEY],
 })
 
-export const useUpdateStudent = makeEntityMutation<{ id: string; patch: Partial<Student> }>({
-  method: 'updateStudent',
+export const useUpdateStudent = makeEntityMutation('updateStudent')<{
+  id: string
+  patch: Partial<Student>
+}>({
   toastKey: 'toasts.studentUpdated',
   invalidates: ({ id }) => [STUDENTS_KEY, studentKey(id)],
   args: ({ id, patch }) => [id, patch],
 })
 
-export const useDeleteStudent = makeEntityMutation<string>({
-  method: 'deleteStudent',
+export const useDeleteStudent = makeEntityMutation('deleteStudent')({
   toastKey: 'toasts.studentDeleted',
   invalidates: [STUDENTS_KEY, ['enrollments'], ['grades'], ['attendance'], ['tcu']],
 })

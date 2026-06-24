@@ -14,15 +14,16 @@ export function useGrades(filters: GradeFilters = {}) {
   })
 }
 
-export const useUpdateGradeScore = makeEntityMutation<{ id: string; score: number }>({
-  method: 'updateGradeScore',
+export const useUpdateGradeScore = makeEntityMutation('updateGradeScore')<{
+  id: string
+  score: number
+}>({
   toastKey: 'toasts.gradeSaved',
   invalidates: [GRADES_KEY],
   args: ({ id, score }) => [id, score],
 })
 
-export const useDeleteGrade = makeEntityMutation<string>({
-  method: 'deleteGrade',
+export const useDeleteGrade = makeEntityMutation('deleteGrade')({
   toastKey: 'toasts.gradeDeleted',
   invalidates: [GRADES_KEY],
 })
