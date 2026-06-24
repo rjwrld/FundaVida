@@ -16,6 +16,7 @@ import {
 import { buildStudentSchema, type StudentFormValues } from '@/data/schemas/student'
 import { useCreateStudent, useStudent, useUpdateStudent } from '@/hooks/api'
 import { EDUCATIONAL_LEVELS, GENDERS, PROVINCES } from '@/constants/student'
+import { SEDES } from '@/constants/sede'
 
 interface StudentFormProps {
   studentId?: string
@@ -44,6 +45,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
       lastName: '',
       email: '',
       gender: 'F',
+      sede: '' as StudentFormValues['sede'],
       province: '',
       canton: '',
       educationalLevel: 'Primary',
@@ -57,6 +59,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
         lastName: existing.lastName,
         email: existing.email,
         gender: existing.gender,
+        sede: existing.sede,
         province: existing.province,
         canton: existing.canton,
         educationalLevel: existing.educationalLevel as StudentFormValues['educationalLevel'],
@@ -140,27 +143,50 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
           {errors.canton && <p className="text-xs text-destructive">{errors.canton.message}</p>}
         </div>
       </div>
-      <div className="space-y-1.5">
-        <Label>{t('students.form.fields.educationalLevel')}</Label>
-        <Select
-          value={watch('educationalLevel')}
-          onValueChange={(v) =>
-            setValue('educationalLevel', v as StudentFormValues['educationalLevel'], {
-              shouldValidate: true,
-            })
-          }
-        >
-          <SelectTrigger aria-label={t('students.form.fields.educationalLevel')}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {EDUCATIONAL_LEVELS.map((l) => (
-              <SelectItem key={l} value={l}>
-                {t(`students.form.level.${l}`)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label>{t('students.form.fields.sede')}</Label>
+          <Select
+            value={watch('sede')}
+            onValueChange={(v) =>
+              setValue('sede', v as StudentFormValues['sede'], { shouldValidate: true })
+            }
+          >
+            <SelectTrigger aria-label={t('students.form.fields.sede')}>
+              <SelectValue placeholder={t('students.form.fields.sede')} />
+            </SelectTrigger>
+            <SelectContent>
+              {SEDES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.sede && <p className="text-xs text-destructive">{errors.sede.message}</p>}
+        </div>
+        <div className="space-y-1.5">
+          <Label>{t('students.form.fields.educationalLevel')}</Label>
+          <Select
+            value={watch('educationalLevel')}
+            onValueChange={(v) =>
+              setValue('educationalLevel', v as StudentFormValues['educationalLevel'], {
+                shouldValidate: true,
+              })
+            }
+          >
+            <SelectTrigger aria-label={t('students.form.fields.educationalLevel')}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {EDUCATIONAL_LEVELS.map((l) => (
+                <SelectItem key={l} value={l}>
+                  {t(`students.form.level.${l}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>

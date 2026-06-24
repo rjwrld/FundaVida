@@ -213,10 +213,10 @@
       "editTitle": "Editar curso",
       "fields": {
         "description": "Descripción",
-        "headquartersName": "Sede",
         "meetingDays": "Días de reunión",
         "name": "Nombre del curso",
         "programName": "Programa",
+        "sede": "Sede",
         "teacherId": "Docente",
         "termEnd": "Fin del semestre",
         "termStart": "Inicio del semestre"
@@ -563,7 +563,8 @@
         "firstName": "Nombre",
         "gender": "Género",
         "lastName": "Apellido",
-        "province": "Provincia"
+        "province": "Provincia",
+        "sede": "Sede"
       },
       "gender": {
         "F": "Femenino",
@@ -572,8 +573,7 @@
       },
       "level": {
         "Primary": "Primaria",
-        "Secondary": "Secundaria",
-        "University": "Universidad"
+        "Secondary": "Secundaria"
       },
       "newTitle": "Nuevo estudiante"
     },
@@ -584,7 +584,7 @@
         "email": "Correo",
         "level": "Nivel",
         "name": "Nombre",
-        "province": "Provincia"
+        "sede": "Sede"
       },
       "emptyFiltered": "Ningún estudiante coincide con el filtro.",
       "searchPlaceholder": "Buscar por nombre o correo",
@@ -639,7 +639,8 @@
       "fields": {
         "email": "Correo",
         "firstName": "Nombre",
-        "lastName": "Apellido"
+        "lastName": "Apellido",
+        "sede": "Sede"
       },
       "newTitle": "Nuevo docente"
     },

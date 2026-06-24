@@ -25,6 +25,7 @@ describe('store permission guards', () => {
           lastName: 'Student',
           email: 'denied@test.com',
           gender: 'M',
+          sede: 'Linda Vista',
           province: 'San Jose',
           canton: 'San Jose',
           educationalLevel: 'high',
@@ -240,6 +241,7 @@ describe('store permission guards', () => {
           firstName: 'Fake',
           lastName: 'Teacher',
           email: 'fake@test.com',
+          sede: 'Linda Vista',
         })
       }).toThrow()
 
@@ -260,7 +262,7 @@ describe('store permission guards', () => {
         useStore.getState().createCourse({
           name: 'Hacked',
           description: 'Nope',
-          headquartersName: 'HQ',
+          sede: 'Linda Vista',
           programName: 'Program',
           teacherId: 'tea-1',
           term: {

@@ -46,10 +46,10 @@ describe('api.students', () => {
     expect(targeted.some((s) => s.id === first.id)).toBe(true)
   })
 
-  it('list applies province filter', async () => {
+  it('list applies sede filter', async () => {
     useStore.getState().setRole('admin')
-    const result = await api.students.list({ province: 'San José' })
-    expect(result.every((s) => s.province === 'San José')).toBe(true)
+    const result = await api.students.list({ sede: 'Linda Vista' })
+    expect(result.every((s) => s.sede === 'Linda Vista')).toBe(true)
   })
 
   it('teacher sees ONLY students enrolled in their courses', async () => {

@@ -60,6 +60,7 @@ describe('teacher CRUD', () => {
       firstName: 'Grace',
       lastName: 'Hopper',
       email: 'grace@fv.cr',
+      sede: 'Linda Vista',
     })
     expect(created.id).toMatch(/^tea-\d+$/)
     expect(created.courseIds).toEqual([])
@@ -71,6 +72,7 @@ describe('teacher CRUD', () => {
       firstName: 'A',
       lastName: 'B',
       email: 'a@b.co',
+      sede: 'Linda Vista',
     })
     useStore.getState().updateTeacher(id, { lastName: 'Changed' })
     expect(useStore.getState().teachers.find((t) => t.id === id)?.lastName).toBe('Changed')
@@ -90,6 +92,7 @@ describe('teacher CRUD', () => {
       firstName: 'Lone',
       lastName: 'Wolf',
       email: 'lone@fv.cr',
+      sede: 'Linda Vista',
     })
     useStore.getState().deleteTeacher(created.id)
     expect(useStore.getState().teachers.some((t) => t.id === created.id)).toBe(false)
@@ -205,6 +208,7 @@ describe('audit log instrumentation', () => {
       lastName: 'Pine',
       email: 'n@fv.cr',
       gender: 'F',
+      sede: 'Linda Vista',
       province: 'X',
       canton: 'Y',
       educationalLevel: 'Primary',
@@ -222,6 +226,7 @@ describe('audit log instrumentation', () => {
       lastName: 'B',
       email: 'a@b.co',
       gender: 'F',
+      sede: 'Linda Vista',
       province: 'X',
       canton: 'Y',
       educationalLevel: 'Primary',

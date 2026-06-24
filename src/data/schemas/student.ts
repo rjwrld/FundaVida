@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { TFunction } from 'i18next'
+import { SEDES } from '@/constants/sede'
 
 export function buildStudentSchema(t: TFunction) {
   return z.object({
@@ -13,13 +14,18 @@ export function buildStudentSchema(t: TFunction) {
       .max(80),
     email: z.string().email(t('validation.email')),
     gender: z.enum(['F', 'M', 'X']),
+    sede: z.enum(SEDES, {
+      errorMap: () => ({
+        message: t('validation.required', { field: t('students.form.fields.sede') }),
+      }),
+    }),
     province: z
       .string()
       .min(1, t('validation.required', { field: t('students.form.fields.province') })),
     canton: z
       .string()
       .min(1, t('validation.required', { field: t('students.form.fields.canton') })),
-    educationalLevel: z.enum(['Primary', 'Secondary', 'University']),
+    educationalLevel: z.enum(['Primary', 'Secondary']),
   })
 }
 

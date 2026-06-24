@@ -12,11 +12,22 @@ describe('studentSchema', () => {
     gender: 'F' as const,
     province: 'San José',
     canton: 'Central',
-    educationalLevel: 'University' as const,
+    educationalLevel: 'Secondary' as const,
+    sede: 'Hatillo' as const,
   }
 
   it('accepts a valid student', () => {
     expect(studentSchema.parse(valid)).toEqual(valid)
+  })
+
+  it('rejects an unknown sede', () => {
+    expect(() => studentSchema.parse({ ...valid, sede: 'Heredia HQ' as never })).toThrow()
+  })
+
+  it('rejects University — the foundation serves through secondary only', () => {
+    expect(() =>
+      studentSchema.parse({ ...valid, educationalLevel: 'University' as never })
+    ).toThrow()
   })
 
   it('rejects empty names', () => {

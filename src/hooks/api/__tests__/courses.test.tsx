@@ -72,7 +72,7 @@ describe('useCreateCourse', () => {
     const input = {
       name: 'Test Course',
       description: 'A test course',
-      headquartersName: 'HQ',
+      sede: 'Linda Vista' as const,
       programName: 'Program',
       teacherId: teacher.id,
       term: { start: '2026-06-15T06:00:00.000Z', end: '2026-08-15T06:00:00.000Z' },
@@ -105,7 +105,7 @@ describe('useCreateCourse', () => {
     const input = {
       name: 'Test Course',
       description: 'A test course',
-      headquartersName: 'HQ',
+      sede: 'Linda Vista' as const,
       programName: 'Program',
       teacherId: teacher.id,
       term: { start: '2026-06-15T06:00:00.000Z', end: '2026-08-15T06:00:00.000Z' },

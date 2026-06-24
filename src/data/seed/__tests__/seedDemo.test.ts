@@ -3,7 +3,8 @@ import { differenceInDays, isBefore, startOfDay } from 'date-fns'
 import { seedDemo } from '@/data/seed'
 import { findSession, sessionsFor } from '@/lib/sessions'
 import { resolveRecipients } from '@/lib/emailRecipients'
-import { HEADQUARTERS, PROGRAMS } from '@/constants/course'
+import { PROGRAMS } from '@/constants/course'
+import { SEDES } from '@/constants/sede'
 import { EDUCATIONAL_LEVELS, PROVINCES } from '@/constants/student'
 
 // A fixed Demo Epoch keeps assertions deterministic. Per ADR-0002 all seeded
@@ -262,15 +263,62 @@ describe('seedDemo — TCU activities are part of the single story', () => {
   })
 })
 
+describe('seedDemo — one Sede binds Course, Teacher, Student (ADR-0011)', () => {
+  it('gives every Course the Sede of its Teacher', () => {
+    const world = seedDemo(EPOCH)
+    const teacherById = new Map(world.teachers.map((t) => [t.id, t]))
+
+    world.courses.forEach((course) => {
+      const teacher = teacherById.get(course.teacherId)
+      expect(teacher).toBeDefined()
+      expect(course.sede).toBe(teacher?.sede)
+    })
+  })
+
+  it('enrolls students only in Courses at their own Sede', () => {
+    const world = seedDemo(EPOCH)
+    const studentById = new Map(world.students.map((s) => [s.id, s]))
+    const courseById = new Map(world.courses.map((c) => [c.id, c]))
+
+    expect(world.enrollments.length).toBeGreaterThan(0)
+    world.enrollments.forEach((enrollment) => {
+      const student = studentById.get(enrollment.studentId)
+      const course = courseById.get(enrollment.courseId)
+      expect(student).toBeDefined()
+      expect(course).toBeDefined()
+      expect(student?.sede).toBe(course?.sede)
+    })
+  })
+
+  it('aligns the student persona with the teacher persona Sede (stu-1 shares tea-1)', () => {
+    const world = seedDemo(EPOCH)
+    const stu1 = world.students.find((s) => s.id === 'stu-1')
+    const tea1 = world.teachers.find((t) => t.id === 'tea-1')
+    expect(stu1?.sede).toBe(tea1?.sede)
+  })
+
+  it('assigns every Teacher and Student a known Sede', () => {
+    const world = seedDemo(EPOCH)
+    const sedes = new Set<string>(SEDES)
+    world.teachers.forEach((t) => expect(sedes.has(t.sede)).toBe(true))
+    world.students.forEach((s) => expect(sedes.has(s.sede)).toBe(true))
+  })
+
+  it('never assigns a Student the University level (secondary only)', () => {
+    const world = seedDemo(EPOCH)
+    world.students.forEach((s) => expect(s.educationalLevel).not.toBe('University'))
+  })
+})
+
 describe('seedDemo — vocabulary is sourced from the shared constants', () => {
-  it('draws every Course program and headquarters from @/constants/course', () => {
+  it('draws every Course program from @/constants/course and sede from @/constants/sede', () => {
     const world = seedDemo(EPOCH)
     const programs = new Set<string>(PROGRAMS)
-    const headquarters = new Set<string>(HEADQUARTERS)
+    const sedes = new Set<string>(SEDES)
 
     world.courses.forEach((course) => {
       expect(programs.has(course.programName)).toBe(true)
-      expect(headquarters.has(course.headquartersName)).toBe(true)
+      expect(sedes.has(course.sede)).toBe(true)
     })
   })
 

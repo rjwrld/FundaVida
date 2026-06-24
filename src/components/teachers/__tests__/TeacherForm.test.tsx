@@ -41,6 +41,8 @@ describe('<TeacherForm />', () => {
     await user.type(screen.getByLabelText('First name'), 'Grace')
     await user.type(screen.getByLabelText('Last name'), 'Hopper')
     await user.type(screen.getByLabelText('Email'), 'grace@example.com')
+    await user.click(screen.getByRole('combobox', { name: /campus/i }))
+    await user.click(await screen.findByRole('option', { name: 'Linda Vista' }))
     await user.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
     expect(useStore.getState().teachers.find((x) => x.email === 'grace@example.com')).toBeDefined()

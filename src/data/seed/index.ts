@@ -15,7 +15,8 @@ import type {
 } from '@/types'
 import { sessionsFor } from '@/lib/sessions'
 import { resolveRecipients } from '@/lib/emailRecipients'
-import { HEADQUARTERS, PROGRAMS } from '@/constants/course'
+import { PROGRAMS } from '@/constants/course'
+import { SEDES, type Sede } from '@/constants/sede'
 import { EDUCATIONAL_LEVELS, GENDERS, PROVINCES } from '@/constants/student'
 
 export interface SeedSnapshot {
@@ -126,26 +127,33 @@ function buildTeachers(epoch: Date, count: number): Teacher[] {
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
     email: faker.internet.email().toLowerCase(),
+    // Cycle the three Sedes so each community center has at least one Teacher
+    // (and therefore at least one Course) for the demo story.
+    sede: SEDES[i % SEDES.length] as Sede,
     courseIds: [],
     // Teachers predate every Course they could teach.
     createdAt: subDays(epoch, 420 + faker.number.int({ min: 0, max: 180 })).toISOString(),
   }))
 }
 
-function buildCourses(epoch: Date, plans: CoursePlan[]): Course[] {
+function buildCourses(epoch: Date, plans: CoursePlan[], teachers: Teacher[]): Course[] {
+  const sedeByTeacherId = new Map(teachers.map((t) => [t.id, t.sede]))
   return plans.map((plan, i) => {
     const termStart = startOfDay(plan.termStart)
     const termEnd = startOfDay(plan.termEnd)
     // A Course is created shortly before its Term begins, but never in the future.
     const created = subDays(termStart, faker.number.int({ min: 7, max: 30 }))
     const createdAt = (created > epoch ? subDays(startOfDay(epoch), 1) : created).toISOString()
+    const teacherId = `tea-${plan.teacherIndex + 1}`
     return {
       id: `cou-${i + 1}`,
       name: `${PROGRAMS[i % PROGRAMS.length]} ${i + 1}`,
       description: faker.lorem.sentence(),
-      headquartersName: faker.helpers.arrayElement(HEADQUARTERS),
+      // A Course is taught at its Teacher's Sede (ADR-0011) — never assigned
+      // independently, so the Course↔Teacher Sede invariant holds by construction.
+      sede: sedeByTeacherId.get(teacherId) as Sede,
       programName: PROGRAMS[i % PROGRAMS.length] as string,
-      teacherId: `tea-${plan.teacherIndex + 1}`,
+      teacherId,
       term: { start: termStart.toISOString(), end: termEnd.toISOString() },
       meetingDays: MEETING_DAY_PATTERNS[i] as Weekday[],
       createdAt,
@@ -153,13 +161,17 @@ function buildCourses(epoch: Date, plans: CoursePlan[]): Course[] {
   })
 }
 
-function buildStudents(count: number, earliestTermStart: Date): Student[] {
+function buildStudents(count: number, earliestTermStart: Date, personaSede: Sede): Student[] {
   return Array.from({ length: count }, (_, i) => ({
     id: `stu-${i + 1}`,
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
     email: faker.internet.email().toLowerCase(),
     gender: faker.helpers.arrayElement(GENDERS),
+    // stu-1 deliberately shares the teacher persona's Sede so it can enrol in the
+    // persona's Courses (the golden-path runway); the rest cycle the three Sedes,
+    // each of which has Courses to enrol in.
+    sede: i === 0 ? personaSede : (SEDES[i % SEDES.length] as Sede),
     province: faker.helpers.arrayElement(PROVINCES),
     canton: faker.location.city(),
     educationalLevel: faker.helpers.arrayElement(EDUCATIONAL_LEVELS),
@@ -190,12 +202,15 @@ function buildEnrollments(epoch: Date, students: Student[], courses: Course[]): 
   let counter = 0
 
   students.forEach((student, si) => {
+    // A Student may only enrol in Courses at their own Sede (ADR-0011). The
+    // persona (stu-1) shares tea-1's Sede, so the persona's Courses qualify.
+    const sameSedeCourseIds = courses.filter((c) => c.sede === student.sede).map((c) => c.id)
     const courseIds =
       si === 0
         ? personaCourses
         : faker.helpers.arrayElements(
-            courses.map((c) => c.id),
-            faker.number.int({ min: 1, max: 3 })
+            sameSedeCourseIds,
+            faker.number.int({ min: 1, max: Math.min(3, sameSedeCourseIds.length) })
           )
 
     courseIds.forEach((courseId) => {
@@ -479,7 +494,7 @@ export function seedDemo(epoch: Date): SeedSnapshot {
   const teacherCount = 6
 
   const teachers = buildTeachers(epoch, teacherCount)
-  const courses = buildCourses(epoch, plans)
+  const courses = buildCourses(epoch, plans, teachers)
 
   // Back-reference: each teacher owns the courses they teach.
   courses.forEach((course) => {
@@ -491,7 +506,8 @@ export function seedDemo(epoch: Date): SeedSnapshot {
     Math.min(...courses.map((c) => startOfDay(new Date(c.term.start)).getTime()))
   )
 
-  const students = buildStudents(24, earliestTermStart)
+  const personaSede = teachers[TEACHER_PERSONA_INDEX]?.sede ?? SEDES[0]
+  const students = buildStudents(24, earliestTermStart, personaSede)
   const enrollments = buildEnrollments(epoch, students, courses)
 
   // Back-reference: each student lists the courses they enrolled in.

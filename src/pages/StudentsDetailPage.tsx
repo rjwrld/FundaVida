@@ -53,6 +53,10 @@ export function StudentsDetailPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
+              <span className="text-muted-foreground">{t('students.form.fields.sede')}:</span>{' '}
+              {student.sede}
+            </p>
+            <p>
               <span className="text-muted-foreground">{t('students.form.fields.province')}:</span>{' '}
               {student.province}
             </p>

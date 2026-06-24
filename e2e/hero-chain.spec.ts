@@ -20,6 +20,8 @@ test('admin runs the full chain: create student, enroll, grade, certificate', as
   await page.getByLabel('Canton').fill('Central')
   await page.getByRole('combobox', { name: /province/i }).click()
   await page.getByRole('option', { name: 'San José' }).click()
+  await page.getByRole('combobox', { name: /campus/i }).click()
+  await page.getByRole('option', { name: 'Linda Vista' }).click()
   await page.getByRole('button', { name: 'Save' }).click()
 
   // Modal closes; the student now exists (selected via the Enroll dialog below).

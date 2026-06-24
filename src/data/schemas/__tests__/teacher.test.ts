@@ -5,19 +5,21 @@ const tStub = ((k: string) => k) as unknown as Parameters<typeof buildTeacherSch
 const teacherSchema = buildTeacherSchema(tStub)
 
 describe('teacherSchema', () => {
+  const valid = { firstName: 'Ada', lastName: 'Lovelace', email: 'ada@fv.cr', sede: 'Alajuelita' }
+
   it('accepts a valid payload', () => {
-    expect(() =>
-      teacherSchema.parse({ firstName: 'Ada', lastName: 'Lovelace', email: 'ada@fv.cr' })
-    ).not.toThrow()
+    expect(() => teacherSchema.parse(valid)).not.toThrow()
   })
 
   it('rejects missing first name', () => {
-    expect(() => teacherSchema.parse({ firstName: '', lastName: 'X', email: 'a@b.co' })).toThrow()
+    expect(() => teacherSchema.parse({ ...valid, firstName: '' })).toThrow()
   })
 
   it('rejects invalid email', () => {
-    expect(() =>
-      teacherSchema.parse({ firstName: 'A', lastName: 'B', email: 'not-an-email' })
-    ).toThrow()
+    expect(() => teacherSchema.parse({ ...valid, email: 'not-an-email' })).toThrow()
+  })
+
+  it('rejects an unknown sede', () => {
+    expect(() => teacherSchema.parse({ ...valid, sede: 'San José HQ' })).toThrow()
   })
 })

@@ -1,3 +1,5 @@
+import type { Sede } from '@/constants/sede'
+
 export type Role = 'admin' | 'teacher' | 'student' | 'tcu'
 
 export type Gender = 'F' | 'M' | 'X'
@@ -16,6 +18,7 @@ export interface Student {
   lastName: string
   email: string
   gender: Gender
+  sede: Sede
   province: string
   canton: string
   educationalLevel: string
@@ -28,6 +31,7 @@ export interface Teacher {
   firstName: string
   lastName: string
   email: string
+  sede: Sede
   courseIds: string[]
   createdAt: string
 }
@@ -36,7 +40,7 @@ export interface Course {
   id: string
   name: string
   description: string
-  headquartersName: string
+  sede: Sede
   programName: string
   teacherId: string
   term: Term

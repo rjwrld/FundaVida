@@ -514,7 +514,7 @@ describe('Permissions Matrix', () => {
             id: 'course-1',
             name: 'Math 101',
             description: 'Advanced calculus',
-            headquartersName: 'HQ',
+            sede: 'Linda Vista',
             programName: 'Science',
             teacherId: 'teacher-1',
             term: {
@@ -537,7 +537,7 @@ describe('Permissions Matrix', () => {
             id: 'course-1',
             name: 'Math 101',
             description: 'Advanced calculus',
-            headquartersName: 'HQ',
+            sede: 'Linda Vista',
             programName: 'Science',
             teacherId: 'teacher-1',
             term: {
@@ -558,7 +558,7 @@ describe('Permissions Matrix', () => {
             id: 'course-1',
             name: 'Math 101',
             description: 'Advanced calculus',
-            headquartersName: 'HQ',
+            sede: 'Linda Vista',
             programName: 'Science',
             teacherId: 'teacher-2', // different teacher
             term: {
@@ -579,7 +579,7 @@ describe('Permissions Matrix', () => {
             id: 'course-1',
             name: 'Math 101',
             description: 'Advanced calculus',
-            headquartersName: 'HQ',
+            sede: 'Linda Vista',
             programName: 'Science',
             teacherId: 'teacher-1',
             term: {
@@ -600,7 +600,7 @@ describe('Permissions Matrix', () => {
             id: 'course-1',
             name: 'Math 101',
             description: 'Advanced calculus',
-            headquartersName: 'HQ',
+            sede: 'Linda Vista',
             programName: 'Science',
             teacherId: 'teacher-2', // different teacher
             term: {
@@ -621,7 +621,7 @@ describe('Permissions Matrix', () => {
             id: 'course-1',
             name: 'Math 101',
             description: 'Advanced calculus',
-            headquartersName: 'HQ',
+            sede: 'Linda Vista',
             programName: 'Science',
             teacherId: 'teacher-1',
             term: {
@@ -642,7 +642,7 @@ describe('Permissions Matrix', () => {
             id: 'course-1',
             name: 'Math 101',
             description: 'Advanced calculus',
-            headquartersName: 'HQ',
+            sede: 'Linda Vista',
             programName: 'Science',
             teacherId: 'teacher-2', // different teacher
             term: {

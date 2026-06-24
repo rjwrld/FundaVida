@@ -57,6 +57,10 @@ export function TeachersDetailPage() {
               {teacher.email}
             </p>
             <p>
+              <span className="text-muted-foreground">{t('teachers.form.fields.sede')}:</span>{' '}
+              {teacher.sede}
+            </p>
+            <p>
               <span className="text-muted-foreground">{t('teachers.list.columns.courses')}:</span>{' '}
               {teacher.courseIds.length}
             </p>
