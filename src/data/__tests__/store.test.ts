@@ -22,7 +22,7 @@ describe('useStore', () => {
   it('setRole persists and updates state', () => {
     useStore.getState().setRole('admin')
     expect(useStore.getState().role).toBe('admin')
-    expect(window.localStorage.getItem('fundavida:v1:role')).toBe('admin')
+    expect(window.localStorage.getItem('fundavida:v2:role')).toBe('admin')
   })
 
   it('resetDemo clears role and reseeds data', () => {
@@ -34,15 +34,15 @@ describe('useStore', () => {
 
   it('resetDemo clears the persisted role key so a reload does not rehydrate it', () => {
     useStore.getState().setRole('teacher')
-    expect(window.localStorage.getItem('fundavida:v1:role')).toBe('teacher')
+    expect(window.localStorage.getItem('fundavida:v2:role')).toBe('teacher')
     useStore.getState().resetDemo()
-    expect(window.localStorage.getItem('fundavida:v1:role')).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v2:role')).toBeNull()
   })
 
   it('resetDemo clears the banner-dismissed flag so the banner reappears', () => {
-    window.localStorage.setItem('fundavida:v1:banner-dismissed', '1')
+    window.localStorage.setItem('fundavida:v2:banner-dismissed', '1')
     useStore.getState().resetDemo()
-    expect(window.localStorage.getItem('fundavida:v1:banner-dismissed')).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v2:banner-dismissed')).toBeNull()
   })
 })
 

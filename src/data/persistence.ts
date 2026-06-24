@@ -1,13 +1,28 @@
 import type { SeedSnapshot } from './seed'
 import { WEEKDAYS, type Role, type Weekday } from '@/types'
 
-const STATE_KEY = 'fundavida:v1:state'
-const ROLE_KEY = 'fundavida:v1:role'
+const STATE_KEY = 'fundavida:v2:state'
+const ROLE_KEY = 'fundavida:v2:role'
+
+// Persisted snapshots from before the seedDemo causal rewrite are not migrated
+// (ADR-0003): they are removed on first load so the app reseeds cleanly at a
+// fresh Demo Epoch instead of rehydrating an incoherent v1 world.
+const LEGACY_KEY_PREFIX = 'fundavida:v1:'
 
 export type PersistedState = SeedSnapshot
 
 function isBrowser() {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+}
+
+function clearLegacyKeys(): void {
+  if (!isBrowser()) return
+  const stale: string[] = []
+  for (let i = 0; i < window.localStorage.length; i += 1) {
+    const key = window.localStorage.key(i)
+    if (key && key.startsWith(LEGACY_KEY_PREFIX)) stale.push(key)
+  }
+  stale.forEach((key) => window.localStorage.removeItem(key))
 }
 
 function isValidSnapshot(value: unknown): value is PersistedState {
@@ -51,6 +66,8 @@ function isValidSnapshot(value: unknown): value is PersistedState {
 
 export function loadPersistedState(): PersistedState | null {
   if (!isBrowser()) return null
+  // Drop any stale pre-v2 snapshot before reading the current key.
+  clearLegacyKeys()
   try {
     const raw = window.localStorage.getItem(STATE_KEY)
     if (!raw) return null
@@ -92,7 +109,7 @@ export function clearPersistedRole(): void {
   window.localStorage.removeItem(ROLE_KEY)
 }
 
-const CURRENT_USER_KEY = 'fundavida:v1:current-user'
+const CURRENT_USER_KEY = 'fundavida:v2:current-user'
 
 export function loadPersistedCurrentUser(): string | null {
   if (!isBrowser()) return null
@@ -111,7 +128,7 @@ export function clearPersistedCurrentUser(): void {
 
 export type Locale = 'en' | 'es'
 
-const LOCALE_KEY = 'fundavida:v1:locale'
+const LOCALE_KEY = 'fundavida:v2:locale'
 
 export function loadPersistedLocale(): Locale | null {
   if (!isBrowser()) return null

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 
-const DISMISS_KEY = 'fundavida:v1:banner-dismissed'
+const DISMISS_KEY = 'fundavida:v2:banner-dismissed'
 
 export function DemoBanner() {
   const [visible, setVisible] = useState(false)

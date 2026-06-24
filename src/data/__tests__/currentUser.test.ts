@@ -37,6 +37,6 @@ describe('currentUserId', () => {
 
   it('persists currentUserId to localStorage', () => {
     useStore.getState().setRole('teacher')
-    expect(window.localStorage.getItem('fundavida:v1:current-user')).toBe('tea-1')
+    expect(window.localStorage.getItem('fundavida:v2:current-user')).toBe('tea-1')
   })
 })

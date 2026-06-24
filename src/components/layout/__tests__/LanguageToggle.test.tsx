@@ -35,6 +35,6 @@ describe('LanguageToggle', () => {
     renderToggle()
     await userEvent.click(screen.getByRole('button', { name: 'es' }))
     expect(useStore.getState().locale).toBe('es')
-    expect(window.localStorage.getItem('fundavida:v1:locale')).toBe('es')
+    expect(window.localStorage.getItem('fundavida:v2:locale')).toBe('es')
   })
 })

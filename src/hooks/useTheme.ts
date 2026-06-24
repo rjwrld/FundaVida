@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 export type Theme = 'light' | 'dark' | 'system'
-const STORAGE_KEY = 'fundavida:v1:theme'
+const STORAGE_KEY = 'fundavida:v2:theme'
 
 function resolveSystem(): 'light' | 'dark' {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
