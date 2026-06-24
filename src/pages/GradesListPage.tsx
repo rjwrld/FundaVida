@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MoreHorizontal } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -17,14 +15,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { EditGradeDialog } from '@/components/grades/EditGradeDialog'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { RowActions } from '@/components/shared/RowActions'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useCourses, useDeleteGrade, useGrades, useStudents } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
@@ -37,11 +31,18 @@ interface EditTarget {
   courseName: string
 }
 
+interface DeleteTarget {
+  id: string
+  studentName: string
+  courseName: string
+}
+
 export function GradesListPage() {
   const { t } = useTranslation()
   const { formatDate, formatGrade } = useFormat()
   const [filters, setFilters] = useState<GradeFilters>({})
   const [editTarget, setEditTarget] = useState<EditTarget | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
   const { data = [], isLoading } = useGrades(filters)
   const deleteGrade = useDeleteGrade()
   const { data: students = [] } = useStudents()
@@ -126,6 +127,7 @@ export function GradesListPage() {
                 const c = courses.find((x) => x.id === g.courseId)
                 const studentName = `${s?.firstName ?? ''} ${s?.lastName ?? ''}`.trim()
                 const courseName = c?.name ?? ''
+                const label = [studentName, courseName].filter(Boolean).join(' — ') || '—'
                 return (
                   <TableRow key={g.id} className="h-12 hover:bg-muted/40">
                     <TableCell>{studentName || '—'}</TableCell>
@@ -133,49 +135,19 @@ export function GradesListPage() {
                     <TableCell>{formatGrade(g.score)}</TableCell>
                     <TableCell>{formatDate(g.issuedAt)}</TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            aria-label={t('common.actions.openMenu')}
-                          >
-                            <MoreHorizontal size={16} />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem
-                            onSelect={() =>
-                              setEditTarget({
-                                id: g.id,
-                                initialScore: g.score,
-                                studentName,
-                                courseName,
-                              })
-                            }
-                          >
-                            {t('grades.list.editButton')}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                            onSelect={() => {
-                              if (
-                                confirm(
-                                  t('grades.list.deleteConfirmWithNames', {
-                                    student: studentName,
-                                    course: courseName,
-                                  })
-                                )
-                              ) {
-                                deleteGrade.mutate(g.id)
-                              }
-                            }}
-                          >
-                            {t('common.actions.delete')}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <RowActions
+                        editLabel={t('common.actions.editItem', { name: label })}
+                        deleteLabel={t('common.actions.deleteItem', { name: label })}
+                        onEdit={() =>
+                          setEditTarget({
+                            id: g.id,
+                            initialScore: g.score,
+                            studentName,
+                            courseName,
+                          })
+                        }
+                        onDelete={() => setDeleteTarget({ id: g.id, studentName, courseName })}
+                      />
                     </TableCell>
                   </TableRow>
                 )
@@ -191,6 +163,27 @@ export function GradesListPage() {
         studentName={editTarget?.studentName ?? ''}
         courseName={editTarget?.courseName ?? ''}
         onClose={() => setEditTarget(null)}
+      />
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={t('common.confirmDelete.title')}
+        description={
+          deleteTarget
+            ? t('grades.list.deleteConfirmWithNames', {
+                student: deleteTarget.studentName,
+                course: deleteTarget.courseName,
+              })
+            : undefined
+        }
+        confirmLabel={t('common.actions.delete')}
+        destructive
+        onConfirm={() => {
+          if (deleteTarget) deleteGrade.mutate(deleteTarget.id)
+        }}
+        onOpenChange={(o) => {
+          if (!o) setDeleteTarget(null)
+        }}
       />
     </div>
   )

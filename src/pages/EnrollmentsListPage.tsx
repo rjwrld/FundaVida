@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MoreHorizontal } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -17,15 +15,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { RowActions } from '@/components/shared/RowActions'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useDeleteEnrollment, useEnrollments } from '@/hooks/api'
+import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import type { EnrollmentFilters } from '@/data/api/enrollments'
@@ -38,9 +33,12 @@ export function EnrollmentsListPage() {
   const deleteEnrollment = useDeleteEnrollment()
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
+  const canDelete = useCan('delete', 'enrollments')
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   const hasFilters = Boolean(filters.studentId || filters.courseId)
   const count = data.length
+  const columnCount = canDelete ? 4 : 3
 
   return (
     <div className="space-y-6">
@@ -89,7 +87,7 @@ export function EnrollmentsListPage() {
       </section>
 
       {isLoading ? (
-        <SkeletonTable rows={8} columns={4} />
+        <SkeletonTable rows={8} columns={columnCount} />
       ) : count === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
           {hasFilters ? t('enrollments.list.emptyFiltered') : t('enrollments.list.empty')}
@@ -109,15 +107,18 @@ export function EnrollmentsListPage() {
                 <TableHead>{t('enrollments.list.columns.student')}</TableHead>
                 <TableHead>{t('enrollments.list.columns.course')}</TableHead>
                 <TableHead>{t('enrollments.list.columns.enrolledAt')}</TableHead>
-                <TableHead className="text-right">
-                  {t('enrollments.list.columns.actions')}
-                </TableHead>
+                {canDelete && (
+                  <TableHead className="text-right">
+                    {t('enrollments.list.columns.actions')}
+                  </TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.map((e) => {
                 const s = students.find((x) => x.id === e.studentId)
                 const c = courses.find((x) => x.id === e.courseId)
+                const name = `${s?.firstName ?? ''} ${s?.lastName ?? ''}`.trim()
                 return (
                   <TableRow key={e.id} className="h-12 hover:bg-muted/40">
                     <TableCell>
@@ -125,32 +126,14 @@ export function EnrollmentsListPage() {
                     </TableCell>
                     <TableCell>{c?.name}</TableCell>
                     <TableCell>{formatDate(e.enrolledAt)}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            aria-label={t('common.actions.openMenu')}
-                          >
-                            <MoreHorizontal size={16} />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem
-                            className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                            onSelect={() => {
-                              if (confirm(t('enrollments.list.unenrollConfirm'))) {
-                                deleteEnrollment.mutate(e.id)
-                              }
-                            }}
-                          >
-                            {t('enrollments.list.unenroll')}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+                    {canDelete && (
+                      <TableCell className="text-right">
+                        <RowActions
+                          deleteLabel={t('common.actions.deleteItem', { name })}
+                          onDelete={() => setPendingDeleteId(e.id)}
+                        />
+                      </TableCell>
+                    )}
                   </TableRow>
                 )
               })}
@@ -158,6 +141,20 @@ export function EnrollmentsListPage() {
           </Table>
         </div>
       )}
+
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        title={t('common.confirmDelete.title')}
+        description={t('enrollments.list.unenrollConfirm')}
+        confirmLabel={t('enrollments.list.unenroll')}
+        destructive
+        onConfirm={() => {
+          if (pendingDeleteId) deleteEnrollment.mutate(pendingDeleteId)
+        }}
+        onOpenChange={(o) => {
+          if (!o) setPendingDeleteId(null)
+        }}
+      />
     </div>
   )
 }

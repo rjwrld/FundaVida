@@ -10,16 +10,9 @@ export interface StatRowProps {
   activeCourses: number
   certsIssued: number
   tcuHours: number
-  studentsSparkline?: number[]
 }
 
-export function StatRow({
-  totalStudents,
-  activeCourses,
-  certsIssued,
-  tcuHours,
-  studentsSparkline,
-}: StatRowProps) {
+export function StatRow({ totalStudents, activeCourses, certsIssued, tcuHours }: StatRowProps) {
   const { t } = useTranslation()
   const { formatNumber } = useFormat()
   const vsLastMonth = t('dashboard.stats.vsLastMonth')
@@ -35,7 +28,6 @@ export function StatRow({
           format={numberFormat}
           icon={<Users className="size-4" aria-hidden="true" />}
           delta={{ value: 0.08, label: vsLastMonth }}
-          sparkline={studentsSparkline}
         />
       </motion.div>
       <motion.div variants={fadeUp} transition={transitionDefaults}>

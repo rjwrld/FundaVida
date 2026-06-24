@@ -12,6 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { useCourse, useUnenrollStudent } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
@@ -39,6 +40,10 @@ export function CoursesDetailPage() {
 
   const [gradingTarget, setGradingTarget] = useState<GradingTarget | null>(null)
   const [enrollOpen, setEnrollOpen] = useState(false)
+  const [pendingUnenroll, setPendingUnenroll] = useState<{
+    id: string
+    studentName: string
+  } | null>(null)
 
   const canEdit = useCan('edit', 'courses')
   const canCreate = useCan('create', 'enrollments')
@@ -74,7 +79,7 @@ export function CoursesDetailPage() {
               {t('common.actions.backToHome')}
             </Button>
             {canEdit && (
-              <Button onClick={() => navigate(`/app/courses/${course.id}/edit`)}>
+              <Button onClick={() => navigate(`/app/courses?edit=${course.id}`)}>
                 {t('courses.detail.edit')}
               </Button>
             )}
@@ -182,17 +187,12 @@ export function CoursesDetailPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                              if (
-                                confirm(
-                                  t('courses.detail.enrolledTable.removeConfirm', {
-                                    student: `${student.firstName} ${student.lastName}`,
-                                  })
-                                )
-                              ) {
-                                unenroll.mutate(e.id)
-                              }
-                            }}
+                            onClick={() =>
+                              setPendingUnenroll({
+                                id: e.id,
+                                studentName: `${student.firstName} ${student.lastName}`,
+                              })
+                            }
                           >
                             {t('courses.detail.enrolledTable.removeButton')}
                           </Button>
@@ -218,6 +218,26 @@ export function CoursesDetailPage() {
         />
       )}
       <EnrollStudentDialog open={enrollOpen} onOpenChange={setEnrollOpen} courseId={course.id} />
+
+      <ConfirmDialog
+        open={pendingUnenroll !== null}
+        title={t('common.confirmDelete.title')}
+        description={
+          pendingUnenroll
+            ? t('courses.detail.enrolledTable.removeConfirm', {
+                student: pendingUnenroll.studentName,
+              })
+            : undefined
+        }
+        confirmLabel={t('courses.detail.enrolledTable.removeButton')}
+        destructive
+        onConfirm={() => {
+          if (pendingUnenroll) unenroll.mutate(pendingUnenroll.id)
+        }}
+        onOpenChange={(o) => {
+          if (!o) setPendingUnenroll(null)
+        }}
+      />
     </div>
   )
 }

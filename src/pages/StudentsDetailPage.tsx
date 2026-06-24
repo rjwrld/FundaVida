@@ -39,7 +39,7 @@ export function StudentsDetailPage() {
             <Button variant="outline" onClick={() => navigate('/app/students')}>
               {t('common.actions.backToHome')}
             </Button>
-            <Button onClick={() => navigate(`/app/students/${student.id}/edit`)}>
+            <Button onClick={() => navigate(`/app/students?edit=${student.id}`)}>
               {t('students.detail.edit')}
             </Button>
           </>

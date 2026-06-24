@@ -143,10 +143,12 @@
       "backToHome": "Back to home",
       "cancel": "Cancel",
       "close": "Close",
+      "confirm": "Confirm",
       "delete": "Delete",
+      "deleteItem": "Delete {{name}}",
       "edit": "Edit",
+      "editItem": "Edit {{name}}",
       "new": "New",
-      "openMenu": "Open menu",
       "save": "Save"
     },
     "commandPalette": {
@@ -158,6 +160,9 @@
       "navigation": "Navigation",
       "placeholder": "Type a command or search…",
       "theme": "Theme"
+    },
+    "confirmDelete": {
+      "title": "Confirm deletion"
     },
     "help": {
       "body": "Have questions about the rebuild? The source is on GitHub.",
@@ -352,7 +357,6 @@
         "updatedAt": "Updated"
       },
       "deleteConfirmWithNames": "Delete grade for {{student}} in {{course}}?",
-      "editButton": "Edit",
       "empty": "No grades recorded yet.",
       "emptyFiltered": "No grades match the current filters.",
       "filters": {
@@ -680,5 +684,10 @@
     "required": "{{field}} is required",
     "selectValue": "Select a value for the chosen filter",
     "termEndAfterStart": "Term end must be on or after term start"
+  },
+  "welcome": {
+    "eyebrow": "FundaVida",
+    "heading": "Welcome back.",
+    "subtitle": "Choose your community center and role to continue."
   }
 }

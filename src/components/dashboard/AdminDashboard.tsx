@@ -30,13 +30,6 @@ export function AdminDashboard() {
   const grades = useStore((s) => s.grades)
   const courses = useStore((s) => s.courses)
 
-  const studentsSparkline = useMemo(() => {
-    // Deterministic gentle upward trajectory derived from current totals.
-    const base = stats.totalStudents
-    if (base === 0) return [0, 0, 0, 0, 0, 0, 0]
-    return [0.78, 0.82, 0.85, 0.88, 0.92, 0.96, 1].map((m) => Math.round(base * m))
-  }, [stats.totalStudents])
-
   const upcoming = useMemo<UpcomingItem[]>(() => {
     const items: UpcomingItem[] = []
     const courseById = new Map(courses.map((c) => [c.id, c]))
@@ -111,7 +104,6 @@ export function AdminDashboard() {
             activeCourses={stats.activeCourses}
             certsIssued={stats.certsIssued}
             tcuHours={stats.tcuHours}
-            studentsSparkline={studentsSparkline}
           />
         </motion.div>
 

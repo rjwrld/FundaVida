@@ -26,9 +26,4 @@ describe('<StatCard />', () => {
     render(<StatCard label="Rate" value={0.87} format={(n) => `${(n * 100).toFixed(0)}%`} />)
     expect(screen.getByText('87%')).toBeInTheDocument()
   })
-
-  it('renders a sparkline svg polyline when sparkline data is provided', () => {
-    const { container } = render(<StatCard label="Trend" value={5} sparkline={[1, 2, 3, 4, 5]} />)
-    expect(container.querySelector('svg polyline')).not.toBeNull()
-  })
 })

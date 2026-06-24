@@ -144,10 +144,12 @@
       "backToHome": "Volver al inicio",
       "cancel": "Cancelar",
       "close": "Cerrar",
+      "confirm": "Confirmar",
       "delete": "Eliminar",
+      "deleteItem": "Eliminar {{name}}",
       "edit": "Editar",
+      "editItem": "Editar {{name}}",
       "new": "Nuevo",
-      "openMenu": "Abrir menú",
       "save": "Guardar"
     },
     "commandPalette": {
@@ -159,6 +161,9 @@
       "navigation": "Navegación",
       "placeholder": "Escribe un comando o busca…",
       "theme": "Tema"
+    },
+    "confirmDelete": {
+      "title": "Confirmar eliminación"
     },
     "help": {
       "body": "¿Preguntas sobre la rearquitectura? El código está en GitHub.",
@@ -356,7 +361,6 @@
         "updatedAt": "Actualizado"
       },
       "deleteConfirmWithNames": "¿Eliminar la calificación de {{student}} en {{course}}?",
-      "editButton": "Editar",
       "empty": "Aún no hay calificaciones.",
       "emptyFiltered": "Ninguna calificación coincide con los filtros.",
       "filters": {
@@ -687,5 +691,10 @@
     "required": "Completa {{field}}",
     "selectValue": "Selecciona un valor para el filtro elegido",
     "termEndAfterStart": "La fecha de fin debe ser igual o posterior a la de inicio"
+  },
+  "welcome": {
+    "eyebrow": "FundaVida",
+    "heading": "Bienvenido de nuevo.",
+    "subtitle": "Elige tu sede y rol para continuar."
   }
 }

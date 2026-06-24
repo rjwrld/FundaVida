@@ -6,11 +6,15 @@ test('admin unenrolls a student from the enrollments list', async ({ page }) => 
   await page.getByRole('link', { name: 'Enrollments' }).click()
   await expect(page.getByRole('heading', { name: 'Enrollments' })).toBeVisible()
 
-  await expect(page.getByRole('button', { name: 'Open menu' }).first()).toBeVisible()
-  page.once('dialog', (d) => d.accept())
+  // Wait for the table to populate before counting rows.
+  await expect(page.getByRole('button', { name: /^Delete / }).first()).toBeVisible()
   const initialRows = await page.getByRole('row').count()
-  await page.getByRole('button', { name: 'Open menu' }).first().click()
-  await page.getByRole('menuitem', { name: 'Unenroll' }).click()
+  await page
+    .getByRole('button', { name: /^Delete / })
+    .first()
+    .click()
+  // Styled confirmation modal — confirm with the "Unenroll" action.
+  await page.getByRole('button', { name: 'Unenroll' }).click()
 
   await expect.poll(async () => page.getByRole('row').count()).toBeLessThan(initialRows)
 })
@@ -21,7 +25,5 @@ test('list renders in Spanish when locale is ES', async ({ page }) => {
   await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.getByRole('link', { name: 'Matrículas' }).click()
   await expect(page.getByRole('heading', { name: 'Matrículas' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Abrir menú' }).first()).toBeVisible()
-  await page.getByRole('button', { name: 'Abrir menú' }).first().click()
-  await expect(page.getByRole('menuitem', { name: 'Desmatricular' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Eliminar / }).first()).toBeVisible()
 })
