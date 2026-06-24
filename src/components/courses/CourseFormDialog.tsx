@@ -115,9 +115,12 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
           <Label>{t('courses.form.fields.sede')}</Label>
           <Select
             value={watch('sede')}
-            onValueChange={(v) =>
+            onValueChange={(v) => {
               setValue('sede', v as CourseFormValues['sede'], { shouldValidate: true })
-            }
+              // A Teacher belongs to one Sede (ADR-0011); changing the Course Sede
+              // invalidates any Teacher already chosen for the old one.
+              setValue('teacherId', '', { shouldValidate: false })
+            }}
           >
             <SelectTrigger aria-label={t('courses.form.fields.sede')}>
               <SelectValue placeholder={t('courses.form.fields.sede')} />
@@ -164,11 +167,13 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
             <SelectValue placeholder={t('courses.form.teacherPlaceholder')} />
           </SelectTrigger>
           <SelectContent>
-            {teachers.map((teacher) => (
-              <SelectItem key={teacher.id} value={teacher.id}>
-                {teacher.firstName} {teacher.lastName}
-              </SelectItem>
-            ))}
+            {teachers
+              .filter((teacher) => teacher.sede === watch('sede'))
+              .map((teacher) => (
+                <SelectItem key={teacher.id} value={teacher.id}>
+                  {teacher.firstName} {teacher.lastName}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
         {errors.teacherId && <p className="text-xs text-destructive">{errors.teacherId.message}</p>}

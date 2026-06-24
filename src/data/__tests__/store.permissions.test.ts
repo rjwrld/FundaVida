@@ -175,8 +175,8 @@ describe('store permission guards', () => {
         throw new Error('test setup: cou-4 already ended')
       }
 
-      const student = store.students[0]
-      if (!student) throw new Error('no student in seed')
+      const student = store.students.find((s) => s.sede === inProgressCourse.sede)
+      if (!student) throw new Error('no student at the course Sede')
 
       // Setup: admin creates enrollment
       useStore.getState().setRole('admin')
@@ -206,8 +206,8 @@ describe('store permission guards', () => {
       const course = store.courses.find((c) => c.id === 'cou-4')
       if (!course) throw new Error('no cou-4 in seed')
 
-      const student = store.students[0]
-      if (!student) throw new Error('no student in seed')
+      const student = store.students.find((s) => s.sede === course.sede)
+      if (!student) throw new Error('no student at the course Sede')
 
       useStore.getState().setRole('admin')
 

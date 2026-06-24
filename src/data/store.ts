@@ -269,6 +269,14 @@ export const useStore = create<StoreState>((set, get) => ({
   createCourse: (input) => {
     const existing = get()
     assertCan(existing, 'create', 'courses')
+    // A Course is taught at its Teacher's Sede (ADR-0011). The Course form filters
+    // the Teacher picker to the chosen Sede, so this guards direct callers.
+    const courseTeacher = existing.teachers.find((t) => t.id === input.teacherId)
+    if (!courseTeacher || courseTeacher.sede !== input.sede) {
+      throw new Error(
+        `cannot create course at ${input.sede} with teacher ${input.teacherId} (${courseTeacher?.sede ?? 'unknown'}): Sede mismatch`
+      )
+    }
     const course: Course = {
       id: nextId('cou', existing.courses),
       createdAt: new Date().toISOString(),
@@ -296,6 +304,19 @@ export const useStore = create<StoreState>((set, get) => ({
   updateCourse: (id, patch) => {
     const existing = get()
     assertCan(existing, 'edit', 'courses')
+    // Preserve the Course↔Teacher Sede invariant across edits: whichever of sede
+    // or teacherId the patch changes, the effective pair must still match (ADR-0011).
+    const target = existing.courses.find((c) => c.id === id)
+    if (target) {
+      const nextSede = patch.sede ?? target.sede
+      const nextTeacherId = patch.teacherId ?? target.teacherId
+      const nextTeacher = existing.teachers.find((t) => t.id === nextTeacherId)
+      if (!nextTeacher || nextTeacher.sede !== nextSede) {
+        throw new Error(
+          `cannot update course ${id}: teacher ${nextTeacherId} (${nextTeacher?.sede ?? 'unknown'}) is not at Sede ${nextSede}`
+        )
+      }
+    }
     withAudit(set, (state) => {
       const current = state.courses.find((c) => c.id === id)
       const teacherChanged =
@@ -433,11 +454,21 @@ export const useStore = create<StoreState>((set, get) => ({
     if (existing) return existing
     // Defensive guards for direct store callers; the UI only enrolls from existing
     // records, so this English text should never reach end users.
-    if (!students.some((s) => s.id === studentId)) {
+    const student = students.find((s) => s.id === studentId)
+    if (!student) {
       throw new Error(`cannot enroll unknown student ${studentId}`)
     }
-    if (!courses.some((c) => c.id === courseId)) {
+    const course = courses.find((c) => c.id === courseId)
+    if (!course) {
       throw new Error(`cannot enroll in unknown course ${courseId}`)
+    }
+    // A Student may only enrol in Courses at their own Sede (ADR-0011). The Enroll
+    // dialog filters to same-Sede students, so this guards direct callers and
+    // should never reach end users.
+    if (student.sede !== course.sede) {
+      throw new Error(
+        `cannot enroll student ${studentId} (${student.sede}) in course ${courseId} (${course.sede}): Sede mismatch`
+      )
     }
     const enrollment: Enrollment = {
       id: nextId('enr', enrollments),
