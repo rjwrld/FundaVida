@@ -15,6 +15,8 @@ import type {
 } from '@/types'
 import { sessionsFor } from '@/lib/sessions'
 import { resolveRecipients } from '@/lib/emailRecipients'
+import { HEADQUARTERS, PROGRAMS } from '@/constants/course'
+import { EDUCATIONAL_LEVELS, GENDERS, PROVINCES } from '@/constants/student'
 
 export interface SeedSnapshot {
   students: Student[]
@@ -33,10 +35,6 @@ export interface SeedSnapshot {
 // teacher-grades → admin-approves → student-downloads story.
 const TEACHER_PERSONA_INDEX = 0 // tea-1
 
-const PROGRAMS = ['Literacy', 'Math', 'English', 'Life Skills'] as const
-const PROVINCES = ['San José', 'Heredia', 'Alajuela', 'Cartago']
-const HEADQUARTERS = ['San José HQ', 'Heredia HQ', 'Alajuela HQ']
-const EDUCATIONAL_LEVELS = ['Primary', 'Secondary', 'University']
 const MEETING_DAY_PATTERNS: Weekday[][] = [
   ['mon', 'wed'],
   ['tue', 'thu'],
@@ -161,7 +159,7 @@ function buildStudents(count: number, earliestTermStart: Date): Student[] {
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
     email: faker.internet.email().toLowerCase(),
-    gender: faker.helpers.arrayElement(['F', 'M', 'X'] as const),
+    gender: faker.helpers.arrayElement(GENDERS),
     province: faker.helpers.arrayElement(PROVINCES),
     canton: faker.location.city(),
     educationalLevel: faker.helpers.arrayElement(EDUCATIONAL_LEVELS),

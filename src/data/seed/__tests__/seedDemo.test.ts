@@ -3,6 +3,8 @@ import { differenceInDays, isBefore, startOfDay } from 'date-fns'
 import { seedDemo } from '@/data/seed'
 import { findSession, sessionsFor } from '@/lib/sessions'
 import { resolveRecipients } from '@/lib/emailRecipients'
+import { HEADQUARTERS, PROGRAMS } from '@/constants/course'
+import { EDUCATIONAL_LEVELS, PROVINCES } from '@/constants/student'
 
 // A fixed Demo Epoch keeps assertions deterministic. Per ADR-0002 all seeded
 // dates float relative to whatever epoch is passed in, so we assert relative
@@ -257,5 +259,29 @@ describe('seedDemo — TCU activities are part of the single story', () => {
   it('records the tcu persona (tcu-1) as organizer on some activities', () => {
     const world = seedDemo(EPOCH)
     expect(world.tcuActivities.some((a) => a.organizerId === 'tcu-1')).toBe(true)
+  })
+})
+
+describe('seedDemo — vocabulary is sourced from the shared constants', () => {
+  it('draws every Course program and headquarters from @/constants/course', () => {
+    const world = seedDemo(EPOCH)
+    const programs = new Set<string>(PROGRAMS)
+    const headquarters = new Set<string>(HEADQUARTERS)
+
+    world.courses.forEach((course) => {
+      expect(programs.has(course.programName)).toBe(true)
+      expect(headquarters.has(course.headquartersName)).toBe(true)
+    })
+  })
+
+  it('draws every student province and educational level from @/constants/student', () => {
+    const world = seedDemo(EPOCH)
+    const provinces = new Set<string>(PROVINCES)
+    const levels = new Set<string>(EDUCATIONAL_LEVELS)
+
+    world.students.forEach((student) => {
+      expect(provinces.has(student.province)).toBe(true)
+      expect(levels.has(student.educationalLevel)).toBe(true)
+    })
   })
 })
