@@ -30,7 +30,8 @@ import { useCan } from '@/hooks/useCan'
 import { useFormDialogParams } from '@/hooks/useFormDialogParams'
 import type { StudentFilters } from '@/data/api/students'
 import type { Student } from '@/types'
-import { EDUCATIONAL_LEVELS, PROVINCES } from '@/constants/student'
+import { EDUCATIONAL_LEVELS } from '@/constants/student'
+import { SEDES } from '@/constants/sede'
 
 export function StudentsListPage() {
   const { t } = useTranslation()
@@ -44,7 +45,7 @@ export function StudentsListPage() {
   const canEdit = useCan('edit', 'students')
   const canDelete = useCan('delete', 'students')
 
-  const hasFilters = Boolean(filters.search || filters.province || filters.educationalLevel)
+  const hasFilters = Boolean(filters.search || filters.sede || filters.educationalLevel)
   const count = data.length
 
   return (
@@ -77,19 +78,17 @@ export function StudentsListPage() {
           />
         </div>
         <Select
-          value={filters.province ?? 'any'}
-          onValueChange={(v) =>
-            setFilters((f) => ({ ...f, province: v === 'any' ? undefined : v }))
-          }
+          value={filters.sede ?? 'any'}
+          onValueChange={(v) => setFilters((f) => ({ ...f, sede: v === 'any' ? undefined : v }))}
         >
           <SelectTrigger>
-            <SelectValue placeholder={t('students.list.columns.province')} />
+            <SelectValue placeholder={t('students.list.columns.sede')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">{t('students.list.columns.province')}</SelectItem>
-            {PROVINCES.map((p) => (
-              <SelectItem key={p} value={p}>
-                {p}
+            <SelectItem value="any">{t('students.list.columns.sede')}</SelectItem>
+            {SEDES.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
               </SelectItem>
             ))}
           </SelectContent>
@@ -136,7 +135,7 @@ export function StudentsListPage() {
               <TableRow className="bg-muted/50 hover:bg-muted/50">
                 <TableHead>{t('students.list.columns.name')}</TableHead>
                 <TableHead>{t('students.list.columns.email')}</TableHead>
-                <TableHead>{t('students.list.columns.province')}</TableHead>
+                <TableHead>{t('students.list.columns.sede')}</TableHead>
                 <TableHead>{t('students.list.columns.level')}</TableHead>
                 <TableHead className="text-right">{t('students.list.columns.actions')}</TableHead>
               </TableRow>
@@ -152,7 +151,7 @@ export function StudentsListPage() {
                       </Link>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{s.email}</TableCell>
-                    <TableCell>{s.province}</TableCell>
+                    <TableCell>{s.sede}</TableCell>
                     <TableCell>{t(`students.form.level.${s.educationalLevel}`)}</TableCell>
                     <TableCell className="text-right">
                       <RowActions

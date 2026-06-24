@@ -6,8 +6,16 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { buildTeacherSchema, type TeacherFormValues } from '@/data/schemas/teacher'
 import { useCreateTeacher, useTeacher, useUpdateTeacher } from '@/hooks/api'
+import { SEDES } from '@/constants/sede'
 
 interface TeacherFormProps {
   teacherId?: string
@@ -26,10 +34,17 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<TeacherFormValues>({
     resolver: zodResolver(buildTeacherSchema(t)),
-    defaultValues: { firstName: '', lastName: '', email: '' },
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      sede: '' as TeacherFormValues['sede'],
+    },
   })
 
   useEffect(() => {
@@ -38,6 +53,7 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
         firstName: existing.firstName,
         lastName: existing.lastName,
         email: existing.email,
+        sede: existing.sede,
       })
     }
   }, [existing, reset])
@@ -70,6 +86,27 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
           <Label htmlFor="email">{t('teachers.form.fields.email')}</Label>
           <Input id="email" type="email" {...register('email')} />
           {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label>{t('teachers.form.fields.sede')}</Label>
+          <Select
+            value={watch('sede')}
+            onValueChange={(v) =>
+              setValue('sede', v as TeacherFormValues['sede'], { shouldValidate: true })
+            }
+          >
+            <SelectTrigger aria-label={t('teachers.form.fields.sede')}>
+              <SelectValue placeholder={t('teachers.form.fields.sede')} />
+            </SelectTrigger>
+            <SelectContent>
+              {SEDES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.sede && <p className="text-sm text-destructive">{errors.sede.message}</p>}
         </div>
       </div>
       <div className="flex justify-end gap-2">

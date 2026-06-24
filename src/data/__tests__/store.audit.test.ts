@@ -23,6 +23,7 @@ describe('audit log characterization', () => {
         lastName: 'A',
         email: 'a@test.com',
         gender: 'F',
+        sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
         educationalLevel: 'high',
@@ -36,6 +37,7 @@ describe('audit log characterization', () => {
         lastName: 'B',
         email: 'b@test.com',
         gender: 'M',
+        sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
         educationalLevel: 'high',
@@ -57,6 +59,7 @@ describe('audit log characterization', () => {
         lastName: 'Y',
         email: 'x@y.com',
         gender: 'M',
+        sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
         educationalLevel: 'high',
@@ -72,6 +75,7 @@ describe('audit log characterization', () => {
         lastName: 'Y',
         email: 'x@y.com',
         gender: 'M',
+        sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
         educationalLevel: 'high',
@@ -94,6 +98,7 @@ describe('audit log characterization', () => {
         lastName: 'Y',
         email: 'x@y.com',
         gender: 'M',
+        sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
         educationalLevel: 'high',
@@ -110,6 +115,7 @@ describe('audit log characterization', () => {
         lastName: 'Y',
         email: 'x@y.com',
         gender: 'M',
+        sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
         educationalLevel: 'high',
@@ -126,6 +132,7 @@ describe('audit log characterization', () => {
         lastName: 'Y',
         email: 'x@y.com',
         gender: 'M',
+        sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
         educationalLevel: 'high',
@@ -143,6 +150,7 @@ describe('audit log characterization', () => {
         lastName: 'Smith',
         email: 'alice@test.com',
         gender: 'F',
+        sede: 'Linda Vista',
         province: 'San Jose',
         canton: 'Central',
         educationalLevel: 'high',
@@ -163,6 +171,7 @@ describe('audit log characterization', () => {
         lastName: 'Jones',
         email: 'bob@test.com',
         gender: 'M',
+        sede: 'Linda Vista',
         province: 'Alajuela',
         canton: 'Central',
         educationalLevel: 'primary',
@@ -184,6 +193,7 @@ describe('audit log characterization', () => {
         lastName: 'Davis',
         email: 'carol@test.com',
         gender: 'F',
+        sede: 'Linda Vista',
         province: 'Heredia',
         canton: 'Central',
         educationalLevel: 'secondary',
@@ -205,11 +215,12 @@ describe('audit log characterization', () => {
         firstName: 'Dr.',
         lastName: 'Professor',
         email: 'prof@test.com',
+        sede: 'Linda Vista',
       })
       const course = store.createCourse({
         name: 'Mathematics 101',
         description: 'Intro to Math',
-        headquartersName: 'HQ',
+        sede: 'Linda Vista',
         programName: 'Program A',
         teacherId: teacher.id,
         term: { start: '2024-01-01', end: '2024-06-30' },
@@ -230,11 +241,12 @@ describe('audit log characterization', () => {
         firstName: 'Dr.',
         lastName: 'Professor',
         email: 'prof@test.com',
+        sede: 'Linda Vista',
       })
       const course = store.createCourse({
         name: 'Math 101',
         description: 'Intro',
-        headquartersName: 'HQ',
+        sede: 'Linda Vista',
         programName: 'Program',
         teacherId: teacher.id,
         term: { start: '2024-01-01', end: '2024-06-30' },
@@ -254,16 +266,18 @@ describe('audit log characterization', () => {
         firstName: 'Dr.',
         lastName: 'One',
         email: 'one@test.com',
+        sede: 'Linda Vista',
       })
       const teacher2 = store.createTeacher({
         firstName: 'Dr.',
         lastName: 'Two',
         email: 'two@test.com',
+        sede: 'Linda Vista',
       })
       const course = store.createCourse({
         name: 'Math 101',
         description: 'Intro',
-        headquartersName: 'HQ',
+        sede: 'Linda Vista',
         programName: 'Program',
         teacherId: teacher1.id,
         term: { start: '2024-01-01', end: '2024-06-30' },
@@ -285,11 +299,12 @@ describe('audit log characterization', () => {
         firstName: 'Dr.',
         lastName: 'Professor',
         email: 'prof@test.com',
+        sede: 'Linda Vista',
       })
       const course = store.createCourse({
         name: 'Math 101',
         description: 'Intro',
-        headquartersName: 'HQ',
+        sede: 'Linda Vista',
         programName: 'Program',
         teacherId: teacher.id,
         term: { start: '2024-01-01', end: '2024-06-30' },
@@ -312,6 +327,7 @@ describe('audit log characterization', () => {
         firstName: 'John',
         lastName: 'Educator',
         email: 'john@test.com',
+        sede: 'Linda Vista',
       })
       store = useStore.getState()
       expect(store.auditLog[0]?.action).toBe('create')
@@ -328,6 +344,7 @@ describe('audit log characterization', () => {
         firstName: 'Jane',
         lastName: 'Tutor',
         email: 'jane@test.com',
+        sede: 'Linda Vista',
       })
       store.updateTeacher(teacher.id, { lastName: 'Modified' })
       store = useStore.getState()
@@ -345,6 +362,7 @@ describe('audit log characterization', () => {
         firstName: 'Lonely',
         lastName: 'Teacher',
         email: 'lonely@test.com',
+        sede: 'Linda Vista',
       })
       const teacherId = teacher.id
       store.deleteTeacher(teacherId)
@@ -362,13 +380,14 @@ describe('audit log characterization', () => {
         firstName: 'Test',
         lastName: 'Teacher',
         email: 'test@test.com',
+        sede: 'Linda Vista',
       })
       store = useStore.getState()
       // Create a course for the teacher
       store.createCourse({
         name: 'Test Course',
         description: 'Test',
-        headquartersName: 'HQ',
+        sede: 'Linda Vista',
         programName: 'Program',
         teacherId: teacher.id,
         term: { start: '2024-01-01', end: '2024-06-30' },
@@ -553,6 +572,7 @@ describe('audit log characterization', () => {
         lastName: 'Student',
         email: 'test@test.com',
         gender: 'M',
+        sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
         educationalLevel: 'high',

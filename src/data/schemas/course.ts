@@ -2,6 +2,7 @@ import { z } from 'zod'
 import type { TFunction } from 'i18next'
 import { parseISO } from 'date-fns'
 import { WEEKDAYS } from '@/types/domain'
+import { SEDES } from '@/constants/sede'
 
 export function buildCourseSchema(t: TFunction) {
   return z
@@ -14,9 +15,11 @@ export function buildCourseSchema(t: TFunction) {
         .string()
         .min(1, t('validation.required', { field: t('courses.form.fields.description') }))
         .max(500),
-      headquartersName: z
-        .string()
-        .min(1, t('validation.required', { field: t('courses.form.fields.headquartersName') })),
+      sede: z.enum(SEDES, {
+        errorMap: () => ({
+          message: t('validation.required', { field: t('courses.form.fields.sede') }),
+        }),
+      }),
       programName: z
         .string()
         .min(1, t('validation.required', { field: t('courses.form.fields.programName') })),

@@ -28,7 +28,8 @@ import { CourseFormDialog } from '@/components/courses/CourseFormDialog'
 import { useCourses, useDeleteCourse } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
 import { useFormDialogParams } from '@/hooks/useFormDialogParams'
-import { HEADQUARTERS, PROGRAMS } from '@/constants/course'
+import { PROGRAMS } from '@/constants/course'
+import { SEDES } from '@/constants/sede'
 import type { CourseFilters } from '@/data/api/courses'
 import type { Course } from '@/types'
 import { useStore } from '@/data/store'
@@ -46,7 +47,7 @@ export function CoursesListPage() {
   const canDelete = useCan('delete', 'courses')
   const canActOnRows = canEdit || canDelete
 
-  const hasFilters = Boolean(filters.search || filters.headquartersName || filters.programName)
+  const hasFilters = Boolean(filters.search || filters.sede || filters.programName)
   const count = data.length
   const columnCount = canActOnRows ? 5 : 4
 
@@ -85,17 +86,15 @@ export function CoursesListPage() {
           />
         </div>
         <Select
-          value={filters.headquartersName ?? 'any'}
-          onValueChange={(v) =>
-            setFilters((f) => ({ ...f, headquartersName: v === 'any' ? undefined : v }))
-          }
+          value={filters.sede ?? 'any'}
+          onValueChange={(v) => setFilters((f) => ({ ...f, sede: v === 'any' ? undefined : v }))}
         >
-          <SelectTrigger aria-label={t('courses.form.fields.headquartersName')}>
-            <SelectValue placeholder={t('courses.form.fields.headquartersName')} />
+          <SelectTrigger aria-label={t('courses.form.fields.sede')}>
+            <SelectValue placeholder={t('courses.form.fields.sede')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">{t('courses.form.fields.headquartersName')}</SelectItem>
-            {HEADQUARTERS.map((h) => (
+            <SelectItem value="any">{t('courses.form.fields.sede')}</SelectItem>
+            {SEDES.map((h) => (
               <SelectItem key={h} value={h}>
                 {h}
               </SelectItem>
@@ -144,7 +143,7 @@ export function CoursesListPage() {
               <TableRow className="bg-muted/50 hover:bg-muted/50">
                 <TableHead>{t('courses.list.columns.name')}</TableHead>
                 <TableHead>{t('courses.list.columns.program')}</TableHead>
-                <TableHead>{t('courses.form.fields.headquartersName')}</TableHead>
+                <TableHead>{t('courses.form.fields.sede')}</TableHead>
                 <TableHead>{t('courses.list.columns.teacher')}</TableHead>
                 {canActOnRows && (
                   <TableHead className="text-right">{t('courses.list.columns.actions')}</TableHead>
@@ -160,7 +159,7 @@ export function CoursesListPage() {
                     </Link>
                   </TableCell>
                   <TableCell>{c.programName}</TableCell>
-                  <TableCell>{c.headquartersName}</TableCell>
+                  <TableCell>{c.sede}</TableCell>
                   <TableCell>{teacherName(c.teacherId)}</TableCell>
                   {canActOnRows && (
                     <TableCell className="text-right">

@@ -18,7 +18,8 @@ import {
 } from '@/components/ui/select'
 import { buildCourseSchema, type CourseFormValues } from '@/data/schemas/course'
 import { useCourse, useCreateCourse, useUpdateCourse } from '@/hooks/api'
-import { HEADQUARTERS, PROGRAMS } from '@/constants/course'
+import { PROGRAMS } from '@/constants/course'
+import { SEDES } from '@/constants/sede'
 import { WEEKDAYS, type Weekday } from '@/types/domain'
 import { useStore } from '@/data/store'
 
@@ -48,7 +49,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
     defaultValues: {
       name: '',
       description: '',
-      headquartersName: '',
+      sede: '' as CourseFormValues['sede'],
       programName: '',
       teacherId: '',
       termStart: '',
@@ -64,7 +65,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
       reset({
         name: existing.name,
         description: existing.description,
-        headquartersName: existing.headquartersName,
+        sede: existing.sede,
         programName: existing.programName,
         teacherId: existing.teacherId,
         termStart: format(termStartDate, 'yyyy-MM-dd'),
@@ -111,25 +112,28 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label>{t('courses.form.fields.headquartersName')}</Label>
+          <Label>{t('courses.form.fields.sede')}</Label>
           <Select
-            value={watch('headquartersName')}
-            onValueChange={(v) => setValue('headquartersName', v, { shouldValidate: true })}
+            value={watch('sede')}
+            onValueChange={(v) => {
+              setValue('sede', v as CourseFormValues['sede'], { shouldValidate: true })
+              // A Teacher belongs to one Sede (ADR-0011); changing the Course Sede
+              // invalidates any Teacher already chosen for the old one.
+              setValue('teacherId', '', { shouldValidate: false })
+            }}
           >
-            <SelectTrigger aria-label={t('courses.form.fields.headquartersName')}>
-              <SelectValue placeholder={t('courses.form.fields.headquartersName')} />
+            <SelectTrigger aria-label={t('courses.form.fields.sede')}>
+              <SelectValue placeholder={t('courses.form.fields.sede')} />
             </SelectTrigger>
             <SelectContent>
-              {HEADQUARTERS.map((h) => (
-                <SelectItem key={h} value={h}>
-                  {h}
+              {SEDES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {errors.headquartersName && (
-            <p className="text-xs text-destructive">{errors.headquartersName.message}</p>
-          )}
+          {errors.sede && <p className="text-xs text-destructive">{errors.sede.message}</p>}
         </div>
         <div className="space-y-1.5">
           <Label>{t('courses.form.fields.programName')}</Label>
@@ -163,11 +167,13 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
             <SelectValue placeholder={t('courses.form.teacherPlaceholder')} />
           </SelectTrigger>
           <SelectContent>
-            {teachers.map((teacher) => (
-              <SelectItem key={teacher.id} value={teacher.id}>
-                {teacher.firstName} {teacher.lastName}
-              </SelectItem>
-            ))}
+            {teachers
+              .filter((teacher) => teacher.sede === watch('sede'))
+              .map((teacher) => (
+                <SelectItem key={teacher.id} value={teacher.id}>
+                  {teacher.firstName} {teacher.lastName}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
         {errors.teacherId && <p className="text-xs text-destructive">{errors.teacherId.message}</p>}

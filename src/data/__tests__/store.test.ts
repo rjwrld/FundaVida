@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useStore } from '../store'
 import { clearPersistedCurrentUser, clearPersistedRole, clearPersistedState } from '../persistence'
+import { SEDES } from '@/constants/sede'
 
 describe('useStore', () => {
   beforeEach(() => {
@@ -60,6 +61,7 @@ describe('teacher CRUD', () => {
       firstName: 'Grace',
       lastName: 'Hopper',
       email: 'grace@fv.cr',
+      sede: 'Linda Vista',
     })
     expect(created.id).toMatch(/^tea-\d+$/)
     expect(created.courseIds).toEqual([])
@@ -71,6 +73,7 @@ describe('teacher CRUD', () => {
       firstName: 'A',
       lastName: 'B',
       email: 'a@b.co',
+      sede: 'Linda Vista',
     })
     useStore.getState().updateTeacher(id, { lastName: 'Changed' })
     expect(useStore.getState().teachers.find((t) => t.id === id)?.lastName).toBe('Changed')
@@ -90,6 +93,7 @@ describe('teacher CRUD', () => {
       firstName: 'Lone',
       lastName: 'Wolf',
       email: 'lone@fv.cr',
+      sede: 'Linda Vista',
     })
     useStore.getState().deleteTeacher(created.id)
     expect(useStore.getState().teachers.some((t) => t.id === created.id)).toBe(false)
@@ -205,6 +209,7 @@ describe('audit log instrumentation', () => {
       lastName: 'Pine',
       email: 'n@fv.cr',
       gender: 'F',
+      sede: 'Linda Vista',
       province: 'X',
       canton: 'Y',
       educationalLevel: 'Primary',
@@ -222,6 +227,7 @@ describe('audit log instrumentation', () => {
       lastName: 'B',
       email: 'a@b.co',
       gender: 'F',
+      sede: 'Linda Vista',
       province: 'X',
       canton: 'Y',
       educationalLevel: 'Primary',
@@ -312,5 +318,95 @@ describe('enrollment referential integrity', () => {
     const before = useStore.getState().enrollments.length
     expect(() => useStore.getState().enrollStudent('stu-does-not-exist', course.id)).toThrow()
     expect(useStore.getState().enrollments.length).toBe(before)
+  })
+
+  it('enrollStudent throws when the student and course are at different Sedes (ADR-0011)', () => {
+    useStore.getState().setRole('admin')
+    const course = useStore.getState().courses[0]
+    if (!course) throw new Error('expected at least one seeded course')
+    const crossSede = useStore.getState().students.find((s) => s.sede !== course.sede)
+    if (!crossSede) throw new Error('expected a student at a different Sede')
+    const before = useStore.getState().enrollments.length
+    expect(() => useStore.getState().enrollStudent(crossSede.id, course.id)).toThrow()
+    expect(useStore.getState().enrollments.length).toBe(before)
+    expect(
+      useStore.getState().students.find((s) => s.id === crossSede.id)?.enrolledCourseIds
+    ).not.toContain(course.id)
+  })
+
+  it('enrollStudent succeeds when the student and course share a Sede', () => {
+    useStore.getState().setRole('admin')
+    const course = useStore.getState().courses[0]
+    if (!course) throw new Error('expected at least one seeded course')
+    const enrolledIds = new Set(
+      useStore
+        .getState()
+        .enrollments.filter((e) => e.courseId === course.id)
+        .map((e) => e.studentId)
+    )
+    const sameSede = useStore
+      .getState()
+      .students.find((s) => s.sede === course.sede && !enrolledIds.has(s.id))
+    if (!sameSede) throw new Error('expected an unenrolled student at the same Sede')
+    const before = useStore.getState().enrollments.length
+    const enrollment = useStore.getState().enrollStudent(sameSede.id, course.id)
+    expect(enrollment.courseId).toBe(course.id)
+    expect(useStore.getState().enrollments.length).toBe(before + 1)
+  })
+})
+
+describe('course Sede invariant (ADR-0011)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
+  })
+
+  function courseInput(sede: (typeof SEDES)[number], teacherId: string) {
+    const template = useStore.getState().courses[0]
+    if (!template) throw new Error('expected at least one seeded course')
+    return {
+      name: 'Sede Test',
+      description: 'A course under test',
+      sede,
+      programName: 'Literacy',
+      teacherId,
+      term: template.term,
+      meetingDays: template.meetingDays,
+    }
+  }
+
+  it('createCourse throws when the Teacher is at a different Sede', () => {
+    const teacher = useStore.getState().teachers[0]
+    if (!teacher) throw new Error('expected at least one seeded teacher')
+    const otherSede = SEDES.find((s) => s !== teacher.sede)
+    if (!otherSede) throw new Error('expected a second Sede')
+    const before = useStore.getState().courses.length
+    expect(() => useStore.getState().createCourse(courseInput(otherSede, teacher.id))).toThrow()
+    expect(useStore.getState().courses.length).toBe(before)
+  })
+
+  it('createCourse succeeds when the Teacher shares the Course Sede', () => {
+    const teacher = useStore.getState().teachers[0]
+    if (!teacher) throw new Error('expected at least one seeded teacher')
+    const before = useStore.getState().courses.length
+    const created = useStore.getState().createCourse(courseInput(teacher.sede, teacher.id))
+    expect(created.sede).toBe(teacher.sede)
+    expect(useStore.getState().courses.length).toBe(before + 1)
+  })
+
+  it('updateCourse throws when reassigning to a Teacher at a different Sede', () => {
+    const course = useStore.getState().courses[0]
+    if (!course) throw new Error('expected at least one seeded course')
+    const crossSedeTeacher = useStore.getState().teachers.find((t) => t.sede !== course.sede)
+    if (!crossSedeTeacher) throw new Error('expected a teacher at a different Sede')
+    expect(() =>
+      useStore.getState().updateCourse(course.id, { teacherId: crossSedeTeacher.id })
+    ).toThrow()
+    expect(useStore.getState().courses.find((c) => c.id === course.id)?.teacherId).toBe(
+      course.teacherId
+    )
   })
 })

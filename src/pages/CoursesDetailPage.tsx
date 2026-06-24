@@ -94,10 +94,8 @@ export function CoursesDetailPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
-              <span className="text-muted-foreground">
-                {t('courses.form.fields.headquartersName')}:
-              </span>{' '}
-              {course.headquartersName}
+              <span className="text-muted-foreground">{t('courses.form.fields.sede')}:</span>{' '}
+              {course.sede}
             </p>
             <p>
               <span className="text-muted-foreground">{t('courses.form.fields.programName')}:</span>{' '}

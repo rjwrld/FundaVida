@@ -31,6 +31,7 @@ const validStudent = {
   lastName: 'Student',
   email: 'test@example.com',
   gender: 'M' as const,
+  sede: 'Linda Vista' as const,
   province: 'San José',
   canton: 'Central',
   educationalLevel: 'Secondary',

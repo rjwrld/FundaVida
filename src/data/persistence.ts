@@ -1,5 +1,6 @@
 import type { SeedSnapshot } from './seed'
 import { WEEKDAYS, type Role, type Weekday } from '@/types'
+import { SEDES, type Sede } from '@/constants/sede'
 
 const STATE_KEY = 'fundavida:v2:state'
 const ROLE_KEY = 'fundavida:v2:role'
@@ -62,6 +63,19 @@ function isValidSnapshot(value: unknown): value is PersistedState {
     // literal would wrap to Sunday in the sessions module's weekday mapping
     if (!Array.isArray(c.meetingDays)) return false
     if (!c.meetingDays.every((d) => WEEKDAYS.includes(d as Weekday))) return false
+
+    // A pre-Sede Course carries `headquartersName` and no `sede`; reject it so
+    // the app reseeds at a fresh Sede-valued world rather than rendering blanks
+    // (ADR-0003, ADR-0011).
+    if (!SEDES.includes(c.sede as Sede)) return false
+  }
+
+  // Teacher and Student each gained a required Sede; an old snapshot lacking it
+  // is stale and must reseed rather than render Sede-less rows.
+  const people = [...(v.teachers as unknown[]), ...(v.students as unknown[])]
+  for (const person of people) {
+    if (!person || typeof person !== 'object') return false
+    if (!SEDES.includes((person as Record<string, unknown>).sede as Sede)) return false
   }
 
   return true

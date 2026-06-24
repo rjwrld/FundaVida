@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { TFunction } from 'i18next'
+import { SEDES } from '@/constants/sede'
 
 export function buildTeacherSchema(t: TFunction) {
   return z.object({
@@ -12,6 +13,11 @@ export function buildTeacherSchema(t: TFunction) {
       .min(1, t('validation.required', { field: t('teachers.form.fields.lastName') }))
       .max(80),
     email: z.string().email(t('validation.email')),
+    sede: z.enum(SEDES, {
+      errorMap: () => ({
+        message: t('validation.required', { field: t('teachers.form.fields.sede') }),
+      }),
+    }),
   })
 }
 

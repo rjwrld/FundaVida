@@ -53,6 +53,8 @@ describe('<StudentForm />', () => {
     await user.type(screen.getByLabelText('Canton'), 'Central')
     await user.click(screen.getByRole('combobox', { name: /province/i }))
     await user.click(await screen.findByRole('option', { name: 'San José' }))
+    await user.click(screen.getByRole('combobox', { name: /campus/i }))
+    await user.click(await screen.findByRole('option', { name: 'Linda Vista' }))
     await user.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
     expect(useStore.getState().students.find((s) => s.email === 'ada@example.com')).toBeDefined()

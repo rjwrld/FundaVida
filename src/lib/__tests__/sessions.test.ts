@@ -12,7 +12,7 @@ describe('sessions', () => {
     id: 'course-1',
     name: 'Math 101',
     description: 'Calculus',
-    headquartersName: 'HQ',
+    sede: 'Linda Vista',
     programName: 'Program A',
     teacherId: 'teacher-1',
     term: {
@@ -224,7 +224,7 @@ describe('sessions', () => {
         id: 'course-2',
         name: 'Physics 101',
         description: 'Mechanics',
-        headquartersName: 'HQ',
+        sede: 'Linda Vista',
         programName: 'Program B',
         teacherId: 'teacher-2',
         term: {
@@ -253,7 +253,7 @@ describe('sessions', () => {
         id: 'course-3',
         name: 'Test Course',
         description: 'Test',
-        headquartersName: 'HQ',
+        sede: 'Linda Vista',
         programName: 'Program C',
         teacherId: 'teacher-3',
         term: {

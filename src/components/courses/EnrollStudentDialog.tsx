@@ -30,10 +30,13 @@ export function EnrollStudentDialog({ open, onOpenChange, courseId }: Props) {
   const { t } = useTranslation()
   const students = useStore((s) => s.students)
   const enrollments = useStore((s) => s.enrollments)
+  const courseSede = useStore((s) => s.courses.find((c) => c.id === courseId)?.sede)
   const enrolledIds = new Set(
     enrollments.filter((e) => e.courseId === courseId).map((e) => e.studentId)
   )
-  const eligible = students.filter((s) => !enrolledIds.has(s.id))
+  // A Student may only enrol in Courses at their own Sede (ADR-0011), so the
+  // picker offers only same-Sede students — the store seam rejects a mismatch.
+  const eligible = students.filter((s) => !enrolledIds.has(s.id) && s.sede === courseSede)
   const [selected, setSelected] = useState<string>('')
 
   useEffect(() => {

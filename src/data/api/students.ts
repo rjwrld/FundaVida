@@ -6,12 +6,12 @@ import { delay } from './_delay'
 
 export interface StudentFilters {
   search?: string
-  province?: string
+  sede?: string
   educationalLevel?: string
 }
 
 function applyFilters(students: Student[], filters: StudentFilters): Student[] {
-  const { search, province, educationalLevel } = filters
+  const { search, sede, educationalLevel } = filters
   return students.filter((s) => {
     if (
       search &&
@@ -19,7 +19,7 @@ function applyFilters(students: Student[], filters: StudentFilters): Student[] {
     ) {
       return false
     }
-    if (province && s.province !== province) return false
+    if (sede && s.sede !== sede) return false
     if (educationalLevel && s.educationalLevel !== educationalLevel) return false
     return true
   })

@@ -54,7 +54,6 @@ t('students.form.gender.X')
 // Keys referenced dynamically via t(`students.form.level.${value}`)
 t('students.form.level.Primary')
 t('students.form.level.Secondary')
-t('students.form.level.University')
 
 // Keys referenced dynamically via t(`attendance.list.status.${status}`)
 t('attendance.list.status.present')

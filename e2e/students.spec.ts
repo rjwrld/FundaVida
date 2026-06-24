@@ -17,6 +17,9 @@ test('admin creates a student and sees them in the list', async ({ page }) => {
   await page.getByRole('combobox', { name: /province/i }).click()
   await page.getByRole('option', { name: 'San José' }).click()
 
+  await page.getByRole('combobox', { name: /campus/i }).click()
+  await page.getByRole('option', { name: 'Linda Vista' }).click()
+
   await page.getByRole('button', { name: 'Save' }).click()
 
   // The modal closes and the new student shows up in the list.

@@ -17,6 +17,9 @@ test('admin sees audit log and a new create entry after making one', async ({ pa
   await page.getByRole('combobox', { name: /province/i }).click()
   await page.getByRole('option', { name: 'San José' }).click()
 
+  await page.getByRole('combobox', { name: /campus/i }).click()
+  await page.getByRole('option', { name: 'Linda Vista' }).click()
+
   await page.getByRole('button', { name: 'Save' }).click()
 
   // Modal closes; the audit entry below confirms the create.

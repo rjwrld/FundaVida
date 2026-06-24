@@ -6,17 +6,17 @@ import { delay } from './_delay'
 
 export interface CourseFilters {
   search?: string
-  headquartersName?: string
+  sede?: string
   programName?: string
 }
 
 function applyFilters(courses: Course[], filters: CourseFilters): Course[] {
-  const { search, headquartersName, programName } = filters
+  const { search, sede, programName } = filters
   return courses.filter((c) => {
     if (search && !`${c.name} ${c.description}`.toLowerCase().includes(search.toLowerCase())) {
       return false
     }
-    if (headquartersName && c.headquartersName !== headquartersName) return false
+    if (sede && c.sede !== sede) return false
     if (programName && c.programName !== programName) return false
     return true
   })

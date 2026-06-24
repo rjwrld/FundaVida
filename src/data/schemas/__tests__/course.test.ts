@@ -8,7 +8,7 @@ describe('courseSchema', () => {
   const valid = {
     name: 'Literacy 101',
     description: 'Intro to literacy skills',
-    headquartersName: 'San José HQ',
+    sede: 'Linda Vista',
     programName: 'Literacy',
     teacherId: 'tea-1',
     termStart: '2026-06-15',
@@ -19,8 +19,13 @@ describe('courseSchema', () => {
   it('accepts a valid course', () => {
     const parsed = courseSchema.parse(valid)
     expect(parsed.name).toBe(valid.name)
+    expect(parsed.sede).toBe(valid.sede)
     expect(parsed.termStart).toBe(valid.termStart)
     expect(parsed.meetingDays).toEqual(valid.meetingDays)
+  })
+
+  it('rejects an unknown sede', () => {
+    expect(() => courseSchema.parse({ ...valid, sede: 'San José HQ' })).toThrow()
   })
 
   it('rejects empty name', () => {

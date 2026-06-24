@@ -116,6 +116,38 @@ describe('persistence', () => {
     expect(loadPersistedState()).toBeNull()
   })
 
+  it('rejects snapshot with a course missing sede (pre-Sede snapshot reseeds)', () => {
+    const snapshot = seedDemo(new Date())
+    const course = snapshot.courses[0] as unknown as Record<string, unknown>
+    delete course.sede
+    savePersistedState(snapshot as never)
+    expect(loadPersistedState()).toBeNull()
+  })
+
+  it('rejects snapshot with an unknown sede literal on a course', () => {
+    const snapshot = seedDemo(new Date())
+    const course = snapshot.courses[0] as unknown as Record<string, unknown>
+    course.sede = 'San José HQ'
+    savePersistedState(snapshot as never)
+    expect(loadPersistedState()).toBeNull()
+  })
+
+  it('rejects snapshot with a teacher missing sede', () => {
+    const snapshot = seedDemo(new Date())
+    const teacher = snapshot.teachers[0] as unknown as Record<string, unknown>
+    delete teacher.sede
+    savePersistedState(snapshot as never)
+    expect(loadPersistedState()).toBeNull()
+  })
+
+  it('rejects snapshot with a student missing sede', () => {
+    const snapshot = seedDemo(new Date())
+    const student = snapshot.students[0] as unknown as Record<string, unknown>
+    delete student.sede
+    savePersistedState(snapshot as never)
+    expect(loadPersistedState()).toBeNull()
+  })
+
   it('rejects snapshot with unknown meeting-day literals', () => {
     const snapshot = seedDemo(new Date())
     const course = snapshot.courses[0] as unknown as Record<string, unknown>

@@ -54,4 +54,40 @@ describe('<CourseForm />', () => {
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(onCancel).toHaveBeenCalled()
   })
+
+  it('offers only Teachers at the chosen Sede (ADR-0011)', async () => {
+    const user = userEvent.setup()
+    const teachers = useStore.getState().teachers
+    const sede = 'Linda Vista'
+    const sameSede = teachers.filter((t) => t.sede === sede)
+    expect(sameSede.length).toBeGreaterThan(0)
+    expect(sameSede.length).toBeLessThan(teachers.length)
+
+    renderForm()
+    await user.click(screen.getByRole('combobox', { name: 'Campus' }))
+    await user.click(await screen.findByRole('option', { name: sede }))
+
+    await user.click(screen.getByRole('combobox', { name: 'Teacher' }))
+    const options = await screen.findAllByRole('option')
+    expect(options).toHaveLength(sameSede.length)
+  })
+
+  it('clears the selected Teacher when the Sede changes', async () => {
+    const user = userEvent.setup()
+    const ldaVista = useStore.getState().teachers.find((t) => t.sede === 'Linda Vista')
+    if (!ldaVista) throw new Error('expected a Linda Vista teacher')
+    const teacherName = `${ldaVista.firstName} ${ldaVista.lastName}`
+
+    renderForm()
+    await user.click(screen.getByRole('combobox', { name: 'Campus' }))
+    await user.click(await screen.findByRole('option', { name: 'Linda Vista' }))
+    await user.click(screen.getByRole('combobox', { name: 'Teacher' }))
+    await user.click(await screen.findByRole('option', { name: teacherName }))
+    expect(screen.getByRole('combobox', { name: 'Teacher' })).toHaveTextContent(teacherName)
+
+    // Switching Sede invalidates the teacher (a Teacher belongs to one Sede).
+    await user.click(screen.getByRole('combobox', { name: 'Campus' }))
+    await user.click(await screen.findByRole('option', { name: 'Hatillo' }))
+    expect(screen.getByRole('combobox', { name: 'Teacher' })).not.toHaveTextContent(teacherName)
+  })
 })

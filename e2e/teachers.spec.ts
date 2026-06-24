@@ -15,6 +15,8 @@ test('admin creates a teacher', async ({ page }) => {
   await page.getByLabel('First name').fill(firstName)
   await page.getByLabel('Last name').fill('Smith')
   await page.getByLabel('Email').fill(`e2e${suffix}@fv.cr`)
+  await page.getByRole('combobox', { name: /campus/i }).click()
+  await page.getByRole('option', { name: 'Linda Vista' }).click()
   await page.getByRole('button', { name: 'Save' }).click()
 
   // The modal closes and the new teacher shows up in the list.
