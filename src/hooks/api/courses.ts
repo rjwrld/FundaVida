@@ -59,13 +59,15 @@ export const useEnrollStudent = makeEntityMutation('enrollStudent')<{
   courseId: string
 }>({
   toastKey: 'toasts.enrolled',
-  invalidates: [COURSES_KEY, ['students']],
+  // ['enrollments'] so the Course detail roster (which reads the scoped
+  // enrollments query, ADR-0012) refetches after enrolling.
+  invalidates: [COURSES_KEY, ['students'], ['enrollments']],
   args: ({ studentId, courseId }) => [studentId, courseId],
 })
 
 export const useUnenrollStudent = makeEntityMutation('unenrollStudent')({
   toastKey: 'toasts.unenrolled',
-  invalidates: [COURSES_KEY, ['students'], ['grades'], ['attendance']],
+  invalidates: [COURSES_KEY, ['students'], ['enrollments'], ['grades'], ['attendance']],
 })
 
 export const useSetGrade = makeEntityMutation('setGrade')<{
@@ -74,6 +76,8 @@ export const useSetGrade = makeEntityMutation('setGrade')<{
   score: number
 }>({
   toastKey: 'toasts.gradeSaved',
-  invalidates: [COURSES_KEY, ['students']],
+  // ['grades'] so the Course detail roster (scoped grades query, ADR-0012)
+  // shows the saved score without a manual refresh.
+  invalidates: [COURSES_KEY, ['students'], ['grades']],
   args: ({ studentId, courseId, score }) => [studentId, courseId, score],
 })
