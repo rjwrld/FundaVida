@@ -205,7 +205,9 @@
       "sections": {
         "noStudents": "No students enrolled.",
         "overview": "Overview",
-        "students": "Students"
+        "students": "Students",
+        "yourAttendance": "Your attendance",
+        "yourRecords": "Your records"
       },
       "title": "Course",
       "unassignedTeacher": "Unassigned"

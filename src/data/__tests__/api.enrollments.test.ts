@@ -17,9 +17,18 @@ describe('enrollmentsApi', () => {
     expect(result.length).toBeGreaterThan(0)
   })
 
-  it('returns empty for non-admin roles', async () => {
+  it('returns only own-course enrollments for a teacher', async () => {
     useStore.getState().setRole('teacher')
-    expect(await enrollmentsApi.list()).toEqual([])
+    const result = await enrollmentsApi.list()
+    const state = useStore.getState()
+    const ownCourseIds = new Set(
+      state.courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id)
+    )
+    expect(result.length).toBeGreaterThan(0)
+    expect(result.every((e) => ownCourseIds.has(e.courseId))).toBe(true)
+  })
+
+  it('returns empty for a student', async () => {
     useStore.getState().setRole('student')
     expect(await enrollmentsApi.list()).toEqual([])
   })
