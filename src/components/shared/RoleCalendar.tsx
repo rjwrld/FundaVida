@@ -9,7 +9,7 @@ import type { Course } from '@/types'
 export interface RoleCalendarProps {
   /** Courses already scoped to the viewer; their derived Sessions drive the calendar. */
   courses: Course[]
-  /** When true, each Session entry links into its Course (Teacher/admin); otherwise read-only. */
+  /** When true, each Session entry links into its Course's attendance (Teacher/admin); otherwise read-only. */
   linkSessions: boolean
 }
 
@@ -59,7 +59,7 @@ export function RoleCalendar({ courses, linkSessions }: RoleCalendarProps) {
                 <li key={`${s.courseId}-${s.date}`} className="text-sm">
                   {linkSessions ? (
                     <Link
-                      to={`/app/courses/${s.courseId}`}
+                      to={`/app/attendance?courseId=${s.courseId}`}
                       className="text-foreground hover:text-brand-green-700 hover:underline"
                     >
                       {label}

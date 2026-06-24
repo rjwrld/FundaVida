@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -35,7 +36,13 @@ function statusVariant(status: AttendanceStatus): 'success' | 'destructive' | 'i
 export function AttendanceListPage() {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
-  const [filters, setFilters] = useState<AttendanceFilters>({})
+  const [searchParams] = useSearchParams()
+  // The role-scoped calendar links a Teacher/admin into a Session's attendance,
+  // pre-filtered to that Course (ADR-0013). No deep-linkable per-Session route exists.
+  const [filters, setFilters] = useState<AttendanceFilters>(() => {
+    const courseId = searchParams.get('courseId')
+    return courseId ? { courseId } : {}
+  })
   const { data = [], isLoading } = useAttendance(filters)
   const { data: students = [] } = useStudents()
   const { data: courses = [] } = useCourses()

@@ -86,12 +86,12 @@ describe('<RoleCalendar />', () => {
     expect(screen.getByText('No sessions on this day.')).toBeInTheDocument()
   })
 
-  it('links each entry into its course when linkSessions is true', () => {
+  it('links each entry into its course’s attendance when linkSessions is true', () => {
     // June 15 (today) is the 5th mon/wed session and is selected on mount.
     renderCalendar(<RoleCalendar courses={[makeCourse()]} linkSessions={true} />)
 
     const link = screen.getByRole('link', { name: 'Matemáticas — Session 5' })
-    expect(link).toHaveAttribute('href', '/app/courses/cou-A')
+    expect(link).toHaveAttribute('href', '/app/attendance?courseId=cou-A')
   })
 
   it('renders read-only entries (no link) when linkSessions is false', () => {

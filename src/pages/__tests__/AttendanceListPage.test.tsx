@@ -11,13 +11,13 @@ import {
   clearPersistedState,
 } from '@/data/persistence'
 
-function renderPage() {
+function renderPage(entry = '/app/attendance') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
         <MemoryRouter
-          initialEntries={['/app/attendance']}
+          initialEntries={[entry]}
           future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
         >
           <Routes>
@@ -87,5 +87,22 @@ describe('<AttendanceListPage />', () => {
     expect(rows.length).toBeGreaterThan(0)
     // Just verify the page header rendered without errors
     expect(screen.getByRole('heading', { name: 'Attendance' })).toBeInTheDocument()
+  })
+
+  it('pre-filters attendance to the ?courseId= query param', async () => {
+    const { attendance } = useStore.getState()
+    const sample = attendance[0]
+    if (!sample) throw new Error('demo seed produced no attendance')
+    const courseId = sample.courseId
+    const expected = attendance.filter((a) => a.courseId === courseId)
+    // Guard: the demo must hold other courses' attendance, else the filter is untested.
+    expect(expected.length).toBeLessThan(attendance.length)
+
+    renderPage(`/app/attendance?courseId=${courseId}`)
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row').slice(1) // skip header row
+      expect(rows.length).toBe(expected.length)
+    })
   })
 })

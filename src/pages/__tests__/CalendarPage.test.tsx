@@ -108,7 +108,7 @@ describe('<CalendarPage />', () => {
     renderPage()
 
     const link = screen.getByRole('link', { name: 'Matemáticas — Session 5' })
-    expect(link).toHaveAttribute('href', '/app/courses/cou-A')
+    expect(link).toHaveAttribute('href', '/app/attendance?courseId=cou-A')
     // Historia is taught by tea-2 → out of the teacher persona's scope.
     expect(screen.queryByText(/Historia/)).not.toBeInTheDocument()
   })
