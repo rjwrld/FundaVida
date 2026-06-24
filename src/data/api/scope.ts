@@ -144,12 +144,19 @@ function applyCoursesScope(courses: CourseList, token: Scope, userId: string): C
 }
 
 function applyEnrollmentsScope(
-  _enrollments: EnrollmentList,
+  enrollments: EnrollmentList,
   token: Scope,
-  _userId: string
+  userId: string
 ): EnrollmentList {
-  // Enrollments: no non-'all' tokens currently defined
   switch (token) {
+    case 'ownCourses': {
+      // Enrollments in courses owned by the current user (a Teacher's rosters).
+      const state = useStore.getState()
+      const ownCourseIds = new Set(
+        state.courses.filter((c) => c.teacherId === userId).map((c) => c.id)
+      )
+      return enrollments.filter((e) => ownCourseIds.has(e.courseId))
+    }
     default:
       return []
   }

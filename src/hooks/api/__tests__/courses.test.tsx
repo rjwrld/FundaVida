@@ -290,6 +290,23 @@ describe('useEnrollStudent', () => {
     })
   })
 
+  it('invalidates the enrollments cache so the Course roster reflects the new enrollment', async () => {
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const { result } = renderHook(() => useEnrollStudent(), { wrapper: createWrapper() })
+
+    const state = useStore.getState()
+    const student = state.students[0]
+    const course = state.courses[0]
+    if (!student || !course) throw new Error('expected at least one student and one course')
+
+    await act(async () => {
+      result.current.mutate({ studentId: student.id, courseId: course.id })
+    })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['enrollments'] })
+  })
+
   it('fires error toast on student enrollment failure', async () => {
     const { toast } = await import('sonner')
     const { result } = renderHook(() => useEnrollStudent(), { wrapper: createWrapper() })
@@ -421,6 +438,26 @@ describe('useSetGrade', () => {
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith('toasts.gradeSaved')
     })
+  })
+
+  it('invalidates the grades cache so the Course roster reflects the saved score', async () => {
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const { result } = renderHook(() => useSetGrade(), { wrapper: createWrapper() })
+
+    const state = useStore.getState()
+    const enrollment = state.enrollments[0]
+    if (!enrollment) throw new Error('expected at least one enrollment')
+
+    await act(async () => {
+      result.current.mutate({
+        studentId: enrollment.studentId,
+        courseId: enrollment.courseId,
+        score: 88,
+      })
+    })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['grades'] })
   })
 
   it('fires error toast on grade setting failure', async () => {
