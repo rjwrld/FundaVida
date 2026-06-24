@@ -13,7 +13,7 @@ import type {
   Role,
 } from '@/types'
 import { can, type Action, type Resource, type PermissionContext } from '@/permissions'
-import { buildSeedSnapshot } from './seed'
+import { seedDemo } from './seed'
 import { debounce } from './debounce'
 import {
   clearPersistedCurrentUser,
@@ -169,7 +169,7 @@ function initialState(): Pick<
       locale,
     }
   }
-  const snapshot = buildSeedSnapshot()
+  const snapshot = seedDemo(new Date())
   return { ...snapshot, role, currentUserId, locale }
 }
 
@@ -197,7 +197,7 @@ export const useStore = create<StoreState>((set, get) => ({
     set({ locale })
   },
   resetDemo: () => {
-    const snapshot = buildSeedSnapshot()
+    const snapshot = seedDemo(new Date())
     set({
       ...snapshot,
       role: null,
