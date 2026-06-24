@@ -29,6 +29,6 @@ describe('ThemeToggle', () => {
     await user.click(screen.getByRole('button'))
     await user.click(screen.getByText(/^(dark|oscuro)$/i))
     expect(document.documentElement.classList.contains('dark')).toBe(true)
-    expect(localStorage.getItem('fundavida:v2:theme')).toBe('dark')
+    expect(localStorage.getItem('fundavida:v1:theme')).toBe('dark')
   })
 })

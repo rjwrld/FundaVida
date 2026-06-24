@@ -207,7 +207,7 @@ export const useStore = create<StoreState>((set, get) => ({
     clearPersistedRole()
     clearPersistedCurrentUser()
     if (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined') {
-      window.localStorage.removeItem('fundavida:v2:banner-dismissed')
+      window.localStorage.removeItem('fundavida:v1:banner-dismissed')
     }
   },
   createStudent: (input) => {

@@ -18,7 +18,7 @@ describe('useTheme', () => {
   })
 
   it('reads stored theme from localStorage', () => {
-    localStorage.setItem('fundavida:v2:theme', 'dark')
+    localStorage.setItem('fundavida:v1:theme', 'dark')
     const { result } = renderHook(() => useTheme())
     expect(result.current.theme).toBe('dark')
   })
@@ -26,7 +26,7 @@ describe('useTheme', () => {
   it('setTheme persists to localStorage and applies class', () => {
     const { result } = renderHook(() => useTheme())
     act(() => result.current.setTheme('dark'))
-    expect(localStorage.getItem('fundavida:v2:theme')).toBe('dark')
+    expect(localStorage.getItem('fundavida:v1:theme')).toBe('dark')
     expect(document.documentElement.classList.contains('dark')).toBe(true)
   })
 

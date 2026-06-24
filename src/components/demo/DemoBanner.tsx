@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 
-const DISMISS_KEY = 'fundavida:v2:banner-dismissed'
+// A dismissed-banner flag is a UI preference, not seed-snapshot data, so it is
+// intentionally not versioned with the snapshot — a reseed must not un-dismiss it.
+const DISMISS_KEY = 'fundavida:v1:banner-dismissed'
 
 export function DemoBanner() {
   const [visible, setVisible] = useState(false)

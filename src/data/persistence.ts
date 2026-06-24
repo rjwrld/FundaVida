@@ -4,10 +4,18 @@ import { WEEKDAYS, type Role, type Weekday } from '@/types'
 const STATE_KEY = 'fundavida:v2:state'
 const ROLE_KEY = 'fundavida:v2:role'
 
-// Persisted snapshots from before the seedDemo causal rewrite are not migrated
+// Pre-v2 snapshot-session keys this layer owns. They are not migrated
 // (ADR-0003): they are removed on first load so the app reseeds cleanly at a
-// fresh Demo Epoch instead of rehydrating an incoherent v1 world.
-const LEGACY_KEY_PREFIX = 'fundavida:v1:'
+// fresh Demo Epoch instead of rehydrating an incoherent v1 world. Only keys
+// this module owns are listed — UI preferences such as theme and
+// banner-dismissed belong to other modules and must survive a reseed, so they
+// are deliberately left untouched.
+const LEGACY_SNAPSHOT_KEYS = [
+  'fundavida:v1:state',
+  'fundavida:v1:role',
+  'fundavida:v1:current-user',
+  'fundavida:v1:locale',
+]
 
 export type PersistedState = SeedSnapshot
 
@@ -17,12 +25,7 @@ function isBrowser() {
 
 function clearLegacyKeys(): void {
   if (!isBrowser()) return
-  const stale: string[] = []
-  for (let i = 0; i < window.localStorage.length; i += 1) {
-    const key = window.localStorage.key(i)
-    if (key && key.startsWith(LEGACY_KEY_PREFIX)) stale.push(key)
-  }
-  stale.forEach((key) => window.localStorage.removeItem(key))
+  LEGACY_SNAPSHOT_KEYS.forEach((key) => window.localStorage.removeItem(key))
 }
 
 function isValidSnapshot(value: unknown): value is PersistedState {

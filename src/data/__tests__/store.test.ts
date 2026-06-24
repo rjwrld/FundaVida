@@ -40,9 +40,9 @@ describe('useStore', () => {
   })
 
   it('resetDemo clears the banner-dismissed flag so the banner reappears', () => {
-    window.localStorage.setItem('fundavida:v2:banner-dismissed', '1')
+    window.localStorage.setItem('fundavida:v1:banner-dismissed', '1')
     useStore.getState().resetDemo()
-    expect(window.localStorage.getItem('fundavida:v2:banner-dismissed')).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v1:banner-dismissed')).toBeNull()
   })
 })
 

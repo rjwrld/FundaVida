@@ -51,6 +51,22 @@ describe('persistence', () => {
     expect(window.localStorage.getItem('fundavida:v1:current-user')).toBeNull()
   })
 
+  it('preserves UI-preference keys (theme, banner) it does not own when clearing a stale snapshot', () => {
+    window.localStorage.setItem('fundavida:v1:state', JSON.stringify(seedDemo(new Date())))
+    window.localStorage.setItem('fundavida:v1:theme', 'dark')
+    window.localStorage.setItem('fundavida:v1:banner-dismissed', '1')
+
+    expect(loadPersistedState()).toBeNull()
+    // The snapshot key is cleared...
+    expect(window.localStorage.getItem('fundavida:v1:state')).toBeNull()
+    // ...but UI preferences owned by useTheme / DemoBanner survive the reseed.
+    expect(window.localStorage.getItem('fundavida:v1:theme')).toBe('dark')
+    expect(window.localStorage.getItem('fundavida:v1:banner-dismissed')).toBe('1')
+
+    window.localStorage.removeItem('fundavida:v1:theme')
+    window.localStorage.removeItem('fundavida:v1:banner-dismissed')
+  })
+
   it('persists and loads a role independently', () => {
     savePersistedRole('teacher')
     expect(loadPersistedRole()).toBe('teacher')

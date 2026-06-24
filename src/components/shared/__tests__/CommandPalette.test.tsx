@@ -68,6 +68,6 @@ describe('<CommandPalette />', () => {
     await user.click(screen.getByRole('button', { name: 'open' }))
     const darkItem = await screen.findByRole('option', { name: /Dark/i })
     await user.click(darkItem)
-    expect(localStorage.getItem('fundavida:v2:theme')).toBe('dark')
+    expect(localStorage.getItem('fundavida:v1:theme')).toBe('dark')
   })
 })

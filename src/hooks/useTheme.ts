@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 
 export type Theme = 'light' | 'dark' | 'system'
-const STORAGE_KEY = 'fundavida:v2:theme'
+// Theme is a UI preference, not seed-snapshot data, so it is intentionally not
+// versioned with the snapshot — a seed-schema bump (v1→v2) must never reset it.
+const STORAGE_KEY = 'fundavida:v1:theme'
 
 function resolveSystem(): 'light' | 'dark' {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
