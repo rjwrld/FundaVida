@@ -46,3 +46,15 @@ _Avoid_: organizer, tcu user
 
 **TCU Activity**:
 One unit of service work a TCU Trainee logs: title, hours, date. Belongs to a Trainee, never to a Student.
+
+### Sites
+
+**Sede** (EN label _Campus_):
+The community center a Course is taught at and a Teacher and Student are based in. Three exist: Linda Vista, Hatillo, Alajuelita. Every Course, Teacher, and Student belongs to exactly one. A Course's Teacher shares the Course's Sede, and a Student may only enroll in Courses at their own Sede.
+_Avoid_: headquarters, HQ, location, branch (the model term is Sede; the English UI renders it "Campus")
+
+### Students
+
+**Educational Level**:
+A Student's schooling stage — _primary_ or _secondary_ (Primaria/Secundaria). The foundation serves through secondary only; there is no university level.
+_Avoid_: grade (that's the 0–100 course score — see Grade), year, university
