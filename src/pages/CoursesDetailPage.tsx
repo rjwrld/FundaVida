@@ -14,7 +14,14 @@ import {
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { useAttendance, useCourse, useGrades, useUnenrollStudent } from '@/hooks/api'
+import {
+  useAttendance,
+  useCourse,
+  useEnrollments,
+  useGrades,
+  useStudents,
+  useUnenrollStudent,
+} from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
@@ -41,14 +48,13 @@ export function CoursesDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: course, isLoading } = useCourse(id ?? '')
-  const students = useStore((s) => s.students)
   const teachers = useStore((s) => s.teachers)
-  const enrollments = useStore((s) => s.enrollments)
-  const grades = useStore((s) => s.grades)
-  // Scoped reads: a Student's own Grade for this Course (scope 'own' collapses
-  // the result to self); admin/teacher get the Course's Grades (ADR-0012).
+  // The roster reads through the API/scope seam, never raw store collections
+  // (ADR-0012): admin sees all, the Course's Teacher sees their own Course's
+  // records, and a Student's scope collapses these to self (or empty).
+  const { data: courseEnrollments = [] } = useEnrollments({ courseId: id ?? '' })
+  const { data: scopedStudents = [] } = useStudents()
   const { data: scopedGrades = [] } = useGrades({ courseId: id ?? '' })
-  // Scope 'own' narrows a Student's Attendance to self for this Course (ADR-0012).
   const { data: ownAttendance = [] } = useAttendance({ courseId: id ?? '' })
   const unenroll = useUnenrollStudent()
 
@@ -80,7 +86,6 @@ export function CoursesDetailPage() {
   }
 
   const teacher = teachers.find((tt) => tt.id === course.teacherId)
-  const courseEnrollments = enrollments.filter((e) => e.courseId === course.id)
   // For the Student self-view: scope 'own' already narrows scopedGrades to the
   // current Student, so this is their own Grade for the Course (or undefined).
   const ownGrade = scopedGrades.find((g) => g.courseId === course.id)
@@ -166,8 +171,8 @@ export function CoursesDetailPage() {
               </TableHeader>
               <TableBody>
                 {courseEnrollments.map((e) => {
-                  const student = students.find((s) => s.id === e.studentId)
-                  const grade = grades.find(
+                  const student = scopedStudents.find((s) => s.id === e.studentId)
+                  const grade = scopedGrades.find(
                     (g) => g.studentId === e.studentId && g.courseId === course.id
                   )
                   if (!student) return null

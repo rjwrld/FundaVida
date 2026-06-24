@@ -783,7 +783,7 @@ describe('Permissions Matrix', () => {
         students: 'enrolledInOwnCourses',
         teachers: 'none',
         courses: 'own',
-        enrollments: 'none',
+        enrollments: 'ownCourses',
         grades: 'ownCourses',
         certificates: 'none',
         attendance: 'ownCourses',

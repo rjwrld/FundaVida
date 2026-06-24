@@ -149,7 +149,7 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     students: 'enrolledInOwnCourses',
     teachers: 'none',
     courses: 'own',
-    enrollments: 'none',
+    enrollments: 'ownCourses',
     grades: 'ownCourses',
     certificates: 'none',
     attendance: 'ownCourses',
