@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { useCourse, useUnenrollStudent } from '@/hooks/api'
+import { useCourse, useGrades, useUnenrollStudent } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
@@ -36,6 +36,9 @@ export function CoursesDetailPage() {
   const teachers = useStore((s) => s.teachers)
   const enrollments = useStore((s) => s.enrollments)
   const grades = useStore((s) => s.grades)
+  // Scoped reads: a Student's own Grade for this Course (scope 'own' collapses
+  // the result to self); admin/teacher get the Course's Grades (ADR-0012).
+  const { data: scopedGrades = [] } = useGrades({ courseId: id ?? '' })
   const unenroll = useUnenrollStudent()
 
   const [gradingTarget, setGradingTarget] = useState<GradingTarget | null>(null)
@@ -67,6 +70,9 @@ export function CoursesDetailPage() {
 
   const teacher = teachers.find((tt) => tt.id === course.teacherId)
   const courseEnrollments = enrollments.filter((e) => e.courseId === course.id)
+  // For the Student self-view: scope 'own' already narrows scopedGrades to the
+  // current Student, so this is their own Grade for the Course (or undefined).
+  const ownGrade = scopedGrades.find((g) => g.courseId === course.id)
 
   return (
     <div className="space-y-6">
@@ -205,6 +211,26 @@ export function CoursesDetailPage() {
               </TableBody>
             </Table>
           )}
+        </section>
+      )}
+
+      {!canViewRoster && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">
+            {t('courses.detail.sections.yourRecords')}
+          </h2>
+          <Card>
+            <CardContent className="space-y-2 py-4 text-sm">
+              <p>
+                <span className="text-muted-foreground">
+                  {t('courses.detail.enrolledTable.grade')}:
+                </span>{' '}
+                {ownGrade
+                  ? formatGrade(ownGrade.score)
+                  : t('courses.detail.enrolledTable.notGraded')}
+              </p>
+            </CardContent>
+          </Card>
         </section>
       )}
 

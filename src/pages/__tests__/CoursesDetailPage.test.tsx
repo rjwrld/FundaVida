@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
+import { formatGrade } from '@/lib/format'
 import { CoursesDetailPage } from '@/pages/CoursesDetailPage'
 import { useStore } from '@/data/store'
 import {
@@ -103,5 +104,16 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     expect(
       screen.queryByText(`${classmate.firstName} ${classmate.lastName}`)
     ).not.toBeInTheDocument()
+  })
+
+  it('shows a Student their own Grade for the Course', async () => {
+    const { gradedCourse, ownGrade } = fixtures()
+    asRole('student')
+    renderPage(gradedCourse.id)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: gradedCourse.name })).toBeInTheDocument()
+    })
+    expect(screen.getByText(formatGrade(ownGrade.score, 'en'))).toBeInTheDocument()
   })
 })

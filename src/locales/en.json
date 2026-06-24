@@ -198,7 +198,8 @@
       "sections": {
         "noStudents": "No students enrolled.",
         "overview": "Overview",
-        "students": "Students"
+        "students": "Students",
+        "yourRecords": "Your records"
       },
       "title": "Course",
       "unassignedTeacher": "Unassigned"

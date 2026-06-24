@@ -199,7 +199,8 @@
       "sections": {
         "noStudents": "Ningún estudiante matriculado.",
         "overview": "Resumen",
-        "students": "Estudiantes"
+        "students": "Estudiantes",
+        "yourRecords": "Tus registros"
       },
       "title": "Curso",
       "unassignedTeacher": "Sin asignar"
