@@ -2,8 +2,9 @@ import type { Page } from '@playwright/test'
 
 type Role = 'admin' | 'teacher' | 'student' | 'tcu'
 
-const ROLE_KEY = 'fundavida:v1:role'
-const CURRENT_USER_KEY = 'fundavida:v1:current-user'
+// Must match the snapshot-session keys in src/data/persistence.ts (bumped to v2).
+const ROLE_KEY = 'fundavida:v2:role'
+const CURRENT_USER_KEY = 'fundavida:v2:current-user'
 
 const USER_ID_FOR_ROLE: Record<Role, string> = {
   admin: 'admin',
