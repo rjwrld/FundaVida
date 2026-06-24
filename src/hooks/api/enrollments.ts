@@ -1,9 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
+import { useQuery } from '@tanstack/react-query'
 import { api } from '@/data/api'
 import { useStore } from '@/data/store'
 import type { EnrollmentFilters } from '@/data/api/enrollments'
+import { makeEntityMutation } from './makeEntityMutation'
 
 const ENROLLMENTS_KEY = ['enrollments'] as const
 
@@ -15,26 +14,7 @@ export function useEnrollments(filters: EnrollmentFilters = {}) {
   })
 }
 
-export function useDeleteEnrollment() {
-  const client = useQueryClient()
-  const unenrollStudent = useStore((s) => s.unenrollStudent)
-  const { t } = useTranslation()
-  return useMutation({
-    mutationFn: async (enrollmentId: string) => {
-      unenrollStudent(enrollmentId)
-    },
-    onSuccess: () => {
-      toast.success(t('toasts.unenrolled'))
-      client.invalidateQueries({ queryKey: ENROLLMENTS_KEY })
-      client.invalidateQueries({ queryKey: ['students'] })
-      client.invalidateQueries({ queryKey: ['courses'] })
-      client.invalidateQueries({ queryKey: ['grades'] })
-      client.invalidateQueries({ queryKey: ['attendance'] })
-    },
-    onError: (error) => {
-      toast.error(
-        t('toasts.error', { message: error instanceof Error ? error.message : String(error) })
-      )
-    },
-  })
-}
+export const useDeleteEnrollment = makeEntityMutation('unenrollStudent')({
+  toastKey: 'toasts.unenrolled',
+  invalidates: [ENROLLMENTS_KEY, ['students'], ['courses'], ['grades'], ['attendance']],
+})

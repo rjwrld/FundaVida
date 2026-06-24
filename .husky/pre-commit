@@ -1,1 +1,8 @@
 npx --no-install lint-staged
+
+# i18n key drift (e.g. keys passed as config strings the parser can't see) is
+# invisible to eslint/prettier, so guard it here the same way CI does. Only
+# re-extract when source or locale files are staged, to keep other commits fast.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '\.(ts|tsx)$|^src/locales/'; then
+  npm run i18n:check
+fi

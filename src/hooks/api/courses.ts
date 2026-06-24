@@ -1,10 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
+import { useQuery } from '@tanstack/react-query'
 import { api } from '@/data/api'
 import { useStore } from '@/data/store'
 import type { Course } from '@/types'
 import type { CourseFilters } from '@/data/api/courses'
+import { makeEntityMutation } from './makeEntityMutation'
 
 const COURSES_KEY = ['courses'] as const
 const courseKey = (id: string) => ['courses', id] as const
@@ -29,132 +28,52 @@ export function useCourse(id: string) {
   })
 }
 
-export function useCreateCourse() {
-  const client = useQueryClient()
-  const createCourse = useStore((s) => s.createCourse)
-  const { t } = useTranslation()
-  return useMutation({
-    mutationFn: async (input: Parameters<typeof createCourse>[0]) => createCourse(input),
-    onSuccess: () => {
-      toast.success(t('toasts.courseCreated'))
-      client.invalidateQueries({ queryKey: COURSES_KEY })
-    },
-    onError: (error) => {
-      toast.error(
-        t('toasts.error', { message: error instanceof Error ? error.message : String(error) })
-      )
-    },
-  })
-}
+export const useCreateCourse = makeEntityMutation('createCourse')({
+  toastKey: 'toasts.courseCreated',
+  invalidates: [COURSES_KEY],
+})
 
-export function useUpdateCourse() {
-  const client = useQueryClient()
-  const updateCourse = useStore((s) => s.updateCourse)
-  const { t } = useTranslation()
-  return useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Course> }) => {
-      updateCourse(id, patch)
-    },
-    onSuccess: (_, { id }) => {
-      toast.success(t('toasts.courseUpdated'))
-      client.invalidateQueries({ queryKey: COURSES_KEY })
-      client.invalidateQueries({ queryKey: courseKey(id) })
-    },
-    onError: (error) => {
-      toast.error(
-        t('toasts.error', { message: error instanceof Error ? error.message : String(error) })
-      )
-    },
-  })
-}
+export const useUpdateCourse = makeEntityMutation('updateCourse')<{
+  id: string
+  patch: Partial<Course>
+}>({
+  toastKey: 'toasts.courseUpdated',
+  invalidates: ({ id }) => [COURSES_KEY, courseKey(id)],
+  args: ({ id, patch }) => [id, patch],
+})
 
-export function useDeleteCourse() {
-  const client = useQueryClient()
-  const deleteCourse = useStore((s) => s.deleteCourse)
-  const { t } = useTranslation()
-  return useMutation({
-    mutationFn: async (id: string) => deleteCourse(id),
-    onSuccess: () => {
-      toast.success(t('toasts.courseDeleted'))
-      client.invalidateQueries({ queryKey: COURSES_KEY })
-      client.invalidateQueries({ queryKey: ['enrollments'] })
-      client.invalidateQueries({ queryKey: ['grades'] })
-      client.invalidateQueries({ queryKey: ['students'] })
-      client.invalidateQueries({ queryKey: ['teachers'] })
-      client.invalidateQueries({ queryKey: ['attendance'] })
-    },
-    onError: (error) => {
-      toast.error(
-        t('toasts.error', { message: error instanceof Error ? error.message : String(error) })
-      )
-    },
-  })
-}
+export const useDeleteCourse = makeEntityMutation('deleteCourse')({
+  toastKey: 'toasts.courseDeleted',
+  invalidates: [
+    COURSES_KEY,
+    ['enrollments'],
+    ['grades'],
+    ['students'],
+    ['teachers'],
+    ['attendance'],
+  ],
+})
 
-export function useEnrollStudent() {
-  const client = useQueryClient()
-  const enrollStudent = useStore((s) => s.enrollStudent)
-  const { t } = useTranslation()
-  return useMutation({
-    mutationFn: async ({ studentId, courseId }: { studentId: string; courseId: string }) =>
-      enrollStudent(studentId, courseId),
-    onSuccess: () => {
-      toast.success(t('toasts.enrolled'))
-      client.invalidateQueries({ queryKey: COURSES_KEY })
-      client.invalidateQueries({ queryKey: ['students'] })
-    },
-    onError: (error) => {
-      toast.error(
-        t('toasts.error', { message: error instanceof Error ? error.message : String(error) })
-      )
-    },
-  })
-}
+export const useEnrollStudent = makeEntityMutation('enrollStudent')<{
+  studentId: string
+  courseId: string
+}>({
+  toastKey: 'toasts.enrolled',
+  invalidates: [COURSES_KEY, ['students']],
+  args: ({ studentId, courseId }) => [studentId, courseId],
+})
 
-export function useUnenrollStudent() {
-  const client = useQueryClient()
-  const unenrollStudent = useStore((s) => s.unenrollStudent)
-  const { t } = useTranslation()
-  return useMutation({
-    mutationFn: async (enrollmentId: string) => unenrollStudent(enrollmentId),
-    onSuccess: () => {
-      toast.success(t('toasts.unenrolled'))
-      client.invalidateQueries({ queryKey: COURSES_KEY })
-      client.invalidateQueries({ queryKey: ['students'] })
-      client.invalidateQueries({ queryKey: ['grades'] })
-      client.invalidateQueries({ queryKey: ['attendance'] })
-    },
-    onError: (error) => {
-      toast.error(
-        t('toasts.error', { message: error instanceof Error ? error.message : String(error) })
-      )
-    },
-  })
-}
+export const useUnenrollStudent = makeEntityMutation('unenrollStudent')({
+  toastKey: 'toasts.unenrolled',
+  invalidates: [COURSES_KEY, ['students'], ['grades'], ['attendance']],
+})
 
-export function useSetGrade() {
-  const client = useQueryClient()
-  const setGrade = useStore((s) => s.setGrade)
-  const { t } = useTranslation()
-  return useMutation({
-    mutationFn: async ({
-      studentId,
-      courseId,
-      score,
-    }: {
-      studentId: string
-      courseId: string
-      score: number
-    }) => setGrade(studentId, courseId, score),
-    onSuccess: () => {
-      toast.success(t('toasts.gradeSaved'))
-      client.invalidateQueries({ queryKey: COURSES_KEY })
-      client.invalidateQueries({ queryKey: ['students'] })
-    },
-    onError: (error) => {
-      toast.error(
-        t('toasts.error', { message: error instanceof Error ? error.message : String(error) })
-      )
-    },
-  })
-}
+export const useSetGrade = makeEntityMutation('setGrade')<{
+  studentId: string
+  courseId: string
+  score: number
+}>({
+  toastKey: 'toasts.gradeSaved',
+  invalidates: [COURSES_KEY, ['students']],
+  args: ({ studentId, courseId, score }) => [studentId, courseId, score],
+})
