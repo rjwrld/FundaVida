@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -13,10 +14,12 @@ import {
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { useCourse, useGrades, useUnenrollStudent } from '@/hooks/api'
+import { useAttendance, useCourse, useGrades, useUnenrollStudent } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
+import { findSession } from '@/lib/sessions'
+import type { AttendanceStatus } from '@/types'
 import { GradeDialog } from '@/components/courses/GradeDialog'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
 
@@ -26,9 +29,15 @@ interface GradingTarget {
   initialScore?: number
 }
 
+function statusVariant(status: AttendanceStatus): 'success' | 'destructive' | 'info' {
+  if (status === 'present') return 'success'
+  if (status === 'absent') return 'destructive'
+  return 'info'
+}
+
 export function CoursesDetailPage() {
   const { t } = useTranslation()
-  const { formatGrade } = useFormat()
+  const { formatGrade, formatDate } = useFormat()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: course, isLoading } = useCourse(id ?? '')
@@ -39,6 +48,8 @@ export function CoursesDetailPage() {
   // Scoped reads: a Student's own Grade for this Course (scope 'own' collapses
   // the result to self); admin/teacher get the Course's Grades (ADR-0012).
   const { data: scopedGrades = [] } = useGrades({ courseId: id ?? '' })
+  // Scope 'own' narrows a Student's Attendance to self for this Course (ADR-0012).
+  const { data: ownAttendance = [] } = useAttendance({ courseId: id ?? '' })
   const unenroll = useUnenrollStudent()
 
   const [gradingTarget, setGradingTarget] = useState<GradingTarget | null>(null)
@@ -231,6 +242,44 @@ export function CoursesDetailPage() {
               </p>
             </CardContent>
           </Card>
+
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold tracking-tight">
+              {t('courses.detail.sections.yourAttendance')}
+            </h3>
+            {ownAttendance.length === 0 ? (
+              <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+                {t('attendance.list.empty')}
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('attendance.list.columns.session')}</TableHead>
+                    <TableHead>{t('attendance.list.columns.status')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {ownAttendance.map((record) => {
+                    const session = findSession(course, record.sessionDate)
+                    const sessionLabel = session
+                      ? `${t('attendance.list.session', { ordinal: String(session.ordinal) } as Record<string, string>)} · ${formatDate(record.sessionDate)}`
+                      : formatDate(record.sessionDate)
+                    return (
+                      <TableRow key={record.id}>
+                        <TableCell>{sessionLabel}</TableCell>
+                        <TableCell>
+                          <Badge variant={statusVariant(record.status)} dot>
+                            {t(`attendance.list.status.${record.status}`)}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </div>
         </section>
       )}
 

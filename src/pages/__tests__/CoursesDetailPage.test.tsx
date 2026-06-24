@@ -116,4 +116,20 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     })
     expect(screen.getByText(formatGrade(ownGrade.score, 'en'))).toBeInTheDocument()
   })
+
+  it('shows a Student their own Attendance for the Course', async () => {
+    const { gradedCourse, self } = fixtures()
+    const ownAttendance = useStore
+      .getState()
+      .attendance.filter((a) => a.studentId === self && a.courseId === gradedCourse.id)
+    expect(ownAttendance.length).toBeGreaterThan(0)
+    asRole('student')
+    renderPage(gradedCourse.id)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /your attendance/i })).toBeInTheDocument()
+    })
+    // One row per own Attendance record, plus the table header row.
+    expect(screen.getAllByRole('row')).toHaveLength(ownAttendance.length + 1)
+  })
 })
