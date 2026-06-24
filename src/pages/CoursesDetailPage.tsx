@@ -45,6 +45,7 @@ export function CoursesDetailPage() {
     studentName: string
   } | null>(null)
 
+  const canViewRoster = useCan('view', 'enrollments', { course: course || undefined })
   const canEdit = useCan('edit', 'courses')
   const canCreate = useCan('create', 'enrollments')
   const canEnter = useCan('enter', 'grades', { course: course || undefined })
@@ -117,93 +118,95 @@ export function CoursesDetailPage() {
         </Card>
       </section>
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {t('courses.detail.sections.students')}
-          </h2>
-          {canCreate && (
-            <Button size="sm" onClick={() => setEnrollOpen(true)}>
-              {t('courses.detail.enrollButton')}
-            </Button>
-          )}
-        </div>
-        {courseEnrollments.length === 0 ? (
-          <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-            {t('courses.detail.sections.noStudents')}
-          </p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('courses.detail.enrolledTable.name')}</TableHead>
-                <TableHead>{t('courses.detail.enrolledTable.grade')}</TableHead>
-                {(canEnter || canEditGrade || canDelete) && (
-                  <TableHead className="text-right">
-                    {t('courses.detail.enrolledTable.actions')}
-                  </TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {courseEnrollments.map((e) => {
-                const student = students.find((s) => s.id === e.studentId)
-                const grade = grades.find(
-                  (g) => g.studentId === e.studentId && g.courseId === course.id
-                )
-                if (!student) return null
-                return (
-                  <TableRow key={e.id}>
-                    <TableCell>
-                      <Link to={`/app/students/${student.id}`} className="hover:underline">
-                        {student.firstName} {student.lastName}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      {grade
-                        ? formatGrade(grade.score)
-                        : t('courses.detail.enrolledTable.notGraded')}
-                    </TableCell>
-                    {(canEnter || canEditGrade || canDelete) && (
-                      <TableCell className="text-right">
-                        {(grade ? canEditGrade : canEnter) && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              setGradingTarget({
-                                studentId: student.id,
-                                studentName: `${student.firstName} ${student.lastName}`,
-                                initialScore: grade?.score,
-                              })
-                            }
-                          >
-                            {t('courses.detail.enrolledTable.gradeButton')}
-                          </Button>
-                        )}
-                        {canDelete && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              setPendingUnenroll({
-                                id: e.id,
-                                studentName: `${student.firstName} ${student.lastName}`,
-                              })
-                            }
-                          >
-                            {t('courses.detail.enrolledTable.removeButton')}
-                          </Button>
-                        )}
+      {canViewRoster && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold tracking-tight">
+              {t('courses.detail.sections.students')}
+            </h2>
+            {canCreate && (
+              <Button size="sm" onClick={() => setEnrollOpen(true)}>
+                {t('courses.detail.enrollButton')}
+              </Button>
+            )}
+          </div>
+          {courseEnrollments.length === 0 ? (
+            <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+              {t('courses.detail.sections.noStudents')}
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('courses.detail.enrolledTable.name')}</TableHead>
+                  <TableHead>{t('courses.detail.enrolledTable.grade')}</TableHead>
+                  {(canEnter || canEditGrade || canDelete) && (
+                    <TableHead className="text-right">
+                      {t('courses.detail.enrolledTable.actions')}
+                    </TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {courseEnrollments.map((e) => {
+                  const student = students.find((s) => s.id === e.studentId)
+                  const grade = grades.find(
+                    (g) => g.studentId === e.studentId && g.courseId === course.id
+                  )
+                  if (!student) return null
+                  return (
+                    <TableRow key={e.id}>
+                      <TableCell>
+                        <Link to={`/app/students/${student.id}`} className="hover:underline">
+                          {student.firstName} {student.lastName}
+                        </Link>
                       </TableCell>
-                    )}
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        )}
-      </section>
+                      <TableCell>
+                        {grade
+                          ? formatGrade(grade.score)
+                          : t('courses.detail.enrolledTable.notGraded')}
+                      </TableCell>
+                      {(canEnter || canEditGrade || canDelete) && (
+                        <TableCell className="text-right">
+                          {(grade ? canEditGrade : canEnter) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                setGradingTarget({
+                                  studentId: student.id,
+                                  studentName: `${student.firstName} ${student.lastName}`,
+                                  initialScore: grade?.score,
+                                })
+                              }
+                            >
+                              {t('courses.detail.enrolledTable.gradeButton')}
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                setPendingUnenroll({
+                                  id: e.id,
+                                  studentName: `${student.firstName} ${student.lastName}`,
+                                })
+                              }
+                            >
+                              {t('courses.detail.enrolledTable.removeButton')}
+                            </Button>
+                          )}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </section>
+      )}
 
       {gradingTarget && (
         <GradeDialog
