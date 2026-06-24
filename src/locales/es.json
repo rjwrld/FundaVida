@@ -109,6 +109,13 @@
     "subtitle": "Redacta un mensaje, elige destinatarios, envía (simulado).",
     "title": "Correos masivos"
   },
+  "calendar": {
+    "emptyDay": "No hay sesiones este día.",
+    "panelTitle": "Sesiones",
+    "sessionEntry": "{{course}} — Sesión {{ordinal}}",
+    "subtitle": "Tus sesiones de un vistazo.",
+    "title": "Calendario"
+  },
   "certificates": {
     "empty": {
       "body": "Aprueba la primera matrícula para emitir un certificado.",
@@ -454,6 +461,7 @@
     "attendance": "Asistencia",
     "auditLog": "Bitácora",
     "bulkEmail": "Correos masivos",
+    "calendar": "Calendario",
     "certificates": "Certificados",
     "courses": "Cursos",
     "dashboard": "Panel",

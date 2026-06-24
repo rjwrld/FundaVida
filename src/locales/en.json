@@ -108,6 +108,13 @@
     "subtitle": "Draft a message, pick recipients, send (simulated).",
     "title": "Bulk email"
   },
+  "calendar": {
+    "emptyDay": "No sessions on this day.",
+    "panelTitle": "Sessions",
+    "sessionEntry": "{{course}} — Session {{ordinal}}",
+    "subtitle": "Your scoped sessions at a glance.",
+    "title": "Calendar"
+  },
   "certificates": {
     "empty": {
       "body": "Approve the first enrollment to issue a certificate.",
@@ -450,6 +457,7 @@
     "attendance": "Attendance",
     "auditLog": "Audit Logs",
     "bulkEmail": "Bulk Email",
+    "calendar": "Calendar",
     "certificates": "Certificates",
     "courses": "Courses",
     "dashboard": "Dashboard",

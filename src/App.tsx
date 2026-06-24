@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { LandingPage } from '@/pages/LandingPage'
 import { WelcomePage } from '@/pages/WelcomePage'
 import { DashboardPage } from '@/pages/DashboardPage'
+import { CalendarPage } from '@/pages/CalendarPage'
 import { StudentsListPage } from '@/pages/StudentsListPage'
 import { StudentsDetailPage } from '@/pages/StudentsDetailPage'
 import { TeachersListPage } from '@/pages/TeachersListPage'
@@ -32,6 +33,8 @@ export function App() {
         <Route element={<RoleRequired />}>
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<DashboardPage />} />
+            {/* Role-scoped by derived Sessions, not a permission, so it has no RoleGate (ADR-0013). */}
+            <Route path="calendar" element={<CalendarPage />} />
             <Route element={<RoleGate resource="students" />}>
               <Route path="students" element={<StudentsListPage />} />
               <Route path="students/:id" element={<StudentsDetailPage />} />

@@ -2,6 +2,7 @@ import {
   Award,
   BookOpen,
   CalendarCheck2,
+  CalendarDays,
   ClipboardList,
   FileText,
   GraduationCap,
@@ -33,6 +34,14 @@ export const NAV_ITEMS: NavItem[] = [
     labelKey: 'nav.dashboard',
     section: 'programs',
     icon: LayoutDashboard,
+  },
+  {
+    // No `resource`: the calendar is role-scoped by its derived Sessions, not by a
+    // permission, so it rides the existing Courses scope and shows for every role (ADR-0013).
+    to: '/app/calendar',
+    labelKey: 'nav.calendar',
+    section: 'programs',
+    icon: CalendarDays,
   },
   {
     to: '/app/courses',
