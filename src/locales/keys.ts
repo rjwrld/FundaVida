@@ -15,6 +15,7 @@ t('nav.sections.reports')
 
 // Keys referenced via NAV_ITEMS[].labelKey in AppSidebar
 t('nav.dashboard')
+t('nav.calendar')
 t('nav.students')
 t('nav.teachers')
 t('nav.enrollments')
