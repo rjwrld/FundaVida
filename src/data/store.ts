@@ -7,6 +7,7 @@ import type {
   Grade,
   Certificate,
   TcuActivity,
+  TcuTrainee,
   AttendanceRecord,
   AuditLogEntry,
   EmailCampaign,
@@ -40,6 +41,7 @@ export interface StoreState {
   enrollments: Enrollment[]
   grades: Grade[]
   certificates: Certificate[]
+  tcuTrainees: TcuTrainee[]
   tcuActivities: TcuActivity[]
   attendance: AttendanceRecord[]
   auditLog: AuditLogEntry[]
@@ -65,6 +67,7 @@ export interface StoreState {
   updateGradeScore: (gradeId: string, score: number) => void
   deleteGrade: (gradeId: string) => void
   approveCertificate: (certificateId: string) => void
+  logTcuActivity: (input: Omit<TcuActivity, 'id'>) => TcuActivity
   markAttendance: (
     courseId: string,
     studentId: string,
@@ -152,6 +155,7 @@ function initialState(): Pick<
   | 'enrollments'
   | 'grades'
   | 'certificates'
+  | 'tcuTrainees'
   | 'tcuActivities'
   | 'attendance'
   | 'auditLog'
@@ -172,6 +176,7 @@ function initialState(): Pick<
       enrollments: persisted.enrollments,
       grades: persisted.grades,
       certificates: persisted.certificates,
+      tcuTrainees: persisted.tcuTrainees,
       tcuActivities: persisted.tcuActivities,
       attendance: persisted.attendance,
       auditLog: persisted.auditLog,
@@ -295,7 +300,6 @@ export const useStore = create<StoreState>((set, get) => ({
         grades: state.grades.filter((g) => g.studentId !== id),
         certificates: state.certificates.filter((c) => c.studentId !== id),
         attendance: state.attendance.filter((a) => a.studentId !== id),
-        tcuActivities: state.tcuActivities.filter((a) => a.studentId !== id),
       },
       audit: {
         action: 'delete',
@@ -696,6 +700,34 @@ export const useStore = create<StoreState>((set, get) => ({
       },
     }))
   },
+  logTcuActivity: (input) => {
+    const existing = get()
+    // Build a temporary activity object for permission checking
+    const tempActivity: TcuActivity = {
+      id: 'temp',
+      ...input,
+    }
+    assertCan(existing, 'log', 'tcu', {
+      userId: existing.currentUserId ?? undefined,
+      activity: tempActivity,
+    })
+    const activity: TcuActivity = {
+      id: nextId('tcu-act', existing.tcuActivities),
+      ...input,
+    }
+    withAudit(set, (state) => ({
+      next: {
+        tcuActivities: [...state.tcuActivities, activity],
+      },
+      audit: {
+        action: 'log',
+        entity: 'tcuActivity',
+        entityId: activity.id,
+        summary: `Logged TCU activity "${activity.title}" (${activity.hours} hours)`,
+      },
+    }))
+    return activity
+  },
   markAttendance: (courseId, studentId, sessionDate, status) => {
     const state = get()
     const course = state.courses.find((c) => c.id === courseId)
@@ -780,6 +812,7 @@ const persistSnapshot = debounce((state: StoreState) => {
     enrollments: state.enrollments,
     grades: state.grades,
     certificates: state.certificates,
+    tcuTrainees: state.tcuTrainees,
     tcuActivities: state.tcuActivities,
     attendance: state.attendance,
     auditLog: state.auditLog,

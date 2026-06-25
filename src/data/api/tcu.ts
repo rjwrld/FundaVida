@@ -5,14 +5,12 @@ import { applyScope } from './scope'
 import { delay } from './_delay'
 
 export interface TcuFilters {
-  studentId?: string
-  organizerId?: string
+  traineeId?: string
 }
 
 function applyFilters(activities: TcuActivity[], filters: TcuFilters): TcuActivity[] {
   return activities.filter((a) => {
-    if (filters.studentId && a.studentId !== filters.studentId) return false
-    if (filters.organizerId && a.organizerId !== filters.organizerId) return false
+    if (filters.traineeId && a.traineeId !== filters.traineeId) return false
     return true
   })
 }

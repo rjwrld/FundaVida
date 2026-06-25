@@ -613,26 +613,34 @@
     }
   },
   "tcu": {
+    "dialog": {
+      "logActivityTitle": "Registrar una actividad",
+      "submit": "Registrar actividad",
+      "traineeLabel": "Becario",
+      "traineePlaceholder": "Elige un becario"
+    },
+    "form": {
+      "dateLabel": "Fecha",
+      "hoursLabel": "Horas (1–100)",
+      "titleLabel": "Título de la actividad",
+      "titlePlaceholder": "p. ej. Limpieza comunitaria"
+    },
     "list": {
       "columns": {
         "date": "Fecha",
-        "description": "Actividad",
         "hours": "Horas",
-        "organizer": "Organizador",
-        "student": "Estudiante"
+        "title": "Actividad",
+        "trainee": "Becario"
       },
       "empty": "Aún no hay actividades registradas.",
       "emptyFiltered": "Ninguna actividad coincide con el filtro.",
       "filters": {
-        "anyOrganizer": "Cualquier organizador",
-        "anyStudent": "Cualquier estudiante",
-        "organizerPlaceholder": "Organizador",
-        "studentPlaceholder": "Estudiante"
+        "anyTrainee": "Cualquier becario",
+        "traineePlaceholder": "Becario"
       },
       "hoursUnit": "horas",
-      "subtitle": "Horas de servicio comunitario por estudiante.",
-      "title": "Actividades TCU",
-      "totalLabel": "Total de horas: {{hours}}"
+      "subtitle": "Horas de servicio comunitario registradas por becarios hacia su requisito de 300 horas.",
+      "title": "Actividades TCU"
     }
   },
   "teachers": {

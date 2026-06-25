@@ -8,6 +8,7 @@ import type {
   Grade,
   Certificate,
   TcuActivity,
+  TcuTrainee,
   AttendanceRecord,
   AttendanceStatus,
   AuditLogEntry,
@@ -28,6 +29,7 @@ export interface SeedSnapshot {
   enrollments: Enrollment[]
   grades: Grade[]
   certificates: Certificate[]
+  tcuTrainees: TcuTrainee[]
   tcuActivities: TcuActivity[]
   attendance: AttendanceRecord[]
   auditLog: AuditLogEntry[]
@@ -497,27 +499,70 @@ function buildEmailCampaigns(
 }
 
 /**
- * Community-service activities logged by students, dated within the year before
- * the epoch. A deterministic share are organized by the TCU persona so the
- * 'tcu' role always has its own activities to see.
+ * Build TCU Trainees: university students completing their 300-hour
+ * community-service requirement at the foundation. Seeded with realistic
+ * partial progress toward the goal, anchored to the Demo Epoch (ADR-0002).
+ * The seeded TCU persona ('tcu-1') is always among them.
  */
-function buildTcuActivities(epoch: Date, students: Student[]): TcuActivity[] {
+function buildTcuTrainees(epoch: Date): TcuTrainee[] {
+  const traineeSedes = SEDES.slice(0, 2) // Use first two sedes for variety
+  const trainees: TcuTrainee[] = [
+    {
+      id: 'tcu-1', // The seeded TCU persona
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      email: faker.internet.email().toLowerCase(),
+      sede: traineeSedes[0] as Sede,
+      createdAt: subDays(epoch, faker.number.int({ min: 30, max: 180 })).toISOString(),
+    },
+  ]
+
+  // Add 3-4 more trainees for admin to see
+  for (let i = 0; i < 3; i += 1) {
+    trainees.push({
+      id: `tcu-${i + 2}`,
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      email: faker.internet.email().toLowerCase(),
+      sede: traineeSedes[i % traineeSedes.length] as Sede,
+      createdAt: subDays(epoch, faker.number.int({ min: 60, max: 210 })).toISOString(),
+    })
+  }
+
+  return trainees
+}
+
+/**
+ * Community-service activities logged by TCU Trainees, dated within the year
+ * before the epoch. Each trainee has a mix of activities with realistic
+ * partial progress toward the 300-hour requirement.
+ */
+function buildTcuActivities(epoch: Date, trainees: TcuTrainee[]): TcuActivity[] {
   const epochDay = startOfDay(epoch)
   const activities: TcuActivity[] = []
   let counter = 0
 
-  students.forEach((student) => {
-    const count = faker.number.int({ min: 1, max: 4 })
-    for (let i = 0; i < count; i += 1) {
+  trainees.forEach((trainee) => {
+    // TCU persona has more activities (closer to goal); others have fewer
+    const isPersona = trainee.id === TCU_PERSONA_ID
+    const maxActivitiesPerTrainee = isPersona ? 10 : faker.number.int({ min: 4, max: 8 })
+    const targetHours = isPersona ? 220 : faker.number.int({ min: 80, max: 180 })
+    let accumulatedHours = 0
+
+    for (let i = 0; i < maxActivitiesPerTrainee && accumulatedHours < targetHours; i += 1) {
+      const hoursForThisActivity = Math.min(
+        faker.number.int({ min: 2, max: 8 }),
+        targetHours - accumulatedHours
+      )
+      accumulatedHours += hoursForThisActivity
+
       const index = (counter += 1)
       activities.push({
         id: `tcu-act-${index}`,
-        studentId: student.id,
+        traineeId: trainee.id,
         title: faker.helpers.arrayElement(TCU_ACTIVITY_TITLES),
-        description: faker.lorem.sentence({ min: 8, max: 14 }),
-        hours: faker.number.int({ min: 2, max: 8 }),
+        hours: hoursForThisActivity,
         date: subDays(epochDay, faker.number.int({ min: 7, max: 330 })).toISOString(),
-        organizerId: index % 3 === 0 ? TCU_PERSONA_ID : undefined,
       })
     }
   })
@@ -570,7 +615,8 @@ export function seedDemo(epoch: Date): SeedSnapshot {
     throw new Error('seed plan must include exactly one just-ended course')
   }
   const grades = buildGrades(epoch, enrollments, courses, goldenPathCourse.id)
-  const tcuActivities = buildTcuActivities(epoch, students)
+  const tcuTrainees = buildTcuTrainees(epoch)
+  const tcuActivities = buildTcuActivities(epoch, tcuTrainees)
 
   const auditLog = buildAuditLog({ teachers, students, courses, enrollments, grades })
   const emailCampaigns = buildEmailCampaigns(epoch, students, courses, enrollments)
@@ -582,6 +628,7 @@ export function seedDemo(epoch: Date): SeedSnapshot {
     enrollments,
     grades,
     certificates: buildCertificates(epoch, grades),
+    tcuTrainees,
     tcuActivities,
     attendance,
     auditLog,

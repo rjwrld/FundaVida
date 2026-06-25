@@ -15,22 +15,38 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Progress } from '@/components/ui/progress'
+import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
-import { useStudents, useTcuActivities } from '@/hooks/api'
+import { useTcuActivities, useTcuTrainees } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
+import { useStore } from '@/data/store'
+import { LogTcuActivityDialog } from '@/components/tcu/LogTcuActivityDialog'
 import type { TcuFilters } from '@/data/api/tcu'
+
+const TARGET_HOURS = 300
 
 export function TcuListPage() {
   const { t } = useTranslation()
   const { formatDate, formatNumber } = useFormat()
+  const role = useStore((s) => s.role)
+  const userId = useStore((s) => s.currentUserId)
   const [filters, setFilters] = useState<TcuFilters>({})
+  const [logDialogOpen, setLogDialogOpen] = useState(false)
   const { data = [], isLoading } = useTcuActivities(filters)
-  const { data: students = [] } = useStudents()
+  const { data: trainees = [], isLoading: traineesLoading } = useTcuTrainees()
 
   const totalHours = data.reduce((sum, a) => sum + a.hours, 0)
-  const hasFilters = Boolean(filters.studentId || filters.organizerId)
+  const hasFilters = Boolean(filters.traineeId)
   const count = data.length
+
+  // For TCU role, show self progress; for admin, show selected trainee or all
+  const isTcuRole = role === 'tcu'
+  const selfTrainee = isTcuRole ? trainees.find((t) => t.id === userId) : null
+
+  // Calculate progress toward 300 hours
+  const progressPercent = Math.min((totalHours / TARGET_HOURS) * 100, 100)
 
   return (
     <div className="space-y-6">
@@ -38,57 +54,57 @@ export function TcuListPage() {
         title={t('tcu.list.title')}
         description={t('tcu.list.subtitle')}
         action={
-          <div
-            className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
-            aria-label={t('tcu.list.totalLabel', { hours: formatNumber(totalHours) })}
-          >
-            <span className="font-mono tabular-nums text-foreground">
-              {formatNumber(totalHours)}
-            </span>
-            <span>{t('tcu.list.hoursUnit')}</span>
-          </div>
+          <Button variant="default" size="sm" onClick={() => setLogDialogOpen(true)}>
+            {t('tcu.dialog.logActivityTitle')}
+          </Button>
         }
       />
 
-      {students.length > 0 && (
-        <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
+      {isTcuRole && selfTrainee && (
+        <section className="space-y-3 rounded-lg border border-border bg-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">{t('tcu.list.title')}</p>
+              <p className="text-xs text-muted-foreground">
+                {selfTrainee.firstName} {selfTrainee.lastName}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="font-mono text-lg tabular-nums">
+                {formatNumber(totalHours)} / {TARGET_HOURS}
+              </p>
+              <p className="text-xs text-muted-foreground">{t('tcu.list.hoursUnit')}</p>
+            </div>
+          </div>
+          <Progress value={progressPercent} className="h-2" />
+        </section>
+      )}
+
+      {!traineesLoading && trainees.length > 0 && (
+        <section aria-label={t('common.a11y.filters')}>
           <Select
-            value={filters.studentId ?? 'any'}
+            value={filters.traineeId ?? 'any'}
             onValueChange={(v) =>
-              setFilters((f) => ({ ...f, studentId: v === 'any' ? undefined : v }))
+              setFilters((f) => ({ ...f, traineeId: v === 'any' ? undefined : v }))
             }
           >
-            <SelectTrigger>
-              <SelectValue placeholder={t('tcu.list.filters.studentPlaceholder')} />
+            <SelectTrigger className="w-full sm:w-64">
+              <SelectValue placeholder={t('tcu.list.filters.traineePlaceholder')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="any">{t('tcu.list.filters.anyStudent')}</SelectItem>
-              {students.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.firstName} {s.lastName}
+              <SelectItem value="any">{t('tcu.list.filters.anyTrainee')}</SelectItem>
+              {trainees.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.firstName} {t.lastName}
                 </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={filters.organizerId ?? 'any'}
-            onValueChange={(v) =>
-              setFilters((f) => ({ ...f, organizerId: v === 'any' ? undefined : v }))
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={t('tcu.list.filters.organizerPlaceholder')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="any">{t('tcu.list.filters.anyOrganizer')}</SelectItem>
-              <SelectItem value="tcu-1">TCU-1</SelectItem>
             </SelectContent>
           </Select>
         </section>
       )}
 
       {isLoading ? (
-        <SkeletonTable rows={8} columns={5} />
+        <SkeletonTable rows={8} columns={4} />
       ) : count === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
           {hasFilters ? t('tcu.list.emptyFiltered') : t('tcu.list.empty')}
@@ -105,29 +121,27 @@ export function TcuListPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead>{t('tcu.list.columns.student')}</TableHead>
-                <TableHead>{t('tcu.list.columns.description')}</TableHead>
+                <TableHead>{t('tcu.list.columns.title')}</TableHead>
                 <TableHead className="text-right font-mono tabular-nums">
                   {t('tcu.list.columns.hours')}
                 </TableHead>
                 <TableHead>{t('tcu.list.columns.date')}</TableHead>
-                <TableHead>{t('tcu.list.columns.organizer')}</TableHead>
+                <TableHead>{t('tcu.list.columns.trainee')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.map((a) => {
-                const s = students.find((x) => x.id === a.studentId)
+                const trainee = trainees.find((x) => x.id === a.traineeId)
                 return (
                   <TableRow key={a.id} className="h-12 hover:bg-muted/40">
-                    <TableCell>
-                      {s?.firstName} {s?.lastName}
-                    </TableCell>
                     <TableCell>{a.title}</TableCell>
                     <TableCell className="text-right font-mono tabular-nums">
                       {formatNumber(a.hours)}
                     </TableCell>
                     <TableCell>{formatDate(a.date)}</TableCell>
-                    <TableCell>{a.organizerId ?? '—'}</TableCell>
+                    <TableCell>
+                      {trainee?.firstName} {trainee?.lastName}
+                    </TableCell>
                   </TableRow>
                 )
               })}
@@ -135,6 +149,8 @@ export function TcuListPage() {
           </Table>
         </div>
       )}
+
+      <LogTcuActivityDialog open={logDialogOpen} onClose={() => setLogDialogOpen(false)} />
     </div>
   )
 }

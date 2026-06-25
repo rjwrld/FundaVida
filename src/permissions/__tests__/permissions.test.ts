@@ -302,7 +302,7 @@ describe('Permissions Matrix', () => {
           enter: false,
         },
         tcu: {
-          view: true,
+          view: false,
           create: false,
           edit: false,
           delete: false,
@@ -698,49 +698,29 @@ describe('Permissions Matrix', () => {
         expect(can('teacher', 'view', 'enrollments', context)).toBe(false)
       })
 
-      it('tcu log activity: true when activity organizerId matches userId', () => {
+      it('tcu log activity: true when activity traineeId matches userId', () => {
         const context: PermissionContext = {
           userId: 'tcu-user-1',
           activity: {
             id: 'activity-1',
-            studentId: 'student-1',
+            traineeId: 'tcu-user-1',
             title: 'Volunteer Work',
-            description: 'Community service',
             hours: 10,
             date: '2025-06-01T00:00:00.000Z',
-            organizerId: 'tcu-user-1',
           },
         }
         expect(can('tcu', 'log', 'tcu', context)).toBe(true)
       })
 
-      it('tcu log activity: false when activity organizerId does not match userId', () => {
+      it('tcu log activity: false when activity traineeId does not match userId', () => {
         const context: PermissionContext = {
           userId: 'tcu-user-1',
           activity: {
             id: 'activity-1',
-            studentId: 'student-1',
+            traineeId: 'tcu-user-2', // different trainee
             title: 'Volunteer Work',
-            description: 'Community service',
             hours: 10,
             date: '2025-06-01T00:00:00.000Z',
-            organizerId: 'tcu-user-2', // different organizer
-          },
-        }
-        expect(can('tcu', 'log', 'tcu', context)).toBe(false)
-      })
-
-      it('tcu log activity: false when activity has no organizerId', () => {
-        const context: PermissionContext = {
-          userId: 'tcu-user-1',
-          activity: {
-            id: 'activity-1',
-            studentId: 'student-1',
-            title: 'Volunteer Work',
-            description: 'Community service',
-            hours: 10,
-            date: '2025-06-01T00:00:00.000Z',
-            // organizerId is missing
           },
         }
         expect(can('tcu', 'log', 'tcu', context)).toBe(false)
@@ -804,7 +784,7 @@ describe('Permissions Matrix', () => {
         grades: 'own',
         certificates: 'own',
         attendance: 'own',
-        tcu: 'own',
+        tcu: 'none',
         reports: 'none',
         bulkEmail: 'none',
         auditLog: 'none',

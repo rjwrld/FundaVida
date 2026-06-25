@@ -8,6 +8,7 @@ import type {
   Grade,
   AttendanceRecord,
   TcuActivity,
+  TcuTrainee,
 } from '@/types'
 
 function iso() {
@@ -88,90 +89,120 @@ const attendance: AttendanceRecord[] = [
   { id: 'att-2', studentId: 'stu-1', courseId: 'cou-1', sessionDate: iso(), status: 'absent' },
 ]
 const tcuActivities: TcuActivity[] = [
-  { id: 'tcu-act-1', studentId: 'stu-1', title: 'X', description: '', hours: 4, date: iso() },
-  { id: 'tcu-act-2', studentId: 'stu-1', title: 'Y', description: '', hours: 2, date: iso() },
+  { id: 'tcu-act-1', traineeId: 'tcu-1', title: 'X', hours: 4, date: iso() },
+  { id: 'tcu-act-2', traineeId: 'tcu-1', title: 'Y', hours: 2, date: iso() },
+]
+const tcuTrainees: TcuTrainee[] = [
+  {
+    id: 'tcu-1',
+    firstName: 'Juan',
+    lastName: 'Pérez',
+    email: 'juan@fv.cr',
+    sede: 'Linda Vista',
+    createdAt: iso(),
+  },
 ]
 
 describe('buildReports', () => {
   it('computes totals', () => {
-    const r = buildReports({
-      students,
-      teachers,
-      courses,
-      enrollments,
-      grades,
-      attendance,
-      tcuActivities,
-    })
+    const r = buildReports(
+      {
+        students,
+        teachers,
+        courses,
+        enrollments,
+        grades,
+        attendance,
+        tcuActivities,
+      },
+      tcuTrainees
+    )
     expect(r.totals).toEqual({ students: 2, teachers: 1, courses: 2, enrollments: 1 })
   })
 
   it('ranks enrollmentsByCourse descending', () => {
-    const r = buildReports({
-      students,
-      teachers,
-      courses,
-      enrollments,
-      grades,
-      attendance,
-      tcuActivities,
-    })
+    const r = buildReports(
+      {
+        students,
+        teachers,
+        courses,
+        enrollments,
+        grades,
+        attendance,
+        tcuActivities,
+      },
+      tcuTrainees
+    )
     expect(r.enrollmentsByCourse[0]?.courseId).toBe('cou-1')
     expect(r.enrollmentsByCourse[0]?.count).toBe(1)
   })
 
   it('returns null average for courses with no grades', () => {
-    const r = buildReports({
-      students,
-      teachers,
-      courses,
-      enrollments,
-      grades,
-      attendance,
-      tcuActivities,
-    })
+    const r = buildReports(
+      {
+        students,
+        teachers,
+        courses,
+        enrollments,
+        grades,
+        attendance,
+        tcuActivities,
+      },
+      tcuTrainees
+    )
     const c2 = r.averageGradeByCourse.find((x) => x.courseId === 'cou-2')
     expect(c2?.average).toBeNull()
   })
 
   it('computes present rate as present / total', () => {
-    const r = buildReports({
-      students,
-      teachers,
-      courses,
-      enrollments,
-      grades,
-      attendance,
-      tcuActivities,
-    })
+    const r = buildReports(
+      {
+        students,
+        teachers,
+        courses,
+        enrollments,
+        grades,
+        attendance,
+        tcuActivities,
+      },
+      tcuTrainees
+    )
     const c1 = r.presentRateByCourse.find((x) => x.courseId === 'cou-1')
     expect(c1?.rate).toBe(0.5)
   })
 
   it('sums tcu hours per student and sorts descending', () => {
-    const r = buildReports({
-      students,
-      teachers,
-      courses,
-      enrollments,
-      grades,
-      attendance,
-      tcuActivities,
-    })
-    expect(r.tcuHoursByStudent[0]?.studentId).toBe('stu-1')
-    expect(r.tcuHoursByStudent[0]?.totalHours).toBe(6)
+    const r = buildReports(
+      {
+        students,
+        teachers,
+        courses,
+        enrollments,
+        grades,
+        attendance,
+        tcuActivities,
+      },
+      tcuTrainees
+    )
+    expect(r.tcuHoursByTrainee[0]?.traineeId).toBe('tcu-1')
+    expect(r.tcuHoursByTrainee[0]?.totalHours).toBe(6)
   })
 
-  it('excludes students with no tcu activities from tcuHoursByStudent', () => {
-    const r = buildReports({
-      students,
-      teachers,
-      courses,
-      enrollments,
-      grades,
-      attendance,
-      tcuActivities,
-    })
-    expect(r.tcuHoursByStudent.find((x) => x.studentId === 'stu-2')).toBeUndefined()
+  it('excludes trainees with no tcu activities from tcuHoursByTrainee', () => {
+    const r = buildReports(
+      {
+        students,
+        teachers,
+        courses,
+        enrollments,
+        grades,
+        attendance,
+        tcuActivities,
+      },
+      tcuTrainees
+    )
+    expect(
+      r.tcuHoursByTrainee.find((x: { traineeId: string }) => x.traineeId === 'tcu-2')
+    ).toBeUndefined()
   })
 })

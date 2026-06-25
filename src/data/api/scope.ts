@@ -24,7 +24,7 @@ import { useStore } from '../store'
  * - 'ownCourses' → filtered by userId's owned courses (e.g., teacher's courses for grades/attendance)
  * - 'enrolledInOwnCourses' → filtered by userId's enrollments in their own courses (students in teacher's courses)
  * - 'enrolled' → filtered by userId's enrollments (students see courses they're enrolled in)
- * - 'self' → filtered by userId as organizer/owner (e.g., tcu activities where organizerId === userId)
+ * - 'self' → filtered by userId as trainee/owner (e.g., tcu activities where traineeId === userId)
  * - 'none' → always return empty array
  */
 
@@ -247,12 +247,8 @@ function applyEmailCampaignsScope(
 function applyTcuScope(activities: TcuList, token: Scope, userId: string): TcuList {
   switch (token) {
     case 'self': {
-      // Activities organized by the current user (tcu trainee)
-      return activities.filter((a) => a.organizerId === userId)
-    }
-    case 'own': {
-      // Activities belonging to the current user (student)
-      return activities.filter((a) => a.studentId === userId)
+      // Activities logged by the current user (tcu trainee)
+      return activities.filter((a) => a.traineeId === userId)
     }
     default:
       return []
