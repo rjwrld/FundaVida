@@ -26,4 +26,35 @@ describe('<StatCard />', () => {
     render(<StatCard label="Rate" value={0.87} format={(n) => `${(n * 100).toFixed(0)}%`} />)
     expect(screen.getByText('87%')).toBeInTheDocument()
   })
+
+  it('announces an increase to assistive tech for a positive delta', () => {
+    render(
+      <StatCard
+        label="Completion"
+        value={80}
+        delta={{
+          value: 0.12,
+          label: 'vs last month',
+          trend: { up: 'Increased', down: 'Decreased' },
+        }}
+      />
+    )
+    expect(screen.getByText(/increased/i)).toBeInTheDocument()
+  })
+
+  it('announces a decrease to assistive tech for a negative delta', () => {
+    render(
+      <StatCard
+        label="TCU hours"
+        value={154}
+        delta={{
+          value: -0.02,
+          label: 'vs last month',
+          trend: { up: 'Increased', down: 'Decreased' },
+        }}
+      />
+    )
+    expect(screen.getByText(/decreased/i)).toBeInTheDocument()
+    expect(screen.queryByText(/increased/i)).not.toBeInTheDocument()
+  })
 })

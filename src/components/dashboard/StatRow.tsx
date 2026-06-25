@@ -16,45 +16,46 @@ export function StatRow({ totalStudents, activeCourses, certsIssued, tcuHours }:
   const { t } = useTranslation()
   const { formatNumber } = useFormat()
   const vsLastMonth = t('dashboard.stats.vsLastMonth')
+  const trend = { up: t('dashboard.stats.trendUp'), down: t('dashboard.stats.trendDown') }
   const numberFormat = (n: number) => formatNumber(Math.round(n))
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <motion.div variants={fadeUp} transition={transitionDefaults}>
+      <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
         <StatCard
           variant="primary"
           label={t('dashboard.stats.students')}
           value={totalStudents}
           format={numberFormat}
           icon={<Users className="size-4" aria-hidden="true" />}
-          delta={{ value: 0.08, label: vsLastMonth }}
+          delta={{ value: 0.08, label: vsLastMonth, trend }}
         />
       </motion.div>
-      <motion.div variants={fadeUp} transition={transitionDefaults}>
+      <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
         <StatCard
           label={t('dashboard.stats.activeCourses')}
           value={activeCourses}
           format={numberFormat}
           icon={<GraduationCap className="size-4" aria-hidden="true" />}
-          delta={{ value: 0.03, label: vsLastMonth }}
+          delta={{ value: 0.03, label: vsLastMonth, trend }}
         />
       </motion.div>
-      <motion.div variants={fadeUp} transition={transitionDefaults}>
+      <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
         <StatCard
           label={t('dashboard.stats.certificatesIssued')}
           value={certsIssued}
           format={numberFormat}
           icon={<Award className="size-4" aria-hidden="true" />}
-          delta={{ value: 0.12, label: vsLastMonth }}
+          delta={{ value: 0.12, label: vsLastMonth, trend }}
         />
       </motion.div>
-      <motion.div variants={fadeUp} transition={transitionDefaults}>
+      <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
         <StatCard
           label={t('dashboard.stats.tcuHours')}
           value={tcuHours}
           format={numberFormat}
           icon={<Clock className="size-4" aria-hidden="true" />}
-          delta={{ value: -0.02, label: vsLastMonth }}
+          delta={{ value: -0.02, label: vsLastMonth, trend }}
         />
       </motion.div>
     </div>
