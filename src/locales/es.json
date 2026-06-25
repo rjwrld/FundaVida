@@ -606,21 +606,18 @@
     "list": {
       "columns": {
         "date": "Fecha",
-        "description": "Actividad",
         "hours": "Horas",
-        "organizer": "Organizador",
-        "student": "Estudiante"
+        "title": "Actividad",
+        "trainee": "Becario"
       },
       "empty": "Aún no hay actividades registradas.",
       "emptyFiltered": "Ninguna actividad coincide con el filtro.",
       "filters": {
-        "anyOrganizer": "Cualquier organizador",
-        "anyStudent": "Cualquier estudiante",
-        "organizerPlaceholder": "Organizador",
-        "studentPlaceholder": "Estudiante"
+        "anyTrainee": "Cualquier becario",
+        "traineePlaceholder": "Becario"
       },
       "hoursUnit": "horas",
-      "subtitle": "Horas de servicio comunitario por estudiante.",
+      "subtitle": "Horas de servicio comunitario registradas por becarios hacia su requisito de 300 horas.",
       "title": "Actividades TCU",
       "totalLabel": "Total de horas: {{hours}}"
     }

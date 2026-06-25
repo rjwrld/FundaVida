@@ -36,6 +36,15 @@ export interface Teacher {
   createdAt: string
 }
 
+export interface TcuTrainee {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  sede: Sede
+  createdAt: string
+}
+
 export interface Course {
   id: string
   name: string
@@ -65,12 +74,10 @@ export interface Grade {
 
 export interface TcuActivity {
   id: string
-  studentId: string
+  traineeId: string
   title: string
-  description: string
   hours: number
   date: string
-  organizerId?: string
 }
 
 export type AttendanceStatus = 'present' | 'absent' | 'excused'
@@ -83,7 +90,7 @@ export interface AttendanceRecord {
   status: AttendanceStatus
 }
 
-export type AuditAction = 'create' | 'update' | 'delete' | 'enroll' | 'unenroll' | 'grade'
+export type AuditAction = 'create' | 'update' | 'delete' | 'enroll' | 'unenroll' | 'grade' | 'log'
 
 export type AuditEntity =
   | 'student'
@@ -92,6 +99,7 @@ export type AuditEntity =
   | 'enrollment'
   | 'grade'
   | 'emailCampaign'
+  | 'tcuActivity'
 
 export interface AuditLogEntry {
   id: string

@@ -175,24 +175,6 @@ describe('attendance cascades', () => {
   })
 })
 
-describe('tcu cascade on deleteStudent', () => {
-  beforeEach(() => {
-    clearPersistedState()
-    clearPersistedRole()
-    clearPersistedCurrentUser()
-    useStore.getState().resetDemo()
-    useStore.getState().setRole('admin')
-  })
-
-  it('deleteStudent removes tcuActivities for that student', () => {
-    const firstActivity = useStore.getState().tcuActivities[0]
-    if (!firstActivity) throw new Error('expected at least one seeded tcu activity')
-    const studentId = firstActivity.studentId
-    useStore.getState().deleteStudent(studentId)
-    expect(useStore.getState().tcuActivities.some((a) => a.studentId === studentId)).toBe(false)
-  })
-})
-
 describe('audit log instrumentation', () => {
   beforeEach(() => {
     clearPersistedState()

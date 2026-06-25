@@ -4,6 +4,7 @@ import { useStore } from '@/data/store'
 import type { TcuFilters } from '@/data/api/tcu'
 
 const TCU_KEY = ['tcu'] as const
+const TRAINEES_KEY = ['trainees'] as const
 
 export function useTcuActivities(filters: TcuFilters = {}) {
   const role = useStore((s) => s.role)
@@ -11,5 +12,13 @@ export function useTcuActivities(filters: TcuFilters = {}) {
   return useQuery({
     queryKey: [...TCU_KEY, role, userId, filters],
     queryFn: () => api.tcu.list(filters),
+  })
+}
+
+export function useTcuTrainees() {
+  const role = useStore((s) => s.role)
+  return useQuery({
+    queryKey: [...TRAINEES_KEY, role],
+    queryFn: () => api.trainees.list(),
   })
 }

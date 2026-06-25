@@ -120,7 +120,7 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     grades: {},
     certificates: {},
     attendance: {},
-    tcu: { view: true, log: activityIsOwn },
+    tcu: { view: true, log: canLogTcuActivity },
     reports: {},
     bulkEmail: {},
     auditLog: {},
@@ -216,14 +216,14 @@ function courseOwnedAndEnded(ctx: PermissionContext): boolean {
 }
 
 /**
- * Predicate: The activity's organizerId matches the current user's ID.
- * Used for TCU role to log only own activities.
+ * Predicate: TCU role can log activities for their own trainee ID.
+ * Activity context is required: allow only if traineeId matches userId.
  */
-function activityIsOwn(ctx: PermissionContext): boolean {
+function canLogTcuActivity(ctx: PermissionContext): boolean {
   if (!ctx.userId || !ctx.activity) {
     return false
   }
-  return ctx.activity.organizerId === ctx.userId
+  return ctx.activity.traineeId === ctx.userId
 }
 
 /**

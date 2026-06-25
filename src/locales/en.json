@@ -602,21 +602,18 @@
     "list": {
       "columns": {
         "date": "Date",
-        "description": "Activity",
         "hours": "Hours",
-        "organizer": "Organizer",
-        "student": "Student"
+        "title": "Activity",
+        "trainee": "Trainee"
       },
       "empty": "No activities logged yet.",
       "emptyFiltered": "No activities match your filter.",
       "filters": {
-        "anyOrganizer": "Any organizer",
-        "anyStudent": "Any student",
-        "organizerPlaceholder": "Organizer",
-        "studentPlaceholder": "Student"
+        "anyTrainee": "Any trainee",
+        "traineePlaceholder": "Trainee"
       },
       "hoursUnit": "hours",
-      "subtitle": "Community service hours logged per student.",
+      "subtitle": "Community service hours logged by trainees toward their 300-hour requirement.",
       "title": "TCU activities",
       "totalLabel": "Total hours: {{hours}}"
     }

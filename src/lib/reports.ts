@@ -6,6 +6,7 @@ import type {
   Grade,
   AttendanceRecord,
   TcuActivity,
+  TcuTrainee,
 } from '@/types'
 
 export interface ReportsInput {
@@ -43,9 +44,9 @@ export interface PresentRateByCourse {
   rate: number | null
 }
 
-export interface TcuHoursByStudent {
-  studentId: string
-  studentName: string
+export interface TcuHoursByTrainee {
+  traineeId: string
+  traineeName: string
   totalHours: number
 }
 
@@ -54,12 +55,12 @@ export interface ReportsSnapshot {
   enrollmentsByCourse: EnrollmentByCourse[]
   averageGradeByCourse: AverageGradeByCourse[]
   presentRateByCourse: PresentRateByCourse[]
-  tcuHoursByStudent: TcuHoursByStudent[]
+  tcuHoursByTrainee: TcuHoursByTrainee[]
 }
 
-export function buildReports(input: ReportsInput): ReportsSnapshot {
+export function buildReports(input: ReportsInput, tcuTrainees: TcuTrainee[] = []): ReportsSnapshot {
   const { students, teachers, courses, enrollments, grades, attendance, tcuActivities } = input
-  const studentName = new Map(students.map((s) => [s.id, `${s.firstName} ${s.lastName}`]))
+  const traineeName = new Map(tcuTrainees.map((t) => [t.id, `${t.firstName} ${t.lastName}`]))
 
   const enrollmentsByCourseId = new Map<string, number>()
   enrollments.forEach((e) => {
@@ -108,14 +109,14 @@ export function buildReports(input: ReportsInput): ReportsSnapshot {
     })
     .sort((a, b) => (b.rate ?? -1) - (a.rate ?? -1))
 
-  const hoursByStudent = new Map<string, number>()
+  const hoursByTrainee = new Map<string, number>()
   tcuActivities.forEach((a) => {
-    hoursByStudent.set(a.studentId, (hoursByStudent.get(a.studentId) ?? 0) + a.hours)
+    hoursByTrainee.set(a.traineeId, (hoursByTrainee.get(a.traineeId) ?? 0) + a.hours)
   })
-  const tcuHoursByStudent: TcuHoursByStudent[] = Array.from(hoursByStudent.entries())
-    .map(([studentId, totalHours]) => ({
-      studentId,
-      studentName: studentName.get(studentId) ?? studentId,
+  const tcuHoursByTrainee: TcuHoursByTrainee[] = Array.from(hoursByTrainee.entries())
+    .map(([traineeId, totalHours]) => ({
+      traineeId,
+      traineeName: traineeName.get(traineeId) ?? traineeId,
       totalHours,
     }))
     .sort((a, b) => b.totalHours - a.totalHours)
@@ -130,6 +131,6 @@ export function buildReports(input: ReportsInput): ReportsSnapshot {
     enrollmentsByCourse,
     averageGradeByCourse,
     presentRateByCourse,
-    tcuHoursByStudent,
+    tcuHoursByTrainee,
   }
 }

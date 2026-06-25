@@ -244,22 +244,35 @@ describe('seedDemo — email campaigns reuse the Bulk Email recipient resolution
   })
 })
 
-describe('seedDemo — TCU activities are part of the single story', () => {
-  it('belong to real students, are dated in the past, and include the student persona', () => {
+describe('seedDemo — TCU trainees and activities', () => {
+  it('creates trainees with the seeded TCU persona', () => {
+    const world = seedDemo(EPOCH)
+    expect(world.tcuTrainees.length).toBeGreaterThan(0)
+    expect(world.tcuTrainees.some((t) => t.id === 'tcu-1')).toBe(true)
+  })
+
+  it('TCU activities belong to real trainees and are dated in the past', () => {
     const world = seedDemo(EPOCH)
     expect(world.tcuActivities.length).toBeGreaterThan(0)
 
-    const studentIds = new Set(world.students.map((s) => s.id))
+    const traineeIds = new Set(world.tcuTrainees.map((t) => t.id))
     world.tcuActivities.forEach((activity) => {
-      expect(studentIds.has(activity.studentId)).toBe(true)
+      expect(traineeIds.has(activity.traineeId)).toBe(true)
       expect(isBefore(new Date(activity.date), EPOCH)).toBe(true)
     })
-    expect(world.tcuActivities.some((a) => a.studentId === 'stu-1')).toBe(true)
   })
 
-  it('records the tcu persona (tcu-1) as organizer on some activities', () => {
+  it('seeds trainees with realistic partial progress toward 300 hours', () => {
     const world = seedDemo(EPOCH)
-    expect(world.tcuActivities.some((a) => a.organizerId === 'tcu-1')).toBe(true)
+
+    // Check that the TCU persona has some activities
+    const tcuPersonaActivities = world.tcuActivities.filter((a) => a.traineeId === 'tcu-1')
+    expect(tcuPersonaActivities.length).toBeGreaterThan(0)
+
+    // Calculate total hours for TCU persona
+    const totalHours = tcuPersonaActivities.reduce((sum, a) => sum + a.hours, 0)
+    expect(totalHours).toBeGreaterThan(40) // Should have meaningful progress
+    expect(totalHours).toBeLessThan(300) // But not complete
   })
 })
 
