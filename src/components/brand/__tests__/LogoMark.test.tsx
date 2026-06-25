@@ -33,4 +33,20 @@ describe('<LogoMark />', () => {
     const img = screen.getByRole('img', { name: /fundavida/i })
     expect(img).toHaveAttribute('src', '/logo.svg')
   })
+
+  it('renders a flat-tinted mask instead of a colored img for tone="muted"', () => {
+    const { container } = render(<LogoMark variant="mark" tone="muted" alt="" />)
+    expect(container.querySelector('img')).toBeNull()
+    const mark = container.firstElementChild as HTMLElement
+    expect(mark.tagName).toBe('SPAN')
+    expect(mark.style.maskImage).toContain('/logo-mark.svg')
+    expect(mark).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('keeps the tinted mark labelled when alt is provided', () => {
+    render(<LogoMark variant="mark" tone="muted" alt="FundaVida" />)
+    const mark = screen.getByRole('img', { name: /fundavida/i })
+    expect(mark.tagName).toBe('SPAN')
+    expect(mark).not.toHaveAttribute('aria-hidden')
+  })
 })
