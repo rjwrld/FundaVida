@@ -1,9 +1,8 @@
-import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Clock, Activity } from 'lucide-react'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
-import { useStore } from '@/data/store'
+import { useTcuActivities } from '@/hooks/api'
 import { StatCard } from '@/components/shared/StatCard'
 import type { Variants } from 'framer-motion'
 
@@ -12,26 +11,18 @@ const stagger: Variants = {
   visible: { transition: { staggerChildren: 0.05 } },
 }
 
-const TCU_REQUIRED_HOURS = 300
+const TARGET_HOURS = 300
 
 export function TcuDashboard() {
   const { t } = useTranslation()
-  const currentUserId = useStore((s) => s.currentUserId)
-  const tcuActivities = useStore((s) => s.tcuActivities)
+  // Read the trainee's OWN activities through the scope seam (ADR-0008): for the
+  // tcu role api.tcu.list already filters to traineeId === current user, so these
+  // numbers derive from the same scoped source TcuListPage shows — never a raw,
+  // unscoped store read re-filtered here (issue #74, criterion 2).
+  const { data: myActivities = [] } = useTcuActivities()
 
-  // Filter to only this trainee's activities
-  const myActivities = useMemo(() => {
-    return tcuActivities.filter((a) => a.traineeId === currentUserId)
-  }, [tcuActivities, currentUserId])
-
-  // Calculate total hours and hours remaining
-  const totalHours = useMemo(() => {
-    return myActivities.reduce((sum, a) => sum + a.hours, 0)
-  }, [myActivities])
-
-  const remainingHours = Math.max(0, TCU_REQUIRED_HOURS - totalHours)
-
-  // Get count of recent activities (last 5)
+  const totalHours = myActivities.reduce((sum, a) => sum + a.hours, 0)
+  const remainingHours = Math.max(0, TARGET_HOURS - totalHours)
   const recentActivitiesCount = Math.min(myActivities.length, 5)
 
   return (

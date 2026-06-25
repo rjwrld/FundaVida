@@ -221,11 +221,36 @@ describe('<DashboardPage /> (tcu)', () => {
     expect(screen.getByText(/recent activities/i)).toBeInTheDocument()
   })
 
-  it("shows only the TCU trainee's own activities (scoped by self)", () => {
+  it("scopes hours to the TCU trainee's own activities, never the raw store", async () => {
+    // Capture this trainee's scoped hours, then inject a DIFFERENT trainee's
+    // activity. A dashboard that reads the scope seam (api.tcu.list) must ignore
+    // it; one that reads the raw store would inflate the total — exactly the
+    // widget-local recomputation issue #74 (criterion 2) forbids.
+    const userId = useStore.getState().currentUserId
+    const ownHours = useStore
+      .getState()
+      .tcuActivities.filter((a) => a.traineeId === userId)
+      .reduce((sum, a) => sum + a.hours, 0)
+
+    useStore.setState((s) => ({
+      tcuActivities: [
+        ...s.tcuActivities,
+        {
+          id: 'foreign-tcu-act',
+          traineeId: 'someone-else',
+          title: 'Foreign',
+          hours: 1000,
+          date: '2025-01-01',
+        },
+      ],
+    }))
+
     renderDashboard()
 
-    // TCU should see the recent activities card showing count of recent activities
-    expect(screen.getByText(/recent activities/i)).toBeInTheDocument()
+    // The scoped total renders (await the async scope-seam query)...
+    expect((await screen.findAllByText(`${ownHours}h`)).length).toBeGreaterThan(0)
+    // ...and the foreign 1000h never leaks into it.
+    expect(screen.queryByText(`${ownHours + 1000}h`)).not.toBeInTheDocument()
   })
 
   it('does not show the placeholder panel for tcu', () => {
