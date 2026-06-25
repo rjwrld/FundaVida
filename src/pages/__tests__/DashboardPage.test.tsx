@@ -178,12 +178,11 @@ describe('<DashboardPage /> (student)', () => {
     useStore.getState().setLocale('en')
   })
 
-  it('renders at least three meaningful role-scoped widgets', () => {
+  it('renders the student role-scoped widgets', () => {
     renderDashboard()
-    // Student dashboard should show: my courses, my attendance rate, my certificates
+    // Student dashboard should show: my courses and my attendance rate
     expect(screen.getByText(/my courses/i)).toBeInTheDocument()
     expect(screen.getByText(/attendance rate/i)).toBeInTheDocument()
-    expect(screen.getByText(/certificates ready/i)).toBeInTheDocument()
   })
 
   it('shows only courses the student is enrolled in (scoped by enrolled)', () => {

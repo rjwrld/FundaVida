@@ -1,10 +1,9 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { AnimatePresence, motion, type Variants } from 'framer-motion'
-import { PDFViewer } from '@react-pdf/renderer'
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
+import { CertificatePreview } from '@/components/certificates/CertificatePreview'
 import { transitionDefaults } from '@/lib/motion'
 
 // motion controls the full `transform` style, so the centering translate must
@@ -63,7 +62,7 @@ export function CertificatePreviewDialog({ open, payload, dataUrl, downloadName,
                 animate="visible"
                 exit="hidden"
                 transition={transitionDefaults}
-                className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-3xl flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-elevated"
+                className="fixed left-1/2 top-1/2 z-50 flex h-[min(46rem,calc(100vh-2rem))] w-[calc(100%-2rem)] max-w-3xl flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-elevated"
               >
                 <div className="flex items-start justify-between gap-4">
                   <DialogPrimitive.Title className="text-lg font-semibold leading-none tracking-tight">
@@ -76,16 +75,14 @@ export function CertificatePreviewDialog({ open, payload, dataUrl, downloadName,
                     <X size={18} aria-hidden="true" />
                   </DialogPrimitive.Close>
                 </div>
-                <div className="min-h-[280px] flex-1 overflow-hidden rounded-md border border-border">
-                  <PDFViewer width="100%" height="100%">
-                    <CertificateTemplate
-                      studentName={payload.studentName}
-                      courseName={payload.courseName}
-                      programName={payload.programName}
-                      score={payload.score}
-                      issuedAt={payload.issuedAt}
-                    />
-                  </PDFViewer>
+                <div className="min-h-0 flex-1 overflow-hidden rounded-md border border-border">
+                  <CertificatePreview
+                    studentName={payload.studentName}
+                    courseName={payload.courseName}
+                    programName={payload.programName}
+                    score={payload.score}
+                    issuedAt={payload.issuedAt}
+                  />
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={onClose}>

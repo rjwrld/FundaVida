@@ -80,7 +80,7 @@ export function TcuListPage() {
         </section>
       )}
 
-      {!traineesLoading && trainees.length > 0 && (
+      {!isTcuRole && !traineesLoading && trainees.length > 0 && (
         <section aria-label={t('common.a11y.filters')}>
           <Select
             value={filters.traineeId ?? 'any'}

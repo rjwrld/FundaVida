@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, act, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -89,6 +89,46 @@ describe('<CertificatesListPage />', () => {
 
     expect(await screen.findByRole('button', { name: /approve certificate/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /open preview/i })).toBeNull()
+  })
+
+  it('renders the certificate content as readable DOM in the preview dialog', async () => {
+    useStore.getState().setRole('admin')
+    const cert = injectCertificate('approved')
+    const { students, courses } = useStore.getState()
+    const student = students.find((s) => s.id === cert.studentId)
+    const course = courses.find((c) => c.id === cert.courseId)
+    if (!student || !course) throw new Error('seed missing student/course')
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: /open preview/i }))
+
+    // The preview must be real DOM so it renders without a native PDF viewer
+    // (a bare <iframe> blob shows blank in headless/embedded browsers).
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(`${student.firstName} ${student.lastName}`)).toBeInTheDocument()
+    expect(within(dialog).getByText(/certificate of completion/i)).toBeInTheDocument()
+  })
+
+  it('mirrors the certificate details (course, program, score) in the preview', async () => {
+    useStore.getState().setRole('admin')
+    const cert = injectCertificate('approved')
+    const { courses } = useStore.getState()
+    const course = courses.find((c) => c.id === cert.courseId)
+    if (!course) throw new Error('seed missing course')
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: /open preview/i }))
+
+    const dialog = await screen.findByRole('dialog')
+    // The on-screen preview must match the downloadable PDF artifact field-for-field.
+    expect(
+      within(dialog).getByText(
+        new RegExp(
+          `completed ${course.name} \\(${course.programName}\\).*score of ${cert.score}`,
+          'i'
+        )
+      )
+    ).toBeInTheDocument()
   })
 
   it('offers a PDF preview but no approval for an approved certificate', async () => {

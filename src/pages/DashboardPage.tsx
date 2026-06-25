@@ -18,10 +18,7 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t('dashboard.title', { role: t(`roles.${role}.label`) })}
-        description={t('dashboard.subtitle')}
-      />
+      <PageHeader title={t('dashboard.title', { role: t(`roles.${role}.label`) })} />
 
       {canViewAdminDashboard && <AdminDashboard />}
       {!canViewAdminDashboard && role === 'teacher' && <TeacherDashboard />}

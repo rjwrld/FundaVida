@@ -1,4 +1,9 @@
 {
+  "app": {
+    "footer": {
+      "byline": "Developed by Josue Calderon for <org>FundaVida<mark/></org>"
+    }
+  },
   "attendance": {
     "list": {
       "columns": {
@@ -298,15 +303,14 @@
       "certificatesIssued": "Certificates issued",
       "students": "Total students",
       "tcuHours": "TCU hours",
+      "trendDown": "Decreased",
+      "trendUp": "Increased",
       "vsLastMonth": "vs last month"
     },
     "student": {
       "attendanceRate": "Attendance rate this month",
-      "certificatesReady": "Certificates ready",
-      "certificatesReview": "Certificates in review",
       "myCourses": "My courses"
     },
-    "subtitle": "Demo dashboard. Domain modules land in subsequent phases.",
     "tcu": {
       "hoursCompleted": "Hours completed",
       "hoursRemaining": "Hours remaining toward 300",

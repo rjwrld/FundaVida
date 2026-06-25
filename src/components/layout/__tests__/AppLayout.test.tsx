@@ -45,6 +45,12 @@ describe('<AppLayout />', () => {
     expect(screen.getByText('Hello from outlet')).toBeInTheDocument()
   })
 
+  it('renders the app footer within the shell', () => {
+    renderWithRouter(<div>Hello from outlet</div>)
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+    expect(screen.getByText(/developed by josue calderon/i)).toBeInTheDocument()
+  })
+
   it('renders a skip-to-main-content link', () => {
     renderWithRouter(<div id="main-content">Content</div>)
     const skipLink = screen.getByRole('link', { name: 'Skip to main content' })

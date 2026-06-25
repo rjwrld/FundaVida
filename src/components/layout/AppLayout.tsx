@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { AppHeader } from './AppHeader'
 import { AppSidebar } from './AppSidebar'
+import { AppFooter } from './AppFooter'
 import { DemoBanner } from '@/components/demo/DemoBanner'
 import { CommandPalette } from '@/components/shared/CommandPalette'
 import { CommandPaletteProvider } from '@/components/shared/CommandPaletteProvider'
@@ -49,6 +50,7 @@ export function AppLayout() {
             <AnimatedOutlet />
           </main>
         </div>
+        <AppFooter />
         <CommandPalette />
       </div>
     </CommandPaletteProvider>

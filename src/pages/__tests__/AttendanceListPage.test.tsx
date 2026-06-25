@@ -89,6 +89,29 @@ describe('<AttendanceListPage />', () => {
     expect(screen.getByRole('heading', { name: 'Attendance' })).toBeInTheDocument()
   })
 
+  it('hides the Student column for the student role (self-only view, ADR-0012)', async () => {
+    useStore.getState().setRole('student')
+    renderPage()
+
+    // Wait for the student's own attendance rows to load.
+    await waitFor(() => {
+      expect(screen.getAllByRole('row').length).toBeGreaterThan(1)
+    })
+
+    // A Student can't resolve other students, and the view is self-only, so the
+    // Student identity column would only ever render an empty cell — drop it.
+    expect(screen.queryByRole('columnheader', { name: 'Student' })).not.toBeInTheDocument()
+  })
+
+  it('shows the Student column for the admin roster view', async () => {
+    // Default role is admin (beforeEach). The roster view spans many students,
+    // so the identity column is meaningful and must remain.
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByRole('columnheader', { name: 'Student' })).toBeInTheDocument()
+    })
+  })
+
   it('pre-filters attendance to the ?courseId= query param', async () => {
     const { attendance } = useStore.getState()
     const sample = attendance[0]

@@ -20,6 +20,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useAttendance, useCourses, useStudents } from '@/hooks/api'
+import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { findSession } from '@/lib/sessions'
 import type { AttendanceFilters } from '@/data/api/attendance'
@@ -46,7 +47,12 @@ export function AttendanceListPage() {
   const { data = [], isLoading } = useAttendance(filters)
   const { data: students = [] } = useStudents()
   const { data: courses = [] } = useCourses()
+  const role = useStore((s) => s.role)
 
+  // A Student's attendance view is self-only (ADR-0012): every row is themselves,
+  // and they can't resolve the student roster — so the Student identity column would
+  // only ever render an empty cell. Show it for the teacher/admin roster views only.
+  const showStudentColumn = role !== 'student'
   const hasFilters = Boolean(filters.studentId || filters.courseId || filters.status)
   const count = data.length
 
@@ -131,7 +137,7 @@ export function AttendanceListPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead>{t('attendance.list.columns.student')}</TableHead>
+                {showStudentColumn && <TableHead>{t('attendance.list.columns.student')}</TableHead>}
                 <TableHead>{t('attendance.list.columns.course')}</TableHead>
                 <TableHead>{t('attendance.list.columns.session')}</TableHead>
                 <TableHead>{t('attendance.list.columns.status')}</TableHead>
@@ -148,9 +154,11 @@ export function AttendanceListPage() {
 
                 return (
                   <TableRow key={r.id} className="h-12 hover:bg-muted/40">
-                    <TableCell>
-                      {s?.firstName} {s?.lastName}
-                    </TableCell>
+                    {showStudentColumn && (
+                      <TableCell>
+                        {s?.firstName} {s?.lastName}
+                      </TableCell>
+                    )}
                     <TableCell>{c?.name}</TableCell>
                     <TableCell>{sessionLabel}</TableCell>
                     <TableCell>
