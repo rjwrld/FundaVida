@@ -26,8 +26,17 @@ export function CertificatePreview({
 }: Props) {
   const issued = formatDate(issuedAt, 'en')
   return (
-    <div className="flex h-full w-full items-center justify-center overflow-auto bg-white p-4">
-      <div className="flex aspect-[11/8.5] w-full max-w-2xl flex-col items-center justify-between border-4 border-[#1e3a8a] p-6 text-center text-[#0f172a] sm:p-10">
+    // Size-query container + scroll area: the certificate scales to fit the smaller
+    // of the available width/height (Option C), down to a 20rem readable floor, after
+    // which the wrapper scrolls so the footer stays reachable on very short windows.
+    <div
+      className="flex h-full w-full items-center justify-center overflow-auto bg-white p-4"
+      style={{ containerType: 'size' }}
+    >
+      <div
+        className="flex aspect-[11/8.5] flex-col items-center justify-between border-4 border-[#1e3a8a] p-6 text-center text-[#0f172a] sm:p-10"
+        style={{ width: 'clamp(20rem, min(100cqw, 100cqh * 11 / 8.5), 42rem)' }}
+      >
         <div className="flex flex-col items-center">
           <LogoMark variant="mark" size="lg" alt="" className="mb-3" />
           <p className="text-xs tracking-[0.2em] text-[#1e3a8a]">FUNDAVIDA</p>
