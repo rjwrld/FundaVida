@@ -189,6 +189,10 @@
   },
   "courses": {
     "detail": {
+      "attendance": {
+        "noMarkableSessions": "No past or current sessions available for marking.",
+        "status": "Status"
+      },
       "deleteConfirm": "Delete this course?",
       "edit": "Edit",
       "enrollButton": "Enroll student",
@@ -203,6 +207,7 @@
       },
       "loading": "Loading…",
       "sections": {
+        "attendance": "Mark attendance",
         "noStudents": "No students enrolled.",
         "overview": "Overview",
         "students": "Students",

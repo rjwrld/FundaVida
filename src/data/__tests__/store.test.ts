@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { useStore } from '../store'
 import { clearPersistedCurrentUser, clearPersistedRole, clearPersistedState } from '../persistence'
 import { SEDES } from '@/constants/sede'
+import { sessionsFor } from '@/lib/sessions'
 
 describe('useStore', () => {
   beforeEach(() => {
@@ -363,13 +364,44 @@ describe('attendance marking', () => {
     useStore.getState().resetDemo()
   })
 
-  it('markAttendance updates an existing record and appends an audit entry (admin)', () => {
+  it('markAttendance creates a new record if none exists for (courseId, studentId, sessionDate)', () => {
+    useStore.getState().setRole('admin')
+    const state = useStore.getState()
+    const course = state.courses[0]
+    if (!course) throw new Error('expected at least one course')
+    const enrollment = state.enrollments.find((e) => e.courseId === course.id)
+    if (!enrollment) throw new Error('expected at least one enrollment in the course')
+    const sessions = sessionsFor(course)
+    const sessionWithoutRecord = sessions.find(
+      (s) =>
+        !state.attendance.some(
+          (a) => a.studentId === enrollment.studentId && a.sessionDate === s.date
+        )
+    )
+    if (!sessionWithoutRecord) throw new Error('expected a session without an attendance record')
+    const logLengthBefore = state.auditLog.length
+    const attendanceLengthBefore = state.attendance.length
+    const created = useStore
+      .getState()
+      .markAttendance(course.id, enrollment.studentId, sessionWithoutRecord.date, 'present')
+    expect(created.courseId).toBe(course.id)
+    expect(created.studentId).toBe(enrollment.studentId)
+    expect(created.sessionDate).toBe(sessionWithoutRecord.date)
+    expect(created.status).toBe('present')
+    expect(useStore.getState().attendance.length).toBe(attendanceLengthBefore + 1)
+    expect(useStore.getState().auditLog.length).toBe(logLengthBefore + 1)
+    expect(useStore.getState().auditLog[0]?.action).toBe('create')
+  })
+
+  it('markAttendance updates an existing record for (courseId, studentId, sessionDate)', () => {
     useStore.getState().setRole('admin')
     const state = useStore.getState()
     const existing = state.attendance.find((a) => a.status === 'present')
     if (!existing) throw new Error('expected an attendance record to update')
     const logLengthBefore = state.auditLog.length
-    const updated = useStore.getState().markAttendance(existing.id, 'absent')
+    const updated = useStore
+      .getState()
+      .markAttendance(existing.courseId, existing.studentId, existing.sessionDate, 'absent')
     const log = useStore.getState().auditLog
     expect(updated.status).toBe('absent')
     expect(log.length).toBe(logLengthBefore + 1)
@@ -391,7 +423,16 @@ describe('attendance marking', () => {
       )
       if (!otherRecord) throw new Error('expected a record for a course not owned by tea-1')
       const logLengthBefore = state.auditLog.length
-      expect(() => useStore.getState().markAttendance(otherRecord.id, 'absent')).toThrow()
+      expect(() =>
+        useStore
+          .getState()
+          .markAttendance(
+            otherRecord.courseId,
+            otherRecord.studentId,
+            otherRecord.sessionDate,
+            'absent'
+          )
+      ).toThrow()
       expect(state.auditLog.length).toBe(logLengthBefore)
     }
   })
@@ -404,7 +445,14 @@ describe('attendance marking', () => {
     )
     const ownedRecord = state.attendance.find((a) => ownedCourseIds.has(a.courseId))
     if (!ownedRecord) throw new Error('expected an attendance record for a teacher-owned course')
-    const updated = useStore.getState().markAttendance(ownedRecord.id, 'absent')
+    const updated = useStore
+      .getState()
+      .markAttendance(
+        ownedRecord.courseId,
+        ownedRecord.studentId,
+        ownedRecord.sessionDate,
+        'absent'
+      )
     expect(updated.status).toBe('absent')
   })
 })

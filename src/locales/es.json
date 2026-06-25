@@ -190,6 +190,10 @@
   },
   "courses": {
     "detail": {
+      "attendance": {
+        "noMarkableSessions": "No hay sesiones pasadas o actuales disponibles para marcar.",
+        "status": "Estado"
+      },
       "deleteConfirm": "¿Eliminar este curso?",
       "edit": "Editar",
       "enrollButton": "Matricular estudiante",
@@ -204,6 +208,7 @@
       },
       "loading": "Cargando…",
       "sections": {
+        "attendance": "Marcar asistencia",
         "noStudents": "Ningún estudiante matriculado.",
         "overview": "Resumen",
         "students": "Estudiantes",
