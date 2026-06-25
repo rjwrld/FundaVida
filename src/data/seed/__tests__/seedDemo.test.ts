@@ -244,6 +244,44 @@ describe('seedDemo — email campaigns reuse the Bulk Email recipient resolution
   })
 })
 
+describe('seedDemo — Certificates mirror the pending → approved story (#69)', () => {
+  it('earns one Certificate per passing Grade, each backed by a real passing Grade', () => {
+    const world = seedDemo(EPOCH)
+    const passingGrades = world.grades.filter((g) => g.score >= 70)
+    expect(world.certificates.length).toBe(passingGrades.length)
+
+    const gradeByPair = new Map(passingGrades.map((g) => [`${g.studentId}:${g.courseId}`, g]))
+    world.certificates.forEach((cert) => {
+      const grade = gradeByPair.get(`${cert.studentId}:${cert.courseId}`)
+      expect(grade).toBeDefined()
+      expect(cert.score).toBe(grade?.score)
+    })
+  })
+
+  it('leaves a small batch pending (admin has approvals waiting) and approves the rest', () => {
+    const world = seedDemo(EPOCH)
+    const pending = world.certificates.filter((c) => c.status === 'pending')
+    const approved = world.certificates.filter((c) => c.status === 'approved')
+
+    expect(pending.length).toBeGreaterThanOrEqual(2)
+    expect(pending.length).toBeLessThanOrEqual(3)
+    expect(approved.length).toBeGreaterThan(0)
+  })
+
+  it('stamps approval metadata only on approved Certificates', () => {
+    const world = seedDemo(EPOCH)
+    world.certificates.forEach((cert) => {
+      if (cert.status === 'approved') {
+        expect(cert.approvedAt).toBeTruthy()
+        expect(cert.approvedBy).toBe('admin')
+      } else {
+        expect(cert.approvedAt).toBeUndefined()
+        expect(cert.approvedBy).toBeUndefined()
+      }
+    })
+  })
+})
+
 describe('seedDemo — TCU trainees and activities', () => {
   it('creates trainees with the seeded TCU persona', () => {
     const world = seedDemo(EPOCH)

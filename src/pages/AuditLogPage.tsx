@@ -24,20 +24,29 @@ import { useFormat } from '@/hooks/useFormat'
 import type { AuditLogFilters } from '@/data/api/auditLog'
 import type { AuditAction, AuditEntity } from '@/types'
 
-const ACTIONS: AuditAction[] = ['create', 'update', 'delete', 'enroll', 'unenroll', 'grade']
+const ACTIONS: AuditAction[] = [
+  'create',
+  'update',
+  'delete',
+  'enroll',
+  'unenroll',
+  'grade',
+  'approve',
+]
 const ENTITIES: AuditEntity[] = [
   'student',
   'teacher',
   'course',
   'enrollment',
   'grade',
+  'certificate',
   'emailCampaign',
 ]
 
 function actionVariant(
   action: AuditAction
 ): 'success' | 'info' | 'destructive' | 'warning' | 'neutral' {
-  if (action === 'create' || action === 'enroll') return 'success'
+  if (action === 'create' || action === 'enroll' || action === 'approve') return 'success'
   if (action === 'update') return 'info'
   if (action === 'delete') return 'destructive'
   if (action === 'grade') return 'warning'

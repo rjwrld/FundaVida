@@ -6,6 +6,7 @@ import type {
   Course,
   Enrollment,
   Grade,
+  Certificate,
   TcuActivity,
   TcuTrainee,
   AttendanceRecord,
@@ -15,6 +16,7 @@ import type {
   Weekday,
 } from '@/types'
 import { sessionsFor } from '@/lib/sessions'
+import { PASSING_SCORE } from '@/lib/certificates'
 import { resolveRecipients } from '@/lib/emailRecipients'
 import { PROGRAMS } from '@/constants/course'
 import { SEDES, type Sede } from '@/constants/sede'
@@ -26,6 +28,7 @@ export interface SeedSnapshot {
   courses: Course[]
   enrollments: Enrollment[]
   grades: Grade[]
+  certificates: Certificate[]
   tcuTrainees: TcuTrainee[]
   tcuActivities: TcuActivity[]
   attendance: AttendanceRecord[]
@@ -316,6 +319,46 @@ function buildGrades(
 }
 
 /**
+ * A Certificate is created (pending) the moment a passing Grade is saved, and an
+ * admin later approves it — which is what makes the PDF available (CONTEXT.md).
+ * The seed mirrors that story: every passing Grade earns a Certificate, the older
+ * cohorts' Certificates are already approved, and the three most recently graded
+ * sit pending so an admin has approvals waiting on first load (issue #69).
+ */
+function buildCertificates(epoch: Date, grades: Grade[]): Certificate[] {
+  const epochDay = startOfDay(epoch)
+  const passing = grades
+    .filter((g) => g.score >= PASSING_SCORE)
+    .sort((a, b) => (a.issuedAt < b.issuedAt ? -1 : a.issuedAt > b.issuedAt ? 1 : 0))
+
+  // Leave the most recently graded as pending; approve the rest.
+  const pendingCount = Math.min(3, passing.length)
+  const approvedCutoff = passing.length - pendingCount
+
+  return passing.map((grade, i) => {
+    const base = {
+      id: `cert-${i + 1}`,
+      studentId: grade.studentId,
+      courseId: grade.courseId,
+      score: grade.score,
+      createdAt: grade.issuedAt,
+    }
+    if (i >= approvedCutoff) {
+      return { ...base, status: 'pending' as const }
+    }
+    // Approved a few days after the Grade was issued, never in the future.
+    let approvedAt = addDays(new Date(grade.issuedAt), faker.number.int({ min: 1, max: 7 }))
+    if (approvedAt > epochDay) approvedAt = epochDay
+    return {
+      ...base,
+      status: 'approved' as const,
+      approvedAt: approvedAt.toISOString(),
+      approvedBy: 'admin',
+    }
+  })
+}
+
+/**
  * The audit trail is emitted from the same events that built the world, so it
  * is complete by construction: one entry per create / enroll / grade, each
  * stamped with that event's own timestamp and attributed to its actor (admin
@@ -584,6 +627,7 @@ export function seedDemo(epoch: Date): SeedSnapshot {
     students,
     enrollments,
     grades,
+    certificates: buildCertificates(epoch, grades),
     tcuTrainees,
     tcuActivities,
     attendance,

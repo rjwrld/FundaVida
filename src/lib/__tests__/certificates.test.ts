@@ -1,74 +1,36 @@
 import { describe, it, expect } from 'vitest'
-import { buildEligibleList, PASSING_SCORE } from '../certificates'
-import type { Grade, Student, Course } from '@/types'
+import { PASSING_SCORE, isPassingScore, isCertificateDownloadable } from '../certificates'
+import type { Certificate } from '@/types'
 
-const student: Student = {
-  id: 'stu-1',
-  firstName: 'A',
-  lastName: 'B',
-  email: 'a@b',
-  gender: 'F',
-  sede: 'Linda Vista',
-  province: 'X',
-  canton: 'Y',
-  educationalLevel: 'Primary',
-  enrolledCourseIds: ['cou-1'],
-  createdAt: new Date().toISOString(),
-}
-const course: Course = {
-  id: 'cou-1',
-  name: 'Name',
-  description: 'Desc',
-  sede: 'Linda Vista',
-  programName: 'Program',
-  teacherId: 'tea-1',
-  term: { start: new Date().toISOString(), end: new Date().toISOString() },
-  meetingDays: ['mon'],
-  createdAt: new Date().toISOString(),
+function makeCertificate(overrides: Partial<Certificate> = {}): Certificate {
+  return {
+    id: 'cert-1',
+    studentId: 'stu-1',
+    courseId: 'cou-1',
+    score: 90,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+    ...overrides,
+  }
 }
 
-describe('buildEligibleList', () => {
-  it('includes grades at or above the passing score', () => {
-    const g: Grade = {
-      id: 'gra-1',
-      studentId: 'stu-1',
-      courseId: 'cou-1',
-      score: PASSING_SCORE,
-      issuedAt: new Date().toISOString(),
-    }
-    expect(buildEligibleList([student], [course], [g]).length).toBe(1)
+describe('isPassingScore', () => {
+  it('is true at or above the passing score', () => {
+    expect(isPassingScore(PASSING_SCORE)).toBe(true)
+    expect(isPassingScore(PASSING_SCORE + 5)).toBe(true)
   })
 
-  it('excludes grades below passing', () => {
-    const g: Grade = {
-      id: 'gra-1',
-      studentId: 'stu-1',
-      courseId: 'cou-1',
-      score: PASSING_SCORE - 1,
-      issuedAt: new Date().toISOString(),
-    }
-    expect(buildEligibleList([student], [course], [g])).toEqual([])
+  it('is false below the passing score', () => {
+    expect(isPassingScore(PASSING_SCORE - 1)).toBe(false)
+  })
+})
+
+describe('isCertificateDownloadable', () => {
+  it('is downloadable only once approved', () => {
+    expect(isCertificateDownloadable(makeCertificate({ status: 'approved' }))).toBe(true)
   })
 
-  it('excludes grades referencing missing student or course', () => {
-    const g: Grade = {
-      id: 'gra-1',
-      studentId: 'stu-does-not-exist',
-      courseId: 'cou-1',
-      score: 95,
-      issuedAt: new Date().toISOString(),
-    }
-    expect(buildEligibleList([student], [course], [g])).toEqual([])
-  })
-
-  it('excludes grades referencing a missing course', () => {
-    const g: Grade = {
-      id: 'gra-1',
-      studentId: 'stu-1',
-      courseId: 'cou-does-not-exist',
-      score: 95,
-      issuedAt: new Date().toISOString(),
-    }
-    expect(buildEligibleList([student], [course], [g])).toEqual([])
+  it('is not downloadable while pending', () => {
+    expect(isCertificateDownloadable(makeCertificate({ status: 'pending' }))).toBe(false)
   })
 })

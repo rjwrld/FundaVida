@@ -5,7 +5,7 @@ test('admin previews and downloads a certificate', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Enter as admin' }).first().click()
   await page.getByRole('link', { name: 'Certificates' }).click()
-  await expect(page.getByRole('heading', { name: 'Certificates' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Certificates', exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: 'Preview' }).first().click()
   await expect(page.getByRole('heading', { name: 'Certificate preview' })).toBeVisible()
@@ -32,5 +32,5 @@ test('renders in Spanish when locale is ES', async ({ page }) => {
   await page.getByRole('button', { name: 'es' }).click()
   await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.getByRole('link', { name: 'Certificados' }).click()
-  await expect(page.getByRole('heading', { name: 'Certificados' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Certificados', exact: true })).toBeVisible()
 })

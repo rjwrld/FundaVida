@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import type { CertificateStatus } from '@/types'
 
 interface Props {
   cert: {
@@ -11,33 +13,47 @@ interface Props {
     courseName: string
     issuedAt: string
     grade: string
-    status: 'issued' | 'pending'
+    status: CertificateStatus
   }
-  onClick: () => void
+  /** Open the PDF preview — only wired for approved Certificates. */
+  onOpen?: () => void
+  /** Approve a pending Certificate — only wired for an admin. */
+  onApprove?: () => void
+  approving?: boolean
   className?: string
 }
 
-export function CertificateCard({ cert, onClick, className }: Props) {
+export function CertificateCard({ cert, onOpen, onApprove, approving, className }: Props) {
   const { t } = useTranslation()
+  const isApproved = cert.status === 'approved'
+  const clickable = isApproved && Boolean(onOpen)
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!clickable) return
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
-      onClick()
+      onOpen?.()
     }
   }
+
   return (
     <Card
-      role="button"
-      tabIndex={0}
-      onClick={onClick}
-      onKeyDown={handleKeyDown}
-      aria-label={t('certificates.list.cardAria', {
-        student: cert.studentName,
-        course: cert.courseName,
-      })}
+      {...(clickable
+        ? {
+            role: 'button',
+            tabIndex: 0,
+            onClick: onOpen,
+            onKeyDown: handleKeyDown,
+            'aria-label': t('certificates.list.cardAria', {
+              student: cert.studentName,
+              course: cert.courseName,
+            }),
+          }
+        : {})}
       className={cn(
-        'group relative cursor-pointer overflow-hidden border-border/70 transition-colors hover:border-foreground/30',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        'group relative flex flex-col overflow-hidden border-border/70 transition-colors',
+        clickable &&
+          'cursor-pointer hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         className
       )}
     >
@@ -50,11 +66,14 @@ export function CertificateCard({ cert, onClick, className }: Props) {
         </span>
         <FileText
           size={48}
-          className="relative text-brand-green-500 transition-transform duration-300 group-hover:scale-105"
+          className={cn(
+            'relative text-brand-green-500 transition-transform duration-300',
+            clickable && 'group-hover:scale-105'
+          )}
           aria-hidden="true"
         />
       </div>
-      <CardContent className="p-4 pt-4">
+      <CardContent className="flex flex-1 flex-col p-4 pt-4">
         <p className="truncate text-sm font-semibold text-foreground">{cert.studentName}</p>
         <p className="truncate text-xs text-muted-foreground">{cert.courseName}</p>
         <div className="mt-3 flex items-center justify-between gap-2">
@@ -66,10 +85,21 @@ export function CertificateCard({ cert, onClick, className }: Props) {
               {cert.grade}
             </span>
           </div>
-          <Badge variant={cert.status === 'issued' ? 'success' : 'warning'} dot>
+          <Badge variant={isApproved ? 'success' : 'warning'} dot>
             {t(`certificates.status.${cert.status}`)}
           </Badge>
         </div>
+        {!isApproved && onApprove && (
+          <Button
+            size="sm"
+            className="mt-4 w-full"
+            onClick={onApprove}
+            disabled={approving}
+            aria-label={t('certificates.list.approveAria', { student: cert.studentName })}
+          >
+            {t('certificates.list.approve')}
+          </Button>
+        )}
       </CardContent>
     </Card>
   )
