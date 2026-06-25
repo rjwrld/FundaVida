@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/data/api'
 import { useStore } from '@/data/store'
+import { makeEntityMutation } from './makeEntityMutation'
 import type { TcuFilters } from '@/data/api/tcu'
 
 const TCU_KEY = ['tcu'] as const
@@ -22,3 +23,8 @@ export function useTcuTrainees() {
     queryFn: () => api.trainees.list(),
   })
 }
+
+export const useLogTcuActivity = makeEntityMutation('logTcuActivity')({
+  toastKey: 'toasts.tcuActivityLogged',
+  invalidates: [TCU_KEY, TRAINEES_KEY],
+})

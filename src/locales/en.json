@@ -599,6 +599,18 @@
     }
   },
   "tcu": {
+    "dialog": {
+      "logActivityTitle": "Log an activity",
+      "submit": "Log activity",
+      "traineeLabel": "Trainee",
+      "traineePlaceholder": "Choose a trainee"
+    },
+    "form": {
+      "dateLabel": "Date",
+      "hoursLabel": "Hours (1–100)",
+      "titleLabel": "Activity title",
+      "titlePlaceholder": "e.g. Community cleanup"
+    },
     "list": {
       "columns": {
         "date": "Date",
@@ -614,8 +626,7 @@
       },
       "hoursUnit": "hours",
       "subtitle": "Community service hours logged by trainees toward their 300-hour requirement.",
-      "title": "TCU activities",
-      "totalLabel": "Total hours: {{hours}}"
+      "title": "TCU activities"
     }
   },
   "teachers": {

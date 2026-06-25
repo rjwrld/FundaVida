@@ -15,16 +15,25 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Progress } from '@/components/ui/progress'
+import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useTcuActivities, useTcuTrainees } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
+import { useStore } from '@/data/store'
+import { LogTcuActivityDialog } from '@/components/tcu/LogTcuActivityDialog'
 import type { TcuFilters } from '@/data/api/tcu'
+
+const TARGET_HOURS = 300
 
 export function TcuListPage() {
   const { t } = useTranslation()
   const { formatDate, formatNumber } = useFormat()
+  const role = useStore((s) => s.role)
+  const userId = useStore((s) => s.currentUserId)
   const [filters, setFilters] = useState<TcuFilters>({})
+  const [logDialogOpen, setLogDialogOpen] = useState(false)
   const { data = [], isLoading } = useTcuActivities(filters)
   const { data: trainees = [], isLoading: traineesLoading } = useTcuTrainees()
 
@@ -32,23 +41,44 @@ export function TcuListPage() {
   const hasFilters = Boolean(filters.traineeId)
   const count = data.length
 
+  // For TCU role, show self progress; for admin, show selected trainee or all
+  const isTcuRole = role === 'tcu'
+  const selfTrainee = isTcuRole ? trainees.find((t) => t.id === userId) : null
+
+  // Calculate progress toward 300 hours
+  const progressPercent = Math.min((totalHours / TARGET_HOURS) * 100, 100)
+
   return (
     <div className="space-y-6">
       <PageHeader
         title={t('tcu.list.title')}
         description={t('tcu.list.subtitle')}
         action={
-          <div
-            className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
-            aria-label={t('tcu.list.totalLabel', { hours: formatNumber(totalHours) })}
-          >
-            <span className="font-mono tabular-nums text-foreground">
-              {formatNumber(totalHours)}
-            </span>
-            <span>{t('tcu.list.hoursUnit')}</span>
-          </div>
+          <Button variant="default" size="sm" onClick={() => setLogDialogOpen(true)}>
+            {t('tcu.dialog.logActivityTitle')}
+          </Button>
         }
       />
+
+      {isTcuRole && selfTrainee && (
+        <section className="space-y-3 rounded-lg border border-border bg-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">{t('tcu.list.title')}</p>
+              <p className="text-xs text-muted-foreground">
+                {selfTrainee.firstName} {selfTrainee.lastName}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="font-mono text-lg tabular-nums">
+                {formatNumber(totalHours)} / {TARGET_HOURS}
+              </p>
+              <p className="text-xs text-muted-foreground">{t('tcu.list.hoursUnit')}</p>
+            </div>
+          </div>
+          <Progress value={progressPercent} className="h-2" />
+        </section>
+      )}
 
       {!traineesLoading && trainees.length > 0 && (
         <section aria-label={t('common.a11y.filters')}>
@@ -119,6 +149,8 @@ export function TcuListPage() {
           </Table>
         </div>
       )}
+
+      <LogTcuActivityDialog open={logDialogOpen} onClose={() => setLogDialogOpen(false)} />
     </div>
   )
 }
