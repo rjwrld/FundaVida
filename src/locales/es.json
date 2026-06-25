@@ -273,7 +273,6 @@
       "title": "Asistencia este mes",
       "trendLabel": "Últimas 7 sesiones"
     },
-    "overviewHeading": "Resumen",
     "pendingApprovals": {
       "cta": "Revisar",
       "description_one": "{{count}} matrícula está esperando calificación.",
@@ -282,11 +281,6 @@
       "title": "Pendientes de aprobación",
       "zero": "¡Todo al día!",
       "zeroSubtitle": "Todas las matrículas tienen calificación. Buen trabajo."
-    },
-    "placeholder": {
-      "cardTitle": "Tu panel de {{role}}",
-      "studentCopy": "Explora tus cursos matriculados y descarga tus certificados desde la barra lateral.",
-      "tcuCopy": "Los reportes de TCU llegan en una fase posterior."
     },
     "recentActivity": {
       "actor": {
@@ -308,10 +302,23 @@
       "tcuHours": "Horas TCU",
       "vsLastMonth": "vs. mes pasado"
     },
+    "student": {
+      "attendanceRate": "Tasa de asistencia este mes",
+      "certificatesReady": "Certificados listos",
+      "certificatesReview": "Certificados en revisión",
+      "myCourses": "Mis cursos"
+    },
     "subtitle": "Panel de demostración. Los módulos de dominio llegan en fases posteriores.",
+    "tcu": {
+      "hoursCompleted": "Horas completadas",
+      "hoursRemaining": "Horas restantes hacia 300",
+      "recentActivities": "Actividades recientes"
+    },
     "teacher": {
+      "endedCoursesAwaitingGrades": "Cursos finalizados en espera de calificaciones",
       "myCourses": "Mis cursos",
-      "students": "Estudiantes"
+      "nextSession": "Próxima sesión programada",
+      "noUpcoming": "Ninguno programado"
     },
     "title": "Sesión como {{role}}",
     "topCourses": {
