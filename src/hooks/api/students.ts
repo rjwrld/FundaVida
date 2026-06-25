@@ -44,5 +44,12 @@ export const useUpdateStudent = makeEntityMutation('updateStudent')<{
 
 export const useDeleteStudent = makeEntityMutation('deleteStudent')({
   toastKey: 'toasts.studentDeleted',
-  invalidates: [STUDENTS_KEY, ['enrollments'], ['grades'], ['attendance'], ['tcu']],
+  invalidates: [
+    STUDENTS_KEY,
+    ['enrollments'],
+    ['grades'],
+    ['certificates'],
+    ['attendance'],
+    ['tcu'],
+  ],
 })

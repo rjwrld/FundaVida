@@ -62,7 +62,7 @@ t('attendance.list.status.absent')
 t('attendance.list.status.excused')
 
 // Keys referenced dynamically via t(`certificates.status.${cert.status}`) in CertificateCard
-t('certificates.status.issued')
+t('certificates.status.approved')
 t('certificates.status.pending')
 
 // Keys declared in the dictionary skeleton for future tasks but not yet in use
@@ -82,6 +82,7 @@ t('auditLog.actions.delete')
 t('auditLog.actions.enroll')
 t('auditLog.actions.unenroll')
 t('auditLog.actions.grade')
+t('auditLog.actions.approve')
 
 // Keys referenced dynamically via t(`auditLog.entities.${entry.entity}`)
 t('auditLog.entities.student')
@@ -89,6 +90,7 @@ t('auditLog.entities.teacher')
 t('auditLog.entities.course')
 t('auditLog.entities.enrollment')
 t('auditLog.entities.grade')
+t('auditLog.entities.certificate')
 t('auditLog.entities.attendance')
 t('auditLog.entities.tcu')
 t('auditLog.entities.emailCampaign')
@@ -100,6 +102,7 @@ t('auditLog.filter.delete')
 t('auditLog.filter.enroll')
 t('auditLog.filter.unenroll')
 t('auditLog.filter.grade')
+t('auditLog.filter.approve')
 
 // Keys referenced dynamically via t(`bulkEmail.filter.${kind}`) for history rows
 t('bulkEmail.filter.all')
@@ -144,3 +147,4 @@ t('toasts.unenrolled')
 t('toasts.gradeSaved')
 t('toasts.gradeDeleted')
 t('toasts.campaignSent')
+t('toasts.certificateApproved')

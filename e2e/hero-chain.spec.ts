@@ -50,7 +50,14 @@ test('admin runs the full chain: create student, enroll, grade, certificate', as
   await expect(page.getByRole('row').filter({ hasText: fullName })).toContainText('95')
 
   await page.getByRole('link', { name: 'Certificates' }).click()
-  await expect(page.getByRole('heading', { name: 'Certificates' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Certificates', exact: true })).toBeVisible()
+
+  // A passing grade creates a *pending* certificate; an admin must approve it
+  // before the PDF becomes available (issue #69).
+  await page
+    .getByRole('button', { name: new RegExp(`Approve certificate for ${firstName}`, 'i') })
+    .click()
+
   const certCard = page.getByRole('button', {
     name: new RegExp(`Open preview for ${firstName}`, 'i'),
   })
