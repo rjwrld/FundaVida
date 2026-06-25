@@ -29,6 +29,7 @@
   },
   "auditLog": {
     "actions": {
+      "approve": "Approve",
       "create": "Create",
       "delete": "Delete",
       "enroll": "Enroll",
@@ -50,6 +51,7 @@
     "emptyFiltered": "No audit entries match your filter.",
     "entities": {
       "attendance": "Attendance",
+      "certificate": "Certificate",
       "course": "Course",
       "emailCampaign": "Email",
       "enrollment": "Enrollment",
@@ -60,6 +62,7 @@
     },
     "filter": {
       "all": "All actions",
+      "approve": "Approvals",
       "create": "Creates",
       "delete": "Deletes",
       "enroll": "Enrollments",
@@ -117,11 +120,13 @@
   },
   "certificates": {
     "empty": {
-      "body": "Approve the first enrollment to issue a certificate.",
+      "body": "A certificate appears here once a passing grade is saved.",
       "cta": "View enrollments",
       "heading": "No certificates issued yet"
     },
     "list": {
+      "approve": "Approve",
+      "approveAria": "Approve certificate for {{student}}",
       "cardAria": "Open preview for {{student}} — {{course}}",
       "dialog": {
         "title": "Certificate preview"
@@ -132,11 +137,11 @@
         "ariaLabel": "Search certificates by student name",
         "placeholder": "Search by student name…"
       },
-      "subtitle": "Students who passed a course (score ≥ 70) earn a certificate. Preview and download the PDF.",
+      "subtitle": "A passing grade (score ≥ 70) earns a certificate. An admin approves it; approved certificates can be previewed and downloaded as a PDF.",
       "title": "Certificates"
     },
     "status": {
-      "issued": "Issued",
+      "approved": "Approved",
       "pending": "Pending"
     }
   },
@@ -665,6 +670,7 @@
   },
   "toasts": {
     "campaignSent": "Campaign sent successfully.",
+    "certificateApproved": "Certificate approved.",
     "courseCreated": "Course created.",
     "courseDeleted": "Course deleted.",
     "courseUpdated": "Course updated.",

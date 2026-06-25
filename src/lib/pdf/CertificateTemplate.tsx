@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import { formatDate } from '@/lib/format'
+import { FundaVidaMark } from './FundaVidaMark'
 
 interface Props {
   studentName: string
@@ -20,6 +21,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  mark: { marginBottom: 12 },
   brand: { fontSize: 12, color: '#1e3a8a', letterSpacing: 2 },
   title: { fontSize: 36, fontWeight: 700, color: '#0f172a', marginTop: 24 },
   subtitle: { fontSize: 12, color: '#475569', marginTop: 8 },
@@ -50,6 +52,9 @@ export function CertificateTemplate({
       <Page size="LETTER" orientation="landscape" style={styles.page}>
         <View style={styles.border}>
           <View style={{ alignItems: 'center' }}>
+            <View style={styles.mark}>
+              <FundaVidaMark size={64} />
+            </View>
             <Text style={styles.brand}>FUNDAVIDA</Text>
             <Text style={styles.title}>Certificate of Completion</Text>
             <Text style={styles.subtitle}>

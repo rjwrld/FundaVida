@@ -29,6 +29,7 @@
   },
   "auditLog": {
     "actions": {
+      "approve": "Aprobar",
       "create": "Crear",
       "delete": "Eliminar",
       "enroll": "Matricular",
@@ -50,6 +51,7 @@
     "emptyFiltered": "Ningún registro coincide con el filtro.",
     "entities": {
       "attendance": "Asistencia",
+      "certificate": "Certificado",
       "course": "Curso",
       "emailCampaign": "Correo",
       "enrollment": "Matrícula",
@@ -60,6 +62,7 @@
     },
     "filter": {
       "all": "Todas las acciones",
+      "approve": "Aprobaciones",
       "create": "Creaciones",
       "delete": "Eliminaciones",
       "enroll": "Matrículas",
@@ -118,11 +121,13 @@
   },
   "certificates": {
     "empty": {
-      "body": "Aprueba la primera matrícula para emitir un certificado.",
+      "body": "Un certificado aparece aquí cuando se guarda una nota de aprobación.",
       "cta": "Ver matrículas",
       "heading": "Aún no hay certificados emitidos"
     },
     "list": {
+      "approve": "Aprobar",
+      "approveAria": "Aprobar certificado de {{student}}",
       "cardAria": "Abrir vista previa de {{student}} — {{course}}",
       "dialog": {
         "title": "Vista previa del certificado"
@@ -133,11 +138,11 @@
         "ariaLabel": "Buscar certificados por nombre del estudiante",
         "placeholder": "Buscar por nombre del estudiante…"
       },
-      "subtitle": "Los estudiantes que aprueban un curso (nota ≥ 70) obtienen un certificado. Previsualiza y descarga el PDF.",
+      "subtitle": "Una nota de aprobación (≥ 70) genera un certificado. Un administrador lo aprueba; los certificados aprobados se pueden previsualizar y descargar en PDF.",
       "title": "Certificados"
     },
     "status": {
-      "issued": "Emitido",
+      "approved": "Aprobado",
       "pending": "Pendiente"
     }
   },
@@ -670,6 +675,7 @@
   },
   "toasts": {
     "campaignSent": "Campaña enviada correctamente.",
+    "certificateApproved": "Certificado aprobado.",
     "courseCreated": "Curso creado.",
     "courseDeleted": "Curso eliminado.",
     "courseUpdated": "Curso actualizado.",

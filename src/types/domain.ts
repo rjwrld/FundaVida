@@ -63,6 +63,27 @@ export interface Grade {
   issuedAt: string
 }
 
+export type CertificateStatus = 'pending' | 'approved'
+
+/**
+ * Recognition of a passing Grade (CONTEXT.md: Certificate). Created automatically
+ * as `pending` when the passing Grade is saved; an admin approval flips it to
+ * `approved`, which is what makes the PDF available.
+ */
+export interface Certificate {
+  id: string
+  studentId: string
+  courseId: string
+  score: number
+  status: CertificateStatus
+  /** When the passing Grade that earned this Certificate was saved. */
+  createdAt: string
+  /** When an admin approved it — drives the PDF's issue date. Absent while pending. */
+  approvedAt?: string
+  /** The admin who approved it. Absent while pending. */
+  approvedBy?: string
+}
+
 export interface TcuActivity {
   id: string
   studentId: string
@@ -83,7 +104,14 @@ export interface AttendanceRecord {
   status: AttendanceStatus
 }
 
-export type AuditAction = 'create' | 'update' | 'delete' | 'enroll' | 'unenroll' | 'grade'
+export type AuditAction =
+  | 'create'
+  | 'update'
+  | 'delete'
+  | 'enroll'
+  | 'unenroll'
+  | 'grade'
+  | 'approve'
 
 export type AuditEntity =
   | 'student'
@@ -91,6 +119,7 @@ export type AuditEntity =
   | 'course'
   | 'enrollment'
   | 'grade'
+  | 'certificate'
   | 'emailCampaign'
 
 export interface AuditLogEntry {

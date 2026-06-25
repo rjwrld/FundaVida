@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { pdf } from '@react-pdf/renderer'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -9,100 +10,96 @@ import { CertificatesEmpty } from '@/components/empty-states/CertificatesEmpty'
 import { CertificateCard } from '@/components/certificates/CertificateCard'
 import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog'
 import { useStore } from '@/data/store'
-import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { scopeFor } from '@/permissions'
+import { can } from '@/permissions'
+import { useCertificates, useApproveCertificate } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
-import { buildEligibleList, type EligibleCertificate } from '@/lib/certificates'
 import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
+import type { CertificateStatus } from '@/types'
 
 interface CardItem {
   id: string
-  studentId: string
-  courseId: string
   studentName: string
   courseName: string
   programName: string
   score: number
   grade: string
+  status: CertificateStatus
+  // approvedAt for approved (the PDF's issue date), createdAt while pending.
   issuedAtIso: string
   issuedAt: string
-  status: 'issued' | 'pending'
+}
+
+function parseStatusFilter(value: string | null): CertificateStatus | null {
+  return value === 'pending' || value === 'approved' ? value : null
 }
 
 export function CertificatesListPage() {
   const { t } = useTranslation()
   const { formatDate, formatGrade } = useFormat()
-  const currentUser = useCurrentUser()
+  const role = useStore((s) => s.role)
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
-  const grades = useStore((s) => s.grades)
+  const { data: certificates = [] } = useCertificates()
+  const approve = useApproveCertificate()
+  const canApprove = role ? can(role, 'approve', 'certificates') : false
+
+  // The dashboard "Pending approvals" widget links here with ?status=pending.
+  const [searchParams] = useSearchParams()
+  const statusFilter = parseStatusFilter(searchParams.get('status'))
 
   const [query, setQuery] = useState('')
-  const [selected, setSelected] = useState<EligibleCertificate | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [dataUrl, setDataUrl] = useState<string | null>(null)
 
   const items = useMemo<CardItem[]>(() => {
-    const all = buildEligibleList(students, courses, grades)
-    const certificateScope = currentUser ? scopeFor(currentUser.role).certificates : 'none'
-    const scoped =
-      certificateScope === 'all'
-        ? all
-        : certificateScope === 'own' && currentUser
-          ? all.filter((c) => c.studentId === currentUser.id)
-          : []
+    const studentById = new Map(students.map((s) => [s.id, s]))
+    const courseById = new Map(courses.map((c) => [c.id, c]))
     const result: CardItem[] = []
-    for (const c of scoped) {
-      const student = students.find((s) => s.id === c.studentId)
-      const course = courses.find((co) => co.id === c.courseId)
+    for (const cert of certificates) {
+      const student = studentById.get(cert.studentId)
+      const course = courseById.get(cert.courseId)
       if (!student || !course) continue
+      const dateIso =
+        cert.status === 'approved' ? (cert.approvedAt ?? cert.createdAt) : cert.createdAt
       result.push({
-        id: `${c.studentId}-${c.courseId}`,
-        studentId: c.studentId,
-        courseId: c.courseId,
+        id: cert.id,
         studentName: `${student.firstName} ${student.lastName}`,
         courseName: course.name,
         programName: course.programName,
-        score: c.score,
-        grade: formatGrade(c.score),
-        issuedAtIso: c.issuedAt,
-        issuedAt: formatDate(c.issuedAt),
-        status: 'issued',
+        score: cert.score,
+        grade: formatGrade(cert.score),
+        status: cert.status,
+        issuedAtIso: dateIso,
+        issuedAt: formatDate(dateIso),
       })
     }
     return result
-  }, [students, courses, grades, currentUser, formatDate, formatGrade])
+  }, [certificates, students, courses, formatDate, formatGrade])
+
+  const statusFiltered = useMemo(
+    () => (statusFilter ? items.filter((c) => c.status === statusFilter) : items),
+    [items, statusFilter]
+  )
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return items
-    return items.filter((c) => c.studentName.toLowerCase().includes(q))
-  }, [items, query])
+    if (!q) return statusFiltered
+    return statusFiltered.filter((c) => c.studentName.toLowerCase().includes(q))
+  }, [statusFiltered, query])
 
-  const selectedStudent = selected ? students.find((s) => s.id === selected.studentId) : null
-  const selectedCourse = selected ? courses.find((c) => c.id === selected.courseId) : null
+  // Only an approved Certificate has a PDF to preview/download.
+  const selected = useMemo(
+    () => items.find((c) => c.id === selectedId && c.status === 'approved') ?? null,
+    [items, selectedId]
+  )
 
-  // Pre-generate the PDF as a blob URL when a row is selected. The blob is
-  // typed as application/octet-stream so headless Chromium treats it as a
-  // pure download and respects the anchor's `download` attribute (PDFs would
-  // otherwise be routed through the built-in viewer which ignores it).
-  const selectedStudentId = selected?.studentId ?? null
-  const selectedCourseId = selected?.courseId ?? null
-  const selectedScore = selected?.score ?? null
-  const selectedIssuedAt = selected?.issuedAt ?? null
+  // Pre-generate the PDF as a blob URL when an approved certificate is selected.
+  // The blob is typed as application/octet-stream so headless Chromium treats it
+  // as a pure download and respects the anchor's `download` attribute (PDFs would
+  // otherwise route through the built-in viewer, which ignores it).
   useEffect(() => {
-    if (
-      !selectedStudentId ||
-      !selectedCourseId ||
-      selectedScore === null ||
-      selectedIssuedAt === null
-    ) {
-      setDataUrl(null)
-      return
-    }
-    const student = students.find((s) => s.id === selectedStudentId)
-    const course = courses.find((c) => c.id === selectedCourseId)
-    if (!student || !course) {
+    if (!selected) {
       setDataUrl(null)
       return
     }
@@ -110,11 +107,11 @@ export function CertificatesListPage() {
     let createdUrl: string | null = null
     pdf(
       <CertificateTemplate
-        studentName={`${student.firstName} ${student.lastName}`}
-        courseName={course.name}
-        programName={course.programName}
-        score={selectedScore}
-        issuedAt={selectedIssuedAt}
+        studentName={selected.studentName}
+        courseName={selected.courseName}
+        programName={selected.programName}
+        score={selected.score}
+        issuedAt={selected.issuedAtIso}
       />
     )
       .toBlob()
@@ -128,24 +125,19 @@ export function CertificatesListPage() {
       cancelled = true
       if (createdUrl) URL.revokeObjectURL(createdUrl)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStudentId, selectedCourseId, selectedScore, selectedIssuedAt])
+  }, [selected])
 
-  const downloadName =
-    selectedStudent && selectedCourse
-      ? `certificate-${selectedStudent.id}-${selectedCourse.id}.pdf`
-      : 'certificate.pdf'
+  const downloadName = selected ? `certificate-${selected.id}.pdf` : 'certificate.pdf'
 
-  const previewPayload =
-    selected && selectedStudent && selectedCourse
-      ? {
-          studentName: `${selectedStudent.firstName} ${selectedStudent.lastName}`,
-          courseName: selectedCourse.name,
-          programName: selectedCourse.programName,
-          score: selected.score,
-          issuedAt: selected.issuedAt,
-        }
-      : null
+  const previewPayload = selected
+    ? {
+        studentName: selected.studentName,
+        courseName: selected.courseName,
+        programName: selected.programName,
+        score: selected.score,
+        issuedAt: selected.issuedAtIso,
+      }
+    : null
 
   const isEmpty = items.length === 0
   const hasNoMatches = !isEmpty && filtered.length === 0
@@ -202,14 +194,11 @@ export function CertificatesListPage() {
                     grade: c.grade,
                     status: c.status,
                   }}
-                  onClick={() =>
-                    setSelected({
-                      studentId: c.studentId,
-                      courseId: c.courseId,
-                      score: c.score,
-                      issuedAt: c.issuedAtIso,
-                    })
+                  onOpen={c.status === 'approved' ? () => setSelectedId(c.id) : undefined}
+                  onApprove={
+                    canApprove && c.status === 'pending' ? () => approve.mutate(c.id) : undefined
                   }
+                  approving={approve.isPending}
                 />
               ))}
             </motion.div>
@@ -222,7 +211,7 @@ export function CertificatesListPage() {
         payload={previewPayload}
         dataUrl={dataUrl}
         downloadName={downloadName}
-        onClose={() => setSelected(null)}
+        onClose={() => setSelectedId(null)}
       />
     </div>
   )

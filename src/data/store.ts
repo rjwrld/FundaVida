@@ -5,6 +5,7 @@ import type {
   Course,
   Enrollment,
   Grade,
+  Certificate,
   TcuActivity,
   AttendanceRecord,
   AuditLogEntry,
@@ -13,6 +14,7 @@ import type {
   Role,
 } from '@/types'
 import { can, type Action, type Resource, type PermissionContext } from '@/permissions'
+import { PASSING_SCORE } from '@/lib/certificates'
 import { seedDemo } from './seed'
 import { debounce } from './debounce'
 import {
@@ -37,6 +39,7 @@ export interface StoreState {
   courses: Course[]
   enrollments: Enrollment[]
   grades: Grade[]
+  certificates: Certificate[]
   tcuActivities: TcuActivity[]
   attendance: AttendanceRecord[]
   auditLog: AuditLogEntry[]
@@ -61,6 +64,7 @@ export interface StoreState {
   setGrade: (studentId: string, courseId: string, score: number) => Grade
   updateGradeScore: (gradeId: string, score: number) => void
   deleteGrade: (gradeId: string) => void
+  approveCertificate: (certificateId: string) => void
   sendEmailCampaign: (input: {
     subject: string
     body: string
@@ -141,6 +145,7 @@ function initialState(): Pick<
   | 'courses'
   | 'enrollments'
   | 'grades'
+  | 'certificates'
   | 'tcuActivities'
   | 'attendance'
   | 'auditLog'
@@ -160,6 +165,7 @@ function initialState(): Pick<
       courses: persisted.courses,
       enrollments: persisted.enrollments,
       grades: persisted.grades,
+      certificates: persisted.certificates,
       tcuActivities: persisted.tcuActivities,
       attendance: persisted.attendance,
       auditLog: persisted.auditLog,
@@ -171,6 +177,32 @@ function initialState(): Pick<
   }
   const snapshot = seedDemo(new Date())
   return { ...snapshot, role, currentUserId, locale }
+}
+
+/**
+ * Saving a passing Grade earns a pending Certificate (CONTEXT.md, ADR-0012). A
+ * failing score earns nothing, and a (student, course) pair never accrues a
+ * second Certificate. Returns the certificates array, appended-to or unchanged.
+ */
+function maybePendingCertificate(
+  certificates: Certificate[],
+  studentId: string,
+  courseId: string,
+  score: number
+): Certificate[] {
+  if (score < PASSING_SCORE) return certificates
+  if (certificates.some((c) => c.studentId === studentId && c.courseId === courseId)) {
+    return certificates
+  }
+  const certificate: Certificate = {
+    id: nextId('cert', certificates),
+    studentId,
+    courseId,
+    score,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+  }
+  return [...certificates, certificate]
 }
 
 function nextId(prefix: string, existing: { id: string }[]): string {
@@ -255,6 +287,7 @@ export const useStore = create<StoreState>((set, get) => ({
         students: state.students.filter((s) => s.id !== id),
         enrollments: state.enrollments.filter((e) => e.studentId !== id),
         grades: state.grades.filter((g) => g.studentId !== id),
+        certificates: state.certificates.filter((c) => c.studentId !== id),
         attendance: state.attendance.filter((a) => a.studentId !== id),
         tcuActivities: state.tcuActivities.filter((a) => a.studentId !== id),
       },
@@ -368,6 +401,7 @@ export const useStore = create<StoreState>((set, get) => ({
         courses: state.courses.filter((c) => c.id !== id),
         enrollments: state.enrollments.filter((e) => e.courseId !== id),
         grades: state.grades.filter((g) => g.courseId !== id),
+        certificates: state.certificates.filter((c) => c.courseId !== id),
         attendance: state.attendance.filter((a) => a.courseId !== id),
         teachers: state.teachers.map((t) => ({
           ...t,
@@ -518,6 +552,9 @@ export const useStore = create<StoreState>((set, get) => ({
           grades: state.grades.filter(
             (g) => !(g.studentId === target.studentId && g.courseId === target.courseId)
           ),
+          certificates: state.certificates.filter(
+            (c) => !(c.studentId === target.studentId && c.courseId === target.courseId)
+          ),
           attendance: state.attendance.filter(
             (a) => !(a.studentId === target.studentId && a.courseId === target.courseId)
           ),
@@ -548,6 +585,7 @@ export const useStore = create<StoreState>((set, get) => ({
       withAudit(set, (state) => ({
         next: {
           grades: state.grades.map((g) => (g.id === existing.id ? updated : g)),
+          certificates: maybePendingCertificate(state.certificates, studentId, courseId, score),
         },
         audit: {
           action: 'grade',
@@ -568,6 +606,7 @@ export const useStore = create<StoreState>((set, get) => ({
     withAudit(set, (state) => ({
       next: {
         grades: [...state.grades, grade],
+        certificates: maybePendingCertificate(state.certificates, studentId, courseId, score),
       },
       audit: {
         action: 'grade',
@@ -626,6 +665,31 @@ export const useStore = create<StoreState>((set, get) => ({
       },
     }))
   },
+  approveCertificate: (certificateId) => {
+    const state = get()
+    assertCan(state, 'approve', 'certificates')
+    const certificate = state.certificates.find((c) => c.id === certificateId)
+    if (!certificate) {
+      throw new Error(`cannot approve: unknown certificate ${certificateId}`)
+    }
+    // Approving an already-approved Certificate is a no-op (idempotent).
+    if (certificate.status === 'approved') return
+    const approvedBy = state.currentUserId ?? 'system'
+    const approvedAt = new Date().toISOString()
+    withAudit(set, (state) => ({
+      next: {
+        certificates: state.certificates.map((c) =>
+          c.id === certificateId ? { ...c, status: 'approved', approvedAt, approvedBy } : c
+        ),
+      },
+      audit: {
+        action: 'approve',
+        entity: 'certificate',
+        entityId: certificateId,
+        summary: `Approved certificate ${certificateId}`,
+      },
+    }))
+  },
   sendEmailCampaign: (input) => {
     const existing = get()
     assertCan(existing, 'create', 'bulkEmail')
@@ -662,6 +726,7 @@ const persistSnapshot = debounce((state: StoreState) => {
     courses: state.courses,
     enrollments: state.enrollments,
     grades: state.grades,
+    certificates: state.certificates,
     tcuActivities: state.tcuActivities,
     attendance: state.attendance,
     auditLog: state.auditLog,
