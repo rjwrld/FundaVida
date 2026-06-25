@@ -7,6 +7,7 @@ import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { CertificatesEmpty } from '@/components/empty-states/CertificatesEmpty'
+import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { CertificateCard } from '@/components/certificates/CertificateCard'
 import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog'
 import { useStore } from '@/data/store'
@@ -40,7 +41,7 @@ export function CertificatesListPage() {
   const role = useStore((s) => s.role)
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
-  const { data: certificates = [] } = useCertificates()
+  const { data: certificates = [], isLoading } = useCertificates()
   const approve = useApproveCertificate()
   const canApprove = role ? can(role, 'approve', 'certificates') : false
 
@@ -139,7 +140,9 @@ export function CertificatesListPage() {
       }
     : null
 
-  const isEmpty = items.length === 0
+  // Only an actually-loaded, empty list shows the empty state — never the
+  // async loading gap, which would briefly flash "No certificates issued yet".
+  const isEmpty = !isLoading && items.length === 0
   const hasNoMatches = !isEmpty && filtered.length === 0
 
   return (
@@ -149,7 +152,16 @@ export function CertificatesListPage() {
         description={t('certificates.list.subtitle')}
       />
 
-      {isEmpty ? (
+      {isLoading ? (
+        <div
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          aria-busy="true"
+        >
+          {Array.from({ length: 8 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      ) : isEmpty ? (
         <CertificatesEmpty />
       ) : (
         <>
