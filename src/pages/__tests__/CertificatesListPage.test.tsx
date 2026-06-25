@@ -109,4 +109,20 @@ describe('<CertificatesListPage />', () => {
     expect(await screen.findByRole('button', { name: /open preview/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /approve certificate/i })).toBeNull()
   })
+
+  it('labels a student’s pending certificate as in review with the download disabled', async () => {
+    useStore.getState().setRole('student')
+    injectCertificate('pending')
+    renderPage()
+
+    // The receiving side calls a pending Certificate "in review" (CONTEXT.md).
+    expect(await screen.findByText(/in review/i)).toBeInTheDocument()
+
+    // The PDF is not available until approval: the download is present but disabled.
+    const download = screen.getByRole('button', { name: /download pdf/i })
+    expect(download).toBeDisabled()
+
+    // A Student never approves their own Certificate.
+    expect(screen.queryByRole('button', { name: /approve certificate/i })).toBeNull()
+  })
 })
