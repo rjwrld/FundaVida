@@ -304,8 +304,6 @@
     },
     "student": {
       "attendanceRate": "Tasa de asistencia este mes",
-      "certificatesReady": "Certificados listos",
-      "certificatesReview": "Certificados en revisión",
       "myCourses": "Mis cursos"
     },
     "subtitle": "Panel de demostración. Los módulos de dominio llegan en fases posteriores.",

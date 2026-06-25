@@ -302,8 +302,6 @@
     },
     "student": {
       "attendanceRate": "Attendance rate this month",
-      "certificatesReady": "Certificates ready",
-      "certificatesReview": "Certificates in review",
       "myCourses": "My courses"
     },
     "subtitle": "Demo dashboard. Domain modules land in subsequent phases.",
