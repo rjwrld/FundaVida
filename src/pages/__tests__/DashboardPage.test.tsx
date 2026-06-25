@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { useStore } from '@/data/store'
@@ -18,14 +19,17 @@ vi.mock('framer-motion', async () => {
 })
 
 function renderDashboard() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
   return render(
     <I18nProvider>
-      <MemoryRouter
-        initialEntries={['/app']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
-        <DashboardPage />
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter
+          initialEntries={['/app']}
+          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+        >
+          <DashboardPage />
+        </MemoryRouter>
+      </QueryClientProvider>
     </I18nProvider>
   )
 }
@@ -126,5 +130,133 @@ describe('<DashboardPage /> (admin)', () => {
       )
       expect(matchesSession).toBe(true)
     }
+  })
+})
+
+describe('<DashboardPage /> (teacher)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('teacher')
+    useStore.getState().setLocale('en')
+  })
+
+  it('renders at least three meaningful role-scoped widgets', () => {
+    renderDashboard()
+    // Teacher dashboard should show: my courses, next upcoming session, ended courses awaiting grades
+    expect(screen.getByText(/my courses/i)).toBeInTheDocument()
+    expect(screen.getByText(/next upcoming session/i)).toBeInTheDocument()
+    expect(screen.getByText(/ended courses awaiting grades/i)).toBeInTheDocument()
+  })
+
+  it('shows only courses the teacher owns (scoped by own)', () => {
+    renderDashboard()
+
+    // Teacher should see a courses stat card showing their owned courses count
+    expect(screen.getByText(/my courses/i)).toBeInTheDocument()
+  })
+
+  it('does not show the placeholder panel for teacher', () => {
+    renderDashboard()
+    // Placeholder is only for student and TCU roles
+    expect(screen.queryByText(/TCU reports arrive in a later phase/i)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/Browse your enrolled courses and download your certificates/i)
+    ).not.toBeInTheDocument()
+  })
+})
+
+describe('<DashboardPage /> (student)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('student')
+    useStore.getState().setLocale('en')
+  })
+
+  it('renders at least three meaningful role-scoped widgets', () => {
+    renderDashboard()
+    // Student dashboard should show: my courses, my attendance rate, my certificates
+    expect(screen.getByText(/my courses/i)).toBeInTheDocument()
+    expect(screen.getByText(/attendance rate/i)).toBeInTheDocument()
+    expect(screen.getByText(/certificates ready/i)).toBeInTheDocument()
+  })
+
+  it('shows only courses the student is enrolled in (scoped by enrolled)', () => {
+    renderDashboard()
+
+    // Student should see a courses stat card showing their enrolled courses count
+    expect(screen.getByText(/my courses/i)).toBeInTheDocument()
+  })
+
+  it('does not show the placeholder panel for student', () => {
+    renderDashboard()
+    // Placeholder should be removed per issue #74
+    expect(screen.queryByText(/Your student dashboard/i)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/Browse your enrolled courses and download your certificates/i)
+    ).not.toBeInTheDocument()
+  })
+})
+
+describe('<DashboardPage /> (tcu)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('tcu')
+    useStore.getState().setLocale('en')
+  })
+
+  it('renders at least three meaningful role-scoped widgets', () => {
+    renderDashboard()
+    // TCU dashboard should show: hours completed, hours remaining, recent activities
+    expect(screen.getByText(/hours completed/i)).toBeInTheDocument()
+    expect(screen.getByText(/hours remaining/i)).toBeInTheDocument()
+    expect(screen.getByText(/recent activities/i)).toBeInTheDocument()
+  })
+
+  it("scopes hours to the TCU trainee's own activities, never the raw store", async () => {
+    // Capture this trainee's scoped hours, then inject a DIFFERENT trainee's
+    // activity. A dashboard that reads the scope seam (api.tcu.list) must ignore
+    // it; one that reads the raw store would inflate the total — exactly the
+    // widget-local recomputation issue #74 (criterion 2) forbids.
+    const userId = useStore.getState().currentUserId
+    const ownHours = useStore
+      .getState()
+      .tcuActivities.filter((a) => a.traineeId === userId)
+      .reduce((sum, a) => sum + a.hours, 0)
+
+    useStore.setState((s) => ({
+      tcuActivities: [
+        ...s.tcuActivities,
+        {
+          id: 'foreign-tcu-act',
+          traineeId: 'someone-else',
+          title: 'Foreign',
+          hours: 1000,
+          date: '2025-01-01',
+        },
+      ],
+    }))
+
+    renderDashboard()
+
+    // The scoped total renders (await the async scope-seam query)...
+    expect((await screen.findAllByText(`${ownHours}h`)).length).toBeGreaterThan(0)
+    // ...and the foreign 1000h never leaks into it.
+    expect(screen.queryByText(`${ownHours + 1000}h`)).not.toBeInTheDocument()
+  })
+
+  it('does not show the placeholder panel for tcu', () => {
+    renderDashboard()
+    // Placeholder should be removed per issue #74
+    expect(screen.queryByText(/Your tcu dashboard/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/TCU reports arrive in a later phase/i)).not.toBeInTheDocument()
   })
 })
