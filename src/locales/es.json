@@ -1,4 +1,9 @@
 {
+  "app": {
+    "footer": {
+      "byline": "Desarrollado por Josue Calderon para <org>FundaVida<mark/></org>"
+    }
+  },
   "attendance": {
     "list": {
       "columns": {
@@ -300,13 +305,14 @@
       "certificatesIssued": "Certificados emitidos",
       "students": "Total de estudiantes",
       "tcuHours": "Horas TCU",
+      "trendDown": "Disminuyó",
+      "trendUp": "Aumentó",
       "vsLastMonth": "vs. mes pasado"
     },
     "student": {
       "attendanceRate": "Tasa de asistencia este mes",
       "myCourses": "Mis cursos"
     },
-    "subtitle": "Panel de demostración. Los módulos de dominio llegan en fases posteriores.",
     "tcu": {
       "hoursCompleted": "Horas completadas",
       "hoursRemaining": "Horas restantes hacia 300",
