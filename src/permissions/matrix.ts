@@ -107,7 +107,8 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     grades: { view: true },
     certificates: { view: true },
     attendance: { view: true },
-    tcu: { view: true },
+    // A Student is not a TCU Trainee, so they have no TCU access (issue #71).
+    tcu: {},
     reports: {},
     bulkEmail: {},
     auditLog: {},
@@ -166,7 +167,7 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     grades: 'own',
     certificates: 'own',
     attendance: 'own',
-    tcu: 'own',
+    tcu: 'none',
     reports: 'none',
     bulkEmail: 'none',
     auditLog: 'none',
