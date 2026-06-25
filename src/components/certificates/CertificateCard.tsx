@@ -20,13 +20,30 @@ interface Props {
   /** Approve a pending Certificate — only wired for an admin. */
   onApprove?: () => void
   approving?: boolean
+  /**
+   * The Certificate's owner (a Student) viewing their own record. Shifts the
+   * pending label to "in review" and surfaces a disabled download, so the
+   * receiving side reads the workflow from its own perspective (issue #73).
+   */
+  recipientView?: boolean
   className?: string
 }
 
-export function CertificateCard({ cert, onOpen, onApprove, approving, className }: Props) {
+export function CertificateCard({
+  cert,
+  onOpen,
+  onApprove,
+  approving,
+  recipientView,
+  className,
+}: Props) {
   const { t } = useTranslation()
   const isApproved = cert.status === 'approved'
   const clickable = isApproved && Boolean(onOpen)
+  const statusLabel =
+    recipientView && !isApproved
+      ? t('certificates.status.inReview')
+      : t(`certificates.status.${cert.status}`)
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (!clickable) return
@@ -86,7 +103,7 @@ export function CertificateCard({ cert, onOpen, onApprove, approving, className 
             </span>
           </div>
           <Badge variant={isApproved ? 'success' : 'warning'} dot>
-            {t(`certificates.status.${cert.status}`)}
+            {statusLabel}
           </Badge>
         </div>
         {!isApproved && onApprove && (
@@ -98,6 +115,11 @@ export function CertificateCard({ cert, onOpen, onApprove, approving, className 
             aria-label={t('certificates.list.approveAria', { student: cert.studentName })}
           >
             {t('certificates.list.approve')}
+          </Button>
+        )}
+        {!isApproved && recipientView && (
+          <Button size="sm" variant="outline" className="mt-4 w-full" disabled aria-disabled="true">
+            {t('certificates.list.downloadPdf')}
           </Button>
         )}
       </CardContent>

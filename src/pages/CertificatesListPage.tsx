@@ -44,6 +44,9 @@ export function CertificatesListPage() {
   const { data: certificates = [], isLoading } = useCertificates()
   const approve = useApproveCertificate()
   const canApprove = role ? can(role, 'approve', 'certificates') : false
+  // A Student views their own Certificates from the receiving side (ADR-0012):
+  // pending reads as "in review" with the download disabled until an admin approves.
+  const recipientView = role === 'student'
 
   // The dashboard "Pending approvals" widget links here with ?status=pending.
   const [searchParams] = useSearchParams()
@@ -211,6 +214,7 @@ export function CertificatesListPage() {
                     canApprove && c.status === 'pending' ? () => approve.mutate(c.id) : undefined
                   }
                   approving={approve.isPending}
+                  recipientView={recipientView}
                 />
               ))}
             </motion.div>
