@@ -114,7 +114,9 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: gradedCourse.name })).toBeInTheDocument()
     })
-    expect(screen.getByText(formatGrade(ownGrade.score, 'en'))).toBeInTheDocument()
+    // The grade loads from a separate async query, so wait for it rather than
+    // asserting synchronously off the heading (raced on slower CI).
+    expect(await screen.findByText(formatGrade(ownGrade.score, 'en'))).toBeInTheDocument()
   })
 
   it('shows a Student their own Attendance for the Course', async () => {

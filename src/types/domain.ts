@@ -128,6 +128,7 @@ export type AuditEntity =
   | 'enrollment'
   | 'grade'
   | 'certificate'
+  | 'attendance'
   | 'emailCampaign'
   | 'tcuActivity'
 
