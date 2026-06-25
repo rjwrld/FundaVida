@@ -5,6 +5,7 @@ import type {
   Course,
   Enrollment,
   Grade,
+  Certificate,
   AttendanceRecord,
   AuditLogEntry,
   EmailCampaign,
@@ -32,6 +33,7 @@ type TeacherList = Teacher[]
 type CourseList = Course[]
 type EnrollmentList = Enrollment[]
 type GradeList = Grade[]
+type CertificateList = Certificate[]
 type AttendanceList = AttendanceRecord[]
 type AuditLogList = AuditLogEntry[]
 type EmailCampaignList = EmailCampaign[]
@@ -73,6 +75,8 @@ export function applyScope<T extends keyof ScopeFilters>(
       return applyEnrollmentsScope(items as EnrollmentList, token, userId) as ScopeFilters[T]
     case 'grades':
       return applyGradesScope(items as GradeList, token, userId) as ScopeFilters[T]
+    case 'certificates':
+      return applyCertificatesScope(items as CertificateList, token, userId) as ScopeFilters[T]
     case 'attendance':
       return applyAttendanceScope(items as AttendanceList, token, userId) as ScopeFilters[T]
     case 'auditLog':
@@ -93,6 +97,7 @@ interface ScopeFilters {
   courses: CourseList
   enrollments: EnrollmentList
   grades: GradeList
+  certificates: CertificateList
   attendance: AttendanceList
   auditLog: AuditLogList
   emailCampaigns: EmailCampaignList
@@ -175,6 +180,21 @@ function applyGradesScope(grades: GradeList, token: Scope, userId: string): Grad
         state.courses.filter((c) => c.teacherId === userId).map((c) => c.id)
       )
       return grades.filter((g) => ownCourseIds.has(g.courseId))
+    }
+    default:
+      return []
+  }
+}
+
+function applyCertificatesScope(
+  certificates: CertificateList,
+  token: Scope,
+  userId: string
+): CertificateList {
+  switch (token) {
+    case 'own': {
+      // A Student sees only their own Certificates (ADR-0012).
+      return certificates.filter((c) => c.studentId === userId)
     }
     default:
       return []

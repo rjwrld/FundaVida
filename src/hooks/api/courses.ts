@@ -48,6 +48,7 @@ export const useDeleteCourse = makeEntityMutation('deleteCourse')({
     COURSES_KEY,
     ['enrollments'],
     ['grades'],
+    ['certificates'],
     ['students'],
     ['teachers'],
     ['attendance'],
@@ -67,7 +68,14 @@ export const useEnrollStudent = makeEntityMutation('enrollStudent')<{
 
 export const useUnenrollStudent = makeEntityMutation('unenrollStudent')({
   toastKey: 'toasts.unenrolled',
-  invalidates: [COURSES_KEY, ['students'], ['enrollments'], ['grades'], ['attendance']],
+  invalidates: [
+    COURSES_KEY,
+    ['students'],
+    ['enrollments'],
+    ['grades'],
+    ['certificates'],
+    ['attendance'],
+  ],
 })
 
 export const useSetGrade = makeEntityMutation('setGrade')<{
@@ -77,7 +85,8 @@ export const useSetGrade = makeEntityMutation('setGrade')<{
 }>({
   toastKey: 'toasts.gradeSaved',
   // ['grades'] so the Course detail roster (scoped grades query, ADR-0012)
-  // shows the saved score without a manual refresh.
-  invalidates: [COURSES_KEY, ['students'], ['grades']],
+  // shows the saved score without a manual refresh; ['certificates'] because a
+  // passing score auto-creates a pending Certificate the approvals view reads.
+  invalidates: [COURSES_KEY, ['students'], ['grades'], ['certificates']],
   args: ({ studentId, courseId, score }) => [studentId, courseId, score],
 })

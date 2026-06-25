@@ -30,14 +30,12 @@ export interface DashboardStats {
   courses: Course[]
 }
 
-// Pure derived stats for the admin dashboard. Several fields are proxies
-// because the seed schema lacks an explicit Certificate entity (Phase 8 PR 7
-// will introduce one). Proxies are documented inline.
+// Pure derived stats for the admin dashboard.
 export function useDashboardStats(): DashboardStats {
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
   const enrollments = useStore((s) => s.enrollments)
-  const grades = useStore((s) => s.grades)
+  const certificates = useStore((s) => s.certificates)
   const tcuActivities = useStore((s) => s.tcuActivities)
   const attendance = useStore((s) => s.attendance)
   const auditLog = useStore((s) => s.auditLog)
@@ -52,14 +50,9 @@ export function useDashboardStats(): DashboardStats {
     })
     const activeCourses = courses.filter((c) => (courseEnrollmentCounts.get(c.id) ?? 0) > 0).length
 
-    // Proxy: certificate issued = passing grade (>=70). No Certificate entity exists.
-    const certsIssued = grades.filter((g) => g.score >= 70).length
-
-    // Proxy: pending approval = enrollment without a grade row yet (awaiting grade entry).
-    const gradeKeys = new Set(grades.map((g) => `${g.studentId}:${g.courseId}`))
-    const pendingApprovals = enrollments.filter(
-      (e) => !gradeKeys.has(`${e.studentId}:${e.courseId}`)
-    ).length
+    // A certificate is "issued" once an admin approves it; pending ones await approval.
+    const certsIssued = certificates.filter((c) => c.status === 'approved').length
+    const pendingApprovals = certificates.filter((c) => c.status === 'pending').length
 
     const tcuHours = tcuActivities.reduce((sum, t) => sum + t.hours, 0)
 
@@ -111,5 +104,5 @@ export function useDashboardStats(): DashboardStats {
       attendanceTrend,
       courses,
     }
-  }, [students, courses, enrollments, grades, tcuActivities, attendance, auditLog])
+  }, [students, courses, enrollments, certificates, tcuActivities, attendance, auditLog])
 }
