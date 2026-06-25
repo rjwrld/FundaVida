@@ -120,6 +120,7 @@ export type AuditEntity =
   | 'enrollment'
   | 'grade'
   | 'certificate'
+  | 'attendance'
   | 'emailCampaign'
 
 export interface AuditLogEntry {

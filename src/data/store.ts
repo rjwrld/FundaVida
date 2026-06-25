@@ -65,6 +65,12 @@ export interface StoreState {
   updateGradeScore: (gradeId: string, score: number) => void
   deleteGrade: (gradeId: string) => void
   approveCertificate: (certificateId: string) => void
+  markAttendance: (
+    courseId: string,
+    studentId: string,
+    sessionDate: string,
+    status: AttendanceRecord['status']
+  ) => AttendanceRecord
   sendEmailCampaign: (input: {
     subject: string
     body: string
@@ -689,6 +695,53 @@ export const useStore = create<StoreState>((set, get) => ({
         summary: `Approved certificate ${certificateId}`,
       },
     }))
+  },
+  markAttendance: (courseId, studentId, sessionDate, status) => {
+    const state = get()
+    const course = state.courses.find((c) => c.id === courseId)
+    if (!course) {
+      throw new Error(`cannot mark attendance: unknown course ${courseId}`)
+    }
+    assertCan(state, 'mark', 'attendance', { userId: state.currentUserId ?? undefined, course })
+    // Find existing record by (courseId, studentId, sessionDate) or create new one
+    const existing = state.attendance.find(
+      (a) => a.courseId === courseId && a.studentId === studentId && a.sessionDate === sessionDate
+    )
+    if (existing) {
+      const updated: AttendanceRecord = { ...existing, status }
+      withAudit(set, (state) => ({
+        next: {
+          attendance: state.attendance.map((a) => (a.id === existing.id ? updated : a)),
+        },
+        audit: {
+          action: 'update',
+          entity: 'attendance',
+          entityId: existing.id,
+          summary: `Marked attendance for student ${studentId} on ${sessionDate} as ${status}`,
+        },
+      }))
+      return updated
+    } else {
+      const newRecord: AttendanceRecord = {
+        id: nextId('att', state.attendance),
+        courseId,
+        studentId,
+        sessionDate,
+        status,
+      }
+      withAudit(set, (state) => ({
+        next: {
+          attendance: [newRecord, ...state.attendance],
+        },
+        audit: {
+          action: 'create',
+          entity: 'attendance',
+          entityId: newRecord.id,
+          summary: `Created attendance for student ${studentId} on ${sessionDate} as ${status}`,
+        },
+      }))
+      return newRecord
+    }
   },
   sendEmailCampaign: (input) => {
     const existing = get()
