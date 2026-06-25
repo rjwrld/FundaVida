@@ -143,6 +143,7 @@
     },
     "status": {
       "approved": "Aprobado",
+      "inReview": "En revisión",
       "pending": "Pendiente"
     }
   },

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -106,6 +106,103 @@ describe('<CertificatesListPage />', () => {
     injectCertificate('approved')
     renderPage()
 
+    expect(await screen.findByRole('button', { name: /open preview/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /approve certificate/i })).toBeNull()
+  })
+
+  it('labels a student’s pending certificate as in review with the download disabled', async () => {
+    useStore.getState().setRole('student')
+    injectCertificate('pending')
+    renderPage()
+
+    // The receiving side calls a pending Certificate "in review" (CONTEXT.md).
+    expect(await screen.findByText(/in review/i)).toBeInTheDocument()
+
+    // The PDF is not available until approval: the download is present but disabled.
+    const download = screen.getByRole('button', { name: /download pdf/i })
+    expect(download).toBeDisabled()
+
+    // A Student never approves their own Certificate.
+    expect(screen.queryByRole('button', { name: /approve certificate/i })).toBeNull()
+  })
+
+  it('shows a student only their own certificate, never a classmate’s', async () => {
+    const { students, courses } = useStore.getState()
+    const self = students[0]
+    const classmate = students[1]
+    const course = courses[0]
+    if (!self || !classmate || !course) throw new Error('seed missing students/course')
+    const approvedAt = new Date().toISOString()
+    useStore.setState({
+      certificates: [
+        {
+          id: 'cert-self',
+          studentId: self.id,
+          courseId: course.id,
+          score: 90,
+          status: 'approved',
+          createdAt: approvedAt,
+          approvedAt,
+          approvedBy: 'admin',
+        },
+        {
+          id: 'cert-other',
+          studentId: classmate.id,
+          courseId: course.id,
+          score: 95,
+          status: 'approved',
+          createdAt: approvedAt,
+          approvedAt,
+          approvedBy: 'admin',
+        },
+      ],
+    })
+    // setRole('student') binds currentUserId to stu-1 === students[0]; the scope
+    // seam (ADR-0008/0012) collapses the list to self.
+    useStore.getState().setRole('student')
+    renderPage()
+
+    const previews = await screen.findAllByRole('button', { name: /open preview/i })
+    expect(previews).toHaveLength(1)
+    expect(screen.queryByText(`${classmate.firstName} ${classmate.lastName}`)).toBeNull()
+  })
+
+  it('makes an admin-approved certificate downloadable after switching to the student role', async () => {
+    // The student first sees their own certificate in review, with no download.
+    useStore.getState().setRole('student')
+    injectCertificate('pending')
+    renderPage()
+    expect(await screen.findByText(/in review/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /open preview/i })).toBeNull()
+
+    // An admin approves it through the real action (which invalidates the
+    // certificates query key shared across roles).
+    act(() => {
+      useStore.getState().setRole('admin')
+    })
+    fireEvent.click(await screen.findByRole('button', { name: /approve certificate/i }))
+    await waitFor(() => {
+      expect(useStore.getState().certificates.every((c) => c.status === 'approved')).toBe(true)
+    })
+
+    // Back as the student, the PDF download is offered — the role-keyed query
+    // refetched rather than serving a stale "in review" card (#87).
+    act(() => {
+      useStore.getState().setRole('student')
+    })
+    expect(await screen.findByRole('button', { name: /open preview/i })).toBeInTheDocument()
+    expect(screen.queryByText(/in review/i)).toBeNull()
+  })
+
+  it('refreshes the list in place after approval, leaving no stale pending card', async () => {
+    useStore.getState().setRole('admin')
+    injectCertificate('pending')
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: /approve certificate/i }))
+
+    // Approval invalidates the certificates query key, so the same-keyed list
+    // refetches and the card re-renders as an approved preview without a remount.
     expect(await screen.findByRole('button', { name: /open preview/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /approve certificate/i })).toBeNull()
   })
