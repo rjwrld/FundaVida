@@ -355,6 +355,60 @@ describe('enrollment referential integrity', () => {
   })
 })
 
+describe('attendance marking', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+  })
+
+  it('markAttendance updates an existing record and appends an audit entry (admin)', () => {
+    useStore.getState().setRole('admin')
+    const state = useStore.getState()
+    const existing = state.attendance.find((a) => a.status === 'present')
+    if (!existing) throw new Error('expected an attendance record to update')
+    const logLengthBefore = state.auditLog.length
+    const updated = useStore.getState().markAttendance(existing.id, 'absent')
+    const log = useStore.getState().auditLog
+    expect(updated.status).toBe('absent')
+    expect(log.length).toBe(logLengthBefore + 1)
+    expect(log[0]?.action).toBe('update')
+    expect(log[0]?.entity).toBe('attendance')
+  })
+
+  it('markAttendance throws if student-teacher course-ownership mismatch (teacher)', () => {
+    useStore.getState().setRole('teacher')
+    const state = useStore.getState()
+    const record = state.attendance[0]
+    if (!record) throw new Error('expected at least one attendance record')
+    const course = state.courses.find((c) => c.id === record.courseId)
+    if (!course) throw new Error('expected course to exist')
+    if (course.teacherId === 'tea-1') {
+      // If tea-1 owns this course, find a record for a course tea-1 doesn't own
+      const otherRecord = state.attendance.find(
+        (a) => !state.courses.find((c) => c.id === a.courseId && c.teacherId === 'tea-1')
+      )
+      if (!otherRecord) throw new Error('expected a record for a course not owned by tea-1')
+      const logLengthBefore = state.auditLog.length
+      expect(() => useStore.getState().markAttendance(otherRecord.id, 'absent')).toThrow()
+      expect(state.auditLog.length).toBe(logLengthBefore)
+    }
+  })
+
+  it('markAttendance succeeds for teacher-owned course sessions', () => {
+    useStore.getState().setRole('teacher')
+    const state = useStore.getState()
+    const ownedCourseIds = new Set(
+      state.courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id)
+    )
+    const ownedRecord = state.attendance.find((a) => ownedCourseIds.has(a.courseId))
+    if (!ownedRecord) throw new Error('expected an attendance record for a teacher-owned course')
+    const updated = useStore.getState().markAttendance(ownedRecord.id, 'absent')
+    expect(updated.status).toBe('absent')
+  })
+})
+
 describe('course Sede invariant (ADR-0011)', () => {
   beforeEach(() => {
     clearPersistedState()

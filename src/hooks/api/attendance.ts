@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
+import type { AttendanceRecord } from '@/types'
 import { api } from '@/data/api'
 import { useStore } from '@/data/store'
 import type { AttendanceFilters } from '@/data/api/attendance'
+import { makeEntityMutation } from './makeEntityMutation'
 
 const ATTENDANCE_KEY = ['attendance'] as const
 
@@ -13,3 +15,12 @@ export function useAttendance(filters: AttendanceFilters = {}) {
     queryFn: () => api.attendance.list(filters),
   })
 }
+
+export const useMarkAttendance = makeEntityMutation('markAttendance')<{
+  recordId: string
+  status: AttendanceRecord['status']
+}>({
+  toastKey: 'toasts.attendanceMarked',
+  invalidates: [ATTENDANCE_KEY],
+  args: ({ recordId, status }) => [recordId, status],
+})

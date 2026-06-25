@@ -61,6 +61,7 @@ export interface StoreState {
   setGrade: (studentId: string, courseId: string, score: number) => Grade
   updateGradeScore: (gradeId: string, score: number) => void
   deleteGrade: (gradeId: string) => void
+  markAttendance: (recordId: string, status: AttendanceRecord['status']) => AttendanceRecord
   sendEmailCampaign: (input: {
     subject: string
     body: string
@@ -625,6 +626,31 @@ export const useStore = create<StoreState>((set, get) => ({
         summary: `Deleted grade ${gradeId}`,
       },
     }))
+  },
+  markAttendance: (recordId, status) => {
+    const state = get()
+    const record = state.attendance.find((a) => a.id === recordId)
+    if (!record) {
+      throw new Error(`cannot mark attendance: unknown record ${recordId}`)
+    }
+    const course = state.courses.find((c) => c.id === record.courseId)
+    if (!course) {
+      throw new Error(`cannot mark attendance: unknown course ${record.courseId}`)
+    }
+    assertCan(state, 'mark', 'attendance', { userId: state.currentUserId ?? undefined, course })
+    const updated: AttendanceRecord = { ...record, status }
+    withAudit(set, (state) => ({
+      next: {
+        attendance: state.attendance.map((a) => (a.id === recordId ? updated : a)),
+      },
+      audit: {
+        action: 'update',
+        entity: 'attendance',
+        entityId: recordId,
+        summary: `Marked attendance ${recordId} as ${status}`,
+      },
+    }))
+    return updated
   },
   sendEmailCampaign: (input) => {
     const existing = get()
