@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useStore } from '@/data/store'
+import { landingPathForRole } from '@/lib/roleLanding'
 import { ROLES } from '@/constants/roles'
 import type { Role } from '@/types'
 
@@ -23,7 +24,7 @@ export function RoleSwitcher() {
 
   function pick(next: Role) {
     setRole(next)
-    navigate('/app')
+    navigate(landingPathForRole(next, useStore.getState()))
   }
 
   return (

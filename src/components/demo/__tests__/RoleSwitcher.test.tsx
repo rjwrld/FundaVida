@@ -68,4 +68,39 @@ describe('<RoleSwitcher />', () => {
     expect(useStore.getState().role).toBe('student')
     expect(screen.getByTestId('location')).toHaveTextContent('/app')
   })
+
+  it('lands the teacher persona on its ungraded ended Course (golden-path entry)', async () => {
+    const user = userEvent.setup()
+    useStore.getState().setRole('admin')
+
+    // The golden-path runway: the just-ended Course the teacher persona (tea-1)
+    // owns and has not yet graded (seedDemo). Switching to teacher should drop
+    // the user straight onto its detail page — the grading write surface.
+    const { courses, grades } = useStore.getState()
+    const goldenPath = courses.find(
+      (c) => c.teacherId === 'tea-1' && !grades.some((g) => g.courseId === c.id)
+    )
+    if (!goldenPath) throw new Error('seed should leave tea-1 an ungraded ended Course')
+
+    function LocationDisplay() {
+      const location = useLocation()
+      return <div data-testid="location">{location.pathname}</div>
+    }
+
+    render(
+      <I18nProvider>
+        <MemoryRouter
+          initialEntries={['/app']}
+          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+        >
+          <RoleSwitcher />
+          <LocationDisplay />
+        </MemoryRouter>
+      </I18nProvider>
+    )
+    await user.click(screen.getByRole('button', { name: /role: admin/i }))
+    await user.click(screen.getByRole('menuitem', { name: /teacher/i }))
+    expect(useStore.getState().role).toBe('teacher')
+    expect(screen.getByTestId('location')).toHaveTextContent(`/app/courses/${goldenPath.id}`)
+  })
 })
