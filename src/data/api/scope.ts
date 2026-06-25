@@ -10,6 +10,7 @@ import type {
   AuditLogEntry,
   EmailCampaign,
   TcuActivity,
+  TcuTrainee,
 } from '@/types'
 import { useStore } from '../store'
 
@@ -38,6 +39,7 @@ type AttendanceList = AttendanceRecord[]
 type AuditLogList = AuditLogEntry[]
 type EmailCampaignList = EmailCampaign[]
 type TcuList = TcuActivity[]
+type TraineeList = TcuTrainee[]
 
 /**
  * Apply a scope token to a list of items.
@@ -85,6 +87,8 @@ export function applyScope<T extends keyof ScopeFilters>(
       return applyEmailCampaignsScope(items as EmailCampaignList, token, userId) as ScopeFilters[T]
     case 'tcu':
       return applyTcuScope(items as TcuList, token, userId) as ScopeFilters[T]
+    case 'trainees':
+      return applyTraineesScope(items as TraineeList, token, userId) as ScopeFilters[T]
     default:
       // Unhandled resource: default to 'none'
       return [] as ScopeFilters[T]
@@ -102,6 +106,7 @@ interface ScopeFilters {
   auditLog: AuditLogList
   emailCampaigns: EmailCampaignList
   tcu: TcuList
+  trainees: TraineeList
 }
 
 function applyStudentsScope(students: StudentList, token: Scope, userId: string): StudentList {
@@ -249,6 +254,18 @@ function applyTcuScope(activities: TcuList, token: Scope, userId: string): TcuLi
     case 'self': {
       // Activities logged by the current user (tcu trainee)
       return activities.filter((a) => a.traineeId === userId)
+    }
+    default:
+      return []
+  }
+}
+
+function applyTraineesScope(trainees: TraineeList, token: Scope, userId: string): TraineeList {
+  switch (token) {
+    case 'self': {
+      // The trainee roster rides the tcu scope (no new permission): a TCU volunteer
+      // sees only their own record, never other volunteers (ADR-0008, ADR-0013 pattern).
+      return trainees.filter((t) => t.id === userId)
     }
     default:
       return []
