@@ -1,10 +1,9 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { AnimatePresence, motion, type Variants } from 'framer-motion'
-import { PDFViewer } from '@react-pdf/renderer'
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
+import { CertificatePreview } from '@/components/certificates/CertificatePreview'
 import { transitionDefaults } from '@/lib/motion'
 
 // motion controls the full `transform` style, so the centering translate must
@@ -77,15 +76,13 @@ export function CertificatePreviewDialog({ open, payload, dataUrl, downloadName,
                   </DialogPrimitive.Close>
                 </div>
                 <div className="min-h-[280px] flex-1 overflow-hidden rounded-md border border-border">
-                  <PDFViewer width="100%" height="100%">
-                    <CertificateTemplate
-                      studentName={payload.studentName}
-                      courseName={payload.courseName}
-                      programName={payload.programName}
-                      score={payload.score}
-                      issuedAt={payload.issuedAt}
-                    />
-                  </PDFViewer>
+                  <CertificatePreview
+                    studentName={payload.studentName}
+                    courseName={payload.courseName}
+                    programName={payload.programName}
+                    score={payload.score}
+                    issuedAt={payload.issuedAt}
+                  />
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={onClose}>
