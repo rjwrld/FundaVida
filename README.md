@@ -40,25 +40,99 @@ See [`docs/superpowers/specs/`](docs/superpowers/specs/) for the design specs th
 
 ## Features by tier
 
+### Per-role dashboards
+
+Each role sees a customized dashboard on login reflecting their responsibilities:
+
+- **Admin** — platform overview: total students, courses, certificates pending approval, attendance summary, bulk-email audit trail.
+- **Teacher** — your courses, students enrolled in your courses, grades entered, sessions for this month.
+- **Student** — your enrollments, grades you've received, certificates earned, your attendance record.
+- **TCU Trainee** — your logged activities, hours completed toward the 300-hour requirement.
+
 ### Tier 1 — Hero modules (full CRUD + deep polish)
 
 - **Students** — create, filter, search, edit, delete. Form validation with localized messages, optimistic updates, keyboard navigation, responsive layout.
 - **Courses** — pair with students via enrollments; exercises relational state.
-- **Certificates** — generate and download PDFs in-browser via `@react-pdf/renderer`.
+- **Certificates** — generate and download PDFs in-browser via `@react-pdf/renderer`. Approval workflow: pending → approved by admin → download enabled.
 
 ### Tier 2 — Supporting modules (basic CRUD)
 
 - **Teachers** — referenced by courses.
 - **Enrollments** — bridges students and courses.
-- **Grades** — referenced by certificates (70+ threshold = eligible).
+- **Grades** — enter scores after course ends (70+ threshold makes a student eligible for a certificate).
+- **Attendance** — mark per-Session presence/absence; Teacher marks within their courses, Admin globally.
 
-### Tier 3 — Read-only showcase
+### Tier 3 — Read-only showcase + Specialised workflows
 
-- **Attendance** — pre-seeded records.
 - **Bulk Email** — draft, recipient filter preview, send (simulated, logged to audit).
 - **Reports** — cross-cutting totals, averages, attendance rates, community hours.
 - **Audit Logs** — every create/update/delete since the last demo reset.
-- **TCU** — community-service trainee records.
+- **TCU** — community-service trainees log activities (hours, title, date) in self-service portal; all role-scoped.
+
+## Role × capability matrix
+
+All access decisions flow through a single declarative matrix (see [ADR-0007](docs/adr/0007-permissions-are-one-declarative-matrix.md)). The table below shows which roles can perform which actions on each resource. **✓** = allowed; empty = denied.
+
+| Resource         | Admin |  Teacher  | Student | TCU |
+| ---------------- | :---: | :-------: | :-----: | :-: |
+| **Students**     |       |           |         |     |
+| — view           |   ✓   |    ✓\*    |    —    |  —  |
+| — create         |   ✓   |     —     |    —    |  —  |
+| — edit           |   ✓   |     —     |    —    |  —  |
+| — delete         |   ✓   |     —     |    —    |  —  |
+| **Teachers**     |       |           |         |     |
+| — view           |   ✓   |     —     |    —    |  —  |
+| — create         |   ✓   |     —     |    —    |  —  |
+| — edit           |   ✓   |     —     |    —    |  —  |
+| — delete         |   ✓   |     —     |    —    |  —  |
+| **Courses**      |       |           |         |     |
+| — view           |   ✓   |   ✓\*\*   |    ✓    |  —  |
+| — create         |   ✓   |     —     |    —    |  —  |
+| — edit           |   ✓   |     —     |    —    |  —  |
+| — delete         |   ✓   |     —     |    —    |  —  |
+| **Enrollments**  |       |           |         |     |
+| — view           |   ✓   |   ✓\*\*   |    —    |  —  |
+| — create         |   ✓   |     —     |    —    |  —  |
+| — delete         |   ✓   |     —     |    —    |  —  |
+| **Grades**       |       |           |         |     |
+| — view           |   ✓   |     ✓     | ✓\*\*\* |  —  |
+| — enter          |   ✓   | ✓\*\*\*\* |    —    |  —  |
+| — edit           |   ✓   | ✓\*\*\*\* |    —    |  —  |
+| — delete         |   ✓   |     —     |    —    |  —  |
+| **Certificates** |       |           |         |     |
+| — view           |   ✓   |     —     | ✓\*\*\* |  —  |
+| — approve        |   ✓   |     —     |    —    |  —  |
+| **Attendance**   |       |           |         |     |
+| — view           |   ✓   |   ✓\*\*   | ✓\*\*\* |  —  |
+| — mark           |   ✓   |   ✓\*\*   |    —    |  —  |
+| **TCU**          |       |           |         |     |
+| — view           |   ✓   |     —     |    —    |  —  |
+| — log            |   ✓   |     —     |    —    | ✓†  |
+| **Reports**      |       |           |         |     |
+| — view           |   ✓   |     —     |    —    |  —  |
+| **Bulk Email**   |       |           |         |     |
+| — view           |   ✓   |     —     |    —    |  —  |
+| — create         |   ✓   |     —     |    —    |  —  |
+| **Audit Log**    |       |           |         |     |
+| — view           |   ✓   |     —     |    —    |  —  |
+
+**Scope annotations:**
+
+- `*` Teacher sees students enrolled in their own courses only.
+- `**` Teacher sees data only for courses they own.
+- `***` Student sees only their own records.
+- `****` Teacher may enter and edit grades only after their course's term ends.
+- `†` TCU trainee can log activities for their own ID only (cannot log for other trainees).
+
+See [src/permissions/matrix.ts](src/permissions/matrix.ts) for the authoritative source and [ADR-0008](docs/adr/0008-scopefor-returns-tokens-api-interprets.md) for how scopes are applied at read time.
+
+## Scheduling & Demo Epoch
+
+Courses are scheduled via two properties: **Term** (start and end dates) and **Meeting Days** (e.g. Mon/Wed). The app derives the **Session list** (individual class meetings) from these two at read time — Sessions are never stored, keeping the model simple and preventing drift (see [ADR-0001](docs/adr/0001-sessions-are-derived-never-stored.md)).
+
+**Demo Epoch** (see [ADR-0002](docs/adr/0002-demo-epoch-is-seed-relative.md)): all seeded dates are positioned relative to the moment the demo loads in your browser. This ensures the demo always shows real upcoming Sessions and current "this month" metrics, never decaying as time passes. Return visitors' data slowly ages until they reset the demo.
+
+See [CONTEXT.md](CONTEXT.md) for the complete domain vocabulary (Sede, Educational Level, TCU Trainee, etc.) and the `docs/adr/` directory for the architectural decisions behind each module.
 
 ## Screenshots
 
