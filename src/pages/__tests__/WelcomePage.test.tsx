@@ -55,12 +55,28 @@ describe('<WelcomePage />', () => {
     expect(screen.getByRole('heading', { name: /bienvenido de nuevo\./i })).toBeInTheDocument()
   })
 
-  it('selects a role and navigates to /app', async () => {
+  it('selects a non-teacher role and navigates to /app', async () => {
     const user = userEvent.setup()
+    renderWelcome()
+    await user.click(screen.getByRole('button', { name: /^admin/i }))
+    expect(useStore.getState().role).toBe('admin')
+    expect(screen.getByTestId('location')).toHaveTextContent('/app')
+  })
+
+  it('lands the teacher persona on its ungraded ended Course (golden-path entry)', async () => {
+    const user = userEvent.setup()
+    // The just-ended Course the teacher persona (tea-1) owns and has not yet
+    // graded — switching to teacher should open its detail page directly.
+    const { courses, grades } = useStore.getState()
+    const goldenPath = courses.find(
+      (c) => c.teacherId === 'tea-1' && !grades.some((g) => g.courseId === c.id)
+    )
+    if (!goldenPath) throw new Error('seed should leave tea-1 an ungraded ended Course')
+
     renderWelcome()
     await user.click(screen.getByRole('button', { name: /^teacher/i }))
     expect(useStore.getState().role).toBe('teacher')
-    expect(screen.getByTestId('location')).toHaveTextContent('/app')
+    expect(screen.getByTestId('location')).toHaveTextContent(`/app/courses/${goldenPath.id}`)
   })
 
   it('keeps the welcome illustration text-free (decorative image)', () => {

@@ -6,6 +6,7 @@ import { LanguageToggle } from '@/components/layout/LanguageToggle'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { ROLES } from '@/constants/roles'
 import { useStore } from '@/data/store'
+import { landingPathForRole } from '@/lib/roleLanding'
 import type { Role } from '@/types'
 
 export function WelcomePage() {
@@ -15,7 +16,7 @@ export function WelcomePage() {
 
   function choose(role: Role) {
     setRole(role)
-    navigate('/app')
+    navigate(landingPathForRole(role, useStore.getState()))
   }
 
   return (
