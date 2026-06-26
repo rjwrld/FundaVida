@@ -1,10 +1,17 @@
-import { startOfMonth } from 'date-fns'
+import { subDays } from 'date-fns'
+
+/**
+ * Length of the trailing window each metric's growth is measured over. A trailing
+ * window (rather than the calendar month) keeps the trend stable no matter where
+ * in the month the demo is loaded — the first of the month doesn't reset it to 0.
+ */
+export const TRAILING_WINDOW_DAYS = 30
 
 /**
  * Month-over-month growth of a cumulative metric: how much the current total
- * grew (or shrank) versus its value at the end of last month. Returns `null`
- * when there is no prior baseline to compare against, so callers can omit the
- * trend rather than divide by zero.
+ * grew (or shrank) versus its value at the start of the trailing window. Returns
+ * `null` when there is no prior baseline to compare against, so callers can omit
+ * the trend rather than divide by zero.
  */
 export function monthOverMonthChange(current: number, priorMonthEnd: number): number | null {
   if (priorMonthEnd === 0) return null
@@ -32,8 +39,8 @@ export interface StatDeltaInput {
  * `null` when there's no prior-month baseline (see {@link monthOverMonthChange}).
  */
 export function dashboardStatDeltas(data: StatDeltaInput, now: Date): StatDeltas {
-  const monthStart = startOfMonth(now).getTime()
-  const before = (iso?: string) => iso !== undefined && new Date(iso).getTime() < monthStart
+  const windowStart = subDays(now, TRAILING_WINDOW_DAYS).getTime()
+  const before = (iso?: string) => iso !== undefined && new Date(iso).getTime() < windowStart
 
   const studentsNow = data.students.length
   const studentsPrior = data.students.filter((s) => before(s.createdAt)).length
