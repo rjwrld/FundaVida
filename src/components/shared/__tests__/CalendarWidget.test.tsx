@@ -34,4 +34,41 @@ describe('<CalendarWidget />', () => {
     await user.click(screen.getByRole('button', { name: /previous month/i }))
     expect(screen.getByRole('heading', { name: /march 2026/i })).toBeInTheDocument()
   })
+
+  it('marks today with an underline bar (variant B), not a filled circle', () => {
+    const { container } = render(<CalendarWidget />)
+    const todayCell = container.querySelector<HTMLElement>('[data-today="true"]')
+    expect(todayCell).not.toBeNull()
+    // The new treatment is an underline bar under the number...
+    expect(todayCell?.querySelector('[data-today-bar]')).not.toBeNull()
+    // ...not the old filled circle that sat behind the number.
+    expect(todayCell?.querySelector('[data-today-fill]')).toBeNull()
+  })
+
+  it('renders weekend days like weekdays (no muted text)', () => {
+    const selected = new Date(2026, 3, 1)
+    render(<CalendarWidget selected={selected} />)
+    // April 4, 2026 is an in-month Saturday.
+    const saturday = screen.getByRole('button', { name: /saturday, april 4, 2026/i })
+    expect(saturday).not.toHaveClass('text-muted-foreground')
+  })
+
+  it('marks the selected non-today day with a soft tint, not a ring', () => {
+    const selected = new Date(2026, 3, 15)
+    const { container } = render(<CalendarWidget selected={selected} />)
+    const selectedCell = container.querySelector<HTMLElement>('[data-selected="true"]')
+    expect(selectedCell).not.toBeNull()
+    expect(selectedCell?.getAttribute('aria-label')).toMatch(/april 15, 2026/i)
+    // Soft tint fill present; the old 1.5px ring is gone.
+    expect(selectedCell?.querySelector('[data-selected-tint]')).not.toBeNull()
+  })
+
+  it('marks event days with a thin bar, not a dot', () => {
+    const selected = new Date(2026, 3, 1)
+    const events = [new Date(2026, 3, 10)]
+    render(<CalendarWidget selected={selected} events={events} />)
+    const cell = screen.getByRole('button', { name: /april 10, 2026/i })
+    expect(cell).toHaveAttribute('data-has-event', 'true')
+    expect(cell.querySelector('[data-event-bar]')).not.toBeNull()
+  })
 })
