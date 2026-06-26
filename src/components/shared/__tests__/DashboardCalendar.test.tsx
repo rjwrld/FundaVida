@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
 import { useStore } from '@/data/store'
 import { DashboardCalendar } from '../DashboardCalendar'
@@ -29,13 +28,7 @@ function makeCourse(overrides: Partial<Course> = {}): Course {
 }
 
 function renderCalendar(ui: React.ReactElement) {
-  return render(
-    <I18nProvider>
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        {ui}
-      </MemoryRouter>
-    </I18nProvider>
-  )
+  return render(<I18nProvider>{ui}</I18nProvider>)
 }
 
 describe('<DashboardCalendar />', () => {
@@ -49,27 +42,29 @@ describe('<DashboardCalendar />', () => {
     vi.useRealTimers()
   })
 
-  it('lists the clicked day’s sessions as course name + ordinal', () => {
-    renderCalendar(<DashboardCalendar courses={[makeCourse()]} linkSessions={false} />)
+  it('marks the courses’ session days as calendar events', () => {
+    // June 2026: a mon/wed course meets Mon 1, Wed 3, ... — but never Tue 2.
+    renderCalendar(<DashboardCalendar courses={[makeCourse()]} />)
 
-    // June 17 is the 6th mon/wed session of the June term.
-    fireEvent.click(screen.getByRole('button', { name: /Wednesday, June 17, 2026/ }))
-
-    expect(screen.getByText('Matemáticas — Session 6')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Monday, June 1, 2026/ })).toHaveAttribute(
+      'data-has-event',
+      'true'
+    )
+    expect(screen.getByRole('button', { name: /Tuesday, June 2, 2026/ })).toHaveAttribute(
+      'data-has-event',
+      'false'
+    )
   })
 
-  it('renders a student’s entries as read-only text (no link)', () => {
-    // June 15 (today) is the 5th mon/wed session and is selected on mount.
-    renderCalendar(<DashboardCalendar courses={[makeCourse()]} linkSessions={false} />)
+  it('selects a day when it is clicked', () => {
+    renderCalendar(<DashboardCalendar courses={[makeCourse()]} />)
 
-    expect(screen.queryByRole('link', { name: /Matemáticas/ })).not.toBeInTheDocument()
-    expect(screen.getByText('Matemáticas — Session 5')).toBeInTheDocument()
-  })
+    // June 16 is not today (June 15), so clicking it marks it selected.
+    fireEvent.click(screen.getByRole('button', { name: /Tuesday, June 16, 2026/ }))
 
-  it('links a teacher/admin’s entries into the course’s attendance', () => {
-    renderCalendar(<DashboardCalendar courses={[makeCourse()]} linkSessions={true} />)
-
-    const link = screen.getByRole('link', { name: 'Matemáticas — Session 5' })
-    expect(link).toHaveAttribute('href', '/app/attendance?courseId=cou-A')
+    expect(screen.getByRole('button', { name: /Tuesday, June 16, 2026/ })).toHaveAttribute(
+      'data-selected',
+      'true'
+    )
   })
 })

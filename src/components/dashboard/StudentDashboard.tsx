@@ -29,10 +29,9 @@ export function StudentDashboard() {
     )
   }, [attendance])
 
-  // A Student's calendar entries are read-only — they view Sessions, never mark
-  // attendance (ADR-0012), so linkSessions stays false.
+  // The sidebar calendar marks the Student's enrolled Courses' Session days (ADR-0013).
   return (
-    <DashboardShell courses={courses} linkSessions={false}>
+    <DashboardShell courses={courses}>
       {/* My Courses */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <StatCard

@@ -19,8 +19,6 @@ export interface DashboardShellProps {
   children: ReactNode
   /** Courses already scoped to the viewer; drive the sidebar calendar (ADR-0013). */
   courses: Course[]
-  /** Teacher/admin calendar entries link into attendance; a Student's are read-only (ADR-0012). */
-  linkSessions: boolean
   /** Optional "On your radar" items; when omitted the aside shows the calendar only. */
   upcoming?: UpcomingItem[]
 }
@@ -32,7 +30,7 @@ export interface DashboardShellProps {
  * has no scoped Courses (scopeFor('tcu').courses === 'none'), so its dashboard does
  * not use this shell — an always-empty calendar would be noise.
  */
-export function DashboardShell({ children, courses, linkSessions, upcoming }: DashboardShellProps) {
+export function DashboardShell({ children, courses, upcoming }: DashboardShellProps) {
   const { t } = useTranslation()
 
   return (
@@ -50,7 +48,7 @@ export function DashboardShell({ children, courses, linkSessions, upcoming }: Da
         className="hidden flex-col gap-6 xl:flex"
         aria-label={t('dashboard.rightPanel.calendarTitle')}
       >
-        <DashboardCalendar courses={courses} linkSessions={linkSessions} />
+        <DashboardCalendar courses={courses} />
         {upcoming ? (
           <section className="rounded-lg border border-border bg-card p-5">
             <header className="mb-3 flex items-center gap-2">

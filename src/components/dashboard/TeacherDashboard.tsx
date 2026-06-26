@@ -56,9 +56,9 @@ export function TeacherDashboard() {
   const nextSession = useMemo(() => getNextUpcomingSession(courses), [courses])
   const endedCoursesCount = useMemo(() => getEndedCoursesCount(courses), [courses])
 
-  // A Teacher acts on their own Courses' Sessions, so entries link into attendance (ADR-0013).
+  // The sidebar calendar marks the Teacher's own Courses' Session days (ADR-0013).
   return (
-    <DashboardShell courses={courses} linkSessions>
+    <DashboardShell courses={courses}>
       {/* My Courses */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <StatCard

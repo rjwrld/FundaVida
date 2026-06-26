@@ -55,9 +55,9 @@ export function AdminDashboard() {
   const ctaLabel = t('dashboard.welcome.cta')
   const greetingName = t('dashboard.recentActivity.actor.admin')
 
-  // Admin sees every Sede's Courses; Session entries link into attendance (ADR-0013).
+  // Admin sees every Sede's Courses; the sidebar calendar marks their Session days.
   return (
-    <DashboardShell courses={courses} linkSessions upcoming={upcoming}>
+    <DashboardShell courses={courses} upcoming={upcoming}>
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <WelcomeBanner
           eyebrow={t('dashboard.welcome.eyebrow')}

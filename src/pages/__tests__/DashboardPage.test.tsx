@@ -203,7 +203,6 @@ describe('<DashboardPage /> (teacher)', () => {
     renderDashboard()
     const aside = screen.getByRole('complementary')
     expect(within(aside).getByRole('button', { name: /next month/i })).toBeInTheDocument()
-    expect(within(aside).getByText('Sessions')).toBeInTheDocument()
   })
 })
 
@@ -244,7 +243,6 @@ describe('<DashboardPage /> (student)', () => {
     renderDashboard()
     const aside = screen.getByRole('complementary')
     expect(within(aside).getByRole('button', { name: /next month/i })).toBeInTheDocument()
-    expect(within(aside).getByText('Sessions')).toBeInTheDocument()
   })
 })
 
