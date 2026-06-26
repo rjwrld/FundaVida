@@ -159,7 +159,11 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: gradedCourse.name })).toBeInTheDocument()
     })
-    expect(screen.getByText(`${classmate.firstName} ${classmate.lastName}`)).toBeInTheDocument()
+    // The roster loads from a separate async query, so wait for the row rather
+    // than asserting synchronously off the heading (raced on slower CI).
+    expect(
+      await screen.findByText(`${classmate.firstName} ${classmate.lastName}`)
+    ).toBeInTheDocument()
   })
 
   it('shows the Course’s Teacher the full enrollment roster', async () => {
@@ -172,6 +176,10 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: gradedCourse.name })).toBeInTheDocument()
     })
-    expect(screen.getByText(`${classmate.firstName} ${classmate.lastName}`)).toBeInTheDocument()
+    // The roster loads from a separate async query, so wait for the row rather
+    // than asserting synchronously off the heading (raced on slower CI).
+    expect(
+      await screen.findByText(`${classmate.firstName} ${classmate.lastName}`)
+    ).toBeInTheDocument()
   })
 })
