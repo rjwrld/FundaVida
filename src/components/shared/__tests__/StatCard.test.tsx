@@ -57,4 +57,38 @@ describe('<StatCard />', () => {
     expect(screen.getByText(/decreased/i)).toBeInTheDocument()
     expect(screen.queryByText(/increased/i)).not.toBeInTheDocument()
   })
+
+  it('shows a neutral no-change cue for a zero delta instead of a false decrease', () => {
+    render(
+      <StatCard
+        label="Active courses"
+        value={8}
+        delta={{
+          value: 0,
+          label: 'vs last month',
+          trend: { up: 'Increased', down: 'Decreased', flat: 'No change' },
+        }}
+      />
+    )
+    expect(screen.getByText(/0%/)).toBeInTheDocument()
+    expect(screen.getByText(/no change/i)).toBeInTheDocument()
+    expect(screen.queryByText(/increased/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/decreased/i)).not.toBeInTheDocument()
+  })
+
+  it('treats a delta that rounds to 0% as flat, matching the displayed number', () => {
+    render(
+      <StatCard
+        label="Students"
+        value={24}
+        delta={{
+          value: 0.003,
+          label: 'vs last month',
+          trend: { up: 'Increased', down: 'Decreased', flat: 'No change' },
+        }}
+      />
+    )
+    expect(screen.getByText(/0%/)).toBeInTheDocument()
+    expect(screen.queryByText(/increased/i)).not.toBeInTheDocument()
+  })
 })

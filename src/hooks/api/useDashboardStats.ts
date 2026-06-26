@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { isThisMonth, parseISO, startOfDay, subDays } from 'date-fns'
 import { useStore } from '@/data/store'
 import { mostRecentByDate } from '@/lib/utils'
+import { dashboardStatDeltas, type StatDeltas } from '@/lib/stats'
 import type { AuditLogEntry, Course, TcuActivity } from '@/types'
 
 export interface TopCourse {
@@ -28,6 +29,7 @@ export interface DashboardStats {
   attendanceRate: number
   attendanceTrend: AttendanceTrendPoint[]
   courses: Course[]
+  deltas: StatDeltas
 }
 
 // Pure derived stats for the admin dashboard.
@@ -55,6 +57,12 @@ export function useDashboardStats(): DashboardStats {
     const pendingApprovals = certificates.filter((c) => c.status === 'pending').length
 
     const tcuHours = tcuActivities.reduce((sum, t) => sum + t.hours, 0)
+
+    // Real month-over-month trend for each headline metric (vs end of last month).
+    const deltas = dashboardStatDeltas(
+      { students, enrollments, certificates, tcuActivities },
+      new Date()
+    )
 
     // auditLog is newest-first (mutators unshift; seeded entries are sorted desc).
     const recentActivity = auditLog.slice(0, 5)
@@ -103,6 +111,7 @@ export function useDashboardStats(): DashboardStats {
       attendanceRate,
       attendanceTrend,
       courses,
+      deltas,
     }
   }, [students, courses, enrollments, certificates, tcuActivities, attendance, auditLog])
 }
