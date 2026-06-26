@@ -20,31 +20,31 @@ describe('monthOverMonthChange', () => {
 })
 
 describe('dashboardStatDeltas', () => {
-  const NOW = new Date('2026-06-15T12:00:00') // start of month = 2026-06-01
-  const MAY = '2026-05-20T10:00:00.000Z' // counts toward the prior month-end baseline
-  const JUNE = '2026-06-10T10:00:00.000Z' // added this month, lifts the trend
+  const NOW = new Date('2026-06-15T12:00:00') // trailing-30 window starts 2026-05-16
+  const OLD = '2026-04-01T10:00:00.000Z' // older than 30 days → prior baseline
+  const RECENT = '2026-06-01T10:00:00.000Z' // within the last 30 days → lifts the trend
 
-  it('derives month-over-month growth for each metric from dated records', () => {
+  it('derives the trailing-30-day growth for each metric from dated records', () => {
     const deltas = dashboardStatDeltas(
       {
-        // 2 existed before June, 1 added in June → 3 vs 2
-        students: [{ createdAt: MAY }, { createdAt: MAY }, { createdAt: JUNE }],
-        // cou-a active before June; cou-b first enrolled in June → 2 vs 1
+        // 2 predate the window, 1 added within it → 3 vs 2
+        students: [{ createdAt: OLD }, { createdAt: OLD }, { createdAt: RECENT }],
+        // cou-a active before the window; cou-b first enrolled within it → 2 vs 1
         enrollments: [
-          { courseId: 'cou-a', enrolledAt: MAY },
-          { courseId: 'cou-a', enrolledAt: JUNE },
-          { courseId: 'cou-b', enrolledAt: JUNE },
+          { courseId: 'cou-a', enrolledAt: OLD },
+          { courseId: 'cou-a', enrolledAt: RECENT },
+          { courseId: 'cou-b', enrolledAt: RECENT },
         ],
-        // 1 approved before June, 1 approved in June; a pending one is ignored → 2 vs 1
+        // 1 approved before the window, 1 within it; a pending one is ignored → 2 vs 1
         certificates: [
-          { status: 'approved', approvedAt: MAY },
-          { status: 'approved', approvedAt: JUNE },
+          { status: 'approved', approvedAt: OLD },
+          { status: 'approved', approvedAt: RECENT },
           { status: 'pending' },
         ],
-        // 10h before June, 5h in June → 15 vs 10
+        // 10h before the window, 5h within it → 15 vs 10
         tcuActivities: [
-          { hours: 10, date: MAY },
-          { hours: 5, date: JUNE },
+          { hours: 10, date: OLD },
+          { hours: 5, date: RECENT },
         ],
       },
       NOW
@@ -56,13 +56,33 @@ describe('dashboardStatDeltas', () => {
     expect(deltas.tcuHours).toBeCloseTo(0.5)
   })
 
-  it('returns null for a metric with no prior-month history', () => {
+  it('uses a trailing 30-day window, not the calendar month', () => {
+    // now = June 5; a May 20 record is in the PREVIOUS calendar month but still
+    // within the last 30 days, so it must count as recent growth, not baseline.
+    const now = new Date('2026-06-05T12:00:00')
     const deltas = dashboardStatDeltas(
       {
-        students: [{ createdAt: JUNE }],
-        enrollments: [{ courseId: 'cou-a', enrolledAt: JUNE }],
-        certificates: [{ status: 'approved', approvedAt: JUNE }],
-        tcuActivities: [{ hours: 4, date: JUNE }],
+        students: [
+          { createdAt: '2026-04-01T10:00:00.000Z' },
+          { createdAt: '2026-05-20T10:00:00.000Z' },
+        ],
+        enrollments: [],
+        certificates: [],
+        tcuActivities: [],
+      },
+      now
+    )
+    // current 2 vs baseline 1 (only the April record predates the window) → +100%
+    expect(deltas.totalStudents).toBeCloseTo(1)
+  })
+
+  it('returns null for a metric with no history before the window', () => {
+    const deltas = dashboardStatDeltas(
+      {
+        students: [{ createdAt: RECENT }],
+        enrollments: [{ courseId: 'cou-a', enrolledAt: RECENT }],
+        certificates: [{ status: 'approved', approvedAt: RECENT }],
+        tcuActivities: [{ hours: 4, date: RECENT }],
       },
       NOW
     )

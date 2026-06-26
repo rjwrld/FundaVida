@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { differenceInDays, isBefore, startOfDay } from 'date-fns'
+import { differenceInDays, isBefore, startOfDay, subDays } from 'date-fns'
 import { seedDemo } from '@/data/seed'
+import { dashboardStatDeltas, TRAILING_WINDOW_DAYS } from '@/lib/stats'
 import { findSession, sessionsFor } from '@/lib/sessions'
 import { resolveRecipients } from '@/lib/emailRecipients'
 import { PROGRAMS } from '@/constants/course'
@@ -382,5 +383,30 @@ describe('seedDemo — vocabulary is sourced from the shared constants', () => {
       expect(provinces.has(student.province)).toBe(true)
       expect(levels.has(student.educationalLevel)).toBe(true)
     })
+  })
+})
+
+describe('seedDemo — recent joiners create a real growth trend', () => {
+  it('seeds students within the trailing window so the student trend reads positive', () => {
+    const world = seedDemo(EPOCH)
+    const delta = dashboardStatDeltas(
+      {
+        students: world.students,
+        enrollments: world.enrollments,
+        certificates: world.certificates,
+        tcuActivities: world.tcuActivities,
+      },
+      EPOCH
+    ).totalStudents
+
+    expect(delta).not.toBeNull()
+    expect(delta as number).toBeGreaterThan(0)
+  })
+
+  it('places at least one student inside the trailing window', () => {
+    const world = seedDemo(EPOCH)
+    const windowStart = subDays(EPOCH, TRAILING_WINDOW_DAYS)
+    const recent = world.students.filter((s) => new Date(s.createdAt) >= windowStart)
+    expect(recent.length).toBeGreaterThan(0)
   })
 })

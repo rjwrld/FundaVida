@@ -41,6 +41,13 @@ export interface SeedSnapshot {
 // teacher-grades → admin-approves → student-downloads story.
 const TEACHER_PERSONA_INDEX = 0 // tea-1
 
+// A few students join within the dashboard's trailing window so the headline
+// "vs last month" trend reflects real recent growth instead of a frozen 0%.
+// Recent joiners enrol only in not-yet-started cohorts (see buildEnrollments),
+// so they never carry attendance or grades dated before they existed.
+const RECENT_JOINER_COUNT = 4
+const RECENT_JOINER_MAX_AGE_DAYS = 24
+
 const MEETING_DAY_PATTERNS: Weekday[][] = [
   ['mon', 'wed'],
   ['tue', 'thu'],
@@ -166,7 +173,13 @@ function buildCourses(epoch: Date, plans: CoursePlan[], teachers: Teacher[]): Co
   })
 }
 
-function buildStudents(count: number, earliestTermStart: Date, personaSede: Sede): Student[] {
+function buildStudents(
+  epoch: Date,
+  count: number,
+  earliestTermStart: Date,
+  personaSede: Sede
+): Student[] {
+  const recentFromIndex = count - RECENT_JOINER_COUNT
   return Array.from({ length: count }, (_, i) => ({
     id: `stu-${i + 1}`,
     firstName: faker.person.firstName(),
@@ -181,10 +194,11 @@ function buildStudents(count: number, earliestTermStart: Date, personaSede: Sede
     canton: faker.location.city(),
     educationalLevel: faker.helpers.arrayElement(EDUCATIONAL_LEVELS),
     enrolledCourseIds: [],
-    // Students are created comfortably before the earliest Term could enroll them.
-    createdAt: subDays(
-      earliestTermStart,
-      21 + faker.number.int({ min: 0, max: 200 })
+    // Most students predate the earliest Term; the last few are recent joiners
+    // (created within the trailing window) so the dashboard shows real growth.
+    createdAt: (i >= recentFromIndex
+      ? subDays(epoch, faker.number.int({ min: 2, max: RECENT_JOINER_MAX_AGE_DAYS }))
+      : subDays(earliestTermStart, 21 + faker.number.int({ min: 0, max: 200 }))
     ).toISOString(),
   }))
 }
@@ -210,13 +224,26 @@ function buildEnrollments(epoch: Date, students: Student[], courses: Course[]): 
     // A Student may only enrol in Courses at their own Sede (ADR-0011). The
     // persona (stu-1) shares tea-1's Sede, so the persona's Courses qualify.
     const sameSedeCourseIds = courses.filter((c) => c.sede === student.sede).map((c) => c.id)
-    const courseIds =
-      si === 0
-        ? personaCourses
-        : faker.helpers.arrayElements(
-            sameSedeCourseIds,
-            faker.number.int({ min: 1, max: Math.min(3, sameSedeCourseIds.length) })
-          )
+    const isRecentJoiner = si >= students.length - RECENT_JOINER_COUNT
+    let courseIds: string[]
+    if (si === 0) {
+      courseIds = personaCourses
+    } else if (isRecentJoiner) {
+      // Recent joiners only sign up for cohorts that have not started yet, so
+      // they never accrue attendance or grades dated before they existed.
+      courseIds = courses
+        .filter(
+          (c) =>
+            c.sede === student.sede &&
+            startOfDay(new Date(c.term.start)).getTime() > epochDay.getTime()
+        )
+        .map((c) => c.id)
+    } else {
+      courseIds = faker.helpers.arrayElements(
+        sameSedeCourseIds,
+        faker.number.int({ min: 1, max: Math.min(3, sameSedeCourseIds.length) })
+      )
+    }
 
     courseIds.forEach((courseId) => {
       const course = courseById.get(courseId)
@@ -595,7 +622,7 @@ export function seedDemo(epoch: Date): SeedSnapshot {
   )
 
   const personaSede = teachers[TEACHER_PERSONA_INDEX]?.sede ?? SEDES[0]
-  const students = buildStudents(24, earliestTermStart, personaSede)
+  const students = buildStudents(epoch, 24, earliestTermStart, personaSede)
   const enrollments = buildEnrollments(epoch, students, courses)
 
   // Back-reference: each student lists the courses they enrolled in.
