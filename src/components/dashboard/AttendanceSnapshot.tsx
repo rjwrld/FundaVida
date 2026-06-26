@@ -55,7 +55,7 @@ export function AttendanceSnapshot({ ratePct, trend }: AttendanceSnapshotProps) 
             />
             <Bar
               dataKey="value"
-              fill="oklch(var(--brand-green-500))"
+              fill="oklch(var(--chart-1))"
               radius={[3, 3, 0, 0]}
               isAnimationActive={false}
             />

@@ -156,7 +156,7 @@ export function ReportsPage() {
                 <span
                   className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${
                     deltaPositive
-                      ? 'border-[oklch(0.73_0.18_149/0.4)] bg-[oklch(0.73_0.18_149/0.14)] text-[oklch(0.52_0.16_149)] dark:text-[oklch(0.78_0.18_149)]'
+                      ? 'border-[oklch(0.57_0.17_138/0.4)] bg-[oklch(0.57_0.17_138/0.14)] text-[oklch(0.5_0.16_138)] dark:text-[oklch(0.78_0.14_138)]'
                       : 'border-[oklch(0.64_0.21_25/0.4)] bg-[oklch(0.64_0.21_25/0.12)] text-[oklch(0.55_0.2_25)] dark:text-[oklch(0.72_0.17_22)]'
                   }`}
                 >

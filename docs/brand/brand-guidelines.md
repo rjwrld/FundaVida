@@ -7,6 +7,8 @@
 
 This document is the canonical reference for FundaVida's visual and verbal identity as applied to the portfolio rearchitecture. It combines the original brand essence from the production platform with the expanded design system built for this portfolio-grade rebuild. Where v1.0 was a style guide, v2.0 is a design system.
 
+> **Realignment note (2026-06-25, done):** The live app temporarily used an off-brand electric green (`#7CFC00`, introduced by the blueprint skin) as `--primary`. It was **reverted** to the **Figure Green** spec documented here (§3.3) on 2026-06-25 (PR 1) — this doc remains the source of truth for the brand green. Implemented in [`docs/superpowers/plans/2026-06-25-green-system-figure-green-and-calendar.md`](../superpowers/plans/2026-06-25-green-system-figure-green-and-calendar.md). Light `--primary` = Brand Green 600 `oklch(0.5 0.16 138)`; dark `--primary` dialed to `oklch(0.70 0.17 138)` (see §3.4).
+
 ---
 
 ## 1. Brand essence
@@ -208,30 +210,30 @@ Defined in `src/index.css` under `:root`. Every component references these, neve
 
 Defined in `src/index.css` under `.dark`. Curated, not inverted.
 
-| Token                      | Value            | Maps to                                                |
-| -------------------------- | ---------------- | ------------------------------------------------------ |
-| `--background`             | Neutral 950      | `#12171F`                                              |
-| `--foreground`             | Neutral 100      | `#F3F5F8`                                              |
-| `--card`                   | Neutral 900      | `#1B212B`                                              |
-| `--card-foreground`        | Neutral 100      | `#F3F5F8`                                              |
-| `--popover`                | Neutral 900      | `#1B212B`                                              |
-| `--popover-foreground`     | Neutral 100      | `#F3F5F8`                                              |
-| `--primary`                | Brand Green 400  | `#6BBE5C` (lighter — saturated green on dark vibrates) |
-| `--primary-foreground`     | Neutral 950      | `#12171F`                                              |
-| `--secondary`              | Brand Blue 400   | `#557DD6`                                              |
-| `--secondary-foreground`   | Neutral 950      | `#12171F`                                              |
-| `--muted`                  | Neutral 800      | `#2C333F`                                              |
-| `--muted-foreground`       | Neutral 400      | `#97A1B1`                                              |
-| `--accent`                 | Brand Green 900  | `#164013`                                              |
-| `--accent-foreground`      | Brand Green 200  | `#BCE6B1`                                              |
-| `--destructive`            | Flame Red 400    | `#E04733`                                              |
-| `--destructive-foreground` | Neutral 50       | `#FCFDFE`                                              |
-| `--success`                | Brand Green 400  | `#6BBE5C`                                              |
-| `--warning`                | Flame Yellow 400 | `#FDD026`                                              |
-| `--info`                   | Brand Blue 400   | `#557DD6`                                              |
-| `--border`                 | Neutral 800      | `#2C333F`                                              |
-| `--input`                  | Neutral 800      | `#2C333F`                                              |
-| `--ring`                   | Brand Green 400  | `#6BBE5C`                                              |
+| Token                      | Value            | Maps to                                                                                               |
+| -------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------- |
+| `--background`             | Neutral 950      | `#12171F`                                                                                             |
+| `--foreground`             | Neutral 100      | `#F3F5F8`                                                                                             |
+| `--card`                   | Neutral 900      | `#1B212B`                                                                                             |
+| `--card-foreground`        | Neutral 100      | `#F3F5F8`                                                                                             |
+| `--popover`                | Neutral 900      | `#1B212B`                                                                                             |
+| `--popover-foreground`     | Neutral 100      | `#F3F5F8`                                                                                             |
+| `--primary`                | Brand Green 400+ | `oklch(0.70 0.17 138)` — dialed in preview, a touch above `#6BBE5C`; saturated green on dark vibrates |
+| `--primary-foreground`     | Neutral 950      | `#12171F`                                                                                             |
+| `--secondary`              | Brand Blue 400   | `#557DD6`                                                                                             |
+| `--secondary-foreground`   | Neutral 950      | `#12171F`                                                                                             |
+| `--muted`                  | Neutral 800      | `#2C333F`                                                                                             |
+| `--muted-foreground`       | Neutral 400      | `#97A1B1`                                                                                             |
+| `--accent`                 | Brand Green 900  | `#164013`                                                                                             |
+| `--accent-foreground`      | Brand Green 200  | `#BCE6B1`                                                                                             |
+| `--destructive`            | Flame Red 400    | `#E04733`                                                                                             |
+| `--destructive-foreground` | Neutral 50       | `#FCFDFE`                                                                                             |
+| `--success`                | Brand Green 400  | `#6BBE5C`                                                                                             |
+| `--warning`                | Flame Yellow 400 | `#FDD026`                                                                                             |
+| `--info`                   | Brand Blue 400   | `#557DD6`                                                                                             |
+| `--border`                 | Neutral 800      | `#2C333F`                                                                                             |
+| `--input`                  | Neutral 800      | `#2C333F`                                                                                             |
+| `--ring`                   | Brand Green 400  | `#6BBE5C`                                                                                             |
 
 ### 3.5 Usage ratio (unchanged from v1.0)
 

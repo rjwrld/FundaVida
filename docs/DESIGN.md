@@ -2,6 +2,8 @@
 
 > monochrome engineering blueprint with a green spark
 
+> **⚠️ Status note (2026-06-25, done):** This is an external style reference (a generic "Revenue-Grade Automation" SaaS look). Its mono Frost/Paper/Ink base and flat aesthetic were adopted by the app, but its electric-green accent `#7CFC00` was **never adopted as the brand green and has been reverted** (PR 1, 2026-06-25) — it is _not_ a FundaVida color. The brand green is **Figure Green `#32982D`** (the logo green, hue 138). See [`superpowers/plans/2026-06-25-green-system-figure-green-and-calendar.md`](superpowers/plans/2026-06-25-green-system-figure-green-and-calendar.md). **Do not re-introduce `#7CFC00` as the brand green.**
+
 **Theme:** light
 
 Default runs on near-monochrome restraint: white and light-gray canvas, near-black text, and a single vivid green as the only chromatic voice. Typography is compressed and structural — NB International Pro at near-unity line-heights (0.97) gives display type an engineered, blueprint feel rather than a decorative one. Components stay flat, bordered, and utility-first: 8px radii, hairline dark borders, no decorative shadows or gradients. The green (#7CFC00) does all chromatic work — primary CTAs, active nav, link accents — and its scarcity makes it semantically loud. Every element reads like part of a control panel: the workflow builder screenshots, the logo cloud, the two-column problem/solution bands all share the same quiet, technical rhythm.

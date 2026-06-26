@@ -76,8 +76,8 @@
     --card-foreground: 0.26 0 0;
     --popover: 1 0 0;
     --popover-foreground: 0.26 0 0;
-    --primary: 0.882 0.263 136; /* electric green #7CFC00 */
-    --primary-foreground: 0.26 0 0; /* Ink text ON green */
+    --primary: 0.5 0.16 138; /* Figure Green 600 #2A8426 (AA-safe for off-white text) */
+    --primary-foreground: 0.99 0.003 95; /* off-white #FCFCFA text ON dark green */
     --secondary: 0.26 0 0; /* Ink surface panel #202020 */
     --secondary-foreground: 0.96 0 0; /* Frost text on Ink */
     --muted: 0.96 0 0; /* Frost surface */
@@ -86,12 +86,12 @@
     --accent-foreground: 0.26 0 0; /* Ink */
     --destructive: 0.64 0.21 25; /* error #ef4444 */
     --destructive-foreground: 1 0 0;
-    --success: 0.73 0.18 149; /* success #22c55e */
+    --success: 0.57 0.17 138; /* Figure Green 500 #32982D */
     --warning: 0.36 0 0; /* neutralized to mono (Carbon) — Resolved Decision #3 */
     --info: 0.36 0 0; /* neutralized to mono (Carbon) */
     --border: 0.91 0 0; /* soft #e5e5e5 */
     --input: 0.91 0 0;
-    --ring: 0.26 0 0; /* Ink focus ring */
+    --ring: 0.57 0.17 138; /* Figure Green 500 focus ring (brand-guidelines §15.2) */
 
     /* Chart categorical palette */
     --chart-1: var(--brand-green-500);
@@ -110,8 +110,8 @@
     --card-foreground: 0.96 0 0;
     --popover: 0.26 0 0;
     --popover-foreground: 0.96 0 0;
-    --primary: 0.882 0.263 136; /* electric green #7CFC00 (pops on Ink) */
-    --primary-foreground: 0.26 0 0; /* Ink text ON green */
+    --primary: 0.7 0.17 138; /* vivid Figure Green (pops on Ink) */
+    --primary-foreground: 0.26 0 0; /* Ink text ON light green */
     --secondary: 0.3 0 0; /* lighter Ink panel #2a2a2a */
     --secondary-foreground: 0.96 0 0;
     --muted: 0.24 0 0; /* subtle dark surface */
@@ -120,12 +120,12 @@
     --accent-foreground: 0.96 0 0;
     --destructive: 0.64 0.21 25; /* error #ef4444 */
     --destructive-foreground: 0.96 0 0;
-    --success: 0.73 0.18 149; /* success #22c55e */
+    --success: 0.68 0.16 138; /* Figure Green 400 (vivid on dark) */
     --warning: 0.84 0 0; /* neutralized to mono (light Carbon on Ink) — Resolved Decision #3 */
     --info: 0.84 0 0; /* neutralized to mono */
     --border: 0.3 0 0; /* soft dark border #2a2a2a */
     --input: 0.3 0 0;
-    --ring: 0.96 0 0; /* light focus ring */
+    --ring: 0.68 0.16 138; /* Figure Green 400 focus ring (dark) */
 
     --chart-1: var(--brand-green-400);
     --chart-2: 0.82 0 0; /* mono ramp for future multi-series charts */

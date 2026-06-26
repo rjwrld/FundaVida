@@ -1,5 +1,7 @@
 # Blueprint Skin — App UI Re-skin Implementation Plan
 
+> **⚠️ Amended (2026-06-25, done):** The locked accent — electric green `#7CFC00` — was **superseded by Figure Green** (the off-brand lime corrected to the real logo green, hue 138): light `--primary` `oklch(0.5 0.16 138)`, dark `oklch(0.70 0.17 138)`. The deferred **Phase 5** (feature/data-viz colour audit, §"Phase 5" below) is **completed** by [`2026-06-25-green-system-figure-green-and-calendar.md`](2026-06-25-green-system-figure-green-and-calendar.md) (PR 1) — dark data fills now flip to Brand Green 400 via `--chart-1`. The mono Frost/Paper/Ink base + flat aesthetic from this plan are **kept** — only the green changed.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Re-skin the FundaVida **app UI** to the locked "monochrome engineering blueprint with a green spark" direction validated in `prototypes/blueprint-skin.html`, by editing the token layer (CSS variables, fonts, radius) and the shadcn primitives — without changing any visible text, ARIA, or component markup.
