@@ -45,7 +45,7 @@ export function EnrollmentTrendChart({ data }: { data: Point[] }) {
         />
         <Tooltip
           cursor={{
-            stroke: 'oklch(var(--brand-green-500))',
+            stroke: 'oklch(var(--chart-1))',
             strokeWidth: 1,
             strokeDasharray: '3 3',
           }}
