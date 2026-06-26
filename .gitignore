@@ -43,6 +43,7 @@ Thumbs.db
 coverage/
 playwright-report/
 .playwright/
+.playwright-mcp/
 test-results/
 
 # Misc
@@ -51,3 +52,4 @@ test-results/
 # Claude Code local settings (plugin state, untracked by intent)
 .claude/*
 !.claude/settings.json
+CLAUDE.md
