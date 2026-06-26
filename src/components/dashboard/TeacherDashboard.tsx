@@ -7,13 +7,8 @@ import { useCourses } from '@/hooks/api/courses'
 import { StatCard } from '@/components/shared/StatCard'
 import { sessionsFor } from '@/lib/sessions'
 import { parseISO, isBefore } from 'date-fns'
-import type { Variants } from 'framer-motion'
 import type { Course } from '@/types'
-
-const stagger: Variants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.05 } },
-}
+import { DashboardShell } from './DashboardShell'
 
 interface SessionWithCourse {
   date: string
@@ -61,8 +56,9 @@ export function TeacherDashboard() {
   const nextSession = useMemo(() => getNextUpcomingSession(courses), [courses])
   const endedCoursesCount = useMemo(() => getEndedCoursesCount(courses), [courses])
 
+  // The sidebar calendar marks the Teacher's own Courses' Session days (ADR-0013).
   return (
-    <motion.div variants={stagger} initial="hidden" animate="visible" className="grid gap-6">
+    <DashboardShell courses={courses}>
       {/* My Courses */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <StatCard
@@ -90,6 +86,6 @@ export function TeacherDashboard() {
           icon={<AlertCircle className="size-4" aria-hidden="true" />}
         />
       </motion.div>
-    </motion.div>
+    </DashboardShell>
   )
 }
