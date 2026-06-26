@@ -91,7 +91,7 @@
     --info: 0.36 0 0; /* neutralized to mono (Carbon) */
     --border: 0.91 0 0; /* soft #e5e5e5 */
     --input: 0.91 0 0;
-    --ring: 0.26 0 0; /* Ink focus ring */
+    --ring: 0.57 0.17 138; /* Figure Green 500 focus ring (brand-guidelines §15.2) */
 
     /* Chart categorical palette */
     --chart-1: var(--brand-green-500);
@@ -125,7 +125,7 @@
     --info: 0.84 0 0; /* neutralized to mono */
     --border: 0.3 0 0; /* soft dark border #2a2a2a */
     --input: 0.3 0 0;
-    --ring: 0.96 0 0; /* light focus ring */
+    --ring: 0.68 0.16 138; /* Figure Green 400 focus ring (dark) */
 
     --chart-1: var(--brand-green-400);
     --chart-2: 0.82 0 0; /* mono ramp for future multi-series charts */
