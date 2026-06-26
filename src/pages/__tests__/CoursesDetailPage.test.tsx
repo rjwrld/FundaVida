@@ -131,8 +131,12 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /your attendance/i })).toBeInTheDocument()
     })
+    // The rows load from a separate async query, so wait for them rather than
+    // asserting synchronously off the heading (raced on slower CI).
     // One row per own Attendance record, plus the table header row.
-    expect(screen.getAllByRole('row')).toHaveLength(ownAttendance.length + 1)
+    await waitFor(() => {
+      expect(screen.getAllByRole('row')).toHaveLength(ownAttendance.length + 1)
+    })
   })
 
   it('denies a Student a Course they are not enrolled in', async () => {
