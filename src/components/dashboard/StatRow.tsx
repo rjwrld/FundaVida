@@ -1,23 +1,38 @@
 import { useTranslation } from 'react-i18next'
 import { Award, Clock, GraduationCap, Users } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { StatCard } from '@/components/shared/StatCard'
+import { StatCard, type StatCardDelta } from '@/components/shared/StatCard'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useFormat } from '@/hooks/useFormat'
+import type { StatDeltas } from '@/lib/stats'
 
 export interface StatRowProps {
   totalStudents: number
   activeCourses: number
   certsIssued: number
   tcuHours: number
+  /** Real month-over-month change per metric; `null` omits the trend chip. */
+  deltas: StatDeltas
 }
 
-export function StatRow({ totalStudents, activeCourses, certsIssued, tcuHours }: StatRowProps) {
+export function StatRow({
+  totalStudents,
+  activeCourses,
+  certsIssued,
+  tcuHours,
+  deltas,
+}: StatRowProps) {
   const { t } = useTranslation()
   const { formatNumber } = useFormat()
   const vsLastMonth = t('dashboard.stats.vsLastMonth')
-  const trend = { up: t('dashboard.stats.trendUp'), down: t('dashboard.stats.trendDown') }
+  const trend = {
+    up: t('dashboard.stats.trendUp'),
+    down: t('dashboard.stats.trendDown'),
+    flat: t('dashboard.stats.trendFlat'),
+  }
   const numberFormat = (n: number) => formatNumber(Math.round(n))
+  const deltaProp = (value: number | null): StatCardDelta | undefined =>
+    value === null ? undefined : { value, label: vsLastMonth, trend }
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -28,7 +43,7 @@ export function StatRow({ totalStudents, activeCourses, certsIssued, tcuHours }:
           value={totalStudents}
           format={numberFormat}
           icon={<Users className="size-4" aria-hidden="true" />}
-          delta={{ value: 0.08, label: vsLastMonth, trend }}
+          delta={deltaProp(deltas.totalStudents)}
         />
       </motion.div>
       <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
@@ -37,7 +52,7 @@ export function StatRow({ totalStudents, activeCourses, certsIssued, tcuHours }:
           value={activeCourses}
           format={numberFormat}
           icon={<GraduationCap className="size-4" aria-hidden="true" />}
-          delta={{ value: 0.03, label: vsLastMonth, trend }}
+          delta={deltaProp(deltas.activeCourses)}
         />
       </motion.div>
       <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
@@ -46,7 +61,7 @@ export function StatRow({ totalStudents, activeCourses, certsIssued, tcuHours }:
           value={certsIssued}
           format={numberFormat}
           icon={<Award className="size-4" aria-hidden="true" />}
-          delta={{ value: 0.12, label: vsLastMonth, trend }}
+          delta={deltaProp(deltas.certsIssued)}
         />
       </motion.div>
       <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
@@ -55,7 +70,7 @@ export function StatRow({ totalStudents, activeCourses, certsIssued, tcuHours }:
           value={tcuHours}
           format={numberFormat}
           icon={<Clock className="size-4" aria-hidden="true" />}
-          delta={{ value: -0.02, label: vsLastMonth, trend }}
+          delta={deltaProp(deltas.tcuHours)}
         />
       </motion.div>
     </div>

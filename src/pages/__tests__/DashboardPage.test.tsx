@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { useStore } from '@/data/store'
+import { dashboardStatDeltas } from '@/lib/stats'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
@@ -55,6 +56,37 @@ describe('<DashboardPage /> (admin)', () => {
     expect(screen.getByText('Active courses')).toBeInTheDocument()
     expect(screen.getByText('Certificates issued')).toBeInTheDocument()
     expect(screen.getByText('TCU hours')).toBeInTheDocument()
+  })
+
+  it('shows each stat card its real month-over-month trend, not a hardcoded one', () => {
+    renderDashboard()
+    const s = useStore.getState()
+    const deltas = dashboardStatDeltas(
+      {
+        students: s.students,
+        enrollments: s.enrollments,
+        certificates: s.certificates,
+        tcuActivities: s.tcuActivities,
+      },
+      new Date()
+    )
+    const cases: [RegExp, number | null][] = [
+      [/total students/i, deltas.totalStudents],
+      [/active courses/i, deltas.activeCourses],
+      [/certificates issued/i, deltas.certsIssued],
+      [/tcu hours/i, deltas.tcuHours],
+    ]
+    for (const [label, delta] of cases) {
+      const card = screen.getByText(label).closest('div.group') as HTMLElement
+      if (delta === null) {
+        expect(within(card).queryByText(/vs last month/i)).toBeNull()
+      } else {
+        const pct = Math.abs(Math.round(delta * 100))
+        // not preceded by a digit, so "0%" can't match inside "10%"
+        expect(within(card).getByText(new RegExp(`(^|\\D)${pct}%`))).toBeInTheDocument()
+        expect(within(card).getByText(/vs last month/i)).toBeInTheDocument()
+      }
+    }
   })
 
   it('renders at least one recent-activity row', () => {

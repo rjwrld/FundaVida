@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { AnimatedNumber } from './AnimatedNumber'
@@ -10,7 +10,7 @@ export interface StatCardDelta {
   value: number
   label?: string
   /** Already-localized words announcing the trend direction to assistive tech. */
-  trend?: { up: string; down: string }
+  trend?: { up: string; down: string; flat?: string }
 }
 
 export interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -37,8 +37,18 @@ export function StatCard({
   className,
   ...props
 }: StatCardProps) {
-  const positive = delta ? delta.value > 0 : true
-  const deltaPct = delta ? `${(Math.abs(delta.value) * 100).toFixed(0)}%` : null
+  // Direction is keyed off the rounded percentage we actually display, so a
+  // value that rounds to 0% always reads as flat (no false up/down arrow).
+  const deltaRounded = delta ? Math.round(delta.value * 100) : 0
+  const direction = deltaRounded > 0 ? 'up' : deltaRounded < 0 ? 'down' : 'flat'
+  const deltaPct = delta ? `${Math.abs(deltaRounded)}%` : null
+  const trendWord = delta?.trend
+    ? direction === 'up'
+      ? delta.trend.up
+      : direction === 'down'
+        ? delta.trend.down
+        : delta.trend.flat
+    : null
 
   return (
     <div
@@ -64,15 +74,20 @@ export function StatCard({
       </div>
       {delta && (
         <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-4 text-[13px]">
-          <Badge variant={positive ? 'success' : 'destructive'} className="gap-1 tabular-nums">
-            {positive ? (
+          <Badge
+            variant={
+              direction === 'up' ? 'success' : direction === 'down' ? 'destructive' : 'neutral'
+            }
+            className="gap-1 tabular-nums"
+          >
+            {direction === 'up' ? (
               <ArrowUpRight className="size-3.5" aria-hidden="true" />
-            ) : (
+            ) : direction === 'down' ? (
               <ArrowDownRight className="size-3.5" aria-hidden="true" />
+            ) : (
+              <Minus className="size-3.5" aria-hidden="true" />
             )}
-            {delta.trend ? (
-              <span className="sr-only">{positive ? delta.trend.up : delta.trend.down} </span>
-            ) : null}
+            {trendWord ? <span className="sr-only">{trendWord} </span> : null}
             {deltaPct}
           </Badge>
           {delta.label ? <span className="text-muted-foreground">{delta.label}</span> : null}

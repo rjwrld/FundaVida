@@ -104,6 +104,7 @@ export function AdminDashboard() {
             activeCourses={stats.activeCourses}
             certsIssued={stats.certsIssued}
             tcuHours={stats.tcuHours}
+            deltas={stats.deltas}
           />
         </motion.div>
 

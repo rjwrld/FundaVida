@@ -2,11 +2,22 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useDashboardStats } from '../useDashboardStats'
 import { useStore } from '@/data/store'
+import { dashboardStatDeltas } from '@/lib/stats'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
   clearPersistedState,
 } from '@/data/persistence'
+
+const storeSnapshot = () => {
+  const s = useStore.getState()
+  return {
+    students: s.students,
+    enrollments: s.enrollments,
+    certificates: s.certificates,
+    tcuActivities: s.tcuActivities,
+  }
+}
 
 describe('useDashboardStats — certificate-backed counts (#69)', () => {
   beforeEach(() => {
@@ -41,5 +52,20 @@ describe('useDashboardStats — certificate-backed counts (#69)', () => {
     const after = renderHook(() => useDashboardStats()).result.current
     expect(after.pendingApprovals).toBe(before.pendingApprovals - 1)
     expect(after.certsIssued).toBe(before.certsIssued + 1)
+  })
+
+  it('exposes real month-over-month deltas derived from the same dated data', () => {
+    const { result } = renderHook(() => useDashboardStats())
+    expect(result.current.deltas).toEqual(dashboardStatDeltas(storeSnapshot(), new Date()))
+  })
+
+  it('recomputes deltas after a mutation (a fresh certificate approval)', () => {
+    const pendingCert = useStore.getState().certificates.find((c) => c.status === 'pending')
+    if (!pendingCert) throw new Error('expected a pending certificate in the seed')
+
+    useStore.getState().approveCertificate(pendingCert.id)
+
+    const { result } = renderHook(() => useDashboardStats())
+    expect(result.current.deltas).toEqual(dashboardStatDeltas(storeSnapshot(), new Date()))
   })
 })
