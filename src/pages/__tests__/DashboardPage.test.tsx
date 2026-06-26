@@ -198,6 +198,13 @@ describe('<DashboardPage /> (teacher)', () => {
       screen.queryByText(/Browse your enrolled courses and download your certificates/i)
     ).not.toBeInTheDocument()
   })
+
+  it('renders the role-scoped calendar in the dashboard aside', () => {
+    renderDashboard()
+    const aside = screen.getByRole('complementary')
+    expect(within(aside).getByRole('button', { name: /next month/i })).toBeInTheDocument()
+    expect(within(aside).getByText('Sessions')).toBeInTheDocument()
+  })
 })
 
 describe('<DashboardPage /> (student)', () => {
@@ -231,6 +238,13 @@ describe('<DashboardPage /> (student)', () => {
     expect(
       screen.queryByText(/Browse your enrolled courses and download your certificates/i)
     ).not.toBeInTheDocument()
+  })
+
+  it('renders the role-scoped calendar in the dashboard aside', () => {
+    renderDashboard()
+    const aside = screen.getByRole('complementary')
+    expect(within(aside).getByRole('button', { name: /next month/i })).toBeInTheDocument()
+    expect(within(aside).getByText('Sessions')).toBeInTheDocument()
   })
 })
 

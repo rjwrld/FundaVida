@@ -7,12 +7,7 @@ import { useCourses } from '@/hooks/api/courses'
 import { useAttendance } from '@/hooks/api/attendance'
 import { StatCard } from '@/components/shared/StatCard'
 import { parseISO, startOfDay, startOfMonth } from 'date-fns'
-import type { Variants } from 'framer-motion'
-
-const stagger: Variants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.05 } },
-}
+import { DashboardShell } from './DashboardShell'
 
 export function StudentDashboard() {
   const { t } = useTranslation()
@@ -34,8 +29,10 @@ export function StudentDashboard() {
     )
   }, [attendance])
 
+  // A Student's calendar entries are read-only — they view Sessions, never mark
+  // attendance (ADR-0012), so linkSessions stays false.
   return (
-    <motion.div variants={stagger} initial="hidden" animate="visible" className="grid gap-6">
+    <DashboardShell courses={courses} linkSessions={false}>
       {/* My Courses */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <StatCard
@@ -54,6 +51,6 @@ export function StudentDashboard() {
           icon={<CheckCircle2 className="size-4" aria-hidden="true" />}
         />
       </motion.div>
-    </motion.div>
+    </DashboardShell>
   )
 }
