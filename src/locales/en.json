@@ -651,6 +651,11 @@
     }
   },
   "tcu": {
+    "dashboard": {
+      "approvedHours": "Approved hours",
+      "pendingHours": "Pending hours",
+      "progress": "Progress toward 300 hours"
+    },
     "dialog": {
       "logActivityTitle": "Log an activity",
       "submit": "Log activity",
@@ -667,6 +672,7 @@
       "columns": {
         "date": "Date",
         "hours": "Hours",
+        "status": "Status",
         "title": "Activity",
         "trainee": "Trainee"
       },
@@ -676,7 +682,6 @@
         "anyTrainee": "Any trainee",
         "traineePlaceholder": "Trainee"
       },
-      "hoursUnit": "hours",
       "subtitle": "Community service hours logged by trainees toward their 300-hour requirement.",
       "title": "TCU activities"
     }

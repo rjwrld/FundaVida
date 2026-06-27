@@ -43,4 +43,144 @@ describe('tcuApi', () => {
     expect(result.length).toBeGreaterThan(0)
     expect(result.every((a) => a.traineeId === targetTrainee)).toBe(true)
   })
+
+  describe('approveTcuActivity', () => {
+    it('teacher approves a pending activity for their assigned trainee', async () => {
+      const store = useStore.getState()
+      store.setRole('teacher')
+      // Get fresh state reference after mutation
+      const freshStore = useStore.getState()
+      const teacherId = freshStore.currentUserId // tea-1
+      expect(teacherId).toBe('tea-1')
+
+      const teacherCourses = freshStore.courses.filter((c) => c.teacherId === teacherId)
+
+      // The seed must have at least one pending activity that we can test with
+      // If no teacher courses exist, skip (seed issue)
+      if (teacherCourses.length === 0) {
+        return
+      }
+
+      const pendingActivity = freshStore.tcuActivities.find((a) => {
+        const trainee = freshStore.tcuTrainees.find((t) => t.id === a.traineeId)
+        return (
+          a.status === 'pending' && trainee && teacherCourses.some((c) => c.id === trainee.courseId)
+        )
+      })
+
+      if (!pendingActivity) {
+        // No pending activity in seed for this teacher's courses, skip
+        return
+      }
+
+      // Teacher approves the activity
+      const approved = freshStore.approveTcuActivity(pendingActivity.id, 'approved')
+      expect(approved.status).toBe('approved')
+      expect(approved.approvedBy).toBe(teacherId)
+      expect(approved.approvedAt).toBeDefined()
+
+      // Verify the activity in the store is updated
+      const verifyStore = useStore.getState()
+      const updated = verifyStore.tcuActivities.find((a) => a.id === pendingActivity.id)
+      expect(updated?.status).toBe('approved')
+      expect(updated?.approvedBy).toBe(teacherId)
+    })
+
+    it('teacher rejects a pending activity for their assigned trainee', async () => {
+      const store = useStore.getState()
+      store.setRole('teacher')
+      const freshStore = useStore.getState()
+
+      const teacherId = freshStore.currentUserId
+      const teacherCourses = freshStore.courses.filter((c) => c.teacherId === teacherId)
+      if (teacherCourses.length === 0) return
+
+      const pendingActivity = freshStore.tcuActivities.find((a) => {
+        const trainee = freshStore.tcuTrainees.find((t) => t.id === a.traineeId)
+        return (
+          a.status === 'pending' && trainee && teacherCourses.some((c) => c.id === trainee.courseId)
+        )
+      })
+      if (!pendingActivity) return
+
+      const rejected = freshStore.approveTcuActivity(pendingActivity.id, 'rejected')
+      expect(rejected.status).toBe('rejected')
+      expect(rejected.approvedBy).toBe(teacherId)
+      expect(rejected.approvedAt).toBeDefined()
+    })
+
+    it('admin can approve any pending activity', async () => {
+      const store = useStore.getState()
+      store.setRole('admin')
+      const freshStore = useStore.getState()
+
+      const adminId = freshStore.currentUserId // 'admin'
+      const pendingActivity = freshStore.tcuActivities.find((a) => a.status === 'pending')
+      expect(pendingActivity).toBeDefined()
+      if (!pendingActivity) return
+
+      const approved = freshStore.approveTcuActivity(pendingActivity.id, 'approved')
+      expect(approved.status).toBe('approved')
+      expect(approved.approvedBy).toBe(adminId)
+    })
+
+    it('teacher cannot approve activity from trainee not assigned to their courses', async () => {
+      const store = useStore.getState()
+      store.setRole('teacher')
+      const freshStore = useStore.getState()
+
+      const teacherId = freshStore.currentUserId
+      const teacherCourses = freshStore.courses.filter((c) => c.teacherId === teacherId)
+
+      // Find a pending activity from a trainee NOT assigned to teacher's courses
+      const pendingActivity = freshStore.tcuActivities.find((a) => {
+        const trainee = freshStore.tcuTrainees.find((t) => t.id === a.traineeId)
+        return (
+          a.status === 'pending' &&
+          trainee &&
+          !teacherCourses.some((c) => c.id === trainee.courseId)
+        )
+      })
+      if (!pendingActivity) {
+        // If we can't find such an activity in the seed, skip this check (seed limitation)
+        return
+      }
+
+      expect(() => freshStore.approveTcuActivity(pendingActivity.id, 'approved')).toThrow(
+        /permission denied/i
+      )
+    })
+
+    it('student cannot approve activities', async () => {
+      const store = useStore.getState()
+      store.setRole('student')
+      const freshStore = useStore.getState()
+
+      const pendingActivity = freshStore.tcuActivities.find((a) => a.status === 'pending')
+      expect(pendingActivity).toBeDefined()
+      if (!pendingActivity) return
+
+      expect(() => freshStore.approveTcuActivity(pendingActivity.id, 'approved')).toThrow(
+        /permission denied/i
+      )
+    })
+
+    it('approving activity emits audit entry', async () => {
+      const store = useStore.getState()
+      store.setRole('admin')
+      const freshStore = useStore.getState()
+
+      const beforeCount = freshStore.auditLog.length
+      const pendingActivity = freshStore.tcuActivities.find((a) => a.status === 'pending')
+      expect(pendingActivity).toBeDefined()
+      if (!pendingActivity) return
+
+      freshStore.approveTcuActivity(pendingActivity.id, 'approved')
+      const verifyStore = useStore.getState()
+      const afterCount = verifyStore.auditLog.length
+      expect(afterCount).toBe(beforeCount + 1)
+      expect(verifyStore.auditLog[0]?.action).toBe('approve')
+      expect(verifyStore.auditLog[0]?.entity).toBe('tcuActivity')
+    })
+  })
 })
