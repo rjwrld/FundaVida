@@ -72,17 +72,17 @@ describe('store permission guards', () => {
     it('teacher can enter a grade for a course they own that has ended', () => {
       const store = useStore.getState()
 
-      // Use cou-3 which is just-ended (ended 8 days ago per the seed)
-      const endedCourse = store.courses.find((c) => c.id === 'cou-3')
-      if (!endedCourse) throw new Error('no cou-3 in seed')
-
-      // Verify it has ended, read through the same frozen clock the predicate uses
+      // Derive a teacher-owned course that has ended (robust to seed layout),
+      // read through the same frozen clock the predicate uses.
       const now = clock.now()
-      const termEnd = new Date(endedCourse.term.end)
-      if (now < termEnd) throw new Error('test setup: cou-3 not ended yet')
+      const endedCourse = store.courses.find(
+        (c) => new Date(c.term.end) <= now && store.teachers.some((t) => t.id === c.teacherId)
+      )
+      if (!endedCourse) throw new Error('no ended teacher-owned course in seed')
 
-      const student = store.students[0]
-      if (!student) throw new Error('no student in seed')
+      // Same-Sede student so the enrollment respects ADR-0011.
+      const student = store.students.find((s) => s.sede === endedCourse.sede)
+      if (!student) throw new Error('no student at the course Sede')
 
       // Setup: admin creates enrollment (teachers can't create enrollments)
       useStore.getState().setRole('admin')
@@ -109,14 +109,15 @@ describe('store permission guards', () => {
     it('teacher can update an existing grade in a course they own that has ended', () => {
       const store = useStore.getState()
 
-      const endedCourse = store.courses.find((c) => c.id === 'cou-3')
-      if (!endedCourse) throw new Error('no cou-3 in seed')
-      if (clock.now() < new Date(endedCourse.term.end)) {
-        throw new Error('test setup: cou-3 not ended yet')
-      }
+      const now = clock.now()
+      const endedCourse = store.courses.find(
+        (c) => new Date(c.term.end) <= now && store.teachers.some((t) => t.id === c.teacherId)
+      )
+      if (!endedCourse) throw new Error('no ended teacher-owned course in seed')
 
-      const student = store.students[0]
-      if (!student) throw new Error('no student in seed')
+      // Same-Sede student so the enrollment respects ADR-0011.
+      const student = store.students.find((s) => s.sede === endedCourse.sede)
+      if (!student) throw new Error('no student at the course Sede')
 
       // Setup: admin creates enrollment (teachers can't create enrollments)
       useStore.getState().setRole('admin')
@@ -165,16 +166,13 @@ describe('store permission guards', () => {
     it('teacher cannot enter a grade for a course they own that has NOT ended', () => {
       const store = useStore.getState()
 
-      // Use cou-4 which is in-progress (started 5 weeks ago, ends in 7 weeks)
-      const inProgressCourse = store.courses.find((c) => c.id === 'cou-4')
-      if (!inProgressCourse) throw new Error('no cou-4 in seed')
-
-      // Verify it hasn't ended, read through the same frozen clock the predicate uses
+      // Derive a teacher-owned course that has NOT ended (robust to seed layout),
+      // read through the same frozen clock the predicate uses.
       const now = clock.now()
-      const termEnd = new Date(inProgressCourse.term.end)
-      if (now >= termEnd) {
-        throw new Error('test setup: cou-4 already ended')
-      }
+      const inProgressCourse = store.courses.find(
+        (c) => new Date(c.term.end) > now && store.teachers.some((t) => t.id === c.teacherId)
+      )
+      if (!inProgressCourse) throw new Error('no not-ended teacher-owned course in seed')
 
       const student = store.students.find((s) => s.sede === inProgressCourse.sede)
       if (!student) throw new Error('no student at the course Sede')
