@@ -25,7 +25,7 @@ const students: Student[] = [
     sede: 'Linda Vista',
     province: 'San José',
     canton: 'Central',
-    educationalLevel: 'Primary',
+    educationalLevel: 'primaria',
     enrolledCourseIds: ['cou-1'],
     createdAt: iso(),
   },
@@ -38,7 +38,7 @@ const students: Student[] = [
     sede: 'Linda Vista',
     province: 'Heredia',
     canton: 'Belén',
-    educationalLevel: 'Secondary',
+    educationalLevel: 'secundaria',
     enrolledCourseIds: [],
     createdAt: iso(),
   },
@@ -60,7 +60,10 @@ const courses: Course[] = [
     name: 'Intro to Baking',
     description: '',
     sede: 'Linda Vista',
-    programName: 'Culinary',
+    programId: 'prog-1',
+    level: 'both',
+    status: 'published',
+    capacity: 20,
     teacherId: 'tea-1',
     term: { start: iso(), end: iso() },
     meetingDays: ['mon'],
@@ -71,7 +74,10 @@ const courses: Course[] = [
     name: 'Accounting Basics',
     description: '',
     sede: 'Linda Vista',
-    programName: 'Business',
+    programId: 'prog-1',
+    level: 'both',
+    status: 'published',
+    capacity: 20,
     teacherId: 'tea-1',
     term: { start: iso(), end: iso() },
     meetingDays: ['tue'],
@@ -79,7 +85,14 @@ const courses: Course[] = [
   },
 ]
 const enrollments: Enrollment[] = [
-  { id: 'enr-1', studentId: 'stu-1', courseId: 'cou-1', enrolledAt: iso() },
+  {
+    id: 'enr-1',
+    studentId: 'stu-1',
+    courseId: 'cou-1',
+    enrolledAt: iso(),
+    status: 'approved',
+    requestedAt: iso(),
+  },
 ]
 const grades: Grade[] = [
   { id: 'gra-1', studentId: 'stu-1', courseId: 'cou-1', score: 80, issuedAt: iso() },
@@ -89,8 +102,8 @@ const attendance: AttendanceRecord[] = [
   { id: 'att-2', studentId: 'stu-1', courseId: 'cou-1', sessionDate: iso(), status: 'absent' },
 ]
 const tcuActivities: TcuActivity[] = [
-  { id: 'tcu-act-1', traineeId: 'tcu-1', title: 'X', hours: 4, date: iso() },
-  { id: 'tcu-act-2', traineeId: 'tcu-1', title: 'Y', hours: 2, date: iso() },
+  { id: 'tcu-act-1', traineeId: 'tcu-1', title: 'X', hours: 4, date: iso(), status: 'approved' },
+  { id: 'tcu-act-2', traineeId: 'tcu-1', title: 'Y', hours: 2, date: iso(), status: 'approved' },
 ]
 const tcuTrainees: TcuTrainee[] = [
   {
@@ -99,6 +112,8 @@ const tcuTrainees: TcuTrainee[] = [
     lastName: 'Pérez',
     email: 'juan@fv.cr',
     sede: 'Linda Vista',
+    university: 'Universidad de Costa Rica',
+    courseId: 'cou-1',
     createdAt: iso(),
   },
 ]

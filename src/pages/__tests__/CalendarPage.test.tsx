@@ -24,7 +24,10 @@ const courseA: Course = {
   name: 'Matemáticas',
   description: '',
   sede: 'Linda Vista',
-  programName: 'Matemáticas',
+  programId: 'prog-1',
+  level: 'both',
+  status: 'published',
+  capacity: 20,
   teacherId: 'tea-1',
   term: { start: isoDay(2026, 5, 1), end: isoDay(2026, 5, 30) },
   meetingDays: ['mon', 'wed'] as Weekday[],
@@ -37,7 +40,10 @@ const courseB: Course = {
   name: 'Historia',
   description: '',
   sede: 'Linda Vista',
-  programName: 'Historia',
+  programId: 'prog-1',
+  level: 'both',
+  status: 'published',
+  capacity: 20,
   teacherId: 'tea-2',
   term: { start: isoDay(2026, 5, 1), end: isoDay(2026, 5, 30) },
   meetingDays: ['tue', 'thu'] as Weekday[],
@@ -49,6 +55,8 @@ const enrollmentStu1A: Enrollment = {
   studentId: 'stu-1',
   courseId: 'cou-A',
   enrolledAt: isoDay(2026, 4, 20),
+  status: 'approved',
+  requestedAt: isoDay(2026, 4, 20),
 }
 
 function renderPage() {

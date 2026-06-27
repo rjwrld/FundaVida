@@ -284,6 +284,7 @@ describe('<DashboardPage /> (tcu)', () => {
           title: 'Foreign',
           hours: 1000,
           date: '2025-01-01',
+          status: 'approved' as const,
         },
       ],
     }))

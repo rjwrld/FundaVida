@@ -33,7 +33,7 @@ describe('wireAuditInvalidation', () => {
       sede: 'Linda Vista',
       province: 'San José',
       canton: 'Central',
-      educationalLevel: 'Secondary',
+      educationalLevel: 'secundaria',
     })
 
     // Wait a tick for subscription to fire
@@ -78,7 +78,7 @@ describe('wireAuditInvalidation', () => {
       sede: 'Linda Vista',
       province: 'San José',
       canton: 'Central',
-      educationalLevel: 'Secondary',
+      educationalLevel: 'secundaria',
     })
 
     await new Promise((resolve) => setTimeout(resolve, 0))
@@ -99,7 +99,7 @@ describe('wireAuditInvalidation', () => {
       sede: 'Linda Vista',
       province: 'San José',
       canton: 'Central',
-      educationalLevel: 'Secondary',
+      educationalLevel: 'secundaria',
     })
 
     await new Promise((resolve) => setTimeout(resolve, 0))

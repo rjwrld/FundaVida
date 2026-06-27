@@ -26,7 +26,7 @@ describe('audit log characterization', () => {
         sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
-        educationalLevel: 'high',
+        educationalLevel: 'primaria',
       })
       store = useStore.getState()
       expect(store.auditLog.length).toBe(initialLength + 1)
@@ -40,7 +40,7 @@ describe('audit log characterization', () => {
         sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
-        educationalLevel: 'high',
+        educationalLevel: 'primaria',
       })
       store = useStore.getState()
       expect(store.auditLog.length).toBe(initialLength + 2)
@@ -62,7 +62,7 @@ describe('audit log characterization', () => {
         sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
-        educationalLevel: 'high',
+        educationalLevel: 'primaria',
       })
       store = useStore.getState()
       expect(store.auditLog[0]?.id).toMatch(/^log-\d+$/)
@@ -78,7 +78,7 @@ describe('audit log characterization', () => {
         sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
-        educationalLevel: 'high',
+        educationalLevel: 'primaria',
       })
       store = useStore.getState()
       const timestamp = store.auditLog[0]?.timestamp
@@ -101,7 +101,7 @@ describe('audit log characterization', () => {
         sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
-        educationalLevel: 'high',
+        educationalLevel: 'primaria',
       })
       store = useStore.getState()
       expect(store.auditLog[0]?.actorId).toBe('user-123')
@@ -118,7 +118,7 @@ describe('audit log characterization', () => {
         sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
-        educationalLevel: 'high',
+        educationalLevel: 'primaria',
       })
       store = useStore.getState()
       expect(store.auditLog[0]?.actorId).toBe('system')
@@ -135,7 +135,7 @@ describe('audit log characterization', () => {
         sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
-        educationalLevel: 'high',
+        educationalLevel: 'primaria',
       })
       store = useStore.getState()
       expect(store.auditLog[0]?.actorId).toBe('system')
@@ -153,7 +153,7 @@ describe('audit log characterization', () => {
         sede: 'Linda Vista',
         province: 'San Jose',
         canton: 'Central',
-        educationalLevel: 'high',
+        educationalLevel: 'primaria',
       })
       store = useStore.getState()
       expect(store.auditLog[0]?.action).toBe('create')
@@ -174,7 +174,7 @@ describe('audit log characterization', () => {
         sede: 'Linda Vista',
         province: 'Alajuela',
         canton: 'Central',
-        educationalLevel: 'primary',
+        educationalLevel: 'primaria',
       })
       store.updateStudent(student.id, { lastName: 'Changed' })
       store = useStore.getState()
@@ -196,7 +196,7 @@ describe('audit log characterization', () => {
         sede: 'Linda Vista',
         province: 'Heredia',
         canton: 'Central',
-        educationalLevel: 'secondary',
+        educationalLevel: 'secundaria',
       })
       const studentId = student.id
       store.deleteStudent(studentId)
@@ -221,7 +221,10 @@ describe('audit log characterization', () => {
         name: 'Mathematics 101',
         description: 'Intro to Math',
         sede: 'Linda Vista',
-        programName: 'Program A',
+        programId: 'prog-1',
+        level: 'both',
+        status: 'published',
+        capacity: 20,
         teacherId: teacher.id,
         term: { start: '2024-01-01', end: '2024-06-30' },
         meetingDays: ['mon', 'wed', 'fri'],
@@ -247,7 +250,10 @@ describe('audit log characterization', () => {
         name: 'Math 101',
         description: 'Intro',
         sede: 'Linda Vista',
-        programName: 'Program',
+        programId: 'prog-1',
+        level: 'both',
+        status: 'published',
+        capacity: 20,
         teacherId: teacher.id,
         term: { start: '2024-01-01', end: '2024-06-30' },
         meetingDays: ['tue'],
@@ -278,7 +284,10 @@ describe('audit log characterization', () => {
         name: 'Math 101',
         description: 'Intro',
         sede: 'Linda Vista',
-        programName: 'Program',
+        programId: 'prog-1',
+        level: 'both',
+        status: 'published',
+        capacity: 20,
         teacherId: teacher1.id,
         term: { start: '2024-01-01', end: '2024-06-30' },
         meetingDays: ['mon'],
@@ -305,7 +314,10 @@ describe('audit log characterization', () => {
         name: 'Math 101',
         description: 'Intro',
         sede: 'Linda Vista',
-        programName: 'Program',
+        programId: 'prog-1',
+        level: 'both',
+        status: 'published',
+        capacity: 20,
         teacherId: teacher.id,
         term: { start: '2024-01-01', end: '2024-06-30' },
         meetingDays: ['wed'],
@@ -388,7 +400,10 @@ describe('audit log characterization', () => {
         name: 'Test Course',
         description: 'Test',
         sede: 'Linda Vista',
-        programName: 'Program',
+        programId: 'prog-1',
+        level: 'both',
+        status: 'published',
+        capacity: 20,
         teacherId: teacher.id,
         term: { start: '2024-01-01', end: '2024-06-30' },
         meetingDays: ['mon'],
@@ -575,7 +590,7 @@ describe('audit log characterization', () => {
         sede: 'Linda Vista',
         province: 'p',
         canton: 'c',
-        educationalLevel: 'high',
+        educationalLevel: 'primaria',
       })
       store = useStore.getState()
       // Verify the create student entry exists in audit log

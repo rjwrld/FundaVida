@@ -34,7 +34,7 @@ const validStudent = {
   sede: 'Linda Vista' as const,
   province: 'San José',
   canton: 'Central',
-  educationalLevel: 'Secondary',
+  educationalLevel: 'secundaria' as const,
 }
 
 let queryClient: QueryClient

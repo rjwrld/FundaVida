@@ -12,7 +12,7 @@ describe('studentSchema', () => {
     gender: 'F' as const,
     province: 'San José',
     canton: 'Central',
-    educationalLevel: 'Secondary' as const,
+    educationalLevel: 'secundaria' as const,
     sede: 'Hatillo' as const,
   }
 

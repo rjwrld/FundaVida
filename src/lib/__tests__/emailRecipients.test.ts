@@ -16,7 +16,7 @@ const students: Student[] = [
     sede: 'Linda Vista',
     province: 'San José',
     canton: '',
-    educationalLevel: 'Primary',
+    educationalLevel: 'primaria',
     enrolledCourseIds: ['cou-1'],
     createdAt: iso(),
   },
@@ -29,7 +29,7 @@ const students: Student[] = [
     sede: 'Linda Vista',
     province: 'Heredia',
     canton: '',
-    educationalLevel: 'Secondary',
+    educationalLevel: 'secundaria',
     enrolledCourseIds: [],
     createdAt: iso(),
   },
@@ -40,7 +40,10 @@ const courses: Course[] = [
     name: 'Baking',
     description: '',
     sede: 'Linda Vista',
-    programName: 'Culinary',
+    programId: 'prog-1',
+    level: 'both',
+    status: 'published',
+    capacity: 20,
     teacherId: 'tea-1',
     term: { start: iso(), end: iso() },
     meetingDays: ['mon'],
@@ -51,7 +54,10 @@ const courses: Course[] = [
     name: 'Accounting',
     description: '',
     sede: 'Linda Vista',
-    programName: 'Business',
+    programId: 'prog-1',
+    level: 'both',
+    status: 'published',
+    capacity: 20,
     teacherId: 'tea-1',
     term: { start: iso(), end: iso() },
     meetingDays: ['tue'],
@@ -59,7 +65,14 @@ const courses: Course[] = [
   },
 ]
 const enrollments: Enrollment[] = [
-  { id: 'enr-1', studentId: 'stu-1', courseId: 'cou-1', enrolledAt: iso() },
+  {
+    id: 'enr-1',
+    studentId: 'stu-1',
+    courseId: 'cou-1',
+    enrolledAt: iso(),
+    status: 'approved',
+    requestedAt: iso(),
+  },
 ]
 
 describe('resolveRecipients', () => {
@@ -76,9 +89,9 @@ describe('resolveRecipients', () => {
     expect(r.map((s) => s.id)).toEqual(['stu-1'])
   })
 
-  it('kind=program filters by enrolled course program', () => {
+  it('kind=program filters by enrolled course program (by programId)', () => {
     const r = resolveRecipients(
-      { kind: 'program', value: 'Culinary' },
+      { kind: 'program', value: 'prog-1' },
       { students, courses, enrollments }
     )
     expect(r.map((s) => s.id)).toEqual(['stu-1'])

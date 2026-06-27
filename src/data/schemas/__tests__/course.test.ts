@@ -9,7 +9,10 @@ describe('courseSchema', () => {
     name: 'Literacy 101',
     description: 'Intro to literacy skills',
     sede: 'Linda Vista',
-    programName: 'Literacy',
+    programId: 'prog-1',
+    level: 'both',
+    status: 'published',
+    capacity: 20,
     teacherId: 'tea-1',
     termStart: '2026-06-15',
     termEnd: '2026-08-15',
@@ -20,8 +23,28 @@ describe('courseSchema', () => {
     const parsed = courseSchema.parse(valid)
     expect(parsed.name).toBe(valid.name)
     expect(parsed.sede).toBe(valid.sede)
+    expect(parsed.programId).toBe(valid.programId)
+    expect(parsed.level).toBe(valid.level)
+    expect(parsed.status).toBe(valid.status)
+    expect(parsed.capacity).toBe(valid.capacity)
     expect(parsed.termStart).toBe(valid.termStart)
     expect(parsed.meetingDays).toEqual(valid.meetingDays)
+  })
+
+  it('rejects a missing program', () => {
+    expect(() => courseSchema.parse({ ...valid, programId: '' })).toThrow()
+  })
+
+  it('rejects an unknown level', () => {
+    expect(() => courseSchema.parse({ ...valid, level: 'university' })).toThrow()
+  })
+
+  it('rejects an unknown status', () => {
+    expect(() => courseSchema.parse({ ...valid, status: 'archived' })).toThrow()
+  })
+
+  it('rejects a non-positive capacity', () => {
+    expect(() => courseSchema.parse({ ...valid, capacity: 0 })).toThrow()
   })
 
   it('rejects an unknown sede', () => {

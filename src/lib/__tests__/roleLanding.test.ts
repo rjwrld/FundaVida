@@ -13,7 +13,10 @@ function makeCourse(overrides: Partial<Course> & Pick<Course, 'id' | 'teacherId'
     name: 'Course',
     description: '',
     sede: 'Linda Vista',
-    programName: 'Program',
+    programId: 'prog-1',
+    level: 'both',
+    status: 'published',
+    capacity: 20,
     term: ENDED,
     meetingDays: ['mon'],
     createdAt: '2019-12-01T00:00:00.000Z',
@@ -22,7 +25,14 @@ function makeCourse(overrides: Partial<Course> & Pick<Course, 'id' | 'teacherId'
 }
 
 function enrollment(id: string, studentId: string, courseId: string): Enrollment {
-  return { id, studentId, courseId, enrolledAt: '2020-01-01T00:00:00.000Z' }
+  return {
+    id,
+    studentId,
+    courseId,
+    enrolledAt: '2020-01-01T00:00:00.000Z',
+    status: 'approved',
+    requestedAt: '2020-01-01T00:00:00.000Z',
+  }
 }
 
 function grade(id: string, studentId: string, courseId: string): Grade {

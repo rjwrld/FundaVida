@@ -112,9 +112,11 @@ describe('<CertificatesListPage />', () => {
   it('mirrors the certificate details (course, program, score) in the preview', async () => {
     useStore.getState().setRole('admin')
     const cert = injectCertificate('approved')
-    const { courses } = useStore.getState()
+    const { courses, programs } = useStore.getState()
     const course = courses.find((c) => c.id === cert.courseId)
     if (!course) throw new Error('seed missing course')
+    const programName = programs.find((p) => p.id === course.programId)?.name
+    if (!programName) throw new Error('seed missing program')
     renderPage()
 
     fireEvent.click(await screen.findByRole('button', { name: /open preview/i }))
@@ -123,10 +125,7 @@ describe('<CertificatesListPage />', () => {
     // The on-screen preview must match the downloadable PDF artifact field-for-field.
     expect(
       within(dialog).getByText(
-        new RegExp(
-          `completed ${course.name} \\(${course.programName}\\).*score of ${cert.score}`,
-          'i'
-        )
+        new RegExp(`completed ${course.name} \\(${programName}\\).*score of ${cert.score}`, 'i')
       )
     ).toBeInTheDocument()
   })

@@ -31,18 +31,28 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v3 key', () => {
+  it('persists state under the v4 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v3:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v4:state')).not.toBeNull()
   })
 
   it('reseeds from a stale v2 snapshot and removes the stale v2 state key (ADR-0014)', () => {
     // A returning v2 visitor's snapshot predates the explicit Demo Epoch. The
-    // v3 key bump makes it stale; it is dropped so the app reseeds at v3.
+    // key bump makes it stale; it is dropped so the app reseeds afresh.
     window.localStorage.setItem('fundavida:v2:state', JSON.stringify(seedDemo(new Date())))
 
     expect(loadPersistedState()).toBeNull()
     expect(window.localStorage.getItem('fundavida:v2:state')).toBeNull()
+  })
+
+  it('reseeds from a stale v3 snapshot and removes the stale v3 state key (ADR-0015)', () => {
+    // A returning v3 visitor's snapshot predates the Program entity and the new
+    // Course/Enrollment/TCU fields. The v4 key bump makes it stale; it is dropped
+    // so the app reseeds at v4 rather than rehydrating a programless world.
+    window.localStorage.setItem('fundavida:v3:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v3:state')).toBeNull()
   })
 
   it('reseeds cleanly from a stale v1 snapshot and removes the stale v1 keys', () => {
@@ -98,12 +108,35 @@ describe('persistence', () => {
   })
 
   it('returns null when stored JSON has the wrong shape', () => {
-    window.localStorage.setItem('fundavida:v3:state', JSON.stringify({ wrong: true }))
+    window.localStorage.setItem('fundavida:v4:state', JSON.stringify({ wrong: true }))
     expect(loadPersistedState()).toBeNull()
   })
 
   it('returns null when stored JSON is invalid', () => {
-    window.localStorage.setItem('fundavida:v3:state', 'not-json')
+    window.localStorage.setItem('fundavida:v4:state', 'not-json')
+    expect(loadPersistedState()).toBeNull()
+  })
+
+  it('rejects a snapshot missing the programs catalog (pre-Program reseeds)', () => {
+    const snapshot = seedDemo(new Date()) as unknown as Record<string, unknown>
+    delete snapshot.programs
+    savePersistedState(snapshot as never)
+    expect(loadPersistedState()).toBeNull()
+  })
+
+  it('rejects a snapshot with a course missing programId (pre-Program reseeds)', () => {
+    const snapshot = seedDemo(new Date())
+    const course = snapshot.courses[0] as unknown as Record<string, unknown>
+    delete course.programId
+    savePersistedState(snapshot as never)
+    expect(loadPersistedState()).toBeNull()
+  })
+
+  it('rejects a snapshot with a course missing level/status/capacity', () => {
+    const snapshot = seedDemo(new Date())
+    const course = snapshot.courses[0] as unknown as Record<string, unknown>
+    delete course.level
+    savePersistedState(snapshot as never)
     expect(loadPersistedState()).toBeNull()
   })
 
