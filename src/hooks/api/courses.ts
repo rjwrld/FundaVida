@@ -29,6 +29,15 @@ export function useCourse(id: string) {
   })
 }
 
+export function useBrowseableCourse(id: string, enabled: boolean) {
+  const role = useStore((s) => s.role)
+  return useQuery({
+    queryKey: ['courses', 'browseable', id, role],
+    queryFn: () => api.courses.get(id, 'openForEnrollment'),
+    enabled: enabled && id.length > 0,
+  })
+}
+
 export const useCreateCourse = makeEntityMutation('createCourse')({
   toastKey: 'toasts.courseCreated',
   invalidates: [COURSES_KEY],
