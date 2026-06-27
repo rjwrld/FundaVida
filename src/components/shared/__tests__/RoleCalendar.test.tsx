@@ -3,10 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
 import { useStore } from '@/data/store'
+import { setDemoEpoch } from '@/lib/clock'
 import { RoleCalendar } from '../RoleCalendar'
 import type { Course, Weekday } from '@/types'
 
-// Fixed "now" so the calendar opens on a known month with known session days.
+// Fixed Demo Epoch (ADR-0014) so the calendar opens on a known month with known
+// session days and selects the frozen today (June 15) on mount.
 const NOW = new Date(2026, 5, 15) // Monday, June 15, 2026
 
 function isoDay(year: number, monthIndex: number, day: number): string {
@@ -42,6 +44,7 @@ describe('<RoleCalendar />', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.setSystemTime(NOW)
+    setDemoEpoch(NOW)
     useStore.getState().setLocale('en')
   })
 

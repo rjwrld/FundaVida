@@ -16,7 +16,7 @@ import type {
 } from '@/types'
 import { can, type Action, type Resource, type PermissionContext } from '@/permissions'
 import { PASSING_SCORE } from '@/lib/certificates'
-import { setDemoEpoch } from '@/lib/clock'
+import { clock, setDemoEpoch } from '@/lib/clock'
 import { seedDemo } from './seed'
 import { debounce } from './debounce'
 import {
@@ -126,7 +126,7 @@ function makeAuditEntry(state: StoreState, entry: AuditDescriptor): AuditLogEntr
   return {
     id: nextId('log', state.auditLog),
     actorId: state.currentUserId ?? 'system',
-    timestamp: new Date().toISOString(),
+    timestamp: clock.now().toISOString(),
     ...entry,
   }
 }
@@ -222,7 +222,7 @@ function maybePendingCertificate(
     courseId,
     score,
     status: 'pending',
-    createdAt: new Date().toISOString(),
+    createdAt: clock.now().toISOString(),
   }
   return [...certificates, certificate]
 }
@@ -273,7 +273,7 @@ export const useStore = create<StoreState>((set, get) => ({
     assertCan(existing, 'create', 'students')
     const student: Student = {
       id: nextId('stu', existing.students),
-      createdAt: new Date().toISOString(),
+      createdAt: clock.now().toISOString(),
       enrolledCourseIds: [],
       ...input,
     }
@@ -337,7 +337,7 @@ export const useStore = create<StoreState>((set, get) => ({
     }
     const course: Course = {
       id: nextId('cou', existing.courses),
-      createdAt: new Date().toISOString(),
+      createdAt: clock.now().toISOString(),
       ...input,
     }
     withAudit(set, (state) => {
@@ -450,7 +450,7 @@ export const useStore = create<StoreState>((set, get) => ({
     assertCan(existing, 'create', 'teachers')
     const teacher: Teacher = {
       id: nextId('tea', existing.teachers),
-      createdAt: new Date().toISOString(),
+      createdAt: clock.now().toISOString(),
       courseIds: [],
       ...input,
     }
@@ -533,7 +533,7 @@ export const useStore = create<StoreState>((set, get) => ({
       id: nextId('enr', enrollments),
       studentId,
       courseId,
-      enrolledAt: new Date().toISOString(),
+      enrolledAt: clock.now().toISOString(),
     }
     withAudit(set, (state) => {
       const updatedStudents = state.students.map((s) =>
@@ -606,7 +606,7 @@ export const useStore = create<StoreState>((set, get) => ({
     const action = existing ? 'edit' : 'enter'
     assertCan(state, action, 'grades', { userId: state.currentUserId ?? undefined, course })
     if (existing) {
-      const updated: Grade = { ...existing, score, issuedAt: new Date().toISOString() }
+      const updated: Grade = { ...existing, score, issuedAt: clock.now().toISOString() }
       withAudit(set, (state) => ({
         next: {
           grades: state.grades.map((g) => (g.id === existing.id ? updated : g)),
@@ -626,7 +626,7 @@ export const useStore = create<StoreState>((set, get) => ({
       studentId,
       courseId,
       score,
-      issuedAt: new Date().toISOString(),
+      issuedAt: clock.now().toISOString(),
     }
     withAudit(set, (state) => ({
       next: {
@@ -656,7 +656,7 @@ export const useStore = create<StoreState>((set, get) => ({
     withAudit(set, (state) => ({
       next: {
         grades: state.grades.map((g) =>
-          g.id === gradeId ? { ...g, score, issuedAt: new Date().toISOString() } : g
+          g.id === gradeId ? { ...g, score, issuedAt: clock.now().toISOString() } : g
         ),
       },
       audit: {
@@ -700,7 +700,7 @@ export const useStore = create<StoreState>((set, get) => ({
     // Approving an already-approved Certificate is a no-op (idempotent).
     if (certificate.status === 'approved') return
     const approvedBy = state.currentUserId ?? 'system'
-    const approvedAt = new Date().toISOString()
+    const approvedAt = clock.now().toISOString()
     withAudit(set, (state) => ({
       next: {
         certificates: state.certificates.map((c) =>
@@ -799,7 +799,7 @@ export const useStore = create<StoreState>((set, get) => ({
       body: input.body,
       filter: input.filter,
       recipientIds: input.recipientIds,
-      sentAt: new Date().toISOString(),
+      sentAt: clock.now().toISOString(),
       sentBy: existing.currentUserId ?? 'system',
     }
     withAudit(set, (state) => ({

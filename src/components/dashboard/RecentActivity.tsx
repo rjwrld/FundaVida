@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistance, parseISO } from 'date-fns'
 import { enUS, es } from 'date-fns/locale'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { clock } from '@/lib/clock'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import type { AuditLogEntry } from '@/types'
@@ -54,7 +55,10 @@ export function RecentActivity({ entries }: RecentActivityProps) {
           {entries.map((entry) => {
             const actor = resolveActor(entry.actorId)
             const initials = initialsFor(actor)
-            const when = formatDistanceToNow(new Date(entry.timestamp), {
+            // Relative to the frozen now (ADR-0014), not live wall-time, so
+            // seeded and freshly-written entries share one timeline. formatDistance
+            // is minute-granular, so seconds of drift never change the label.
+            const when = formatDistance(parseISO(entry.timestamp), clock.now(), {
               addSuffix: true,
               locale: dfLocale,
             })

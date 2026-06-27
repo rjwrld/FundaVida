@@ -1,10 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { landingPathForRole } from '@/lib/roleLanding'
+import { setDemoEpoch } from '@/lib/clock'
 import type { Course, Enrollment, Grade } from '@/types'
 
-// A Term that ended well before now, and one that runs well past it. Fixed
-// far-apart dates keep "ended vs in-progress" stable without mocking the clock,
-// matching how the matrix enter-grades predicate reads `new Date()`.
+// Pin the Demo Epoch (ADR-0014) so "ended vs in-progress" is exact: the matrix
+// enter-grades predicate reads clock.now(), and these Terms straddle it — one
+// ended well before the frozen now, one runs well past it.
+const FROZEN_NOW = new Date('2026-06-23T15:30:00.000Z')
 const ENDED = { start: '2020-01-01T00:00:00.000Z', end: '2020-03-01T00:00:00.000Z' }
 const IN_PROGRESS = { start: '2020-01-01T00:00:00.000Z', end: '2999-01-01T00:00:00.000Z' }
 
@@ -32,6 +34,10 @@ function grade(id: string, studentId: string, courseId: string): Grade {
 const TEACHER = 'tea-1'
 
 describe('landingPathForRole', () => {
+  beforeEach(() => {
+    setDemoEpoch(FROZEN_NOW)
+  })
+
   it('sends a teacher to its ended owned Course that still has an ungraded enrollment', () => {
     const course = makeCourse({ id: 'cou-9', teacherId: TEACHER, term: ENDED })
     const snapshot = {

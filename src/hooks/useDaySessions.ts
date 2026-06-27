@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { isSameDay } from 'date-fns'
+import { clock } from '@/lib/clock'
 import { sessionsFor, type Session } from '@/lib/sessions'
 import type { Course } from '@/types'
 
@@ -23,7 +24,7 @@ export interface UseDaySessions {
  * (sidebar) so the session derivation lives in exactly one place.
  */
 export function useDaySessions(courses: Course[]): UseDaySessions {
-  const [selected, setSelected] = useState<Date>(() => new Date())
+  const [selected, setSelected] = useState<Date>(() => clock.today())
 
   const sessions = useMemo<DaySession[]>(
     () => courses.flatMap((c) => sessionsFor(c).map((s) => ({ ...s, courseName: c.name }))),

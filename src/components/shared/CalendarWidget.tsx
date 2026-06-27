@@ -8,7 +8,6 @@ import {
   format,
   isSameDay,
   isSameMonth,
-  isToday,
   startOfMonth,
   startOfWeek,
   subMonths,
@@ -16,6 +15,7 @@ import {
 import { AnimatePresence, motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { clock } from '@/lib/clock'
 import { scaleIn, transitionDefaults, transitionFast } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
@@ -57,7 +57,7 @@ export function CalendarWidget({
   className,
   ...props
 }: CalendarWidgetProps) {
-  const [month, setMonth] = React.useState<Date>(selected ?? new Date())
+  const [month, setMonth] = React.useState<Date>(selected ?? clock.today())
 
   useEffect(() => {
     if (selected) setMonth(selected)
@@ -116,7 +116,9 @@ export function CalendarWidget({
         >
           {days.map((day) => {
             const outside = !isSameMonth(day, month)
-            const today = isToday(day)
+            // "Today" is the frozen today (ADR-0014), consistent with the default
+            // month above, so the marker stays on the Demo Epoch's timeline.
+            const today = isSameDay(day, clock.today())
             const isSelected = selected ? isSameDay(day, selected) : false
             const selectedNotToday = isSelected && !today
             const hasEvent = hasEventOn(day, events)

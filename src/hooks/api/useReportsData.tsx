@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import {
   format,
   isSameMonth,
-  isThisMonth,
   parseISO,
   startOfDay,
   startOfMonth,
@@ -12,6 +11,7 @@ import {
   subYears,
 } from 'date-fns'
 import { GraduationCap, HeartHandshake } from 'lucide-react'
+import { clock } from '@/lib/clock'
 import { useStore } from '@/data/store'
 import { PASSING_SCORE } from '@/lib/certificates'
 import { mostRecentByDate } from '@/lib/utils'
@@ -68,7 +68,7 @@ export function useReportsData(): ReportsData {
   const tcuActivities = useStore((s) => s.tcuActivities)
 
   return useMemo(() => {
-    const now = new Date()
+    const now = clock.now()
 
     // Enrollment trend: 12 months current vs prior year, by enrolledAt month.
     const trendBuckets: EnrollmentTrendPoint[] = Array.from({ length: TREND_MONTHS }, (_, i) => {
@@ -123,7 +123,7 @@ export function useReportsData(): ReportsData {
     grades.forEach((g) => {
       if (g.score < PASSING_SCORE) return
       const issued = parseISO(g.issuedAt)
-      if (isThisMonth(issued)) certsThisMonth += 1
+      if (isSameMonth(issued, now)) certsThisMonth += 1
       else if (isSameMonth(issued, lastMonthStart)) certsLastMonth += 1
     })
     const certsDelta = certsThisMonth - certsLastMonth

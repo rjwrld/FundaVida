@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { format } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useLogTcuActivity, useTcuTrainees } from '@/hooks/api'
+import { clock } from '@/lib/clock'
 import { useStore } from '@/data/store'
 import { buildTcuActivitySchema, type TcuActivityFormValues } from '@/data/schemas/tcuActivity'
 
@@ -47,7 +49,8 @@ export function LogTcuActivityDialog({ open, onClose }: Props) {
     defaultValues: {
       title: '',
       hours: 1,
-      date: new Date().toISOString().split('T')[0],
+      // Default the date picker to the frozen today (ADR-0014), local calendar day.
+      date: format(clock.today(), 'yyyy-MM-dd'),
       traineeId: userId || '',
     },
   })

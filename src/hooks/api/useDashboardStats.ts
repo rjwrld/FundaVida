@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { isThisMonth, parseISO, startOfDay, subDays } from 'date-fns'
+import { isSameMonth, parseISO, startOfDay, subDays } from 'date-fns'
+import { clock } from '@/lib/clock'
 import { useStore } from '@/data/store'
 import { mostRecentByDate } from '@/lib/utils'
 import { dashboardStatDeltas, type StatDeltas } from '@/lib/stats'
@@ -61,7 +62,7 @@ export function useDashboardStats(): DashboardStats {
     // Real month-over-month trend for each headline metric (vs end of last month).
     const deltas = dashboardStatDeltas(
       { students, enrollments, certificates, tcuActivities },
-      new Date()
+      clock.now()
     )
 
     // auditLog is newest-first (mutators unshift; seeded entries are sorted desc).
@@ -80,7 +81,7 @@ export function useDashboardStats(): DashboardStats {
     const recentTcu = mostRecentByDate(tcuActivities, 5)
 
     // Scope rate to the current calendar month so the label matches the data.
-    const monthRecords = attendance.filter((a) => isThisMonth(parseISO(a.sessionDate)))
+    const monthRecords = attendance.filter((a) => isSameMonth(parseISO(a.sessionDate), clock.now()))
     const attendanceRate =
       monthRecords.length === 0
         ? 0
@@ -89,7 +90,7 @@ export function useDashboardStats(): DashboardStats {
           )
 
     // Strict last-7-calendar-days window (today + 6 prior). Deterministic regardless of seed gaps.
-    const today = startOfDay(new Date())
+    const today = clock.today()
     const attendanceTrend: AttendanceTrendPoint[] = Array.from({ length: 7 }, (_, i) => {
       const day = subDays(today, 6 - i)
       const dayTime = day.getTime()
