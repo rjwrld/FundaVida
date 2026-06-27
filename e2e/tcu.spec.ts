@@ -35,8 +35,10 @@ test('volunteer logs activity (pending) and teacher approves it', async ({ page 
 
   // Fill in the form
   const suffix = Date.now()
-  await page.getByLabel('Activity title').fill(`E2E Test Activity ${suffix}`)
-  await page.getByLabel('Hours').fill('5')
+  const activityTitle = `E2E Test Activity ${suffix}`
+  const hours = 5
+  await page.getByLabel('Activity title').fill(activityTitle)
+  await page.getByLabel('Hours').fill(String(hours))
   // Date is auto-filled with today's date
   await page.getByRole('button', { name: 'Log activity' }).click()
 
@@ -45,40 +47,46 @@ test('volunteer logs activity (pending) and teacher approves it', async ({ page 
   await expect(page.getByRole('heading', { name: 'Log an activity' })).toBeHidden()
 
   // Verify the activity appears in the table with pending status
-  await expect(page.getByText(`E2E Test Activity ${suffix}`)).toBeVisible()
-  // Look for the pending status badge
-  const row = page.getByRole('row').filter({ has: page.getByText(`E2E Test Activity ${suffix}`) })
-  await expect(row.getByText('Pending')).toBeVisible()
+  await expect(page.getByText(activityTitle)).toBeVisible()
+  const volunteerActivityRow = page.getByRole('row').filter({ has: page.getByText(activityTitle) })
+  await expect(volunteerActivityRow.getByText('Pending')).toBeVisible()
 
-  // Get the initial approved hours for comparison
-  const progressText = page.getByText(/Progress toward 300 hours/)
-  await expect(progressText).toBeVisible()
+  // Capture initial approved hours before teacher action
+  const approvedHoursMatch = await page.getByText('Approved hours').locator('..').innerText()
+  const initialApprovedMatch = approvedHoursMatch.match(/\d+/)
+  const initialApprovedHours = initialApprovedMatch ? parseInt(initialApprovedMatch[0], 10) : 0
 
-  // Switch to teacher role and approve the activity
-  await page.getByRole('button', { name: 'Enter as teacher' }).click()
+  // Switch to teacher role to approve the activity
+  await page.getByRole('button', { name: 'Enter as teacher' }).first().click()
   await page.getByRole('link', { name: 'TCU' }).click()
 
-  // Find the pending activity and approve it (if teacher can see it in their queue)
-  // The teacher should see the activity in their list since the volunteer is assigned to one of their courses
-  await expect(page.getByText(`E2E Test Activity ${suffix}`)).toBeVisible()
-  const teacherRow = page
-    .getByRole('row')
-    .filter({ has: page.getByText(`E2E Test Activity ${suffix}`) })
+  // Teacher should see the approval queue with the pending activity
+  await expect(page.getByRole('heading', { name: /approval queue/i })).toBeVisible()
+  const approvalQueueRow = page.getByRole('row').filter({ has: page.getByText(activityTitle) })
+  await expect(approvalQueueRow).toBeVisible()
 
-  // The status should have changed from Pending to Approved
-  // (in a real approval UI, there would be an approve button; this test checks the data flow)
-  // For now, verify the activity is visible to the teacher
-  await expect(teacherRow).toBeVisible()
+  // Click the Approve button in the approval queue
+  await approvalQueueRow.getByRole('button', { name: 'Approve' }).click()
 
-  // Switch back to volunteer and verify the activity now shows as approved
-  await page.getByRole('button', { name: 'Enter as tcu' }).click()
+  // Wait for success toast
+  await expect(page.getByText('Activity approved')).toBeVisible()
+
+  // Brief wait for UI to update
+  await page.waitForTimeout(500)
+
+  // Switch back to volunteer to verify the activity now shows as approved
+  await page.getByRole('button', { name: 'Enter as tcu' }).first().click()
   await page.getByRole('link', { name: 'TCU' }).click()
 
-  // Verify the activity status is now approved (in a real UI with approval buttons,
-  // this would be triggered by the teacher's action)
-  const volunteerRow = page
-    .getByRole('row')
-    .filter({ has: page.getByText(`E2E Test Activity ${suffix}`) })
-  // The status should show once approval UI is implemented
-  await expect(volunteerRow).toBeVisible()
+  // Verify the activity status changed to approved
+  const volunteerRowAfter = page.getByRole('row').filter({ has: page.getByText(activityTitle) })
+  await expect(volunteerRowAfter.getByText('Approved')).toBeVisible()
+
+  // Verify approved hours increased without a page reload
+  const newApprovedHoursMatch = await page.getByText('Approved hours').locator('..').innerText()
+  const newApprovedMatch = newApprovedHoursMatch.match(/\d+/)
+  const newApprovedHours = newApprovedMatch ? parseInt(newApprovedMatch[0], 10) : 0
+
+  // The approved hours should have increased by the activity hours
+  expect(newApprovedHours).toBe(initialApprovedHours + hours)
 })

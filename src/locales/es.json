@@ -159,6 +159,7 @@
       "skipToMain": "Saltar al contenido principal"
     },
     "actions": {
+      "approve": "Aprobar",
       "backToHome": "Volver al inicio",
       "cancel": "Cancelar",
       "close": "Cerrar",
@@ -168,6 +169,7 @@
       "edit": "Editar",
       "editItem": "Editar {{name}}",
       "new": "Nuevo",
+      "reject": "Rechazar",
       "save": "Guardar"
     },
     "commandPalette": {
@@ -655,6 +657,10 @@
     }
   },
   "tcu": {
+    "approvalQueue": {
+      "approval": "Aprobación necesaria",
+      "title": "Cola de aprobación TCU"
+    },
     "dashboard": {
       "approvedHours": "Horas aprobadas",
       "pendingHours": "Horas pendientes",

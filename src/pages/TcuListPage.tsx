@@ -19,7 +19,7 @@ import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
-import { useTcuActivities, useTcuTrainees } from '@/hooks/api'
+import { useTcuActivities, useTcuTrainees, useApproveTcuActivity } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import { useStore } from '@/data/store'
 import { LogTcuActivityDialog } from '@/components/tcu/LogTcuActivityDialog'
@@ -32,10 +32,12 @@ export function TcuListPage() {
   const { formatDate, formatNumber } = useFormat()
   const role = useStore((s) => s.role)
   const userId = useStore((s) => s.currentUserId)
+  const courses = useStore((s) => s.courses)
   const [filters, setFilters] = useState<TcuFilters>({})
   const [logDialogOpen, setLogDialogOpen] = useState(false)
   const { data = [], isLoading } = useTcuActivities(filters)
   const { data: trainees = [], isLoading: traineesLoading } = useTcuTrainees()
+  const approveMutation = useApproveTcuActivity()
 
   const approvedHours = data.reduce((sum, a) => sum + (a.status === 'approved' ? a.hours : 0), 0)
   const pendingHours = data.reduce((sum, a) => sum + (a.status === 'pending' ? a.hours : 0), 0)
@@ -44,10 +46,28 @@ export function TcuListPage() {
 
   // For TCU role, show self progress; for admin, show selected trainee or all
   const isTcuRole = role === 'tcu'
+  const isTeacher = role === 'teacher'
   const selfTrainee = isTcuRole ? trainees.find((t) => t.id === userId) : null
 
   // Calculate progress toward 300 hours (approved hours only)
   const progressPercent = Math.min((approvedHours / TARGET_HOURS) * 100, 100)
+
+  // For teachers: get their courses and pending activities for their trainees
+  const teacherCourseIds = isTeacher
+    ? courses.filter((c) => c.teacherId === userId).map((c) => c.id)
+    : []
+  const pendingActivitiesForTeacher = isTeacher
+    ? data.filter((a) => {
+        const trainee = trainees.find((t) => t.id === a.traineeId)
+        return a.status === 'pending' && trainee && teacherCourseIds.includes(trainee.courseId)
+      })
+    : []
+
+  // For admin: show all pending activities
+  const pendingActivitiesForAdmin =
+    role === 'admin' ? data.filter((a) => a.status === 'pending') : []
+  const pendingActivities =
+    role === 'admin' ? pendingActivitiesForAdmin : pendingActivitiesForTeacher
 
   return (
     <div className="space-y-6">
@@ -83,6 +103,72 @@ export function TcuListPage() {
               + {formatNumber(pendingHours)} {t('tcu.dashboard.pendingHours')}
             </p>
           )}
+        </section>
+      )}
+
+      {(isTeacher || role === 'admin') && pendingActivities.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">{t('tcu.approvalQueue.title')}</h2>
+          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead>{t('tcu.list.columns.title')}</TableHead>
+                  <TableHead className="text-right font-mono tabular-nums">
+                    {t('tcu.list.columns.hours')}
+                  </TableHead>
+                  <TableHead>{t('tcu.list.columns.date')}</TableHead>
+                  <TableHead>{t('tcu.list.columns.trainee')}</TableHead>
+                  <TableHead className="text-right">{t('tcu.approvalQueue.approval')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingActivities.map((a) => {
+                  const trainee = trainees.find((x) => x.id === a.traineeId)
+                  return (
+                    <TableRow key={a.id} className="h-12 hover:bg-muted/40">
+                      <TableCell>{a.title}</TableCell>
+                      <TableCell className="text-right font-mono tabular-nums">
+                        {formatNumber(a.hours)}
+                      </TableCell>
+                      <TableCell>{formatDate(a.date)}</TableCell>
+                      <TableCell>
+                        {trainee?.firstName} {trainee?.lastName}
+                      </TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() =>
+                            approveMutation.mutate({
+                              activityId: a.id,
+                              decision: 'approved',
+                            })
+                          }
+                          disabled={approveMutation.isPending}
+                        >
+                          {t('common.actions.approve')}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            approveMutation.mutate({
+                              activityId: a.id,
+                              decision: 'rejected',
+                            })
+                          }
+                          disabled={approveMutation.isPending}
+                        >
+                          {t('common.actions.reject')}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </section>
       )}
 

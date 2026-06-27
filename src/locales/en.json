@@ -158,6 +158,7 @@
       "skipToMain": "Skip to main content"
     },
     "actions": {
+      "approve": "Approve",
       "backToHome": "Back to home",
       "cancel": "Cancel",
       "close": "Close",
@@ -167,6 +168,7 @@
       "edit": "Edit",
       "editItem": "Edit {{name}}",
       "new": "New",
+      "reject": "Reject",
       "save": "Save"
     },
     "commandPalette": {
@@ -651,6 +653,10 @@
     }
   },
   "tcu": {
+    "approvalQueue": {
+      "approval": "Approval needed",
+      "title": "TCU approval queue"
+    },
     "dashboard": {
       "approvedHours": "Approved hours",
       "pendingHours": "Pending hours",
