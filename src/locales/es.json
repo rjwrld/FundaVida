@@ -34,6 +34,7 @@
     "mark": {
       "cancel": "Cancelar",
       "empty": "No hay estudiantes inscritos en esta sesión.",
+      "future": "Esta sesión es futura y no se puede marcar.",
       "save": "Guardar",
       "sessionNumber": "Sesión {{ordinal}} de {{total}}",
       "status": {

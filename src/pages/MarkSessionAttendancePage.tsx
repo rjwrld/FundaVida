@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useState, useMemo } from 'react'
 import { parseISO } from 'date-fns'
@@ -24,6 +24,8 @@ import { useCourses, useEnrollments, useMarkSessionAttendance, useStudents } fro
 import { sessionsFor } from '@/lib/sessions'
 import { clock } from '@/lib/clock'
 import { useFormat } from '@/hooks/useFormat'
+import { can } from '@/permissions'
+import { useStore } from '@/data/store'
 import type { AttendanceRecord } from '@/types'
 
 export function MarkSessionAttendancePage() {
@@ -127,6 +129,19 @@ export function MarkSessionAttendancePage() {
       }
     }, [courseId, sessionDate, courses, enrollments, students])
 
+  // Whether the current role may mark THIS course's attendance, derived from the
+  // matrix with course context (ADR-0010): admin always, the owning teacher via
+  // the courseOwned predicate, students/other teachers never.
+  const role = useStore((s) => s.role)
+  const currentUserId = useStore((s) => s.currentUserId)
+  const canMark = useMemo(
+    () =>
+      role && course
+        ? can(role, 'mark', 'attendance', { userId: currentUserId ?? undefined, course })
+        : false,
+    [role, currentUserId, course]
+  )
+
   // Initialize attendance state: all students default to present
   const [attendanceByStudentId, setAttendanceByStudentId] = useState<
     Record<string, AttendanceRecord['status']>
@@ -166,6 +181,13 @@ export function MarkSessionAttendancePage() {
     navigate(-1)
   }
 
+  // Permission guard (ADR-0010/0018): only a role allowed to mark THIS course's
+  // attendance may reach the marking route; students and non-owning teachers are
+  // redirected. The store mutation remains the real boundary (ADR-0009).
+  if (!isLoading && course && !canMark) {
+    return <Navigate to="/app" replace />
+  }
+
   // Rendering: validation errors
   if (!isValid) {
     return (
@@ -190,7 +212,7 @@ export function MarkSessionAttendancePage() {
           </p>
         </div>
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
-          This session is in the future and cannot be marked.
+          {t('attendance.mark.future')}
         </div>
       </div>
     )
