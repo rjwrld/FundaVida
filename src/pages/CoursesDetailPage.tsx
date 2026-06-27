@@ -22,6 +22,8 @@ import {
   useMarkAttendance,
   useStudents,
   useUnenrollStudent,
+  useRequestEnrollment,
+  useWithdrawEnrollmentRequest,
 } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
@@ -168,6 +170,10 @@ export function CoursesDetailPage() {
   const { data: course, isLoading } = useCourse(id ?? '')
   const teachers = useStore((s) => s.teachers)
   const programs = useStore((s) => s.programs)
+  const currentUserId = useStore((s) => s.currentUserId)
+  const currentRole = useStore((s) => s.role)
+  const enrollments = useStore((s) => s.enrollments)
+  const students = useStore((s) => s.students)
   // The roster reads through the API/scope seam, never raw store collections
   // (ADR-0012): admin sees all, the Course's Teacher sees their own Course's
   // records, and a Student's scope collapses these to self (or empty).
@@ -177,6 +183,8 @@ export function CoursesDetailPage() {
   const { data: ownAttendance = [] } = useAttendance({ courseId: id ?? '' })
   const unenroll = useUnenrollStudent()
   const markAttendance = useMarkAttendance()
+  const requestEnrollment = useRequestEnrollment()
+  const withdrawRequest = useWithdrawEnrollmentRequest()
 
   const [gradingTarget, setGradingTarget] = useState<GradingTarget | null>(null)
   const [enrollOpen, setEnrollOpen] = useState(false)
@@ -196,7 +204,54 @@ export function CoursesDetailPage() {
 
   if (isLoading)
     return <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
+
+  // Check if this course is browseable for the current user (ADR-0016: third path)
+  const checkBrowseable = (): boolean => {
+    if (!course || currentRole !== 'student' || !currentUserId) return false
+    const student = students.find((s) => s.id === currentUserId)
+    if (!student) return false
+    // Must be published, at student's sede, level match, and not already enrolled/pending
+    if (course.status !== 'published') return false
+    if (course.sede !== student.sede) return false
+    if (course.level !== 'both' && course.level !== student.educationalLevel) return false
+    const studentEnrollments = enrollments.filter((e) => e.studentId === currentUserId)
+    if (studentEnrollments.some((e) => e.courseId === course.id)) return false
+    return true
+  }
+
+  // Get the student's pending or approved enrollment in this course if any
+  const studentEnrollment = (): Enrollment | undefined => {
+    if (!currentUserId || !course) return undefined
+    return enrollments.find((e) => e.studentId === currentUserId && e.courseId === course.id)
+  }
+
+  // Get seats remaining
+  const getSeatsRemaining = (): number => {
+    if (!course) return 0
+    const approvedCount = enrollments.filter(
+      (e) => e.courseId === course.id && e.status === 'approved'
+    ).length
+    return Math.max(0, course.capacity - approvedCount)
+  }
+
+  const enrollment = studentEnrollment()
+  const isEnrolled = enrollment?.status === 'approved'
+  const isPending = enrollment?.status === 'pending'
+  const isBrowseable = checkBrowseable()
+
   if (!course) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">{t('courses.detail.title')}</p>
+        <Button asChild variant="outline">
+          <Link to="/app/courses">{t('common.actions.backToHome')}</Link>
+        </Button>
+      </div>
+    )
+  }
+
+  // Deny access if not viewing roster AND not enrolled AND not browseable (ADR-0012, ADR-0016)
+  if (!canViewRoster && !isEnrolled && !isBrowseable) {
     return (
       <div className="space-y-4">
         <p className="text-sm text-muted-foreground">{t('courses.detail.title')}</p>
@@ -384,7 +439,7 @@ export function CoursesDetailPage() {
         </Fragment>
       )}
 
-      {!canViewRoster && (
+      {!canViewRoster && isEnrolled && (
         <section className="space-y-3">
           <h2 className="text-lg font-semibold tracking-tight">
             {t('courses.detail.sections.yourRecords')}
@@ -439,6 +494,75 @@ export function CoursesDetailPage() {
               </Table>
             )}
           </div>
+        </section>
+      )}
+
+      {!canViewRoster && isBrowseable && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">
+            {t('courses.browse.requestSection')}
+          </h2>
+          <Card>
+            <CardContent className="space-y-4 py-4">
+              <div className="grid gap-3 text-sm">
+                <p>
+                  <span className="text-muted-foreground">{t('courses.browse.seatsLabel')}:</span>{' '}
+                  <span className="font-medium">
+                    {getSeatsRemaining()}/{course.capacity}
+                  </span>
+                </p>
+                {getSeatsRemaining() === 0 && (
+                  <p className="text-sm text-destructive">
+                    {t('courses.browse.courseFullWarning')}
+                  </p>
+                )}
+              </div>
+              <Button
+                onClick={() => {
+                  if (currentUserId) {
+                    requestEnrollment.mutate({ studentId: currentUserId, courseId: course.id })
+                  }
+                }}
+                disabled={requestEnrollment.isPending}
+                className="w-full"
+              >
+                {t('courses.browse.requestButton')}
+              </Button>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
+      {!canViewRoster && isPending && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">
+            {t('courses.browse.pendingSection')}
+          </h2>
+          <Card>
+            <CardContent className="space-y-4 py-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">{t('courses.browse.pendingStatus')}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('courses.browse.pendingDescription')}
+                  </p>
+                </div>
+                <Badge variant="outline">{t('enrollments.status.pending')}</Badge>
+              </div>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (enrollment) {
+                    withdrawRequest.mutate(enrollment.id)
+                  }
+                }}
+                disabled={withdrawRequest.isPending}
+                className="w-full"
+              >
+                {t('courses.browse.withdrawButton')}
+              </Button>
+            </CardContent>
+          </Card>
         </section>
       )}
 

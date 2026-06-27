@@ -167,6 +167,31 @@ function applyCoursesScope(courses: CourseList, token: Scope, userId: string): C
       const enrolledCourseIds = new Set(enrollments.map((e) => e.courseId))
       return courses.filter((c) => enrolledCourseIds.has(c.id))
     }
+    case 'openForEnrollment': {
+      // Published, upcoming courses at the student's Sede with matching level,
+      // excluding already enrolled/pending courses (ADR-0016).
+      const state = useStore.getState()
+      const student = state.students.find((s) => s.id === userId)
+      if (!student) {
+        return []
+      }
+
+      // Enrollments for this student (both approved and pending)
+      const studentEnrollments = state.enrollments.filter((e) => e.studentId === userId)
+      const enrolledOrPendingIds = new Set(studentEnrollments.map((e) => e.courseId))
+
+      return courses.filter((c) => {
+        // Must be published
+        if (c.status !== 'published') return false
+        // Must be at student's sede
+        if (c.sede !== student.sede) return false
+        // Level must match student's level or be 'both'
+        if (c.level !== 'both' && c.level !== student.educationalLevel) return false
+        // Must not be already enrolled or pending
+        if (enrolledOrPendingIds.has(c.id)) return false
+        return true
+      })
+    }
     default:
       return []
   }

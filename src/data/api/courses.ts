@@ -1,4 +1,5 @@
 import type { Course } from '@/types'
+import type { Scope } from '@/permissions'
 import { scopeFor } from '@/permissions'
 import { useStore } from '../store'
 import { applyScope } from './scope'
@@ -8,6 +9,7 @@ export interface CourseFilters {
   search?: string
   sede?: string
   programId?: string
+  scopeOverride?: Scope
 }
 
 function applyFilters(courses: Course[], filters: CourseFilters): Course[] {
@@ -28,16 +30,16 @@ export const coursesApi = {
     const state = useStore.getState()
     const role = state.role ?? 'student'
     const courses = state.courses
-    const scope = scopeFor(role)['courses']
+    const scope = filters.scopeOverride ?? scopeFor(role)['courses']
     const scoped = applyScope('courses', scope, courses)
     return applyFilters(scoped, filters)
   },
-  async get(id: string): Promise<Course | null> {
+  async get(id: string, scopeOverride?: Scope): Promise<Course | null> {
     await delay()
     const state = useStore.getState()
     const role = state.role ?? 'student'
     const courses = state.courses
-    const scope = scopeFor(role)['courses']
+    const scope = scopeOverride ?? scopeFor(role)['courses']
     const scoped = applyScope('courses', scope, courses)
     return scoped.find((c) => c.id === id) ?? null
   },

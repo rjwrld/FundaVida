@@ -70,6 +70,8 @@ export interface StoreState {
   updateTeacher: (id: string, patch: Partial<Omit<Teacher, 'id'>>) => void
   deleteTeacher: (id: string) => void
   enrollStudent: (studentId: string, courseId: string) => Enrollment
+  requestEnrollment: (studentId: string, courseId: string) => Enrollment
+  withdrawEnrollmentRequest: (enrollmentId: string) => void
   unenrollStudent: (enrollmentId: string) => void
   setGrade: (studentId: string, courseId: string, score: number) => Grade
   updateGradeScore: (gradeId: string, score: number) => void
@@ -569,6 +571,79 @@ export const useStore = create<StoreState>((set, get) => ({
       }
     })
     return enrollment
+  },
+  requestEnrollment: (studentId, courseId) => {
+    const state = get()
+    assertCan(state, 'request', 'enrollments')
+    const { enrollments, students, courses } = state
+    const existing = enrollments.find((e) => e.studentId === studentId && e.courseId === courseId)
+    if (existing) return existing
+    // Defensive guards for direct store callers; the UI filters to browseable courses, so this English text should never reach end users.
+    const student = students.find((s) => s.id === studentId)
+    if (!student) {
+      throw new Error(`cannot request enrollment for unknown student ${studentId}`)
+    }
+    const course = courses.find((c) => c.id === courseId)
+    if (!course) {
+      throw new Error(`cannot request enrollment in unknown course ${courseId}`)
+    }
+    // A Student may only request courses at their own Sede (ADR-0011, ADR-0016).
+    if (student.sede !== course.sede) {
+      throw new Error(
+        `cannot request enrollment for student ${studentId} (${student.sede}) in course ${courseId} (${course.sede}): Sede mismatch`
+      )
+    }
+    // A Student may only request courses matching their educational level or 'both' (ADR-0016).
+    if (course.level !== 'both' && course.level !== student.educationalLevel) {
+      throw new Error(
+        `cannot request enrollment for student ${studentId} (${student.educationalLevel}) in course ${courseId} (${course.level}): Level mismatch`
+      )
+    }
+    const now = clock.now().toISOString()
+    const enrollment: Enrollment = {
+      id: nextId('enr', enrollments),
+      studentId,
+      courseId,
+      enrolledAt: now,
+      status: 'pending',
+      requestedAt: now,
+    }
+    withAudit(set, (state) => {
+      return {
+        next: {
+          enrollments: [...state.enrollments, enrollment],
+        },
+        audit: {
+          action: 'requestEnroll',
+          entity: 'enrollment',
+          entityId: enrollment.id,
+          summary: `${studentId} requested enrollment in ${courseId}`,
+        },
+      }
+    })
+    return enrollment
+  },
+  withdrawEnrollmentRequest: (enrollmentId) => {
+    const state = get()
+    assertCan(state, 'withdraw', 'enrollments')
+    const { enrollments } = state
+    const target = enrollments.find((e) => e.id === enrollmentId)
+    if (!target) return
+    withAudit(set, (state) => {
+      return {
+        next: {
+          enrollments: state.enrollments.map((e) =>
+            e.id === enrollmentId ? { ...e, status: 'withdrawn' as const } : e
+          ),
+        },
+        audit: {
+          action: 'withdraw',
+          entity: 'enrollment',
+          entityId: enrollmentId,
+          summary: `Withdrew enrollment request ${enrollmentId}`,
+        },
+      }
+    })
   },
   unenrollStudent: (enrollmentId) => {
     const state = get()
