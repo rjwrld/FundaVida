@@ -1,3 +1,4 @@
+import { clock } from '@/lib/clock'
 import type { Role, Course, TcuActivity } from '@/types/domain'
 
 export type Action = 'view' | 'create' | 'edit' | 'delete' | 'approve' | 'mark' | 'log' | 'enter'
@@ -209,8 +210,10 @@ function courseOwnedAndEnded(ctx: PermissionContext): boolean {
     return false
   }
 
-  // Check if the course has ended by comparing today to the term.end date
-  const now = new Date()
+  // Check if the course has ended by comparing the frozen now (ADR-0014) to the
+  // term.end date — never a live new Date(), so the predicate stays on the Demo
+  // Epoch's timeline.
+  const now = clock.now()
   const termEnd = new Date(ctx.course.term.end)
 
   return now >= termEnd
