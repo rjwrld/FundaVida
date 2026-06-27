@@ -3,6 +3,7 @@ import type { Role, Course, TcuActivity } from '@/types/domain'
 export type Action = 'view' | 'create' | 'edit' | 'delete' | 'approve' | 'mark' | 'log' | 'enter'
 
 export type Resource =
+  | 'programs'
   | 'students'
   | 'teachers'
   | 'courses'
@@ -71,6 +72,9 @@ export function scopeFor(role: Role): Record<Resource, Scope> {
  */
 const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, MatrixCell>>>> = {
   admin: {
+    // Programs are a fixed, read-only catalog viewable by every role (ADR-0015):
+    // no create/edit/delete cell for anyone, not even admin.
+    programs: { view: true },
     students: { view: true, create: true, edit: true, delete: true },
     teachers: { view: true, create: true, edit: true, delete: true },
     courses: { view: true, create: true, edit: true, delete: true },
@@ -84,6 +88,7 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     auditLog: { view: true },
   },
   teacher: {
+    programs: { view: true },
     students: { view: true },
     teachers: {},
     courses: { view: true },
@@ -100,6 +105,7 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     auditLog: {},
   },
   student: {
+    programs: { view: true },
     students: {},
     teachers: {},
     courses: { view: true },
@@ -114,6 +120,7 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     auditLog: {},
   },
   tcu: {
+    programs: { view: true },
     students: {},
     teachers: {},
     courses: {},
@@ -134,6 +141,9 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
  */
 const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
   admin: {
+    // The Program catalog is org-wide: every role reads it whole ('all'),
+    // interpreted in the scope layer (ADR-0008/0015).
+    programs: 'all',
     students: 'all',
     teachers: 'all',
     courses: 'all',
@@ -147,6 +157,7 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     auditLog: 'all',
   },
   teacher: {
+    programs: 'all',
     students: 'enrolledInOwnCourses',
     teachers: 'none',
     courses: 'own',
@@ -160,6 +171,7 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     auditLog: 'none',
   },
   student: {
+    programs: 'all',
     students: 'none',
     teachers: 'none',
     courses: 'enrolled',
@@ -173,6 +185,7 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     auditLog: 'none',
   },
   tcu: {
+    programs: 'all',
     students: 'none',
     teachers: 'none',
     courses: 'none',
@@ -232,6 +245,7 @@ function canLogTcuActivity(ctx: PermissionContext): boolean {
  */
 function allScopesNone(): Record<Resource, Scope> {
   return {
+    programs: 'none',
     students: 'none',
     teachers: 'none',
     courses: 'none',

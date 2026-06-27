@@ -3,6 +3,7 @@ import type {
   Student,
   Teacher,
   Course,
+  Program,
   Enrollment,
   Grade,
   Certificate,
@@ -41,6 +42,7 @@ export interface StoreState {
   // we ship frozen). Both are persisted in the snapshot and hydrate `clock`.
   demoEpoch: string
   offset: number
+  programs: Program[]
   students: Student[]
   teachers: Teacher[]
   courses: Course[]
@@ -73,7 +75,9 @@ export interface StoreState {
   updateGradeScore: (gradeId: string, score: number) => void
   deleteGrade: (gradeId: string) => void
   approveCertificate: (certificateId: string) => void
-  logTcuActivity: (input: Omit<TcuActivity, 'id'>) => TcuActivity
+  logTcuActivity: (
+    input: Omit<TcuActivity, 'id' | 'status' | 'approvedBy' | 'approvedAt'>
+  ) => TcuActivity
   markAttendance: (
     courseId: string,
     studentId: string,
@@ -157,6 +161,7 @@ function initialState(): Pick<
   StoreState,
   | 'demoEpoch'
   | 'offset'
+  | 'programs'
   | 'students'
   | 'teachers'
   | 'courses'
@@ -184,6 +189,7 @@ function initialState(): Pick<
   return {
     demoEpoch: snapshot.demoEpoch,
     offset: snapshot.offset,
+    programs: snapshot.programs,
     students: snapshot.students,
     teachers: snapshot.teachers,
     courses: snapshot.courses,
@@ -529,11 +535,19 @@ export const useStore = create<StoreState>((set, get) => ({
         `cannot enroll student ${studentId} (${student.sede}) in course ${courseId} (${course.sede}): Sede mismatch`
       )
     }
+    // A Teacher/admin direct-enroll lands straight in 'approved' (ADR-0016); the
+    // current user is the deciding actor. Student self-enroll into 'pending'
+    // arrives with that workflow in a later slice.
+    const now = new Date().toISOString()
     const enrollment: Enrollment = {
       id: nextId('enr', enrollments),
       studentId,
       courseId,
-      enrolledAt: new Date().toISOString(),
+      enrolledAt: now,
+      status: 'approved',
+      requestedAt: now,
+      decidedBy: state.currentUserId ?? 'system',
+      decidedAt: now,
     }
     withAudit(set, (state) => {
       const updatedStudents = state.students.map((s) =>
@@ -717,9 +731,11 @@ export const useStore = create<StoreState>((set, get) => ({
   },
   logTcuActivity: (input) => {
     const existing = get()
-    // Build a temporary activity object for permission checking
+    // A logged activity is 'pending' until the assigned Course's Teacher
+    // approves it (ADR-0017) — the approval workflow lands in a later slice.
     const tempActivity: TcuActivity = {
       id: 'temp',
+      status: 'pending',
       ...input,
     }
     assertCan(existing, 'log', 'tcu', {
@@ -728,6 +744,7 @@ export const useStore = create<StoreState>((set, get) => ({
     })
     const activity: TcuActivity = {
       id: nextId('tcu-act', existing.tcuActivities),
+      status: 'pending',
       ...input,
     }
     withAudit(set, (state) => ({
@@ -823,6 +840,7 @@ const persistSnapshot = debounce((state: StoreState) => {
   savePersistedState({
     demoEpoch: state.demoEpoch,
     offset: state.offset,
+    programs: state.programs,
     students: state.students,
     teachers: state.teachers,
     courses: state.courses,
