@@ -16,6 +16,7 @@ import type {
 } from '@/types'
 import { can, type Action, type Resource, type PermissionContext } from '@/permissions'
 import { PASSING_SCORE } from '@/lib/certificates'
+import { setDemoEpoch } from '@/lib/clock'
 import { seedDemo } from './seed'
 import { debounce } from './debounce'
 import {
@@ -35,6 +36,11 @@ import type { Locale } from './persistence'
 export type AuditDescriptor = Omit<AuditLogEntry, 'id' | 'timestamp' | 'actorId'>
 
 export interface StoreState {
+  // The explicit Demo Epoch and clock offset (ADR-0014). `demoEpoch` is the
+  // frozen instant the clock reads as "now"; `offset` shifts it (0 today, since
+  // we ship frozen). Both are persisted in the snapshot and hydrate `clock`.
+  demoEpoch: string
+  offset: number
   students: Student[]
   teachers: Teacher[]
   courses: Course[]
@@ -149,6 +155,8 @@ function detectInitialLocale(): Locale {
 
 function initialState(): Pick<
   StoreState,
+  | 'demoEpoch'
+  | 'offset'
   | 'students'
   | 'teachers'
   | 'courses'
@@ -164,30 +172,33 @@ function initialState(): Pick<
   | 'currentUserId'
   | 'locale'
 > {
-  const persisted = loadPersistedState()
   const role = loadPersistedRole()
   const currentUserId = loadPersistedCurrentUser()
   const locale = detectInitialLocale()
-  if (persisted) {
-    return {
-      students: persisted.students,
-      teachers: persisted.teachers,
-      courses: persisted.courses,
-      enrollments: persisted.enrollments,
-      grades: persisted.grades,
-      certificates: persisted.certificates,
-      tcuTrainees: persisted.tcuTrainees,
-      tcuActivities: persisted.tcuActivities,
-      attendance: persisted.attendance,
-      auditLog: persisted.auditLog,
-      emailCampaigns: persisted.emailCampaigns,
-      role,
-      currentUserId,
-      locale,
-    }
+  // Boot from the persisted snapshot if it is still valid, else seed fresh at a
+  // new Demo Epoch — one of the only two real-wall-time reads (ADR-0014, the
+  // other is resetDemo). Either way, hydrate the clock from the snapshot's epoch
+  // so business "now" is the frozen instant the seeded dates were anchored to.
+  const snapshot = loadPersistedState() ?? seedDemo(new Date())
+  setDemoEpoch(snapshot.demoEpoch, snapshot.offset)
+  return {
+    demoEpoch: snapshot.demoEpoch,
+    offset: snapshot.offset,
+    students: snapshot.students,
+    teachers: snapshot.teachers,
+    courses: snapshot.courses,
+    enrollments: snapshot.enrollments,
+    grades: snapshot.grades,
+    certificates: snapshot.certificates,
+    tcuTrainees: snapshot.tcuTrainees,
+    tcuActivities: snapshot.tcuActivities,
+    attendance: snapshot.attendance,
+    auditLog: snapshot.auditLog,
+    emailCampaigns: snapshot.emailCampaigns,
+    role,
+    currentUserId,
+    locale,
   }
-  const snapshot = seedDemo(new Date())
-  return { ...snapshot, role, currentUserId, locale }
 }
 
 /**
@@ -240,7 +251,11 @@ export const useStore = create<StoreState>((set, get) => ({
     set({ locale })
   },
   resetDemo: () => {
+    // Re-anchor the Demo Epoch to a fresh real instant and zero the offset
+    // (ADR-0014). This is the second and last real-wall-time read; the clock is
+    // re-hydrated so business "now" jumps forward to the new epoch.
     const snapshot = seedDemo(new Date())
+    setDemoEpoch(snapshot.demoEpoch, snapshot.offset)
     set({
       ...snapshot,
       role: null,
@@ -806,6 +821,8 @@ export const useStore = create<StoreState>((set, get) => ({
 // a form) from serializing the entire snapshot on every keystroke.
 const persistSnapshot = debounce((state: StoreState) => {
   savePersistedState({
+    demoEpoch: state.demoEpoch,
+    offset: state.offset,
     students: state.students,
     teachers: state.teachers,
     courses: state.courses,

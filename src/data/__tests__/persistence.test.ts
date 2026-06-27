@@ -31,9 +31,18 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v2 key', () => {
+  it('persists state under the v3 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v2:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v3:state')).not.toBeNull()
+  })
+
+  it('reseeds from a stale v2 snapshot and removes the stale v2 state key (ADR-0014)', () => {
+    // A returning v2 visitor's snapshot predates the explicit Demo Epoch. The
+    // v3 key bump makes it stale; it is dropped so the app reseeds at v3.
+    window.localStorage.setItem('fundavida:v2:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v2:state')).toBeNull()
   })
 
   it('reseeds cleanly from a stale v1 snapshot and removes the stale v1 keys', () => {
@@ -89,12 +98,12 @@ describe('persistence', () => {
   })
 
   it('returns null when stored JSON has the wrong shape', () => {
-    window.localStorage.setItem('fundavida:v2:state', JSON.stringify({ wrong: true }))
+    window.localStorage.setItem('fundavida:v3:state', JSON.stringify({ wrong: true }))
     expect(loadPersistedState()).toBeNull()
   })
 
   it('returns null when stored JSON is invalid', () => {
-    window.localStorage.setItem('fundavida:v2:state', 'not-json')
+    window.localStorage.setItem('fundavida:v3:state', 'not-json')
     expect(loadPersistedState()).toBeNull()
   })
 
@@ -146,6 +155,26 @@ describe('persistence', () => {
     delete student.sede
     savePersistedState(snapshot as never)
     expect(loadPersistedState()).toBeNull()
+  })
+
+  it('rejects a snapshot lacking demoEpoch so an epoch-less world reseeds (ADR-0014)', () => {
+    const snapshot = seedDemo(new Date()) as unknown as Record<string, unknown>
+    delete snapshot.demoEpoch
+    savePersistedState(snapshot as never)
+    expect(loadPersistedState()).toBeNull()
+  })
+
+  it('rejects a snapshot whose demoEpoch is not a string', () => {
+    const snapshot = seedDemo(new Date()) as unknown as Record<string, unknown>
+    snapshot.demoEpoch = 1234567890
+    savePersistedState(snapshot as never)
+    expect(loadPersistedState()).toBeNull()
+  })
+
+  it('accepts a snapshot carrying demoEpoch and round-trips it', () => {
+    const snapshot = seedDemo(new Date('2026-06-23T12:00:00.000Z'))
+    savePersistedState(snapshot)
+    expect(loadPersistedState()?.demoEpoch).toBe('2026-06-23T12:00:00.000Z')
   })
 
   it('rejects snapshot with unknown meeting-day literals', () => {

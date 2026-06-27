@@ -2,20 +2,23 @@ import type { SeedSnapshot } from './seed'
 import { WEEKDAYS, type Role, type Weekday } from '@/types'
 import { SEDES, type Sede } from '@/constants/sede'
 
-const STATE_KEY = 'fundavida:v2:state'
+const STATE_KEY = 'fundavida:v3:state'
 const ROLE_KEY = 'fundavida:v2:role'
 
-// Pre-v2 snapshot-session keys this layer owns. They are not migrated
-// (ADR-0003): they are removed on first load so the app reseeds cleanly at a
-// fresh Demo Epoch instead of rehydrating an incoherent v1 world. Only keys
-// this module owns are listed — UI preferences such as theme and
-// banner-dismissed belong to other modules and must survive a reseed, so they
-// are deliberately left untouched.
+// Stale pre-v3 snapshot keys this layer owns. They are not migrated (ADR-0003,
+// ADR-0014): they are removed on first load so the app reseeds cleanly at a
+// fresh Demo Epoch instead of rehydrating an incoherent older world. The v2
+// state snapshot predates the explicit `demoEpoch` scalar, so the v3 key bump
+// makes it stale and it joins this list. Only keys this module owns are listed —
+// UI preferences such as theme and banner-dismissed belong to other modules and
+// must survive a reseed, so they are deliberately left untouched. The v2 role,
+// current-user, and locale keys are unchanged by this slice and stay in use.
 const LEGACY_SNAPSHOT_KEYS = [
   'fundavida:v1:state',
   'fundavida:v1:role',
   'fundavida:v1:current-user',
   'fundavida:v1:locale',
+  'fundavida:v2:state',
 ]
 
 export type PersistedState = SeedSnapshot
@@ -32,6 +35,11 @@ function clearLegacyKeys(): void {
 function isValidSnapshot(value: unknown): value is PersistedState {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
+
+  // The Demo Epoch is a required scalar (ADR-0014): a snapshot lacking it is a
+  // pre-clock-seam world and must reseed rather than render against a clock with
+  // no anchor.
+  if (typeof v.demoEpoch !== 'string') return false
 
   if (
     !Array.isArray(v.students) ||
