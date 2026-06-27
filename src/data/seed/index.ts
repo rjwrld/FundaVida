@@ -23,6 +23,12 @@ import { SEDES, type Sede } from '@/constants/sede'
 import { EDUCATIONAL_LEVELS, GENDERS, PROVINCES } from '@/constants/student'
 
 export interface SeedSnapshot {
+  // The explicit Demo Epoch (ADR-0014): the frozen instant the clock reads as
+  // "now". Persisted so a returning visitor's filters and write timestamps read
+  // the same frozen epoch the seeded dates were anchored to. `offset` shifts the
+  // clock for a later date-travel feature; we ship frozen, so it starts at 0.
+  demoEpoch: string
+  offset: number
   students: Student[]
   teachers: Teacher[]
   courses: Course[]
@@ -649,6 +655,8 @@ export function seedDemo(epoch: Date): SeedSnapshot {
   const emailCampaigns = buildEmailCampaigns(epoch, students, courses, enrollments)
 
   return {
+    demoEpoch: epoch.toISOString(),
+    offset: 0,
     teachers,
     courses,
     students,

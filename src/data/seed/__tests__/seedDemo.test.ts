@@ -13,6 +13,18 @@ import { EDUCATIONAL_LEVELS, PROVINCES } from '@/constants/student'
 // to this value rather than pinned calendar strings.
 const EPOCH = new Date('2026-06-23T12:00:00.000Z')
 
+describe('seedDemo — anchors the Demo Epoch (ADR-0014)', () => {
+  it('persists demoEpoch as the ISO string of its argument', () => {
+    const world = seedDemo(EPOCH)
+    expect(world.demoEpoch).toBe(EPOCH.toISOString())
+  })
+
+  it('starts the offset at zero (we ship frozen)', () => {
+    const world = seedDemo(EPOCH)
+    expect(world.offset).toBe(0)
+  })
+})
+
 describe('seedDemo — causal seed story', () => {
   it('builds the world in one call, with every core collection populated', () => {
     const world = seedDemo(EPOCH)
