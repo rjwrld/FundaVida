@@ -21,10 +21,12 @@ export function AdminDashboard() {
   const enrollments = useStore((s) => s.enrollments)
   const grades = useStore((s) => s.grades)
   const courses = useStore((s) => s.courses)
+  const programs = useStore((s) => s.programs)
 
   const upcoming = useMemo<UpcomingItem[]>(() => {
     const items: UpcomingItem[] = []
     const courseById = new Map(courses.map((c) => [c.id, c]))
+    const programById = new Map(programs.map((p) => [p.id, p]))
     const gradedKeys = new Set(grades.map((g) => `${g.studentId}:${g.courseId}`))
 
     const ungraded = enrollments.filter((e) => !gradedKeys.has(`${e.studentId}:${e.courseId}`))
@@ -33,7 +35,7 @@ export function AdminDashboard() {
       items.push({
         id: `up-grade-${e.id}`,
         title: t('dashboard.upcoming.gradePending', { course: course?.name ?? e.courseId }),
-        subtitle: course?.programName,
+        subtitle: course ? programById.get(course.programId)?.name : undefined,
         variant: 'warning',
         icon: <GraduationCap className="size-4" aria-hidden="true" />,
       })
@@ -50,7 +52,7 @@ export function AdminDashboard() {
     })
 
     return items.slice(0, 4)
-  }, [enrollments, grades, courses, stats.recentTcu, t])
+  }, [enrollments, grades, courses, programs, stats.recentTcu, t])
 
   const ctaLabel = t('dashboard.welcome.cta')
   const greetingName = t('dashboard.recentActivity.actor.admin')

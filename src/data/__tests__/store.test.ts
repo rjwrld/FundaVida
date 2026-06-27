@@ -195,7 +195,7 @@ describe('audit log instrumentation', () => {
       sede: 'Linda Vista',
       province: 'X',
       canton: 'Y',
-      educationalLevel: 'Primary',
+      educationalLevel: 'primaria',
     })
     const log = useStore.getState().auditLog
     expect(log.length).toBe(before + 1)
@@ -213,7 +213,7 @@ describe('audit log instrumentation', () => {
       sede: 'Linda Vista',
       province: 'X',
       canton: 'Y',
-      educationalLevel: 'Primary',
+      educationalLevel: 'primaria',
     })
     useStore.getState().deleteStudent(id)
     const log = useStore.getState().auditLog
@@ -455,7 +455,10 @@ describe('course Sede invariant (ADR-0011)', () => {
       name: 'Sede Test',
       description: 'A course under test',
       sede,
-      programName: 'Literacy',
+      programId: template.programId,
+      level: template.level,
+      status: template.status,
+      capacity: template.capacity,
       teacherId,
       term: template.term,
       meetingDays: template.meetingDays,

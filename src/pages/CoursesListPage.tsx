@@ -28,7 +28,6 @@ import { CourseFormDialog } from '@/components/courses/CourseFormDialog'
 import { useCourses, useDeleteCourse } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
 import { useFormDialogParams } from '@/hooks/useFormDialogParams'
-import { PROGRAMS } from '@/constants/course'
 import { SEDES } from '@/constants/sede'
 import type { CourseFilters } from '@/data/api/courses'
 import type { Course } from '@/types'
@@ -42,12 +41,13 @@ export function CoursesListPage() {
   const { isOpen, mode, editId, openCreate, openEdit, close } = useFormDialogParams()
   const [pendingDelete, setPendingDelete] = useState<Course | null>(null)
   const teachers = useStore((s) => s.teachers)
+  const programs = useStore((s) => s.programs)
   const canCreate = useCan('create', 'courses')
   const canEdit = useCan('edit', 'courses')
   const canDelete = useCan('delete', 'courses')
   const canActOnRows = canEdit || canDelete
 
-  const hasFilters = Boolean(filters.search || filters.sede || filters.programName)
+  const hasFilters = Boolean(filters.search || filters.sede || filters.programId)
   const count = data.length
   const columnCount = canActOnRows ? 5 : 4
 
@@ -55,6 +55,8 @@ export function CoursesListPage() {
     const teacher = teachers.find((x) => x.id === teacherId)
     return teacher ? `${teacher.firstName} ${teacher.lastName}` : teacherId
   }
+  const programName = (programId: string) =>
+    programs.find((p) => p.id === programId)?.name ?? programId
 
   return (
     <div className="space-y-6">
@@ -102,9 +104,9 @@ export function CoursesListPage() {
           </SelectContent>
         </Select>
         <Select
-          value={filters.programName ?? 'any'}
+          value={filters.programId ?? 'any'}
           onValueChange={(v) =>
-            setFilters((f) => ({ ...f, programName: v === 'any' ? undefined : v }))
+            setFilters((f) => ({ ...f, programId: v === 'any' ? undefined : v }))
           }
         >
           <SelectTrigger aria-label={t('courses.list.columns.program')}>
@@ -112,9 +114,9 @@ export function CoursesListPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="any">{t('courses.list.columns.program')}</SelectItem>
-            {PROGRAMS.map((p) => (
-              <SelectItem key={p} value={p}>
-                {p}
+            {programs.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -158,7 +160,7 @@ export function CoursesListPage() {
                       {c.name}
                     </Link>
                   </TableCell>
-                  <TableCell>{c.programName}</TableCell>
+                  <TableCell>{programName(c.programId)}</TableCell>
                   <TableCell>{c.sede}</TableCell>
                   <TableCell>{teacherName(c.teacherId)}</TableCell>
                   {canActOnRows && (

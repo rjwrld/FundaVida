@@ -12,6 +12,8 @@ import { TeachersDetailPage } from '@/pages/TeachersDetailPage'
 import { EnrollmentsListPage } from '@/pages/EnrollmentsListPage'
 import { CoursesListPage } from '@/pages/CoursesListPage'
 import { CoursesDetailPage } from '@/pages/CoursesDetailPage'
+import { ProgramsListPage } from '@/pages/ProgramsListPage'
+import { ProgramsDetailPage } from '@/pages/ProgramsDetailPage'
 import { GradesListPage } from '@/pages/GradesListPage'
 import { CertificatesListPage } from '@/pages/CertificatesListPage'
 import { TcuListPage } from '@/pages/TcuListPage'
@@ -45,6 +47,10 @@ export function App() {
             </Route>
             <Route element={<RoleGate resource="enrollments" />}>
               <Route path="enrollments" element={<EnrollmentsListPage />} />
+            </Route>
+            <Route element={<RoleGate resource="programs" />}>
+              <Route path="programs" element={<ProgramsListPage />} />
+              <Route path="programs/:id" element={<ProgramsDetailPage />} />
             </Route>
             <Route element={<RoleGate resource="courses" />}>
               <Route path="courses" element={<CoursesListPage />} />

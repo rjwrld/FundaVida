@@ -37,6 +37,7 @@ export interface DashboardStats {
 export function useDashboardStats(): DashboardStats {
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
+  const programs = useStore((s) => s.programs)
   const enrollments = useStore((s) => s.enrollments)
   const certificates = useStore((s) => s.certificates)
   const tcuActivities = useStore((s) => s.tcuActivities)
@@ -68,11 +69,12 @@ export function useDashboardStats(): DashboardStats {
     // auditLog is newest-first (mutators unshift; seeded entries are sorted desc).
     const recentActivity = auditLog.slice(0, 5)
 
+    const programNameById = new Map(programs.map((p) => [p.id, p.name]))
     const topCourses: TopCourse[] = [...courses]
       .map((c) => ({
         id: c.id,
         name: c.name,
-        programName: c.programName,
+        programName: programNameById.get(c.programId) ?? '',
         enrollmentCount: courseEnrollmentCounts.get(c.id) ?? 0,
       }))
       .sort((a, b) => b.enrollmentCount - a.enrollmentCount)
@@ -114,5 +116,5 @@ export function useDashboardStats(): DashboardStats {
       courses,
       deltas,
     }
-  }, [students, courses, enrollments, certificates, tcuActivities, attendance, auditLog])
+  }, [students, courses, programs, enrollments, certificates, tcuActivities, attendance, auditLog])
 }

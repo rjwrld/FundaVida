@@ -236,11 +236,14 @@
     "form": {
       "editTitle": "Edit course",
       "fields": {
+        "capacity": "Capacity",
         "description": "Description",
+        "level": "Level",
         "meetingDays": "Meeting days",
         "name": "Course name",
-        "programName": "Program",
+        "programId": "Program",
         "sede": "Campus",
+        "status": "Status",
         "teacherId": "Teacher",
         "termEnd": "Term end",
         "termStart": "Term start"
@@ -257,6 +260,11 @@
         "wed": "Wednesday"
       }
     },
+    "level": {
+      "both": "Primary & secondary",
+      "primaria": "Primary",
+      "secundaria": "Secondary"
+    },
     "list": {
       "addButton": "Add course",
       "columns": {
@@ -269,6 +277,10 @@
       "searchPlaceholder": "Search by name or program",
       "subtitle": "Catalog of courses offered across programs and campuses.",
       "title": "Courses"
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published"
     }
   },
   "dashboard": {
@@ -487,6 +499,7 @@
     "dashboard": "Dashboard",
     "enrollments": "Enrollments",
     "grades": "Grades",
+    "programs": "Programs",
     "reports": "Reports",
     "sections": {
       "people": "People",
@@ -500,6 +513,21 @@
   "notFound": {
     "subtitle": "We couldn't find that page.",
     "title": "404"
+  },
+  "programs": {
+    "detail": {
+      "backToList": "Back to catalog",
+      "coursesTitle": "Courses",
+      "eyebrow": "Program",
+      "loading": "Loading…",
+      "noCourses": "No courses in this program yet.",
+      "notFound": "Program not found."
+    },
+    "list": {
+      "empty": "No programs in the catalog yet.",
+      "subtitle": "The foundation's catalog of educational programs.",
+      "title": "Programs"
+    }
   },
   "reports": {
     "attendanceHeatmap": {
@@ -602,8 +630,8 @@
         "X": "Other"
       },
       "level": {
-        "Primary": "Primary",
-        "Secondary": "Secondary"
+        "primaria": "Primary",
+        "secundaria": "Secondary"
       },
       "newTitle": "New student"
     },

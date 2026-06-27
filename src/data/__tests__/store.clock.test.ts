@@ -60,7 +60,7 @@ describe('store writes stamp timestamps from the clock, not wall-time (ADR-0014)
       sede: 'Linda Vista',
       province: 'San José',
       canton: 'Central',
-      educationalLevel: 'primary',
+      educationalLevel: 'primaria',
     }).id
   }
 
@@ -73,7 +73,7 @@ describe('store writes stamp timestamps from the clock, not wall-time (ADR-0014)
       sede: 'Linda Vista',
       province: 'San José',
       canton: 'Central',
-      educationalLevel: 'secondary',
+      educationalLevel: 'secundaria',
     })
     expect(student.createdAt).toBe(FROZEN_ISO)
     expect(useStore.getState().auditLog[0]?.timestamp).toBe(FROZEN_ISO)

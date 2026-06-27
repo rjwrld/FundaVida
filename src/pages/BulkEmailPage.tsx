@@ -38,6 +38,7 @@ export function BulkEmailPage() {
   const { formatDateTime, formatNumber } = useFormat()
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
+  const programs = useStore((s) => s.programs)
   const enrollments = useStore((s) => s.enrollments)
   const { data: history = [] } = useEmailCampaigns()
   const send = useSendEmailCampaign()
@@ -67,10 +68,13 @@ export function BulkEmailPage() {
     [filter, students, courses, enrollments]
   )
 
-  const programNames = useMemo(
-    () => Array.from(new Set(courses.map((c) => c.programName))),
-    [courses]
-  )
+  const programById = useMemo(() => new Map(programs.map((p) => [p.id, p])), [programs])
+  // Only Programs that actually have a cohort behind them are targetable; the
+  // filter stores the Program id (ADR-0015) while the option shows its name.
+  const programOptions = useMemo(() => {
+    const usedIds = Array.from(new Set(courses.map((c) => c.programId)))
+    return usedIds.map((id) => programById.get(id)).filter((p) => p !== undefined)
+  }, [courses, programById])
   const provinceNames = useMemo(
     () => Array.from(new Set(students.map((s) => s.province))).sort(),
     [students]
@@ -145,9 +149,9 @@ export function BulkEmailPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {filterKind === 'program' &&
-                        programNames.map((p) => (
-                          <SelectItem key={p} value={p}>
-                            {p}
+                        programOptions.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.name}
                           </SelectItem>
                         ))}
                       {filterKind === 'province' &&
@@ -207,7 +211,13 @@ export function BulkEmailPage() {
                     <TableCell>{c.subject}</TableCell>
                     <TableCell>
                       {t(`bulkEmail.filter.${c.filter.kind}`)}
-                      {c.filter.value ? `: ${c.filter.value}` : ''}
+                      {c.filter.value
+                        ? `: ${
+                            c.filter.kind === 'program'
+                              ? (programById.get(c.filter.value)?.name ?? c.filter.value)
+                              : c.filter.value
+                          }`
+                        : ''}
                     </TableCell>
                     <TableCell className="text-right">
                       {formatNumber(c.recipientIds.length)}

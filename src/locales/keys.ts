@@ -16,6 +16,7 @@ t('nav.sections.reports')
 // Keys referenced via NAV_ITEMS[].labelKey in AppSidebar
 t('nav.dashboard')
 t('nav.calendar')
+t('nav.programs')
 t('nav.students')
 t('nav.teachers')
 t('nav.enrollments')
@@ -53,8 +54,17 @@ t('students.form.gender.M')
 t('students.form.gender.X')
 
 // Keys referenced dynamically via t(`students.form.level.${value}`)
-t('students.form.level.Primary')
-t('students.form.level.Secondary')
+t('students.form.level.primaria')
+t('students.form.level.secundaria')
+
+// Keys referenced dynamically via t(`courses.level.${level}`)
+t('courses.level.primaria')
+t('courses.level.secundaria')
+t('courses.level.both')
+
+// Keys referenced dynamically via t(`courses.status.${status}`)
+t('courses.status.draft')
+t('courses.status.published')
 
 // Keys referenced dynamically via t(`attendance.list.status.${status}`)
 t('attendance.list.status.present')

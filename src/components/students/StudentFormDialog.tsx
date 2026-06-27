@@ -48,7 +48,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
       sede: '' as StudentFormValues['sede'],
       province: '',
       canton: '',
-      educationalLevel: 'Primary',
+      educationalLevel: 'primaria',
     },
   })
 

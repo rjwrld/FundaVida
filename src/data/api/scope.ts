@@ -3,6 +3,7 @@ import type {
   Student,
   Teacher,
   Course,
+  Program,
   Enrollment,
   Grade,
   Certificate,
@@ -27,8 +28,12 @@ import { useStore } from '../store'
  * - 'enrolled' → filtered by userId's enrollments (students see courses they're enrolled in)
  * - 'self' → filtered by userId as trainee/owner (e.g., tcu activities where traineeId === userId)
  * - 'none' → always return empty array
+ *
+ * The Program catalog is org-wide and read-only: every role's token is 'all'
+ * (ADR-0015), handled by the generic 'all' branch below.
  */
 
+type ProgramList = Program[]
 type StudentList = Student[]
 type TeacherList = Teacher[]
 type CourseList = Course[]
@@ -67,6 +72,10 @@ export function applyScope<T extends keyof ScopeFilters>(
   }
 
   switch (resource) {
+    case 'programs':
+      // The only non-'all'/'none' path is unreachable (every role is 'all'); a
+      // narrowed token defensively yields an empty catalog.
+      return applyProgramsScope(items as ProgramList, token) as ScopeFilters[T]
     case 'students':
       return applyStudentsScope(items as StudentList, token, userId) as ScopeFilters[T]
     case 'teachers':
@@ -96,6 +105,7 @@ export function applyScope<T extends keyof ScopeFilters>(
 }
 
 interface ScopeFilters {
+  programs: ProgramList
   students: StudentList
   teachers: TeacherList
   courses: CourseList
@@ -107,6 +117,15 @@ interface ScopeFilters {
   emailCampaigns: EmailCampaignList
   tcu: TcuList
   trainees: TraineeList
+}
+
+function applyProgramsScope(_programs: ProgramList, token: Scope): ProgramList {
+  switch (token) {
+    // 'all' never reaches here (short-circuited above); any narrowed token means
+    // the catalog is not visible, so return empty.
+    default:
+      return []
+  }
 }
 
 function applyStudentsScope(students: StudentList, token: Scope, userId: string): StudentList {

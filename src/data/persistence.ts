@@ -1,24 +1,27 @@
 import type { SeedSnapshot } from './seed'
 import { WEEKDAYS, type Role, type Weekday } from '@/types'
 import { SEDES, type Sede } from '@/constants/sede'
+import { COURSE_LEVELS, COURSE_STATUSES } from '@/constants/course'
 
-const STATE_KEY = 'fundavida:v3:state'
+const STATE_KEY = 'fundavida:v4:state'
 const ROLE_KEY = 'fundavida:v2:role'
 
-// Stale pre-v3 snapshot keys this layer owns. They are not migrated (ADR-0003,
+// Stale pre-v4 snapshot keys this layer owns. They are not migrated (ADR-0003,
 // ADR-0014): they are removed on first load so the app reseeds cleanly at a
-// fresh Demo Epoch instead of rehydrating an incoherent older world. The v2
-// state snapshot predates the explicit `demoEpoch` scalar, so the v3 key bump
-// makes it stale and it joins this list. Only keys this module owns are listed —
-// UI preferences such as theme and banner-dismissed belong to other modules and
-// must survive a reseed, so they are deliberately left untouched. The v2 role,
-// current-user, and locale keys are unchanged by this slice and stay in use.
+// fresh Demo Epoch instead of rehydrating an incoherent older world. The v3
+// state snapshot predates the Program entity and the new Course/Enrollment/TCU
+// fields (ADR-0015/0016/0017), so the v4 key bump makes it stale and it joins
+// this list. Only keys this module owns are listed — UI preferences such as
+// theme and banner-dismissed belong to other modules and must survive a reseed,
+// so they are deliberately left untouched. The v2 role, current-user, and locale
+// keys are unchanged by this slice and stay in use.
 const LEGACY_SNAPSHOT_KEYS = [
   'fundavida:v1:state',
   'fundavida:v1:role',
   'fundavida:v1:current-user',
   'fundavida:v1:locale',
   'fundavida:v2:state',
+  'fundavida:v3:state',
 ]
 
 export type PersistedState = SeedSnapshot
@@ -42,6 +45,7 @@ function isValidSnapshot(value: unknown): value is PersistedState {
   if (typeof v.demoEpoch !== 'string') return false
 
   if (
+    !Array.isArray(v.programs) ||
     !Array.isArray(v.students) ||
     !Array.isArray(v.teachers) ||
     !Array.isArray(v.courses) ||
@@ -55,6 +59,22 @@ function isValidSnapshot(value: unknown): value is PersistedState {
     !Array.isArray(v.emailCampaigns)
   ) {
     return false
+  }
+
+  // Every Program is the catalog shape (ADR-0015): a stable id and Spanish
+  // name/description strings. A pre-Program (v3) snapshot lacks this array
+  // entirely and is rejected above.
+  const programs = v.programs as unknown[]
+  for (const program of programs) {
+    if (!program || typeof program !== 'object') return false
+    const p = program as Record<string, unknown>
+    if (
+      typeof p.id !== 'string' ||
+      typeof p.name !== 'string' ||
+      typeof p.description !== 'string'
+    ) {
+      return false
+    }
   }
 
   // Every course must have term (with start and end strings) and meetingDays (array)
@@ -78,6 +98,14 @@ function isValidSnapshot(value: unknown): value is PersistedState {
     // the app reseeds at a fresh Sede-valued world rather than rendering blanks
     // (ADR-0003, ADR-0011).
     if (!SEDES.includes(c.sede as Sede)) return false
+
+    // A pre-Program (v3) Course carries `programName` and no `programId`, level,
+    // status, or capacity; reject it so the app reseeds at a fresh v4 world
+    // rather than rendering a catalog that cannot resolve (ADR-0015/0016).
+    if (typeof c.programId !== 'string') return false
+    if (!COURSE_LEVELS.includes(c.level as (typeof COURSE_LEVELS)[number])) return false
+    if (!COURSE_STATUSES.includes(c.status as (typeof COURSE_STATUSES)[number])) return false
+    if (typeof c.capacity !== 'number') return false
   }
 
   // Teacher and Student each gained a required Sede; an old snapshot lacking it

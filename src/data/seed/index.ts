@@ -4,9 +4,11 @@ import type {
   Student,
   Teacher,
   Course,
+  CourseLevel,
   Enrollment,
   Grade,
   Certificate,
+  Program,
   TcuActivity,
   TcuTrainee,
   AttendanceRecord,
@@ -18,7 +20,8 @@ import type {
 import { sessionsFor } from '@/lib/sessions'
 import { PASSING_SCORE } from '@/lib/certificates'
 import { resolveRecipients } from '@/lib/emailRecipients'
-import { PROGRAMS } from '@/constants/course'
+import { PROGRAM_CATALOG } from '@/constants/programs'
+import { UNIVERSITIES, type University } from '@/constants/university'
 import { SEDES, type Sede } from '@/constants/sede'
 import { EDUCATIONAL_LEVELS, GENDERS, PROVINCES } from '@/constants/student'
 
@@ -29,6 +32,7 @@ export interface SeedSnapshot {
   // clock for a later date-travel feature; we ship frozen, so it starts at 0.
   demoEpoch: string
   offset: number
+  programs: Program[]
   students: Student[]
   teachers: Teacher[]
   courses: Course[]
@@ -63,6 +67,22 @@ const MEETING_DAY_PATTERNS: Weekday[][] = [
   ['tue', 'thu', 'fri'],
   ['mon', 'wed'],
   ['tue', 'thu'],
+]
+
+// The schooling stage each Course targets (ADR-0016), aligned with planCourses
+// order. The teacher persona's two Courses (indices 0 and 2) are 'both' so the
+// persona's Student (stu-1, of either level) always qualifies — the golden-path
+// runway. The rest mix primaria / secundaria / both so every Sede has at least
+// one Course a Student of each level may join (keeps seeded enrollments valid).
+const COURSE_LEVEL_PATTERN: CourseLevel[] = [
+  'both',
+  'secundaria',
+  'both',
+  'primaria',
+  'secundaria',
+  'both',
+  'secundaria',
+  'both',
 ]
 
 const TCU_ACTIVITY_TITLES = [
@@ -163,14 +183,25 @@ function buildCourses(epoch: Date, plans: CoursePlan[], teachers: Teacher[]): Co
     const created = subDays(termStart, faker.number.int({ min: 7, max: 30 }))
     const createdAt = (created > epoch ? subDays(startOfDay(epoch), 1) : created).toISOString()
     const teacherId = `tea-${plan.teacherIndex + 1}`
+    // Each Course is one cohort of a Program (ADR-0015), referenced by id. With
+    // eight Courses and eight Programs the mapping is 1:1, so every Program has a
+    // cohort behind it (no empty catalog detail pages). Names and descriptions
+    // are Spanish-only catalog content sourced from the Program.
+    const program = PROGRAM_CATALOG[i % PROGRAM_CATALOG.length] as Program
     return {
       id: `cou-${i + 1}`,
-      name: `${PROGRAMS[i % PROGRAMS.length]} ${i + 1}`,
-      description: faker.lorem.sentence(),
+      name: `${program.name} ${i + 1}`,
+      description: program.description,
       // A Course is taught at its Teacher's Sede (ADR-0011) — never assigned
       // independently, so the Course↔Teacher Sede invariant holds by construction.
       sede: sedeByTeacherId.get(teacherId) as Sede,
-      programName: PROGRAMS[i % PROGRAMS.length] as string,
+      programId: program.id,
+      level: COURSE_LEVEL_PATTERN[i] as CourseLevel,
+      // Seeded cohorts are real, running classes — all published. Drafts arrive
+      // with the teacher-authoring workflow (ADR-0016), a later slice.
+      status: 'published',
+      // Seat cap (ADR-0016) sits comfortably above the seeded roster sizes.
+      capacity: 20 + (i % 3) * 5,
       teacherId,
       term: { start: termStart.toISOString(), end: termEnd.toISOString() },
       meetingDays: MEETING_DAY_PATTERNS[i] as Weekday[],
@@ -227,9 +258,12 @@ function buildEnrollments(epoch: Date, students: Student[], courses: Course[]): 
   let counter = 0
 
   students.forEach((student, si) => {
-    // A Student may only enrol in Courses at their own Sede (ADR-0011). The
-    // persona (stu-1) shares tea-1's Sede, so the persona's Courses qualify.
-    const sameSedeCourseIds = courses.filter((c) => c.sede === student.sede).map((c) => c.id)
+    // A Student may only enrol in Courses at their own Sede (ADR-0011) and whose
+    // Level matches theirs or is 'both' (ADR-0016). The persona (stu-1) shares
+    // tea-1's Sede and tea-1's Courses are 'both', so the persona's Courses qualify.
+    const isEligible = (c: Course) =>
+      c.sede === student.sede && (c.level === 'both' || c.level === student.educationalLevel)
+    const eligibleCourseIds = courses.filter(isEligible).map((c) => c.id)
     const isRecentJoiner = si >= students.length - RECENT_JOINER_COUNT
     let courseIds: string[]
     if (si === 0) {
@@ -239,15 +273,15 @@ function buildEnrollments(epoch: Date, students: Student[], courses: Course[]): 
       // they never accrue attendance or grades dated before they existed.
       courseIds = courses
         .filter(
-          (c) =>
-            c.sede === student.sede &&
-            startOfDay(new Date(c.term.start)).getTime() > epochDay.getTime()
+          (c) => isEligible(c) && startOfDay(new Date(c.term.start)).getTime() > epochDay.getTime()
         )
         .map((c) => c.id)
+    } else if (eligibleCourseIds.length === 0) {
+      courseIds = []
     } else {
       courseIds = faker.helpers.arrayElements(
-        sameSedeCourseIds,
-        faker.number.int({ min: 1, max: Math.min(3, sameSedeCourseIds.length) })
+        eligibleCourseIds,
+        faker.number.int({ min: 1, max: Math.min(3, eligibleCourseIds.length) })
       )
     }
 
@@ -259,11 +293,19 @@ function buildEnrollments(epoch: Date, students: Student[], courses: Course[]): 
       let enrolledAt = subDays(termStart, faker.number.int({ min: 0, max: 14 }))
       if (enrolledAt < created) enrolledAt = created
       if (enrolledAt > epochDay) enrolledAt = epochDay
+      const enrolledAtIso = enrolledAt.toISOString()
+      // Seeded enrollments represent students already in their cohorts, so they
+      // are 'approved' (ADR-0016): an admin decided them at enrollment time. The
+      // pending → approved/rejected workflow lands in a later slice.
       enrollments.push({
         id: `enr-${(counter += 1)}`,
         studentId: student.id,
         courseId,
-        enrolledAt: enrolledAt.toISOString(),
+        enrolledAt: enrolledAtIso,
+        status: 'approved',
+        requestedAt: enrolledAtIso,
+        decidedBy: 'admin',
+        decidedAt: enrolledAtIso,
       })
     })
   })
@@ -487,7 +529,9 @@ function buildEmailCampaigns(
     throw new Error('buildEmailCampaigns requires at least one seeded course and student')
   }
   // A real Program with a real cohort behind it (the persona's completed Course).
-  const program = firstCourse.programName
+  // The filter targets it by id (ADR-0015); the subject/body show its Spanish name.
+  const programId = firstCourse.programId
+  const programName = PROGRAM_CATALOG.find((p) => p.id === programId)?.name ?? programId
   const province = firstStudent.province
 
   const specs: {
@@ -506,9 +550,9 @@ function buildEmailCampaigns(
     },
     {
       id: 'cam-2',
-      subject: `${program} program: upcoming session`,
-      body: `${program} students — a reminder about your upcoming sessions and what to bring.`,
-      filter: { kind: 'program', value: program },
+      subject: `${programName} program: upcoming session`,
+      body: `${programName} students — a reminder about your upcoming sessions and what to bring.`,
+      filter: { kind: 'program', value: programId },
       weeksAgo: 4,
     },
     {
@@ -536,42 +580,44 @@ function buildEmailCampaigns(
  * community-service requirement at the foundation. Seeded with realistic
  * partial progress toward the goal, anchored to the Demo Epoch (ADR-0002).
  * The seeded TCU persona ('tcu-1') is always among them.
+ *
+ * Each volunteer is assigned to exactly one Course and shares its Sede
+ * (ADR-0017); with four volunteers across distinct Courses, no Course exceeds
+ * the three-volunteer cap. Universities are Spanish proper nouns.
  */
-function buildTcuTrainees(epoch: Date): TcuTrainee[] {
-  const traineeSedes = SEDES.slice(0, 2) // Use first two sedes for variety
-  const trainees: TcuTrainee[] = [
-    {
-      id: 'tcu-1', // The seeded TCU persona
+function buildTcuTrainees(epoch: Date, courses: Course[]): TcuTrainee[] {
+  const count = 4
+  return Array.from({ length: count }, (_, i) => {
+    // Distinct Course per volunteer (i < courses.length), so the cap holds and
+    // the volunteer's Sede follows the Course's.
+    const course = courses[i % courses.length] as Course
+    const university = UNIVERSITIES[i % UNIVERSITIES.length] as University
+    return {
+      id: `tcu-${i + 1}`, // tcu-1 is the seeded TCU persona
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
       email: faker.internet.email().toLowerCase(),
-      sede: traineeSedes[0] as Sede,
-      createdAt: subDays(epoch, faker.number.int({ min: 30, max: 180 })).toISOString(),
-    },
-  ]
-
-  // Add 3-4 more trainees for admin to see
-  for (let i = 0; i < 3; i += 1) {
-    trainees.push({
-      id: `tcu-${i + 2}`,
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
-      email: faker.internet.email().toLowerCase(),
-      sede: traineeSedes[i % traineeSedes.length] as Sede,
-      createdAt: subDays(epoch, faker.number.int({ min: 60, max: 210 })).toISOString(),
-    })
-  }
-
-  return trainees
+      sede: course.sede,
+      university: university.name,
+      courseId: course.id,
+      createdAt: subDays(epoch, faker.number.int({ min: 30, max: 210 })).toISOString(),
+    }
+  })
 }
 
 /**
  * Community-service activities logged by TCU Trainees, dated within the year
  * before the epoch. Each trainee has a mix of activities with realistic
  * partial progress toward the 300-hour requirement.
+ *
+ * A logged activity is `pending` until the assigned Course's Teacher approves
+ * it (ADR-0017). The seed mirrors that story: each trainee's most recent
+ * activity stays pending (a queue for the Teacher), the rest are approved by the
+ * trainee's assigned-Course Teacher.
  */
-function buildTcuActivities(epoch: Date, trainees: TcuTrainee[]): TcuActivity[] {
+function buildTcuActivities(epoch: Date, trainees: TcuTrainee[], courses: Course[]): TcuActivity[] {
   const epochDay = startOfDay(epoch)
+  const courseById = new Map(courses.map((c) => [c.id, c]))
   const activities: TcuActivity[] = []
   let counter = 0
 
@@ -582,22 +628,45 @@ function buildTcuActivities(epoch: Date, trainees: TcuTrainee[]): TcuActivity[] 
     const targetHours = isPersona ? 220 : faker.number.int({ min: 80, max: 180 })
     let accumulatedHours = 0
 
+    // The persona logs longer sessions so its progress reads clearly "well under
+    // way" (comfortably above zero, still short of 300); others log shorter ones.
+    const hoursRange = isPersona ? { min: 8, max: 16 } : { min: 2, max: 8 }
+    const traineeActivities: TcuActivity[] = []
     for (let i = 0; i < maxActivitiesPerTrainee && accumulatedHours < targetHours; i += 1) {
       const hoursForThisActivity = Math.min(
-        faker.number.int({ min: 2, max: 8 }),
+        faker.number.int(hoursRange),
         targetHours - accumulatedHours
       )
       accumulatedHours += hoursForThisActivity
 
       const index = (counter += 1)
-      activities.push({
+      traineeActivities.push({
         id: `tcu-act-${index}`,
         traineeId: trainee.id,
         title: faker.helpers.arrayElement(TCU_ACTIVITY_TITLES),
         hours: hoursForThisActivity,
         date: subDays(epochDay, faker.number.int({ min: 7, max: 330 })).toISOString(),
+        status: 'pending',
       })
     }
+
+    // The assigned Course's Teacher approves the work (ADR-0017). Leave the most
+    // recent activity pending so the Teacher's approval queue is non-empty.
+    const approver = courseById.get(trainee.courseId)?.teacherId ?? 'admin'
+    const byDateAsc = [...traineeActivities].sort((a, b) =>
+      a.date < b.date ? -1 : a.date > b.date ? 1 : 0
+    )
+    const approvedCutoff = Math.max(0, byDateAsc.length - 1)
+    byDateAsc.forEach((activity, i) => {
+      if (i >= approvedCutoff) return
+      let approvedAt = addDays(new Date(activity.date), faker.number.int({ min: 1, max: 7 }))
+      if (approvedAt > epochDay) approvedAt = epochDay
+      activity.status = 'approved'
+      activity.approvedBy = approver
+      activity.approvedAt = approvedAt.toISOString()
+    })
+
+    activities.push(...traineeActivities)
   })
 
   return activities
@@ -648,8 +717,8 @@ export function seedDemo(epoch: Date): SeedSnapshot {
     throw new Error('seed plan must include exactly one just-ended course')
   }
   const grades = buildGrades(epoch, enrollments, courses, goldenPathCourse.id)
-  const tcuTrainees = buildTcuTrainees(epoch)
-  const tcuActivities = buildTcuActivities(epoch, tcuTrainees)
+  const tcuTrainees = buildTcuTrainees(epoch, courses)
+  const tcuActivities = buildTcuActivities(epoch, tcuTrainees, courses)
 
   const auditLog = buildAuditLog({ teachers, students, courses, enrollments, grades })
   const emailCampaigns = buildEmailCampaigns(epoch, students, courses, enrollments)
@@ -657,6 +726,9 @@ export function seedDemo(epoch: Date): SeedSnapshot {
   return {
     demoEpoch: epoch.toISOString(),
     offset: 0,
+    // The fixed program catalog (ADR-0015) — read-only, org-wide, part of the
+    // persisted shape so a Course's programId always resolves.
+    programs: PROGRAM_CATALOG.map((p) => ({ ...p })),
     teachers,
     courses,
     students,

@@ -10,8 +10,9 @@ export function resolveRecipients(filter: EmailFilter, input: RecipientInput): S
   const { students, courses, enrollments } = input
   if (filter.kind === 'all') return students
   if (filter.kind === 'program' && filter.value) {
+    // The program filter targets a Program by id (ADR-0015); value is a programId.
     const programCourseIds = new Set(
-      courses.filter((c) => c.programName === filter.value).map((c) => c.id)
+      courses.filter((c) => c.programId === filter.value).map((c) => c.id)
     )
     const enrolledStudentIds = new Set(
       enrollments.filter((e) => programCourseIds.has(e.courseId)).map((e) => e.studentId)

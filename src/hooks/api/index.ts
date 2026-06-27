@@ -1,5 +1,6 @@
 export * from './students'
 export * from './courses'
+export * from './programs'
 export * from './teachers'
 export * from './enrollments'
 export * from './grades'

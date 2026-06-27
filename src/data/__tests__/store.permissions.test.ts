@@ -29,7 +29,7 @@ describe('store permission guards', () => {
           sede: 'Linda Vista',
           province: 'San Jose',
           canton: 'San Jose',
-          educationalLevel: 'high',
+          educationalLevel: 'primaria',
         })
       }).toThrow()
 
@@ -264,7 +264,10 @@ describe('store permission guards', () => {
           name: 'Hacked',
           description: 'Nope',
           sede: 'Linda Vista',
-          programName: 'Program',
+          programId: 'prog-1',
+          level: 'both',
+          status: 'published',
+          capacity: 20,
           teacherId: 'tea-1',
           term: {
             start: '2026-01-01T00:00:00.000Z',

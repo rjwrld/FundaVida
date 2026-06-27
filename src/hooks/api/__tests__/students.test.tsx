@@ -59,7 +59,7 @@ describe('useCreateStudent', () => {
       sede: 'Linda Vista' as const,
       province: 'Province1',
       canton: 'Canton1',
-      educationalLevel: 'Primary',
+      educationalLevel: 'primaria' as const,
     }
 
     result.current.mutate(newStudent)
@@ -90,7 +90,7 @@ describe('useCreateStudent', () => {
       sede: 'Linda Vista' as const,
       province: 'Province1',
       canton: 'Canton1',
-      educationalLevel: 'Primary',
+      educationalLevel: 'primaria' as const,
     }
 
     result.current.mutate(newStudent)

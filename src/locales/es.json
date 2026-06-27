@@ -237,11 +237,14 @@
     "form": {
       "editTitle": "Editar curso",
       "fields": {
+        "capacity": "Cupo",
         "description": "Descripción",
+        "level": "Nivel",
         "meetingDays": "Días de reunión",
         "name": "Nombre del curso",
-        "programName": "Programa",
+        "programId": "Programa",
         "sede": "Sede",
+        "status": "Estado",
         "teacherId": "Docente",
         "termEnd": "Fin del semestre",
         "termStart": "Inicio del semestre"
@@ -258,6 +261,11 @@
         "wed": "Miércoles"
       }
     },
+    "level": {
+      "both": "Primaria y secundaria",
+      "primaria": "Primaria",
+      "secundaria": "Secundaria"
+    },
     "list": {
       "addButton": "Agregar curso",
       "columns": {
@@ -270,6 +278,10 @@
       "searchPlaceholder": "Buscar por nombre o programa",
       "subtitle": "Catálogo de cursos ofrecidos en los programas y sedes.",
       "title": "Cursos"
+    },
+    "status": {
+      "draft": "Borrador",
+      "published": "Publicado"
     }
   },
   "dashboard": {
@@ -491,6 +503,7 @@
     "dashboard": "Panel",
     "enrollments": "Matrículas",
     "grades": "Calificaciones",
+    "programs": "Programas",
     "reports": "Reportes",
     "sections": {
       "people": "Personas",
@@ -504,6 +517,21 @@
   "notFound": {
     "subtitle": "No pudimos encontrar esa página.",
     "title": "404"
+  },
+  "programs": {
+    "detail": {
+      "backToList": "Volver al catálogo",
+      "coursesTitle": "Cursos",
+      "eyebrow": "Programa",
+      "loading": "Cargando…",
+      "noCourses": "Este programa aún no tiene cursos.",
+      "notFound": "Programa no encontrado."
+    },
+    "list": {
+      "empty": "El catálogo aún no tiene programas.",
+      "subtitle": "El catálogo de programas educativos de la fundación.",
+      "title": "Programas"
+    }
   },
   "reports": {
     "attendanceHeatmap": {
@@ -606,8 +634,8 @@
         "X": "Otro"
       },
       "level": {
-        "Primary": "Primaria",
-        "Secondary": "Secundaria"
+        "primaria": "Primaria",
+        "secundaria": "Secundaria"
       },
       "newTitle": "Nuevo estudiante"
     },

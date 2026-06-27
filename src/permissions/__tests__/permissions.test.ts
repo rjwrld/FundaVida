@@ -8,6 +8,16 @@ describe('Permissions Matrix', () => {
     // Exhaustive role × resource × action truth table
     const truthTable: Record<Role, Record<Resource, Partial<Record<Action, boolean | string>>>> = {
       admin: {
+        programs: {
+          view: true,
+          create: false,
+          edit: false,
+          delete: false,
+          approve: false,
+          mark: false,
+          log: false,
+          enter: false,
+        },
         students: {
           view: true,
           create: true,
@@ -120,6 +130,16 @@ describe('Permissions Matrix', () => {
         },
       },
       teacher: {
+        programs: {
+          view: true,
+          create: false,
+          edit: false,
+          delete: false,
+          approve: false,
+          mark: false,
+          log: false,
+          enter: false,
+        },
         students: {
           view: true,
           create: false,
@@ -232,6 +252,16 @@ describe('Permissions Matrix', () => {
         },
       },
       student: {
+        programs: {
+          view: true,
+          create: false,
+          edit: false,
+          delete: false,
+          approve: false,
+          mark: false,
+          log: false,
+          enter: false,
+        },
         students: {
           view: false,
           create: false,
@@ -344,6 +374,16 @@ describe('Permissions Matrix', () => {
         },
       },
       tcu: {
+        programs: {
+          view: true,
+          create: false,
+          edit: false,
+          delete: false,
+          approve: false,
+          mark: false,
+          log: false,
+          enter: false,
+        },
         students: {
           view: false,
           create: false,
@@ -460,6 +500,7 @@ describe('Permissions Matrix', () => {
     // Test all cells explicitly
     const roles: Role[] = ['admin', 'teacher', 'student', 'tcu']
     const resources: Resource[] = [
+      'programs',
       'students',
       'teachers',
       'courses',
@@ -522,7 +563,10 @@ describe('Permissions Matrix', () => {
             name: 'Math 101',
             description: 'Advanced calculus',
             sede: 'Linda Vista',
-            programName: 'Science',
+            programId: 'prog-1',
+            level: 'both',
+            status: 'published',
+            capacity: 20,
             teacherId: 'teacher-1',
             term: {
               start: '2025-01-01T00:00:00.000Z',
@@ -543,7 +587,10 @@ describe('Permissions Matrix', () => {
             name: 'Math 101',
             description: 'Advanced calculus',
             sede: 'Linda Vista',
-            programName: 'Science',
+            programId: 'prog-1',
+            level: 'both',
+            status: 'published',
+            capacity: 20,
             teacherId: 'teacher-1',
             term: {
               start: '2025-01-01T00:00:00.000Z',
@@ -564,7 +611,10 @@ describe('Permissions Matrix', () => {
             name: 'Math 101',
             description: 'Advanced calculus',
             sede: 'Linda Vista',
-            programName: 'Science',
+            programId: 'prog-1',
+            level: 'both',
+            status: 'published',
+            capacity: 20,
             teacherId: 'teacher-2', // different teacher
             term: {
               start: '2025-01-01T00:00:00.000Z',
@@ -585,7 +635,10 @@ describe('Permissions Matrix', () => {
             name: 'Math 101',
             description: 'Advanced calculus',
             sede: 'Linda Vista',
-            programName: 'Science',
+            programId: 'prog-1',
+            level: 'both',
+            status: 'published',
+            capacity: 20,
             teacherId: 'teacher-1',
             term: {
               start: '2025-01-01T00:00:00.000Z',
@@ -606,7 +659,10 @@ describe('Permissions Matrix', () => {
             name: 'Math 101',
             description: 'Advanced calculus',
             sede: 'Linda Vista',
-            programName: 'Science',
+            programId: 'prog-1',
+            level: 'both',
+            status: 'published',
+            capacity: 20,
             teacherId: 'teacher-2', // different teacher
             term: {
               start: '2025-01-01T00:00:00.000Z',
@@ -627,7 +683,10 @@ describe('Permissions Matrix', () => {
             name: 'Math 101',
             description: 'Advanced calculus',
             sede: 'Linda Vista',
-            programName: 'Science',
+            programId: 'prog-1',
+            level: 'both',
+            status: 'published',
+            capacity: 20,
             teacherId: 'teacher-1',
             term: {
               start: '2025-01-01T00:00:00.000Z',
@@ -648,7 +707,10 @@ describe('Permissions Matrix', () => {
             name: 'Math 101',
             description: 'Advanced calculus',
             sede: 'Linda Vista',
-            programName: 'Science',
+            programId: 'prog-1',
+            level: 'both',
+            status: 'published',
+            capacity: 20,
             teacherId: 'teacher-2', // different teacher
             term: {
               start: '2025-01-01T00:00:00.000Z',
@@ -669,7 +731,10 @@ describe('Permissions Matrix', () => {
             name: 'Math 101',
             description: 'Advanced calculus',
             sede: 'Linda Vista',
-            programName: 'Science',
+            programId: 'prog-1',
+            level: 'both',
+            status: 'published',
+            capacity: 20,
             teacherId: 'teacher-1',
             term: {
               start: '2025-01-01T00:00:00.000Z',
@@ -690,7 +755,10 @@ describe('Permissions Matrix', () => {
             name: 'Math 101',
             description: 'Advanced calculus',
             sede: 'Linda Vista',
-            programName: 'Science',
+            programId: 'prog-1',
+            level: 'both',
+            status: 'published',
+            capacity: 20,
             teacherId: 'teacher-2', // different teacher
             term: {
               start: '2025-01-01T00:00:00.000Z',
@@ -712,6 +780,7 @@ describe('Permissions Matrix', () => {
             title: 'Volunteer Work',
             hours: 10,
             date: '2025-06-01T00:00:00.000Z',
+            status: 'pending',
           },
         }
         expect(can('tcu', 'log', 'tcu', context)).toBe(true)
@@ -726,6 +795,7 @@ describe('Permissions Matrix', () => {
             title: 'Volunteer Work',
             hours: 10,
             date: '2025-06-01T00:00:00.000Z',
+            status: 'pending',
           },
         }
         expect(can('tcu', 'log', 'tcu', context)).toBe(false)
@@ -748,6 +818,7 @@ describe('Permissions Matrix', () => {
     it('admin has all scopes set to all', () => {
       const scopes = scopeFor('admin')
       expect(scopes).toEqual({
+        programs: 'all',
         students: 'all',
         teachers: 'all',
         courses: 'all',
@@ -765,6 +836,7 @@ describe('Permissions Matrix', () => {
     it('teacher has appropriate resource scopes', () => {
       const scopes = scopeFor('teacher')
       expect(scopes).toEqual({
+        programs: 'all',
         students: 'enrolledInOwnCourses',
         teachers: 'none',
         courses: 'own',
@@ -782,6 +854,7 @@ describe('Permissions Matrix', () => {
     it('student has appropriate resource scopes', () => {
       const scopes = scopeFor('student')
       expect(scopes).toEqual({
+        programs: 'all',
         students: 'none',
         teachers: 'none',
         courses: 'enrolled',
@@ -799,6 +872,7 @@ describe('Permissions Matrix', () => {
     it('tcu has self scope for tcu and none for everything else', () => {
       const scopes = scopeFor('tcu')
       expect(scopes).toEqual({
+        programs: 'all',
         students: 'none',
         teachers: 'none',
         courses: 'none',
@@ -810,6 +884,25 @@ describe('Permissions Matrix', () => {
         reports: 'none',
         bulkEmail: 'none',
         auditLog: 'none',
+      })
+    })
+  })
+
+  // The Program catalog is a read-only resource viewable by every role with an
+  // org-wide 'all' scope (ADR-0015). Locked down here for all four roles.
+  describe('programs resource (ADR-0015)', () => {
+    const allRoles: Role[] = ['admin', 'teacher', 'student', 'tcu']
+
+    allRoles.forEach((role) => {
+      it(`${role} may view programs but never create/edit/delete them`, () => {
+        expect(can(role, 'view', 'programs')).toBe(true)
+        expect(can(role, 'create', 'programs')).toBe(false)
+        expect(can(role, 'edit', 'programs')).toBe(false)
+        expect(can(role, 'delete', 'programs')).toBe(false)
+      })
+
+      it(`${role} reads the whole program catalog ('all' scope)`, () => {
+        expect(scopeFor(role).programs).toBe('all')
       })
     })
   })
@@ -832,7 +925,10 @@ describe('courseOwnedAndEnded reads the frozen clock, not wall-time (ADR-0014)',
         name: 'Math 101',
         description: '',
         sede: 'Linda Vista',
-        programName: 'Science',
+        programId: 'prog-1',
+        level: 'both',
+        status: 'published',
+        capacity: 20,
         teacherId: 'teacher-1',
         term: { start: '2019-01-01T00:00:00.000Z', end },
         meetingDays: ['mon', 'wed'],

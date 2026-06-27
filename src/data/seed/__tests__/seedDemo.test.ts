@@ -4,7 +4,8 @@ import { seedDemo } from '@/data/seed'
 import { dashboardStatDeltas, TRAILING_WINDOW_DAYS } from '@/lib/stats'
 import { findSession, sessionsFor } from '@/lib/sessions'
 import { resolveRecipients } from '@/lib/emailRecipients'
-import { PROGRAMS } from '@/constants/course'
+import { PROGRAM_CATALOG } from '@/constants/programs'
+import { UNIVERSITIES } from '@/constants/university'
 import { SEDES } from '@/constants/sede'
 import { EDUCATIONAL_LEVELS, PROVINCES } from '@/constants/student'
 
@@ -243,14 +244,16 @@ describe('seedDemo — email campaigns reuse the Bulk Email recipient resolution
 
   it('only filters on programs that actually exist (no phantom Culinary)', () => {
     const world = seedDemo(EPOCH)
-    const programs = new Set(world.courses.map((c) => c.programName))
+    // A program filter targets a Program by id (ADR-0015); the id must be one a
+    // seeded Course actually runs.
+    const programIds = new Set(world.courses.map((c) => c.programId))
 
     world.emailCampaigns
       .filter((c) => c.filter.kind === 'program')
       .forEach((c) => {
         const value = c.filter.value
         expect(value).toBeDefined()
-        if (value) expect(programs.has(value)).toBe(true)
+        if (value) expect(programIds.has(value)).toBe(true)
       })
 
     expect(world.emailCampaigns.some((c) => c.filter.value === 'Culinary')).toBe(false)
@@ -375,13 +378,13 @@ describe('seedDemo — one Sede binds Course, Teacher, Student (ADR-0011)', () =
 })
 
 describe('seedDemo — vocabulary is sourced from the shared constants', () => {
-  it('draws every Course program from @/constants/course and sede from @/constants/sede', () => {
+  it('references a real Program by id for every Course, and draws sede from @/constants/sede', () => {
     const world = seedDemo(EPOCH)
-    const programs = new Set<string>(PROGRAMS)
+    const programIds = new Set(PROGRAM_CATALOG.map((p) => p.id))
     const sedes = new Set<string>(SEDES)
 
     world.courses.forEach((course) => {
-      expect(programs.has(course.programName)).toBe(true)
+      expect(programIds.has(course.programId)).toBe(true)
       expect(sedes.has(course.sede)).toBe(true)
     })
   })
@@ -420,5 +423,105 @@ describe('seedDemo — recent joiners create a real growth trend', () => {
     const windowStart = subDays(EPOCH, TRAILING_WINDOW_DAYS)
     const recent = world.students.filter((s) => new Date(s.createdAt) >= windowStart)
     expect(recent.length).toBeGreaterThan(0)
+  })
+})
+
+describe('seedDemo — Program catalog is a first-class entity (ADR-0015)', () => {
+  it('seeds the eight-program catalog', () => {
+    const world = seedDemo(EPOCH)
+    expect(world.programs).toHaveLength(PROGRAM_CATALOG.length)
+    expect(world.programs.map((p) => p.id).sort()).toEqual(PROGRAM_CATALOG.map((p) => p.id).sort())
+  })
+
+  it('gives every Course a programId that resolves to a seeded Program', () => {
+    const world = seedDemo(EPOCH)
+    const programIds = new Set(world.programs.map((p) => p.id))
+    world.courses.forEach((course) => {
+      expect(programIds.has(course.programId)).toBe(true)
+    })
+  })
+
+  it('gives every Program a Spanish name and description', () => {
+    const world = seedDemo(EPOCH)
+    world.programs.forEach((program) => {
+      expect(program.name.length).toBeGreaterThan(0)
+      expect(program.description.length).toBeGreaterThan(0)
+    })
+  })
+})
+
+describe('seedDemo — Course gains level, status, capacity (ADR-0016)', () => {
+  it('gives every Course a known level, a published status, and a positive capacity', () => {
+    const world = seedDemo(EPOCH)
+    world.courses.forEach((course) => {
+      expect(['primaria', 'secundaria', 'both']).toContain(course.level)
+      expect(course.status).toBe('published')
+      expect(course.capacity).toBeGreaterThan(0)
+    })
+  })
+
+  it('enrolls students only in Courses whose Level matches theirs or is both (ADR-0016)', () => {
+    const world = seedDemo(EPOCH)
+    const studentById = new Map(world.students.map((s) => [s.id, s]))
+    const courseById = new Map(world.courses.map((c) => [c.id, c]))
+
+    world.enrollments.forEach((enrollment) => {
+      const student = studentById.get(enrollment.studentId)
+      const course = courseById.get(enrollment.courseId)
+      expect(student).toBeDefined()
+      expect(course).toBeDefined()
+      if (!student || !course) return
+      expect(course.level === 'both' || course.level === student.educationalLevel).toBe(true)
+    })
+  })
+
+  it('marks every seeded enrollment approved with the lifecycle stamps', () => {
+    const world = seedDemo(EPOCH)
+    expect(world.enrollments.length).toBeGreaterThan(0)
+    world.enrollments.forEach((enrollment) => {
+      expect(enrollment.status).toBe('approved')
+      expect(enrollment.requestedAt).toBeTruthy()
+      expect(enrollment.decidedAt).toBeTruthy()
+      expect(enrollment.decidedBy).toBeTruthy()
+    })
+  })
+})
+
+describe('seedDemo — TCU volunteer is linked to a Course and a university (ADR-0017)', () => {
+  it('assigns every trainee a known university and a Course at their own Sede', () => {
+    const world = seedDemo(EPOCH)
+    const universityNames = new Set(UNIVERSITIES.map((u) => u.name))
+    const courseById = new Map(world.courses.map((c) => [c.id, c]))
+
+    world.tcuTrainees.forEach((trainee) => {
+      expect(universityNames.has(trainee.university)).toBe(true)
+      const course = courseById.get(trainee.courseId)
+      expect(course).toBeDefined()
+      expect(course?.sede).toBe(trainee.sede)
+    })
+  })
+
+  it('never assigns more than three volunteers to one Course', () => {
+    const world = seedDemo(EPOCH)
+    const perCourse = new Map<string, number>()
+    world.tcuTrainees.forEach((t) => {
+      perCourse.set(t.courseId, (perCourse.get(t.courseId) ?? 0) + 1)
+    })
+    perCourse.forEach((count) => expect(count).toBeLessThanOrEqual(3))
+  })
+
+  it('stamps approval metadata only on approved TCU activities', () => {
+    const world = seedDemo(EPOCH)
+    expect(world.tcuActivities.length).toBeGreaterThan(0)
+    world.tcuActivities.forEach((activity) => {
+      expect(['pending', 'approved']).toContain(activity.status)
+      if (activity.status === 'approved') {
+        expect(activity.approvedAt).toBeTruthy()
+        expect(activity.approvedBy).toBeTruthy()
+      } else {
+        expect(activity.approvedAt).toBeUndefined()
+        expect(activity.approvedBy).toBeUndefined()
+      }
+    })
   })
 })

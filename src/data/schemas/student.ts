@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { TFunction } from 'i18next'
 import { SEDES } from '@/constants/sede'
+import { EDUCATIONAL_LEVELS } from '@/constants/student'
 
 export function buildStudentSchema(t: TFunction) {
   return z.object({
@@ -25,7 +26,7 @@ export function buildStudentSchema(t: TFunction) {
     canton: z
       .string()
       .min(1, t('validation.required', { field: t('students.form.fields.canton') })),
-    educationalLevel: z.enum(['Primary', 'Secondary']),
+    educationalLevel: z.enum(EDUCATIONAL_LEVELS),
   })
 }
 
