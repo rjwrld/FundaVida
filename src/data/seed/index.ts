@@ -1,11 +1,12 @@
 import { faker } from '@faker-js/faker'
-import { addDays, addWeeks, startOfDay, subDays, subWeeks } from 'date-fns'
+import { addDays, addWeeks, differenceInDays, startOfDay, subDays, subWeeks } from 'date-fns'
 import type {
   Student,
   Teacher,
   Course,
   CourseLevel,
   Enrollment,
+  EnrollmentStatus,
   Grade,
   Certificate,
   Program,
@@ -23,7 +24,7 @@ import { resolveRecipients } from '@/lib/emailRecipients'
 import { PROGRAM_CATALOG } from '@/constants/programs'
 import { UNIVERSITIES, type University } from '@/constants/university'
 import { SEDES, type Sede } from '@/constants/sede'
-import { EDUCATIONAL_LEVELS, GENDERS, PROVINCES } from '@/constants/student'
+import { GENDERS, PROVINCES } from '@/constants/student'
 
 export interface SeedSnapshot {
   // The explicit Demo Epoch (ADR-0014): the frozen instant the clock reads as
@@ -67,22 +68,35 @@ const MEETING_DAY_PATTERNS: Weekday[][] = [
   ['tue', 'thu', 'fri'],
   ['mon', 'wed'],
   ['tue', 'thu'],
+  ['mon', 'wed'],
+  ['tue', 'thu'],
+  ['mon', 'wed', 'fri'],
+  ['tue', 'thu'],
+  ['mon', 'wed'],
+  ['tue', 'thu', 'fri'],
+  ['mon', 'wed'],
+  ['tue', 'thu'],
 ]
 
-// The schooling stage each Course targets (ADR-0016), aligned with planCourses
-// order. The teacher persona's two Courses (indices 0 and 2) are 'both' so the
-// persona's Student (stu-1, of either level) always qualifies — the golden-path
-// runway. The rest mix primaria / secundaria / both so every Sede has at least
-// one Course a Student of each level may join (keeps seeded enrollments valid).
+// 16 course templates (each runs at multiple sedes, creating 24 cohorts).
+// Teacher persona's courses (indices 0 and 4) are 'both' for golden-path.
 const COURSE_LEVEL_PATTERN: CourseLevel[] = [
-  'both',
-  'secundaria',
-  'both',
-  'primaria',
-  'secundaria',
-  'both',
-  'secundaria',
-  'both',
+  'both', // 0: completed, 3 sedes
+  'secundaria', // 1: completed
+  'secundaria', // 2: completed
+  'primaria', // 3: completed
+  'both', // 4: just-ended, 3 sedes (persona's golden-path)
+  'primaria', // 5: in-progress
+  'secundaria', // 6: in-progress
+  'secundaria', // 7: in-progress
+  'primaria', // 8: in-progress
+  'both', // 9: in-progress, 3 sedes
+  'primaria', // 10: in-progress
+  'secundaria', // 11: in-progress
+  'primaria', // 12: upcoming
+  'secundaria', // 13: upcoming
+  'both', // 14: upcoming, 3 sedes
+  'primaria', // 15: upcoming
 ]
 
 const TCU_ACTIVITY_TITLES = [
@@ -110,14 +124,14 @@ interface CoursePlan {
 }
 
 /**
- * The fixed cast of Courses, positioned relative to the Demo Epoch (ADR-0002):
- * two completed, one just-ended (owned by the teacher persona and left
- * ungraded), four in-progress, one upcoming. Anchored at local midnight so the
- * derived Session list aligns with the scheduling contract (ADR-0004).
+ * 16 course templates positioned relative to the Demo Epoch (ADR-0002).
+ * Distribution creates ~8 completed / ~10 in-progress / ~6 upcoming cohorts total.
+ * buildCourses runs these at 1–3 Sedes each to create 24 cohorts.
  */
 function planCourses(epoch: Date): CoursePlan[] {
   const day = startOfDay(epoch)
   return [
+    // Completed (indices 0-3)
     {
       role: 'completed',
       teacherIndex: 0,
@@ -130,32 +144,71 @@ function planCourses(epoch: Date): CoursePlan[] {
       termStart: subWeeks(day, 20),
       termEnd: subWeeks(day, 12),
     },
+    {
+      role: 'completed',
+      teacherIndex: 2,
+      termStart: subWeeks(day, 22),
+      termEnd: subWeeks(day, 14),
+    },
+    {
+      role: 'completed',
+      teacherIndex: 5,
+      termStart: subWeeks(day, 25),
+      termEnd: subWeeks(day, 17),
+    },
+
+    // Just-ended (index 4, persona's golden-path course)
     { role: 'just-ended', teacherIndex: 0, termStart: subWeeks(day, 14), termEnd: subDays(day, 8) },
+
+    // In-progress (indices 5-11)
     {
       role: 'in-progress',
-      teacherIndex: 2,
+      teacherIndex: 3,
+      termStart: subWeeks(day, 18),
+      termEnd: subWeeks(day, 2),
+    },
+    {
+      role: 'in-progress',
+      teacherIndex: 4,
+      termStart: subWeeks(day, 16),
+      termEnd: addWeeks(day, 2),
+    },
+    {
+      role: 'in-progress',
+      teacherIndex: 1,
       termStart: subWeeks(day, 3),
       termEnd: addWeeks(day, 9),
     },
     {
       role: 'in-progress',
-      teacherIndex: 3,
+      teacherIndex: 2,
       termStart: subWeeks(day, 5),
       termEnd: addWeeks(day, 7),
     },
     {
       role: 'in-progress',
-      teacherIndex: 4,
+      teacherIndex: 3,
       termStart: subWeeks(day, 7),
       termEnd: addWeeks(day, 5),
     },
     {
       role: 'in-progress',
-      teacherIndex: 5,
+      teacherIndex: 4,
       termStart: subWeeks(day, 2),
       termEnd: addWeeks(day, 10),
     },
-    { role: 'upcoming', teacherIndex: 1, termStart: addDays(day, 10), termEnd: addWeeks(day, 14) },
+    {
+      role: 'in-progress',
+      teacherIndex: 5,
+      termStart: subWeeks(day, 4),
+      termEnd: addWeeks(day, 8),
+    },
+
+    // Upcoming (indices 12-15)
+    { role: 'upcoming', teacherIndex: 0, termStart: addDays(day, 10), termEnd: addWeeks(day, 14) },
+    { role: 'upcoming', teacherIndex: 1, termStart: addDays(day, 14), termEnd: addWeeks(day, 18) },
+    { role: 'upcoming', teacherIndex: 2, termStart: addDays(day, 12), termEnd: addWeeks(day, 16) },
+    { role: 'upcoming', teacherIndex: 3, termStart: addDays(day, 16), termEnd: addWeeks(day, 20) },
   ]
 }
 
@@ -165,8 +218,7 @@ function buildTeachers(epoch: Date, count: number): Teacher[] {
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
     email: faker.internet.email().toLowerCase(),
-    // Cycle the three Sedes so each community center has at least one Teacher
-    // (and therefore at least one Course) for the demo story.
+    // 3 Teachers per Sede: i=0,3,6→sede0; i=1,4,7→sede1; i=2,5,8→sede2
     sede: SEDES[i % SEDES.length] as Sede,
     courseIds: [],
     // Teachers predate every Course they could teach.
@@ -176,38 +228,88 @@ function buildTeachers(epoch: Date, count: number): Teacher[] {
 
 function buildCourses(epoch: Date, plans: CoursePlan[], teachers: Teacher[]): Course[] {
   const sedeByTeacherId = new Map(teachers.map((t) => [t.id, t.sede]))
-  return plans.map((plan, i) => {
+  const courseIdCounter = { val: 1 }
+
+  // Create 24 cohorts from 16 templates:
+  // - 3 "both" templates run at 3 Sedes = 9 cohorts (0, 4, 14)
+  // - 1 "both" template runs at 2 Sedes = 2 cohorts (9)
+  // - 2 other templates run at 2 Sedes = 4 cohorts (1, 3)
+  // - 10 templates run at 1 Sede = 10 cohorts
+  // - Total = 9 + 2 + 4 + 10 = 25... need to adjust
+
+  // Create 24 cohorts from 16 templates:
+  // - 3 "both" at 3 sedes = 9 (0, 4, 14)
+  // - 2 others at 2 sedes = 4 (12, 13 for upcoming level coverage)
+  // - 11 at 1 sede = 11
+  // - Total = 24
+  const allSedesTemplates = [0, 4, 14] // Run at 3 sedes each (3 support courses, AC requirement)
+  const doubleRunBothTemplates: number[] = [] // No double-run both templates
+  const doubleRunOtherTemplates = [1, 3] // Non-"both" templates that run at 2 sedes
+  const courses: Course[] = []
+
+  plans.forEach((plan, templateIndex) => {
     const termStart = startOfDay(plan.termStart)
     const termEnd = startOfDay(plan.termEnd)
-    // A Course is created shortly before its Term begins, but never in the future.
     const created = subDays(termStart, faker.number.int({ min: 7, max: 30 }))
     const createdAt = (created > epoch ? subDays(startOfDay(epoch), 1) : created).toISOString()
+
     const teacherId = `tea-${plan.teacherIndex + 1}`
-    // Each Course is one cohort of a Program (ADR-0015), referenced by id. With
-    // eight Courses and eight Programs the mapping is 1:1, so every Program has a
-    // cohort behind it (no empty catalog detail pages). Names and descriptions
-    // are Spanish-only catalog content sourced from the Program.
-    const program = PROGRAM_CATALOG[i % PROGRAM_CATALOG.length] as Program
-    return {
-      id: `cou-${i + 1}`,
-      name: `${program.name} ${i + 1}`,
-      description: program.description,
-      // A Course is taught at its Teacher's Sede (ADR-0011) — never assigned
-      // independently, so the Course↔Teacher Sede invariant holds by construction.
-      sede: sedeByTeacherId.get(teacherId) as Sede,
-      programId: program.id,
-      level: COURSE_LEVEL_PATTERN[i] as CourseLevel,
-      // Seeded cohorts are real, running classes — all published. Drafts arrive
-      // with the teacher-authoring workflow (ADR-0016), a later slice.
-      status: 'published',
-      // Seat cap (ADR-0016) sits comfortably above the seeded roster sizes.
-      capacity: 20 + (i % 3) * 5,
-      teacherId,
-      term: { start: termStart.toISOString(), end: termEnd.toISOString() },
-      meetingDays: MEETING_DAY_PATTERNS[i] as Weekday[],
-      createdAt,
+    const program = PROGRAM_CATALOG[templateIndex % PROGRAM_CATALOG.length] as Program
+    const level = COURSE_LEVEL_PATTERN[templateIndex] as CourseLevel
+    const meetingDays = MEETING_DAY_PATTERNS[templateIndex] as Weekday[]
+
+    // Determine which sedes this template runs at
+    let sedesToRun: Sede[]
+    if (allSedesTemplates.includes(templateIndex)) {
+      // Specific "both"-level courses run at all 3 sedes
+      sedesToRun = [...SEDES]
+    } else if (
+      doubleRunBothTemplates.includes(templateIndex) ||
+      doubleRunOtherTemplates.includes(templateIndex)
+    ) {
+      // These courses run at 2 sedes (base sede + next one)
+      const baseTeacherSede = sedeByTeacherId.get(teacherId)
+      if (!baseTeacherSede) {
+        sedesToRun = [SEDES[0]]
+      } else {
+        const baseIndex = SEDES.indexOf(baseTeacherSede as Sede)
+        sedesToRun = [baseTeacherSede as Sede, SEDES[(baseIndex + 1) % SEDES.length] as Sede]
+      }
+    } else {
+      // Most courses run at the teacher's sede only
+      const teacherSede = sedeByTeacherId.get(teacherId)
+      sedesToRun = [teacherSede ?? SEDES[0]]
     }
+
+    sedesToRun.forEach((sede) => {
+      // Find a teacher at this Sede
+      let cohortTeacherId = teacherId
+      if (sedeByTeacherId.get(teacherId) !== sede) {
+        // Swap to a teacher at this sede with matching role
+        const sedeTeachers = teachers.filter((t) => t.sede === sede)
+        const indexAtSede = plan.teacherIndex % sedeTeachers.length
+        cohortTeacherId = sedeTeachers[indexAtSede]?.id ?? teacherId
+      }
+
+      const courseId = `cou-${courseIdCounter.val++}`
+      courses.push({
+        id: courseId,
+        name: `${program.name} ${courseIdCounter.val}`,
+        description: program.description,
+        sede,
+        programId: program.id,
+        level,
+        status: 'published',
+        capacity: 20 + (templateIndex % 3) * 5,
+        teacherId: cohortTeacherId,
+        term: { start: termStart.toISOString(), end: termEnd.toISOString() },
+        meetingDays,
+        createdAt,
+      })
+    })
   })
+
+  return courses
 }
 
 function buildStudents(
@@ -217,27 +319,35 @@ function buildStudents(
   personaSede: Sede
 ): Student[] {
   const recentFromIndex = count - RECENT_JOINER_COUNT
-  return Array.from({ length: count }, (_, i) => ({
-    id: `stu-${i + 1}`,
-    firstName: faker.person.firstName(),
-    lastName: faker.person.lastName(),
-    email: faker.internet.email().toLowerCase(),
-    gender: faker.helpers.arrayElement(GENDERS),
-    // stu-1 deliberately shares the teacher persona's Sede so it can enrol in the
-    // persona's Courses (the golden-path runway); the rest cycle the three Sedes,
-    // each of which has Courses to enrol in.
-    sede: i === 0 ? personaSede : (SEDES[i % SEDES.length] as Sede),
-    province: faker.helpers.arrayElement(PROVINCES),
-    canton: faker.location.city(),
-    educationalLevel: faker.helpers.arrayElement(EDUCATIONAL_LEVELS),
-    enrolledCourseIds: [],
-    // Most students predate the earliest Term; the last few are recent joiners
-    // (created within the trailing window) so the dashboard shows real growth.
-    createdAt: (i >= recentFromIndex
-      ? subDays(epoch, faker.number.int({ min: 2, max: RECENT_JOINER_MAX_AGE_DAYS }))
-      : subDays(earliestTermStart, 21 + faker.number.int({ min: 0, max: 200 }))
-    ).toISOString(),
-  }))
+  const studentsPerSede = count / SEDES.length
+  return Array.from({ length: count }, (_, i) => {
+    // Distribute students evenly across sedes (28 per sede)
+    const sedeIndex = Math.floor(i / studentsPerSede)
+    const sede = SEDES[sedeIndex] as Sede
+
+    // stu-1 shares the teacher persona's Sede; others are distributed
+    const studentSede = i === 0 ? personaSede : sede
+
+    return {
+      id: `stu-${i + 1}`,
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      email: faker.internet.email().toLowerCase(),
+      gender: faker.helpers.arrayElement(GENDERS),
+      sede: studentSede,
+      province: faker.helpers.arrayElement(PROVINCES),
+      canton: faker.location.city(),
+      // ~50/50 distribution: even indices primaria, odd secundaria
+      educationalLevel: i % 2 === 0 ? 'primaria' : 'secundaria',
+      enrolledCourseIds: [],
+      // Most students predate the earliest Term; the last few are recent joiners
+      // (created within the trailing window) so the dashboard shows real growth.
+      createdAt: (i >= recentFromIndex
+        ? subDays(epoch, faker.number.int({ min: 2, max: RECENT_JOINER_MAX_AGE_DAYS }))
+        : subDays(earliestTermStart, 21 + faker.number.int({ min: 0, max: 200 }))
+      ).toISOString(),
+    }
+  })
 }
 
 /**
@@ -246,6 +356,9 @@ function buildStudents(
  * in the future. The teacher persona's student (stu-1) is deliberately enrolled
  * in the persona's completed Course (so they have a Grade) and the just-ended
  * one (the golden-path runway).
+ *
+ * Most are approved, but a few are pending/rejected/withdrawn to show the
+ * approval lifecycle in action (ADR-0016).
  */
 function buildEnrollments(epoch: Date, students: Student[], courses: Course[]): Enrollment[] {
   const epochDay = startOfDay(epoch)
@@ -256,6 +369,7 @@ function buildEnrollments(epoch: Date, students: Student[], courses: Course[]): 
 
   const enrollments: Enrollment[] = []
   let counter = 0
+  let statusCounter = 0
 
   students.forEach((student, si) => {
     // A Student may only enrol in Courses at their own Sede (ADR-0011) and whose
@@ -294,18 +408,33 @@ function buildEnrollments(epoch: Date, students: Student[], courses: Course[]): 
       if (enrolledAt < created) enrolledAt = created
       if (enrolledAt > epochDay) enrolledAt = epochDay
       const enrolledAtIso = enrolledAt.toISOString()
-      // Seeded enrollments represent students already in their cohorts, so they
-      // are 'approved' (ADR-0016): an admin decided them at enrollment time. The
-      // pending → approved/rejected workflow lands in a later slice.
+
+      // Most enrollments are approved; a few (15-20%) are pending/rejected/withdrawn
+      let status: EnrollmentStatus = 'approved'
+      let decidedBy: string | undefined = 'admin'
+      let decidedAt: string | undefined = enrolledAtIso
+      const statusRoll = statusCounter++ % 20
+      if (statusRoll === 0) status = 'pending'
+      if (statusRoll === 1) {
+        status = 'rejected'
+        decidedBy = 'admin'
+        decidedAt = addDays(new Date(enrolledAtIso), 3).toISOString()
+      }
+      if (statusRoll === 2) {
+        status = 'withdrawn'
+        decidedBy = student.id
+        decidedAt = addDays(new Date(enrolledAtIso), 5).toISOString()
+      }
+
       enrollments.push({
         id: `enr-${(counter += 1)}`,
         studentId: student.id,
         courseId,
         enrolledAt: enrolledAtIso,
-        status: 'approved',
+        status,
         requestedAt: enrolledAtIso,
-        decidedBy: 'admin',
-        decidedAt: enrolledAtIso,
+        decidedBy: status === 'pending' ? undefined : decidedBy,
+        decidedAt: status === 'pending' ? undefined : decidedAt,
       })
     })
   })
@@ -581,18 +710,20 @@ function buildEmailCampaigns(
  * partial progress toward the goal, anchored to the Demo Epoch (ADR-0002).
  * The seeded TCU persona ('tcu-1') is always among them.
  *
- * Each volunteer is assigned to exactly one Course and shares its Sede
- * (ADR-0017); with four volunteers across distinct Courses, no Course exceeds
- * the three-volunteer cap. Universities are Spanish proper nouns.
+ * 15 volunteers assigned to courses: one per course for ~15 of the 24 courses,
+ * with <=3 per course. Each shares its assigned Course's Sede (ADR-0017).
+ * Universities are Spanish proper nouns.
  */
 function buildTcuTrainees(epoch: Date, courses: Course[]): TcuTrainee[] {
-  const count = 4
-  return Array.from({ length: count }, (_, i) => {
-    // Distinct Course per volunteer (i < courses.length), so the cap holds and
-    // the volunteer's Sede follows the Course's.
-    const course = courses[i % courses.length] as Course
+  const count = 15
+  const trainees: TcuTrainee[] = []
+
+  // Distribute 15 trainees across 24 courses (~15/24 courses have a volunteer)
+  const selectedCourses = faker.helpers.arrayElements(courses, count)
+
+  selectedCourses.forEach((course, i) => {
     const university = UNIVERSITIES[i % UNIVERSITIES.length] as University
-    return {
+    trainees.push({
       id: `tcu-${i + 1}`, // tcu-1 is the seeded TCU persona
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
@@ -601,8 +732,10 @@ function buildTcuTrainees(epoch: Date, courses: Course[]): TcuTrainee[] {
       university: university.name,
       courseId: course.id,
       createdAt: subDays(epoch, faker.number.int({ min: 30, max: 210 })).toISOString(),
-    }
+    })
   })
+
+  return trainees
 }
 
 /**
@@ -676,12 +809,15 @@ function buildTcuActivities(epoch: Date, trainees: TcuTrainee[], courses: Course
  * Build the entire demo world in one deterministic, causally-ordered pass.
  * Entity identities are fixed by `faker.seed(42)`; every date floats relative
  * to `epoch`, the moment the seed runs in the viewer's browser (ADR-0002).
+ *
+ * 24 Course cohorts from 16 templates (ADR-0015-0017).
+ * 9 Teachers (3 per Sede), 84 Students (28 per Sede), 15 TCU Volunteers.
  */
 export function seedDemo(epoch: Date): SeedSnapshot {
   faker.seed(42)
 
   const plans = planCourses(epoch)
-  const teacherCount = 6
+  const teacherCount = 9
 
   const teachers = buildTeachers(epoch, teacherCount)
   const courses = buildCourses(epoch, plans, teachers)
@@ -697,7 +833,7 @@ export function seedDemo(epoch: Date): SeedSnapshot {
   )
 
   const personaSede = teachers[TEACHER_PERSONA_INDEX]?.sede ?? SEDES[0]
-  const students = buildStudents(epoch, 24, earliestTermStart, personaSede)
+  const students = buildStudents(epoch, 84, earliestTermStart, personaSede)
   const enrollments = buildEnrollments(epoch, students, courses)
 
   // Back-reference: each student lists the courses they enrolled in.
@@ -712,9 +848,18 @@ export function seedDemo(epoch: Date): SeedSnapshot {
 
   // The golden-path Course is the one just-ended cohort the teacher persona has
   // yet to grade; every other ended Course is graded.
-  const goldenPathCourse = courses.find((_, i) => plans[i]?.role === 'just-ended')
+  // Find the just-ended course: it ended recently (within ~14 days) and belongs to tea-1
+  const epochDay = startOfDay(epoch)
+  const justEndedCourses = courses.filter((c) => {
+    const termEnd = startOfDay(new Date(c.term.end))
+    const daysSinceEnd = differenceInDays(epochDay, termEnd)
+    return (
+      daysSinceEnd >= 1 && daysSinceEnd <= 14 && c.teacherId === `tea-${TEACHER_PERSONA_INDEX + 1}`
+    )
+  })
+  const goldenPathCourse = justEndedCourses[0]
   if (!goldenPathCourse) {
-    throw new Error('seed plan must include exactly one just-ended course')
+    throw new Error('seed plan must include exactly one just-ended course for the teacher persona')
   }
   const grades = buildGrades(epoch, enrollments, courses, goldenPathCourse.id)
   const tcuTrainees = buildTcuTrainees(epoch, courses)
