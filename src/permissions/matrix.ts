@@ -246,14 +246,11 @@ function canLogTcuActivity(ctx: PermissionContext): boolean {
 
 /**
  * Predicate: Teacher can approve a TCU activity only if the trainee is assigned
- * to one of the Teacher's courses (ADR-0017). Both activity and course context
- * are required. The store mutation will hydrate activity context before the check.
+ * to one of the Teacher's own courses (ADR-0017). The store hydrates the context
+ * with that course (resolved from the trainee's courseId) before calling can().
  */
 function teacherCanApproveTcuActivity(ctx: PermissionContext): boolean {
-  // This predicate is checked in the store after hydrating the activity context
-  // with the trainee's courseId. If both are present, the store will have already
-  // verified the teacher owns the course. For now, just ensure context is present.
-  return ctx.activity !== undefined
+  return ctx.course?.teacherId === ctx.userId
 }
 
 /**

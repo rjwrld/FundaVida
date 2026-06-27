@@ -780,17 +780,14 @@ export const useStore = create<StoreState>((set, get) => ({
       throw new Error(`cannot approve: unknown course ${trainee.courseId}`)
     }
 
-    // Check permission: admin can approve any activity, teacher can approve only their own courses' trainees
-    if (state.role === 'teacher') {
-      const isTeacher = course.teacherId === state.currentUserId
-      if (!isTeacher) {
-        throw new Error(
-          `permission denied: teacher cannot approve activity for trainee ${activity.traineeId} (not assigned to their course)`
-        )
-      }
-    } else if (state.role !== 'admin') {
-      throw new Error(`permission denied: ${state.role} cannot approve tcuActivity`)
-    }
+    // Permission flows through the matrix seam (ADR-0009): admin's tcu.approve is
+    // unconditional; the teacher predicate (teacherCanApproveTcuActivity) allows it
+    // only when they own the trainee's course. assertCan throws on a violation.
+    assertCan(state, 'approve', 'tcu', {
+      userId: state.currentUserId ?? undefined,
+      course,
+      activity,
+    })
 
     // Approving or rejecting already-decided activities is a no-op
     if (activity.status !== 'pending') {
