@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useStore } from '../store'
 import { clearPersistedCurrentUser, clearPersistedRole, clearPersistedState } from '../persistence'
+import { clock } from '@/lib/clock'
 
 describe('store permission guards', () => {
   beforeEach(() => {
@@ -75,8 +76,8 @@ describe('store permission guards', () => {
       const endedCourse = store.courses.find((c) => c.id === 'cou-3')
       if (!endedCourse) throw new Error('no cou-3 in seed')
 
-      // Verify it has ended
-      const now = new Date()
+      // Verify it has ended, read through the same frozen clock the predicate uses
+      const now = clock.now()
       const termEnd = new Date(endedCourse.term.end)
       if (now < termEnd) throw new Error('test setup: cou-3 not ended yet')
 
@@ -110,7 +111,7 @@ describe('store permission guards', () => {
 
       const endedCourse = store.courses.find((c) => c.id === 'cou-3')
       if (!endedCourse) throw new Error('no cou-3 in seed')
-      if (new Date() < new Date(endedCourse.term.end)) {
+      if (clock.now() < new Date(endedCourse.term.end)) {
         throw new Error('test setup: cou-3 not ended yet')
       }
 
@@ -168,8 +169,8 @@ describe('store permission guards', () => {
       const inProgressCourse = store.courses.find((c) => c.id === 'cou-4')
       if (!inProgressCourse) throw new Error('no cou-4 in seed')
 
-      // Verify it hasn't ended
-      const now = new Date()
+      // Verify it hasn't ended, read through the same frozen clock the predicate uses
+      const now = clock.now()
       const termEnd = new Date(inProgressCourse.term.end)
       if (now >= termEnd) {
         throw new Error('test setup: cou-4 already ended')
@@ -266,8 +267,8 @@ describe('store permission guards', () => {
           programName: 'Program',
           teacherId: 'tea-1',
           term: {
-            start: new Date().toISOString(),
-            end: new Date().toISOString(),
+            start: '2026-01-01T00:00:00.000Z',
+            end: '2026-03-01T00:00:00.000Z',
           },
           meetingDays: [],
         })

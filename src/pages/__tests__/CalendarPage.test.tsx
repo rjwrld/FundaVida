@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
 import { CalendarPage } from '@/pages/CalendarPage'
 import { useStore } from '@/data/store'
+import { setDemoEpoch } from '@/lib/clock'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
@@ -11,7 +12,8 @@ import {
 } from '@/data/persistence'
 import type { Course, Enrollment, Weekday } from '@/types'
 
-// Fixed "now" so the calendar opens on June 2026 with deterministic session days.
+// Fixed Demo Epoch (ADR-0014) so the calendar opens on June 2026 with
+// deterministic session days and selects the frozen today (June 15) on mount.
 const NOW = new Date(2026, 5, 15) // Monday, June 15, 2026
 
 function isoDay(year: number, monthIndex: number, day: number): string {
@@ -65,6 +67,7 @@ describe('<CalendarPage />', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.setSystemTime(NOW)
+    setDemoEpoch(NOW)
     clearPersistedState()
     clearPersistedRole()
     clearPersistedCurrentUser()
