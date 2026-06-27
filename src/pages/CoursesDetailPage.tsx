@@ -166,6 +166,7 @@ export function CoursesDetailPage() {
   const navigate = useNavigate()
   const { data: course, isLoading } = useCourse(id ?? '')
   const teachers = useStore((s) => s.teachers)
+  const programs = useStore((s) => s.programs)
   // The roster reads through the API/scope seam, never raw store collections
   // (ADR-0012): admin sees all, the Course's Teacher sees their own Course's
   // records, and a Student's scope collapses these to self (or empty).
@@ -206,6 +207,7 @@ export function CoursesDetailPage() {
   }
 
   const teacher = teachers.find((tt) => tt.id === course.teacherId)
+  const programName = programs.find((p) => p.id === course.programId)?.name ?? course.programId
   // For the Student self-view: scope 'own' already narrows scopedGrades to the
   // current Student, so this is their own Grade for the Course (or undefined).
   const ownGrade = scopedGrades.find((g) => g.courseId === course.id)
@@ -215,7 +217,7 @@ export function CoursesDetailPage() {
       <PageHeader
         eyebrow={t('courses.detail.title')}
         title={course.name}
-        description={course.programName}
+        description={programName}
         action={
           <>
             <Button variant="outline" onClick={() => navigate('/app/courses')}>
@@ -241,8 +243,20 @@ export function CoursesDetailPage() {
               {course.sede}
             </p>
             <p>
-              <span className="text-muted-foreground">{t('courses.form.fields.programName')}:</span>{' '}
-              {course.programName}
+              <span className="text-muted-foreground">{t('courses.form.fields.programId')}:</span>{' '}
+              {programName}
+            </p>
+            <p>
+              <span className="text-muted-foreground">{t('courses.form.fields.level')}:</span>{' '}
+              {t(`courses.level.${course.level}`)}
+            </p>
+            <p>
+              <span className="text-muted-foreground">{t('courses.form.fields.status')}:</span>{' '}
+              {t(`courses.status.${course.status}`)}
+            </p>
+            <p>
+              <span className="text-muted-foreground">{t('courses.form.fields.capacity')}:</span>{' '}
+              {course.capacity}
             </p>
             <p>
               <span className="text-muted-foreground">{t('courses.form.fields.teacherId')}:</span>{' '}

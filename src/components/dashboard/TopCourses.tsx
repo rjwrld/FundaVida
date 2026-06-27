@@ -6,8 +6,8 @@ export interface TopCoursesProps {
   courses: TopCourse[]
 }
 
-// Progress denominator uses the max enrollment among the top three since
-// Course has no `capacity` field — the bar shows relative weight, not a quota.
+// Progress denominator uses the max enrollment among the top three — the bar
+// shows relative weight across the leaders, not a fill against Course capacity.
 export function TopCourses({ courses }: TopCoursesProps) {
   const { t } = useTranslation()
   const max = Math.max(1, ...courses.map((c) => c.enrollmentCount))

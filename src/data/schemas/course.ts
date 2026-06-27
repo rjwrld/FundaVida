@@ -3,6 +3,7 @@ import type { TFunction } from 'i18next'
 import { parseISO } from 'date-fns'
 import { WEEKDAYS } from '@/types/domain'
 import { SEDES } from '@/constants/sede'
+import { COURSE_LEVELS, COURSE_STATUSES } from '@/constants/course'
 
 export function buildCourseSchema(t: TFunction) {
   return z
@@ -20,9 +21,23 @@ export function buildCourseSchema(t: TFunction) {
           message: t('validation.required', { field: t('courses.form.fields.sede') }),
         }),
       }),
-      programName: z
+      programId: z
         .string()
-        .min(1, t('validation.required', { field: t('courses.form.fields.programName') })),
+        .min(1, t('validation.required', { field: t('courses.form.fields.programId') })),
+      level: z.enum(COURSE_LEVELS, {
+        errorMap: () => ({
+          message: t('validation.required', { field: t('courses.form.fields.level') }),
+        }),
+      }),
+      status: z.enum(COURSE_STATUSES, {
+        errorMap: () => ({
+          message: t('validation.required', { field: t('courses.form.fields.status') }),
+        }),
+      }),
+      capacity: z.coerce
+        .number({ invalid_type_error: t('validation.numberRequired') })
+        .int(t('validation.numberRequired'))
+        .min(1, t('validation.numberMin', { min: 1 })),
       teacherId: z
         .string()
         .min(1, t('validation.required', { field: t('courses.form.fields.teacherId') })),

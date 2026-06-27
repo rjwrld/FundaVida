@@ -41,6 +41,7 @@ export function CertificatesListPage() {
   const role = useStore((s) => s.role)
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
+  const programs = useStore((s) => s.programs)
   const { data: certificates = [], isLoading } = useCertificates()
   const approve = useApproveCertificate()
   const canApprove = role ? can(role, 'approve', 'certificates') : false
@@ -59,6 +60,7 @@ export function CertificatesListPage() {
   const items = useMemo<CardItem[]>(() => {
     const studentById = new Map(students.map((s) => [s.id, s]))
     const courseById = new Map(courses.map((c) => [c.id, c]))
+    const programById = new Map(programs.map((p) => [p.id, p]))
     const result: CardItem[] = []
     for (const cert of certificates) {
       const student = studentById.get(cert.studentId)
@@ -70,7 +72,7 @@ export function CertificatesListPage() {
         id: cert.id,
         studentName: `${student.firstName} ${student.lastName}`,
         courseName: course.name,
-        programName: course.programName,
+        programName: programById.get(course.programId)?.name ?? '',
         score: cert.score,
         grade: formatGrade(cert.score),
         status: cert.status,
@@ -79,7 +81,7 @@ export function CertificatesListPage() {
       })
     }
     return result
-  }, [certificates, students, courses, formatDate, formatGrade])
+  }, [certificates, students, courses, programs, formatDate, formatGrade])
 
   const statusFiltered = useMemo(
     () => (statusFilter ? items.filter((c) => c.status === statusFilter) : items),

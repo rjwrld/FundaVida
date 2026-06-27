@@ -13,6 +13,7 @@ export function TeachersDetailPage() {
   const navigate = useNavigate()
   const { data: teacher, isLoading } = useTeacher(id ?? '')
   const courses = useStore((s) => s.courses)
+  const programs = useStore((s) => s.programs)
 
   if (isLoading) return <p className="text-sm text-muted-foreground">…</p>
   if (!teacher) {
@@ -27,6 +28,8 @@ export function TeachersDetailPage() {
   }
 
   const assigned = courses.filter((c) => teacher.courseIds.includes(c.id))
+  const programName = (programId: string) =>
+    programs.find((p) => p.id === programId)?.name ?? programId
 
   return (
     <div className="space-y-6">
@@ -83,7 +86,7 @@ export function TeachersDetailPage() {
                       {c.name}
                     </Link>
                     <Badge variant="neutral" className="ml-2 text-xs">
-                      {c.programName}
+                      {programName(c.programId)}
                     </Badge>
                   </li>
                 ))}

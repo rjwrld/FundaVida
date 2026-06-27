@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select'
 import { buildCourseSchema, type CourseFormValues } from '@/data/schemas/course'
 import { useCourse, useCreateCourse, useUpdateCourse } from '@/hooks/api'
-import { PROGRAMS } from '@/constants/course'
+import { COURSE_LEVELS, COURSE_STATUSES } from '@/constants/course'
 import { SEDES } from '@/constants/sede'
 import { WEEKDAYS, type Weekday } from '@/types/domain'
 import { useStore } from '@/data/store'
@@ -36,6 +36,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
   const createCourse = useCreateCourse()
   const updateCourse = useUpdateCourse()
   const teachers = useStore((s) => s.teachers)
+  const programs = useStore((s) => s.programs)
 
   const {
     register,
@@ -50,7 +51,10 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
       name: '',
       description: '',
       sede: '' as CourseFormValues['sede'],
-      programName: '',
+      programId: '',
+      level: '' as CourseFormValues['level'],
+      status: 'draft',
+      capacity: 20,
       teacherId: '',
       termStart: '',
       termEnd: '',
@@ -66,7 +70,10 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
         name: existing.name,
         description: existing.description,
         sede: existing.sede,
-        programName: existing.programName,
+        programId: existing.programId,
+        level: existing.level,
+        status: existing.status,
+        capacity: existing.capacity,
         teacherId: existing.teacherId,
         termStart: format(termStartDate, 'yyyy-MM-dd'),
         termEnd: format(termEndDate, 'yyyy-MM-dd'),
@@ -136,25 +143,74 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
           {errors.sede && <p className="text-xs text-destructive">{errors.sede.message}</p>}
         </div>
         <div className="space-y-1.5">
-          <Label>{t('courses.form.fields.programName')}</Label>
+          <Label>{t('courses.form.fields.programId')}</Label>
           <Select
-            value={watch('programName')}
-            onValueChange={(v) => setValue('programName', v, { shouldValidate: true })}
+            value={watch('programId')}
+            onValueChange={(v) => setValue('programId', v, { shouldValidate: true })}
           >
-            <SelectTrigger aria-label={t('courses.form.fields.programName')}>
-              <SelectValue placeholder={t('courses.form.fields.programName')} />
+            <SelectTrigger aria-label={t('courses.form.fields.programId')}>
+              <SelectValue placeholder={t('courses.form.fields.programId')} />
             </SelectTrigger>
             <SelectContent>
-              {PROGRAMS.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
+              {programs.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {errors.programName && (
-            <p className="text-xs text-destructive">{errors.programName.message}</p>
+          {errors.programId && (
+            <p className="text-xs text-destructive">{errors.programId.message}</p>
           )}
+        </div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="space-y-1.5">
+          <Label>{t('courses.form.fields.level')}</Label>
+          <Select
+            value={watch('level')}
+            onValueChange={(v) =>
+              setValue('level', v as CourseFormValues['level'], { shouldValidate: true })
+            }
+          >
+            <SelectTrigger aria-label={t('courses.form.fields.level')}>
+              <SelectValue placeholder={t('courses.form.fields.level')} />
+            </SelectTrigger>
+            <SelectContent>
+              {COURSE_LEVELS.map((l) => (
+                <SelectItem key={l} value={l}>
+                  {t(`courses.level.${l}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.level && <p className="text-xs text-destructive">{errors.level.message}</p>}
+        </div>
+        <div className="space-y-1.5">
+          <Label>{t('courses.form.fields.status')}</Label>
+          <Select
+            value={watch('status')}
+            onValueChange={(v) =>
+              setValue('status', v as CourseFormValues['status'], { shouldValidate: true })
+            }
+          >
+            <SelectTrigger aria-label={t('courses.form.fields.status')}>
+              <SelectValue placeholder={t('courses.form.fields.status')} />
+            </SelectTrigger>
+            <SelectContent>
+              {COURSE_STATUSES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {t(`courses.status.${s}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.status && <p className="text-xs text-destructive">{errors.status.message}</p>}
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="capacity">{t('courses.form.fields.capacity')}</Label>
+          <Input id="capacity" type="number" min={1} {...register('capacity')} />
+          {errors.capacity && <p className="text-xs text-destructive">{errors.capacity.message}</p>}
         </div>
       </div>
       <div className="space-y-1.5">

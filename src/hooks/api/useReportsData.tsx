@@ -62,6 +62,7 @@ export function useReportsData(): ReportsData {
   const students = useStore((s) => s.students)
   const teachers = useStore((s) => s.teachers)
   const courses = useStore((s) => s.courses)
+  const programs = useStore((s) => s.programs)
   const enrollments = useStore((s) => s.enrollments)
   const grades = useStore((s) => s.grades)
   const attendance = useStore((s) => s.attendance)
@@ -140,6 +141,7 @@ export function useReportsData(): ReportsData {
 
     // Upcoming: 2 ungraded enrollments (warning) + 2 most recent TCU (success).
     const courseById = new Map(courses.map((c) => [c.id, c]))
+    const programById = new Map(programs.map((p) => [p.id, p]))
     const gradedKeys = new Set(grades.map((g) => `${g.studentId}:${g.courseId}`))
     const upcoming: UpcomingItem[] = []
 
@@ -149,7 +151,7 @@ export function useReportsData(): ReportsData {
       upcoming.push({
         id: `up-grade-${e.id}`,
         title: t('dashboard.upcoming.gradePending', { course: course?.name ?? e.courseId }),
-        subtitle: course?.programName,
+        subtitle: course ? programById.get(course.programId)?.name : undefined,
         variant: 'warning',
         icon: <GraduationCap className="size-4" aria-hidden />,
       })
@@ -188,5 +190,5 @@ export function useReportsData(): ReportsData {
       topCourses,
       upcoming,
     }
-  }, [students, teachers, courses, enrollments, grades, attendance, tcuActivities, t])
+  }, [students, teachers, courses, programs, enrollments, grades, attendance, tcuActivities, t])
 }
