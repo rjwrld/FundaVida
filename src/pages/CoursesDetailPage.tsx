@@ -27,6 +27,7 @@ import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { findSession, sessionsFor } from '@/lib/sessions'
+import { clock } from '@/lib/clock'
 import type { AttendanceRecord, AttendanceStatus, Course, Enrollment, Student } from '@/types'
 import { GradeDialog } from '@/components/courses/GradeDialog'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
@@ -67,7 +68,7 @@ function AttendanceMarkingSection({
   const { formatDate } = useFormat()
 
   const allSessions = sessionsFor(course)
-  const now = new Date()
+  const now = clock.now()
   const markableSessions = allSessions.filter((s) => parseISO(s.date) <= now)
 
   if (markableSessions.length === 0) {

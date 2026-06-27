@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useDashboardStats } from '../useDashboardStats'
 import { useStore } from '@/data/store'
+import { clock, setDemoEpoch } from '@/lib/clock'
 import { dashboardStatDeltas } from '@/lib/stats'
 import {
   clearPersistedCurrentUser,
@@ -54,9 +55,18 @@ describe('useDashboardStats — certificate-backed counts (#69)', () => {
     expect(after.certsIssued).toBe(before.certsIssued + 1)
   })
 
+  it('derives the today/this-month windows from the frozen clock, not wall-time', () => {
+    // Override the clock to a far epoch after the real-now seed; the trend's last
+    // bucket must be the frozen today, proving the window reads clock.today().
+    setDemoEpoch(new Date('2099-06-15T12:00:00.000Z'))
+    const { result } = renderHook(() => useDashboardStats())
+    const trend = result.current.attendanceTrend
+    expect(trend[trend.length - 1]?.day.getTime()).toBe(clock.today().getTime())
+  })
+
   it('exposes real month-over-month deltas derived from the same dated data', () => {
     const { result } = renderHook(() => useDashboardStats())
-    expect(result.current.deltas).toEqual(dashboardStatDeltas(storeSnapshot(), new Date()))
+    expect(result.current.deltas).toEqual(dashboardStatDeltas(storeSnapshot(), clock.now()))
   })
 
   it('recomputes deltas after a mutation (a fresh certificate approval)', () => {
@@ -66,6 +76,6 @@ describe('useDashboardStats — certificate-backed counts (#69)', () => {
     useStore.getState().approveCertificate(pendingCert.id)
 
     const { result } = renderHook(() => useDashboardStats())
-    expect(result.current.deltas).toEqual(dashboardStatDeltas(storeSnapshot(), new Date()))
+    expect(result.current.deltas).toEqual(dashboardStatDeltas(storeSnapshot(), clock.now()))
   })
 })
