@@ -7,6 +7,7 @@ import { useCourses } from '@/hooks/api/courses'
 import { useAttendance } from '@/hooks/api/attendance'
 import { StatCard } from '@/components/shared/StatCard'
 import { parseISO, startOfDay, startOfMonth } from 'date-fns'
+import { clock } from '@/lib/clock'
 import { DashboardShell } from './DashboardShell'
 
 export function StudentDashboard() {
@@ -16,7 +17,7 @@ export function StudentDashboard() {
 
   // Calculate attendance rate for this month
   const attendanceRate = useMemo(() => {
-    const today = new Date()
+    const today = clock.today()
     const monthStart = startOfMonth(today)
     const monthRecords = attendance.filter((a) => {
       const sessionDate = parseISO(a.sessionDate)

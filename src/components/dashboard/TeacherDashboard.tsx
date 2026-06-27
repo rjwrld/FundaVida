@@ -7,6 +7,7 @@ import { useCourses } from '@/hooks/api/courses'
 import { StatCard } from '@/components/shared/StatCard'
 import { sessionsFor } from '@/lib/sessions'
 import { parseISO, isBefore } from 'date-fns'
+import { clock } from '@/lib/clock'
 import type { Course } from '@/types'
 import { DashboardShell } from './DashboardShell'
 
@@ -22,7 +23,7 @@ interface SessionWithCourse {
  * Returns null if no upcoming sessions exist.
  */
 function getNextUpcomingSession(courses: Course[]): SessionWithCourse | null {
-  const now = new Date()
+  const now = clock.now()
   const upcomingSessions = courses
     .flatMap((c) =>
       sessionsFor(c).map((s) => ({
@@ -42,7 +43,7 @@ function getNextUpcomingSession(courses: Course[]): SessionWithCourse | null {
  * Count ended courses in a teacher's roster (courses where today >= term.end).
  */
 function getEndedCoursesCount(courses: Course[]): number {
-  const now = new Date()
+  const now = clock.now()
   return courses.filter((c) => {
     const termEnd = parseISO(c.term.end)
     return !isBefore(now, termEnd)

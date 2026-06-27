@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { can, scopeFor } from '../index'
+import { setDemoEpoch } from '@/lib/clock'
 import type { Action, Resource, Role, PermissionContext } from '../index'
 
 describe('Permissions Matrix', () => {
@@ -548,6 +549,12 @@ describe('Permissions Matrix', () => {
     })
 
     describe('predicate cells with context', () => {
+      // Pin the Demo Epoch (ADR-0014) so "has the course ended" is exact: terms
+      // ending before 2026-06-23 are past, terms ending after it are upcoming.
+      beforeEach(() => {
+        setDemoEpoch(new Date('2026-06-23T15:30:00.000Z'))
+      })
+
       it('teacher enter grades: true when course is owned and has ended', () => {
         const context: PermissionContext = {
           userId: 'teacher-1',
@@ -573,8 +580,6 @@ describe('Permissions Matrix', () => {
       })
 
       it('teacher enter grades: false when course is owned but has not ended', () => {
-        const futureDate = new Date()
-        futureDate.setFullYear(futureDate.getFullYear() + 1)
         const context: PermissionContext = {
           userId: 'teacher-1',
           course: {
@@ -589,7 +594,7 @@ describe('Permissions Matrix', () => {
             teacherId: 'teacher-1',
             term: {
               start: '2025-01-01T00:00:00.000Z',
-              end: futureDate.toISOString(), // in the future
+              end: '2027-06-01T00:00:00.000Z', // after the pinned epoch
             },
             meetingDays: ['mon', 'wed'],
             createdAt: '2025-01-01T00:00:00.000Z',
@@ -900,6 +905,45 @@ describe('Permissions Matrix', () => {
         expect(scopeFor(role).programs).toBe('all')
       })
     })
+  })
+})
+
+describe('courseOwnedAndEnded reads the frozen clock, not wall-time (ADR-0014)', () => {
+  // A Demo Epoch well in the past, so "has the course ended" diverges from real
+  // wall-time: a term that ended in 2022 is past for a live new Date() but still
+  // in the future for this frozen 2020 now.
+  const EPOCH = new Date('2020-06-15T00:00:00.000Z')
+  beforeEach(() => {
+    setDemoEpoch(EPOCH)
+  })
+
+  function ownedCourseEndingOn(end: string): PermissionContext {
+    return {
+      userId: 'teacher-1',
+      course: {
+        id: 'course-1',
+        name: 'Math 101',
+        description: '',
+        sede: 'Linda Vista',
+        programName: 'Science',
+        teacherId: 'teacher-1',
+        term: { start: '2019-01-01T00:00:00.000Z', end },
+        meetingDays: ['mon', 'wed'],
+        createdAt: '2019-01-01T00:00:00.000Z',
+      },
+    }
+  }
+
+  it('counts a term that ended before the frozen now as ended', () => {
+    expect(can('teacher', 'enter', 'grades', ownedCourseEndingOn('2019-06-01T00:00:00.000Z'))).toBe(
+      true
+    )
+  })
+
+  it('counts a term ending after the frozen now as not ended, even though wall-time has passed it', () => {
+    expect(can('teacher', 'enter', 'grades', ownedCourseEndingOn('2022-06-01T00:00:00.000Z'))).toBe(
+      false
+    )
   })
 })
 

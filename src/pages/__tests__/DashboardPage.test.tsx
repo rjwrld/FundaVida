@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { useStore } from '@/data/store'
+import { clock } from '@/lib/clock'
 import { dashboardStatDeltas } from '@/lib/stats'
 import {
   clearPersistedCurrentUser,
@@ -68,7 +69,7 @@ describe('<DashboardPage /> (admin)', () => {
         certificates: s.certificates,
         tcuActivities: s.tcuActivities,
       },
-      new Date()
+      clock.now()
     )
     const cases: [RegExp, number | null][] = [
       [/total students/i, deltas.totalStudents],

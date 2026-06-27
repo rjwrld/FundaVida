@@ -360,8 +360,9 @@
     }
   },
   "demoBanner": {
+    "badge": "Versión de demostración",
     "dismiss": "Descartar",
-    "message": "Esta es una demostración. Todos los datos se ejecutan localmente en tu navegador."
+    "message": "Versión de demostración — datos de ejemplo congelados al {{date}}"
   },
   "enrollments": {
     "dialog": {

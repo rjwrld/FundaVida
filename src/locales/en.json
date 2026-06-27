@@ -356,8 +356,9 @@
     }
   },
   "demoBanner": {
+    "badge": "Demo snapshot",
     "dismiss": "Dismiss",
-    "message": "This is a demo. All data runs locally in your browser."
+    "message": "Demo snapshot — sample data frozen at {{date}}"
   },
   "enrollments": {
     "dialog": {
