@@ -8,6 +8,7 @@ import {
   GraduationCap,
   HandHeart,
   LayoutDashboard,
+  Library,
   LucideIcon,
   Mail,
   ScrollText,
@@ -42,6 +43,15 @@ export const NAV_ITEMS: NavItem[] = [
     labelKey: 'nav.calendar',
     section: 'programs',
     icon: CalendarDays,
+  },
+  {
+    // The read-only Program catalog (ADR-0015), derived from the matrix like
+    // every other resource nav entry (ADR-0010); viewable by every role.
+    to: '/app/programs',
+    labelKey: 'nav.programs',
+    resource: 'programs',
+    section: 'programs',
+    icon: Library,
   },
   {
     to: '/app/courses',
