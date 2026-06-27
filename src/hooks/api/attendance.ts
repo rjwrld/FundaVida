@@ -31,3 +31,17 @@ export const useMarkAttendance = makeEntityMutation('markAttendance')<{
     status,
   ],
 })
+
+export const useMarkSessionAttendance = makeEntityMutation('markSessionAttendance')<{
+  courseId: string
+  sessionDate: string
+  attendanceByStudentId: Record<string, AttendanceRecord['status']>
+}>({
+  toastKey: 'toasts.sessionAttendanceMarked',
+  invalidates: [ATTENDANCE_KEY, ['courses']],
+  args: ({ courseId, sessionDate, attendanceByStudentId }) => [
+    courseId,
+    sessionDate,
+    attendanceByStudentId,
+  ],
+})

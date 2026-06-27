@@ -30,6 +30,20 @@
       },
       "subtitle": "Asistencia por sesión en tu ámbito.",
       "title": "Asistencia"
+    },
+    "mark": {
+      "cancel": "Cancelar",
+      "empty": "No hay estudiantes inscritos en esta sesión.",
+      "save": "Guardar",
+      "sessionNumber": "Sesión {{ordinal}} de {{total}}",
+      "status": {
+        "absent": "Ausente",
+        "excused": "Justificado",
+        "present": "Presente"
+      },
+      "studentNameColumn": "Estudiante",
+      "subtitle": "Marcar asistencia para la sesión seleccionada. Todos los estudiantes se asumen presentes por defecto.",
+      "title": "Marcar Asistencia de Sesión"
     }
   },
   "auditLog": {
