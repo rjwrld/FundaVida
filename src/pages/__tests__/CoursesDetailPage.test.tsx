@@ -75,7 +75,22 @@ function fixtures() {
     s.courses.find((c) => !s.enrollments.some((e) => e.studentId === self && e.courseId === c.id)),
     'seed: stu-1 is enrolled in every course'
   )
-  return { self, gradedCourse, ownGrade, classmate, ungradedCourse, notEnrolled }
+  const student = req(
+    s.students.find((st) => st.id === self),
+    'seed: stu-1 student missing'
+  )
+  // Find a published course at stu-1's sede/level that stu-1 is not enrolled in
+  const browseableCourse = req(
+    s.courses.find(
+      (c) =>
+        c.status === 'published' &&
+        c.sede === student.sede &&
+        (c.level === 'both' || c.level === student.educationalLevel) &&
+        !s.enrollments.some((e) => e.studentId === self && e.courseId === c.id)
+    ),
+    'seed: no browseable course found for stu-1'
+  )
+  return { self, gradedCourse, ownGrade, classmate, ungradedCourse, notEnrolled, browseableCourse }
 }
 
 function asRole(role: Role) {
@@ -149,6 +164,21 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
       expect(screen.getByRole('link', { name: /back to home/i })).toBeInTheDocument()
     })
     expect(screen.queryByRole('heading', { name: notEnrolled.name })).not.toBeInTheDocument()
+  })
+
+  it('shows a Student a browseable Course with a Request button and no roster', async () => {
+    const { browseableCourse } = fixtures()
+    asRole('student')
+    renderPage(browseableCourse.id)
+
+    // Course info is visible to the browsing Student…
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: browseableCourse.name })).toBeInTheDocument()
+    })
+    // …but no roster section appears (ADR-0012: student scope yields empty enrollments).
+    expect(screen.queryByRole('heading', { name: /enrolled students/i })).not.toBeInTheDocument()
+    // …and the Request button is visible (ADR-0016: browseable third path).
+    expect(await screen.findByRole('button', { name: /request a spot/i })).toBeInTheDocument()
   })
 
   it('shows an admin the full enrollment roster', async () => {
