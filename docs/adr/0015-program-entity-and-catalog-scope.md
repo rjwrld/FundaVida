@@ -1,0 +1,9 @@
+# Program is a first-class read-only entity with its own catalog scope
+
+The four-item English `PROGRAMS` string constant becomes a first-class `Program` entity (`id`, Spanish `name`, Spanish `description`) seeded from the foundation's eight real programs, and `Course.programName: string` becomes `Course.programId` referencing it. Programs are a fixed catalog — org-wide, never Sede- or role-scoped — so they are read-only in the app: no create, edit, or delete. They still earn the full viewable-resource treatment: a `programs` cell in the matrix viewable by every role (ADR-0007), a nav entry derived from it (ADR-0010), and a single `'all'` scope token interpreted in `scope.ts` (ADR-0008), backing a catalog list page and a per-program detail page that lists that program's Courses. We rejected leaving Program a string label (it carries no description or stable identity, and certificate and email-campaign filters matched on a translatable name), introducing a `CourseOffering`/template middle entity (the 16 course names are `Course.name` values instantiated as cohorts, not a third layer), and admin CRUD (a frozen eight-program taxonomy has nothing to manage in a demo).
+
+## Consequences
+
+- `Course.programId` replaces `programName`; the former `PROGRAMS` consumers — the course-form picker, the courses-list filter, `emailRecipients` program targeting, and certificate seeding — resolve by `programId`, not a name string.
+- Program names and descriptions are Spanish-only catalog content and are never passed through `t()`, unlike the Level / status / role enums, which are bilingual.
+- Adding the resource is one matrix row, one `'all'` interpreter branch, and one derived nav entry; `Program` and `Course.programId` are part of the persisted shape, so `isValidSnapshot` requires them and `STATE_KEY` bumps.

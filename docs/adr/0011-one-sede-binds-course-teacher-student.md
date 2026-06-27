@@ -7,3 +7,5 @@ The former `Course.headquartersName` (three `'… HQ'` strings) becomes `sede`, 
 - The Course create/edit form filters the Teacher picker to the Course's Sede; the enrollment seam rejects a Student↔Course Sede mismatch.
 - The seed assigns one Sede per Teacher and Student and only wires enrollments within a Sede, so the existing coherent demo story holds.
 - Sede is zod-enum-validated like the other constrained fields; adding a fourth sede is a one-line constant plus a locale key.
+
+_Amended by ADR-0016 — Level joins Sede as a second hard, store-enforced enrollment invariant: a Student may enroll only in Courses whose level matches their educational level or is `'both'`._
