@@ -17,6 +17,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import {
   useAttendance,
   useCourse,
+  useBrowseableCourse,
   useEnrollments,
   useGrades,
   useMarkAttendance,
@@ -167,13 +168,18 @@ export function CoursesDetailPage() {
   const { formatGrade, formatDate } = useFormat()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { data: course, isLoading } = useCourse(id ?? '')
+  const { data: enrolledCourse, isLoading: enrolledLoading } = useCourse(id ?? '')
+  const currentRole = useStore((s) => s.role)
+  const { data: browseableCourse, isLoading: browseLoading } = useBrowseableCourse(
+    id ?? '',
+    currentRole === 'student' && !enrolledCourse
+  )
   const teachers = useStore((s) => s.teachers)
   const programs = useStore((s) => s.programs)
   const currentUserId = useStore((s) => s.currentUserId)
-  const currentRole = useStore((s) => s.role)
   const enrollments = useStore((s) => s.enrollments)
-  const students = useStore((s) => s.students)
+  const course = enrolledCourse ?? browseableCourse ?? null
+  const isLoading = enrolledLoading || browseLoading
   // The roster reads through the API/scope seam, never raw store collections
   // (ADR-0012): admin sees all, the Course's Teacher sees their own Course's
   // records, and a Student's scope collapses these to self (or empty).
@@ -205,25 +211,21 @@ export function CoursesDetailPage() {
   if (isLoading)
     return <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
 
-  // Check if this course is browseable for the current user (ADR-0016: third path)
-  const checkBrowseable = (): boolean => {
-    if (!course || currentRole !== 'student' || !currentUserId) return false
-    const student = students.find((s) => s.id === currentUserId)
-    if (!student) return false
-    // Must be published, at student's sede, level match, and not already enrolled/pending
-    if (course.status !== 'published') return false
-    if (course.sede !== student.sede) return false
-    if (course.level !== 'both' && course.level !== student.educationalLevel) return false
-    const studentEnrollments = enrollments.filter((e) => e.studentId === currentUserId)
-    if (studentEnrollments.some((e) => e.courseId === course.id)) return false
-    return true
-  }
+  // Get the student's enrollment in this course if any (pending or approved)
+  const enrollment =
+    currentUserId && course
+      ? enrollments.find((e) => e.studentId === currentUserId && e.courseId === course.id)
+      : undefined
 
-  // Get the student's pending or approved enrollment in this course if any
-  const studentEnrollment = (): Enrollment | undefined => {
-    if (!currentUserId || !course) return undefined
-    return enrollments.find((e) => e.studentId === currentUserId && e.courseId === course.id)
-  }
+  // isEnrolled: student has the course in their enrolled scope with an active enrollment (approved or pending)
+  const isEnrolled =
+    !!enrolledCourse && (enrollment?.status === 'approved' || enrollment?.status === 'pending')
+
+  // isPending: student has a pending request for this course
+  const isPending = enrollment?.status === 'pending'
+
+  // isBrowseable: a not-enrolled student looking at an open course
+  const isBrowseable = !enrolledCourse && !!browseableCourse
 
   // Get seats remaining
   const getSeatsRemaining = (): number => {
@@ -233,11 +235,6 @@ export function CoursesDetailPage() {
     ).length
     return Math.max(0, course.capacity - approvedCount)
   }
-
-  const enrollment = studentEnrollment()
-  const isEnrolled = enrollment?.status === 'approved'
-  const isPending = enrollment?.status === 'pending'
-  const isBrowseable = checkBrowseable()
 
   if (!course) {
     return (
