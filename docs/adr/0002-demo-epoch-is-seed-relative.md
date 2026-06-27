@@ -6,3 +6,5 @@ All seeded dates are positioned relative to the moment the seed runs in the view
 
 - Screenshots, e2e tests, and Lighthouse runs cannot assert exact dates — assertions must be relative to "today" (e.g. "a session exists within the next 7 days"), not pinned strings.
 - A returning visitor's persisted data keeps its original epoch and slowly ages until they use demo reset, which re-anchors. This drift is accepted; it only matters over months.
+
+_Amended by ADR-0014 — the epoch becomes an explicit persisted `demoEpoch` scalar and all "now" flows through a `clock` seam. Because filters now read the frozen epoch rather than a live `new Date()`, the drift above no longer empties the demo: a returning visitor's data stays consistent with its frozen "today" until reset re-anchors._

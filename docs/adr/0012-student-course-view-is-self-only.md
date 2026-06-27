@@ -7,3 +7,5 @@ A Student opening one of their Courses sees Course metadata plus only their own 
 - Components rendering a scoped resource read it through the API/scope seam, never `useStore((s) => s.<collection>)` directly.
 - The Course detail page branches by role: admin and the Course's Teacher see the roster; a Student sees only self.
 - A Student hitting `/courses/:id` for a Course they are not enrolled in takes the not-authorized / not-found path.
+
+_Amended by ADR-0016 — a non-enrolled Student may now view a browseable Course's detail (one open for enrollment at their Sede and Level), with the roster still hidden: a third path beside the enrolled-self-view and the not-found denial._

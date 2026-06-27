@@ -1,0 +1,9 @@
+# Attendance is marked per Session in one bulk, default-present mutation
+
+Marking a Session moves from per-student instant writes to one bulk action: opening a markable Session defaults every enrolled Student to `present`, the Teacher flips only the exceptions (`absent` / `excused` — the existing three states stand, no `late`), and a single Save commits all records in one mutation with an optimistic update and one cache invalidation. Marking lives on a dedicated, deep-linkable route keyed by `(courseId, sessionDate)` over the derived Sessions of ADR-0001/0004, which the calendar's Session list links to directly — replacing today's detour through the read-only attendance list, which remains for browsing history. A Session is markable only when its date is `<= clock.today()` (ADR-0014); future Sessions are read-only. We rejected per-row instant writes (N taps and N mutations to mark a class present, slow on the community-center phones Teachers actually use), a hybrid instant-plus-bulk surface (two mutation paths and no atomic "session marked" unit), and embedding the marking UI in the heavy `CoursesDetailPage` (not a focused mobile screen, and awkward to deep-link mid-page).
+
+## Consequences
+
+- One bulk mutation writes a Session's attendance and declares its invalidation keys (the Course's attendance, the markable-session view, the dashboards' attendance stats); it checks `can()` (ADR-0009) and emits through `withAudit` (ADR-0005) — Teacher-of-Course and admin only.
+- The marking route's guard derives from the matrix (ADR-0010); the calendar links Teachers and admins straight to it (ADR-0013), and Students never reach it.
+- Attendance records still key by stored `sessionDate` and bind by same-day comparison (ADR-0004); the derivation and the three-state vocabulary are unchanged, so this change alone requires no reseed and no `STATE_KEY` bump.

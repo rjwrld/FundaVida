@@ -6,3 +6,5 @@ When the persisted localStorage snapshot fails shape validation — including Co
 
 - Every schema-shaping change to a persisted entity must extend `isValidSnapshot`, and ships as a one-time silent reset for returning visitors. Their edits (enrollments, grades, attendance changes) are discarded.
 - This compounds ADR-0002's accepted drift: a returning visitor either keeps a consistent old epoch (valid snapshot) or gets a fresh one (invalid snapshot) — never a mix.
+
+_Amended by ADR-0014 — `STATE_KEY` versioning joins `isValidSnapshot` as an explicit reseed trigger (a version bump invalidates snapshots that are structurally valid but semantically stale, e.g. old-taxonomy program strings), and `demoEpoch` becomes a required `isValidSnapshot` field._
