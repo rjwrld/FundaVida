@@ -303,6 +303,18 @@ describe('seedDemo — Certificates mirror the pending → approved story (#69)'
     expect(personaPending.length).toBeGreaterThanOrEqual(1)
   })
 
+  it('spreads the persona Teacher’s certificates across more than one Course (ADR-0019)', () => {
+    const world = seedDemo(EPOCH)
+    const personaCourseIds = new Set(
+      world.courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id)
+    )
+    const certCourseIds = new Set(
+      world.certificates.filter((c) => personaCourseIds.has(c.courseId)).map((c) => c.courseId)
+    )
+    // Two+ cert-bearing courses so the worklist's by-course filter is demoable.
+    expect(certCourseIds.size).toBeGreaterThanOrEqual(2)
+  })
+
   it('stamps approval metadata only on approved Certificates', () => {
     const world = seedDemo(EPOCH)
     world.certificates.forEach((cert) => {

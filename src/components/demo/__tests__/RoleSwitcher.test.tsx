@@ -5,6 +5,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
 import { RoleSwitcher } from '@/components/demo/RoleSwitcher'
 import { useStore } from '@/data/store'
+import { clock } from '@/lib/clock'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
@@ -73,12 +74,21 @@ describe('<RoleSwitcher />', () => {
     const user = userEvent.setup()
     useStore.getState().setRole('admin')
 
-    // The golden-path runway: the just-ended Course the teacher persona (tea-1)
-    // owns and has not yet graded (seedDemo). Switching to teacher should drop
-    // the user straight onto its detail page — the grading write surface.
-    const { courses, grades } = useStore.getState()
+    // The golden-path runway: an ended Course the teacher persona (tea-1) owns
+    // that still has at least one ungraded enrollment (matches landingPathForRole
+    // — a Course with a few grades but ungraded students left still qualifies).
+    // Switching to teacher should drop the user straight onto its detail page.
+    const { courses, grades, enrollments } = useStore.getState()
+    const now = clock.now()
     const goldenPath = courses.find(
-      (c) => c.teacherId === 'tea-1' && !grades.some((g) => g.courseId === c.id)
+      (c) =>
+        c.teacherId === 'tea-1' &&
+        new Date(c.term.end) < now &&
+        enrollments.some(
+          (e) =>
+            e.courseId === c.id &&
+            !grades.some((g) => g.studentId === e.studentId && g.courseId === c.id)
+        )
     )
     if (!goldenPath) throw new Error('seed should leave tea-1 an ungraded ended Course')
 

@@ -977,6 +977,33 @@ export function seedDemo(epoch: Date): SeedSnapshot {
     throw new Error('seed plan must include exactly one just-ended course for the teacher persona')
   }
   const grades = buildGrades(epoch, enrollments, courses, goldenPathCourse.id)
+
+  // Demo polish (ADR-0019): grade a few students in the persona Teacher's
+  // golden-path Course so their Certificate worklist spans a second Course and the
+  // by-course filter has something to filter. We grade only a handful and leave the
+  // rest ungraded, so the golden-path runway (issue #72: the teacher still has
+  // grading to do) is intact. Scores are fixed (no faker draw) and this runs after
+  // every faker draw, so neither the RNG sequence nor any seeded count shifts. The
+  // grade timestamp mirrors buildGrades: shortly after the Term ended, never future.
+  const goldenRoster = enrollments.filter((e) => e.courseId === goldenPathCourse.id)
+  const goldenGradeCount = Math.min(3, Math.max(0, goldenRoster.length - 1))
+  const goldenTermEnd = startOfDay(new Date(goldenPathCourse.term.end))
+  const goldenIssuedAt = (
+    addDays(goldenTermEnd, 3) > epochDay ? epochDay : addDays(goldenTermEnd, 3)
+  ).toISOString()
+  const goldenScores = [92, 84, 97]
+  for (let i = 0; i < goldenGradeCount; i++) {
+    const enrollment = goldenRoster[i]
+    if (!enrollment) break
+    grades.push({
+      id: `gra-golden-${i + 1}`,
+      studentId: enrollment.studentId,
+      courseId: goldenPathCourse.id,
+      score: goldenScores[i] ?? 90,
+      issuedAt: goldenIssuedAt,
+    })
+  }
+
   const tcuTrainees = buildTcuTrainees(epoch, courses)
 
   // Localize names/emails/cantons now that the whole structural graph exists and

@@ -5,6 +5,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
 import { WelcomePage } from '@/pages/WelcomePage'
 import { useStore } from '@/data/store'
+import { clock } from '@/lib/clock'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
@@ -65,11 +66,20 @@ describe('<WelcomePage />', () => {
 
   it('lands the teacher persona on its ungraded ended Course (golden-path entry)', async () => {
     const user = userEvent.setup()
-    // The just-ended Course the teacher persona (tea-1) owns and has not yet
-    // graded — switching to teacher should open its detail page directly.
-    const { courses, grades } = useStore.getState()
+    // An ended Course the teacher persona (tea-1) owns that still has an ungraded
+    // enrollment (matches landingPathForRole — a Course with a few grades but
+    // ungraded students left still qualifies). Switching to teacher opens it.
+    const { courses, grades, enrollments } = useStore.getState()
+    const now = clock.now()
     const goldenPath = courses.find(
-      (c) => c.teacherId === 'tea-1' && !grades.some((g) => g.courseId === c.id)
+      (c) =>
+        c.teacherId === 'tea-1' &&
+        new Date(c.term.end) < now &&
+        enrollments.some(
+          (e) =>
+            e.courseId === c.id &&
+            !grades.some((g) => g.studentId === e.studentId && g.courseId === c.id)
+        )
     )
     if (!goldenPath) throw new Error('seed should leave tea-1 an ungraded ended Course')
 
