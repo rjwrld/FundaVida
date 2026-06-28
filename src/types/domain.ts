@@ -12,6 +12,12 @@ export type Gender = 'F' | 'M' | 'X'
 export type EducationalLevel = 'primaria' | 'secundaria'
 
 /**
+ * The relationship a Student's Encargado (guardian) has to them (CONTEXT.md:
+ * Encargado). Spanish model tokens; the UI renders them through t() (bilingual).
+ */
+export type GuardianRelationship = 'madre' | 'padre' | 'tutor' | 'otro'
+
+/**
  * The schooling stage a Course targets. `'both'` admits Students of either
  * level (ADR-0016). Bilingual via t(), unlike the Spanish-only program names.
  */
@@ -50,6 +56,15 @@ export interface Term {
   end: string
 }
 
+/** The adult responsible for a Student (CONTEXT.md: Encargado). Students are
+ * minors, so every Student has exactly one. */
+export interface Guardian {
+  name: string
+  relationship: GuardianRelationship
+  phone: string
+  email: string
+}
+
 export interface Student {
   id: string
   firstName: string
@@ -60,6 +75,7 @@ export interface Student {
   province: string
   canton: string
   educationalLevel: EducationalLevel
+  guardian: Guardian
   enrolledCourseIds: string[]
   createdAt: string
 }
@@ -70,6 +86,8 @@ export interface Teacher {
   lastName: string
   email: string
   sede: Sede
+  province: string
+  canton: string
   courseIds: string[]
   createdAt: string
 }

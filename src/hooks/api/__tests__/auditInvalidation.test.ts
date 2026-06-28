@@ -34,6 +34,12 @@ describe('wireAuditInvalidation', () => {
       province: 'San José',
       canton: 'Central',
       educationalLevel: 'secundaria',
+      guardian: {
+        name: 'Encargado Test',
+        relationship: 'madre',
+        phone: '8888-8888',
+        email: 'enc@example.com',
+      },
     })
 
     // Wait a tick for subscription to fire
@@ -79,6 +85,12 @@ describe('wireAuditInvalidation', () => {
       province: 'San José',
       canton: 'Central',
       educationalLevel: 'secundaria',
+      guardian: {
+        name: 'Encargado Test',
+        relationship: 'madre',
+        phone: '8888-8888',
+        email: 'enc@example.com',
+      },
     })
 
     await new Promise((resolve) => setTimeout(resolve, 0))
@@ -100,6 +112,12 @@ describe('wireAuditInvalidation', () => {
       province: 'San José',
       canton: 'Central',
       educationalLevel: 'secundaria',
+      guardian: {
+        name: 'Encargado Test',
+        relationship: 'madre',
+        phone: '8888-8888',
+        email: 'enc@example.com',
+      },
     })
 
     await new Promise((resolve) => setTimeout(resolve, 0))

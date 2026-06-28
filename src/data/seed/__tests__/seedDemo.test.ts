@@ -7,7 +7,12 @@ import { resolveRecipients } from '@/lib/emailRecipients'
 import { PROGRAM_CATALOG } from '@/constants/programs'
 import { UNIVERSITIES } from '@/constants/university'
 import { SEDES } from '@/constants/sede'
-import { CANTONS_BY_PROVINCE, EDUCATIONAL_LEVELS, PROVINCES } from '@/constants/student'
+import {
+  CANTONS_BY_PROVINCE,
+  EDUCATIONAL_LEVELS,
+  GUARDIAN_RELATIONSHIPS,
+  PROVINCES,
+} from '@/constants/student'
 import { CR_FIRST_NAMES, CR_LAST_NAMES } from '@/constants/names'
 
 // A fixed Demo Epoch keeps assertions deterministic. Per ADR-0002 all seeded
@@ -407,6 +412,29 @@ describe('seedDemo — vocabulary is sourced from the shared constants', () => {
       const cantons = CANTONS_BY_PROVINCE[student.province as keyof typeof CANTONS_BY_PROVINCE]
       expect(cantons).toBeDefined()
       expect(cantons).toContain(student.canton)
+    })
+  })
+
+  it('gives every student an encargado with name, relationship, phone, and email', () => {
+    const world = seedDemo(EPOCH)
+    const relationships = new Set<string>(GUARDIAN_RELATIONSHIPS)
+    expect(world.students.length).toBeGreaterThan(0)
+    world.students.forEach((student) => {
+      expect(student.guardian.name).toMatch(/^\S+ \S+/)
+      expect(relationships.has(student.guardian.relationship)).toBe(true)
+      expect(student.guardian.phone).toMatch(/^[678]\d{3}-\d{4}$/)
+      expect(student.guardian.email).toMatch(/@gmail\.com$/)
+    })
+  })
+
+  it('gives every teacher a province and a canton that belongs to it', () => {
+    const world = seedDemo(EPOCH)
+    const provinces = new Set<string>(PROVINCES)
+    expect(world.teachers.length).toBeGreaterThan(0)
+    world.teachers.forEach((teacher) => {
+      expect(provinces.has(teacher.province)).toBe(true)
+      const cantons = CANTONS_BY_PROVINCE[teacher.province as keyof typeof CANTONS_BY_PROVINCE]
+      expect(cantons).toContain(teacher.canton)
     })
   })
 

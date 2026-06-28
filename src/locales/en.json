@@ -663,6 +663,7 @@
       "edit": "Edit",
       "sections": {
         "enrollments": "Enrollments",
+        "guardian": "Guardian",
         "identity": "Identity",
         "noEnrollments": "Not enrolled in any courses."
       },
@@ -681,6 +682,10 @@
         "email": "Email",
         "firstName": "First name",
         "gender": "Gender",
+        "guardianEmail": "Guardian email",
+        "guardianName": "Guardian name",
+        "guardianPhone": "Guardian phone",
+        "guardianRelationship": "Relationship",
         "lastName": "Last name",
         "province": "Province",
         "sede": "Campus"
@@ -689,6 +694,15 @@
         "F": "Female",
         "M": "Male",
         "X": "Other"
+      },
+      "guardian": {
+        "legend": "Guardian (Encargado)",
+        "relationship": {
+          "madre": "Mother",
+          "otro": "Other",
+          "padre": "Father",
+          "tutor": "Guardian"
+        }
       },
       "level": {
         "primaria": "Primary",
@@ -772,9 +786,11 @@
     "form": {
       "editTitle": "Edit teacher",
       "fields": {
+        "canton": "Canton",
         "email": "Email",
         "firstName": "First name",
         "lastName": "Last name",
+        "province": "Province",
         "sede": "Campus"
       },
       "newTitle": "New teacher"
@@ -830,6 +846,7 @@
     "numberMax": "Maximum {{max}}",
     "numberMin": "Minimum {{min}}",
     "numberRequired": "Must be a number",
+    "phone": "Enter a valid phone (8888-8888)",
     "required": "{{field}} is required",
     "selectValue": "Select a value for the chosen filter",
     "termEndAfterStart": "Term end must be on or after term start"

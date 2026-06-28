@@ -60,6 +60,12 @@ describe('useCreateStudent', () => {
       province: 'Province1',
       canton: 'Canton1',
       educationalLevel: 'primaria' as const,
+      guardian: {
+        name: 'Encargado Test',
+        relationship: 'madre' as const,
+        phone: '8888-8888',
+        email: 'enc@example.com',
+      },
     }
 
     result.current.mutate(newStudent)
@@ -91,6 +97,12 @@ describe('useCreateStudent', () => {
       province: 'Province1',
       canton: 'Canton1',
       educationalLevel: 'primaria' as const,
+      guardian: {
+        name: 'Encargado Test',
+        relationship: 'madre' as const,
+        phone: '8888-8888',
+        email: 'enc@example.com',
+      },
     }
 
     result.current.mutate(newStudent)

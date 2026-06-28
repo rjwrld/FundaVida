@@ -35,6 +35,12 @@ const validStudent = {
   province: 'San José',
   canton: 'Central',
   educationalLevel: 'secundaria' as const,
+  guardian: {
+    name: 'Encargado Test',
+    relationship: 'madre' as const,
+    phone: '8888-8888',
+    email: 'enc@example.com',
+  },
 }
 
 let queryClient: QueryClient

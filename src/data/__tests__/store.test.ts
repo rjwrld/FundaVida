@@ -63,6 +63,8 @@ describe('teacher CRUD', () => {
       lastName: 'Hopper',
       email: 'grace@fv.cr',
       sede: 'Linda Vista',
+      province: 'San José',
+      canton: 'San José',
     })
     expect(created.id).toMatch(/^tea-\d+$/)
     expect(created.courseIds).toEqual([])
@@ -75,6 +77,8 @@ describe('teacher CRUD', () => {
       lastName: 'B',
       email: 'a@b.co',
       sede: 'Linda Vista',
+      province: 'San José',
+      canton: 'San José',
     })
     useStore.getState().updateTeacher(id, { lastName: 'Changed' })
     expect(useStore.getState().teachers.find((t) => t.id === id)?.lastName).toBe('Changed')
@@ -95,6 +99,8 @@ describe('teacher CRUD', () => {
       lastName: 'Wolf',
       email: 'lone@fv.cr',
       sede: 'Linda Vista',
+      province: 'San José',
+      canton: 'San José',
     })
     useStore.getState().deleteTeacher(created.id)
     expect(useStore.getState().teachers.some((t) => t.id === created.id)).toBe(false)
@@ -196,6 +202,12 @@ describe('audit log instrumentation', () => {
       province: 'X',
       canton: 'Y',
       educationalLevel: 'primaria',
+      guardian: {
+        name: 'Encargado Test',
+        relationship: 'madre',
+        phone: '8888-8888',
+        email: 'enc@example.com',
+      },
     })
     const log = useStore.getState().auditLog
     expect(log.length).toBe(before + 1)
@@ -214,6 +226,12 @@ describe('audit log instrumentation', () => {
       province: 'X',
       canton: 'Y',
       educationalLevel: 'primaria',
+      guardian: {
+        name: 'Encargado Test',
+        relationship: 'madre',
+        phone: '8888-8888',
+        email: 'enc@example.com',
+      },
     })
     useStore.getState().deleteStudent(id)
     const log = useStore.getState().auditLog
