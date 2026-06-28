@@ -1,7 +1,9 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Book, Calendar, AlertCircle } from 'lucide-react'
+import { Book, Calendar, AlertCircle, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useCourses } from '@/hooks/api/courses'
 import { StatCard } from '@/components/shared/StatCard'
@@ -92,6 +94,22 @@ export function TeacherDashboard() {
       {/* TCU Approval Queue */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <TcuApprovalQueue />
+      </motion.div>
+
+      {/* Create a Course CTA */}
+      <motion.div variants={fadeUp} transition={transitionDefaults}>
+        <div className="rounded-lg border border-border bg-card p-6 shadow-card">
+          <h3 className="text-lg font-semibold mb-2">{t('dashboard.teacher.createCourseTitle')}</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            {t('dashboard.teacher.createCourseDescription')}
+          </p>
+          <Button asChild>
+            <Link to="/app/courses?new=true">
+              <Plus size={16} className="mr-2" />
+              {t('dashboard.teacher.createCourseButton')}
+            </Link>
+          </Button>
+        </div>
       </motion.div>
     </DashboardShell>
   )

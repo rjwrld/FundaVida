@@ -25,7 +25,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { CoursesEmpty } from '@/components/empty-states/CoursesEmpty'
 import { CourseFormDialog } from '@/components/courses/CourseFormDialog'
-import { useCourses, useDeleteCourse } from '@/hooks/api'
+import { useCourses, useDeleteCourse, usePublishCourse } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
 import { useFormDialogParams } from '@/hooks/useFormDialogParams'
 import { SEDES } from '@/constants/sede'
@@ -38,6 +38,7 @@ export function CoursesListPage() {
   const [filters, setFilters] = useState<CourseFilters>({})
   const { data = [], isLoading } = useCourses(filters)
   const deleteCourse = useDeleteCourse()
+  const publishCourse = usePublishCourse()
   const { isOpen, mode, editId, openCreate, openEdit, close } = useFormDialogParams()
   const [pendingDelete, setPendingDelete] = useState<Course | null>(null)
   const teachers = useStore((s) => s.teachers)
@@ -49,7 +50,7 @@ export function CoursesListPage() {
 
   const hasFilters = Boolean(filters.search || filters.sede || filters.programId)
   const count = data.length
-  const columnCount = canActOnRows ? 5 : 4
+  const columnCount = canActOnRows ? 6 : 5
 
   const teacherName = (teacherId: string) => {
     const teacher = teachers.find((x) => x.id === teacherId)
@@ -147,34 +148,58 @@ export function CoursesListPage() {
                 <TableHead>{t('courses.list.columns.program')}</TableHead>
                 <TableHead>{t('courses.form.fields.sede')}</TableHead>
                 <TableHead>{t('courses.list.columns.teacher')}</TableHead>
+                <TableHead>{t('courses.list.columns.status')}</TableHead>
                 {canActOnRows && (
                   <TableHead className="text-right">{t('courses.list.columns.actions')}</TableHead>
                 )}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((c) => (
-                <TableRow key={c.id} className="h-12 hover:bg-muted/40">
-                  <TableCell>
-                    <Link to={`/app/courses/${c.id}`} className="hover:underline">
-                      {c.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{programName(c.programId)}</TableCell>
-                  <TableCell>{c.sede}</TableCell>
-                  <TableCell>{teacherName(c.teacherId)}</TableCell>
-                  {canActOnRows && (
-                    <TableCell className="text-right">
-                      <RowActions
-                        editLabel={t('common.actions.editItem', { name: c.name })}
-                        deleteLabel={t('common.actions.deleteItem', { name: c.name })}
-                        onEdit={canEdit ? () => openEdit(c.id) : undefined}
-                        onDelete={canDelete ? () => setPendingDelete(c) : undefined}
-                      />
+              {data.map((c) => {
+                const canPublish = canEdit && c.status === 'draft'
+                return (
+                  <TableRow key={c.id} className="h-12 hover:bg-muted/40">
+                    <TableCell>
+                      <Link to={`/app/courses/${c.id}`} className="hover:underline">
+                        {c.name}
+                      </Link>
                     </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                    <TableCell>{programName(c.programId)}</TableCell>
+                    <TableCell>{c.sede}</TableCell>
+                    <TableCell>{teacherName(c.teacherId)}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`text-xs font-medium px-2 py-1 rounded ${
+                          c.status === 'published'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}
+                        data-testid={`course-status-${c.status}`}
+                      >
+                        {t(`courses.status.${c.status}`)}
+                      </span>
+                    </TableCell>
+                    {canActOnRows && (
+                      <TableCell className="text-right">
+                        <RowActions
+                          editLabel={t('common.actions.editItem', { name: c.name })}
+                          deleteLabel={t('common.actions.deleteItem', { name: c.name })}
+                          publishLabel={t('courses.list.publishButton', { name: c.name })}
+                          onEdit={canEdit ? () => openEdit(c.id) : undefined}
+                          onDelete={canDelete ? () => setPendingDelete(c) : undefined}
+                          onPublish={
+                            canPublish
+                              ? () => {
+                                  publishCourse.mutate({ courseId: c.id })
+                                }
+                              : undefined
+                          }
+                        />
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </div>
