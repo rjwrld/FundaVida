@@ -174,8 +174,12 @@ describe('store permission guards', () => {
       )
       if (!inProgressCourse) throw new Error('no not-ended teacher-owned course in seed')
 
-      const student = store.students.find((s) => s.sede === inProgressCourse.sede)
-      if (!student) throw new Error('no student at the course Sede')
+      const student = store.students.find(
+        (s) =>
+          s.sede === inProgressCourse.sede &&
+          (inProgressCourse.level === 'both' || inProgressCourse.level === s.educationalLevel)
+      )
+      if (!student) throw new Error('no student at the course Sede with matching level')
 
       // Setup: admin creates enrollment
       useStore.getState().setRole('admin')
@@ -205,8 +209,11 @@ describe('store permission guards', () => {
       const course = store.courses.find((c) => c.id === 'cou-4')
       if (!course) throw new Error('no cou-4 in seed')
 
-      const student = store.students.find((s) => s.sede === course.sede)
-      if (!student) throw new Error('no student at the course Sede')
+      const student = store.students.find(
+        (s) =>
+          s.sede === course.sede && (course.level === 'both' || course.level === s.educationalLevel)
+      )
+      if (!student) throw new Error('no student at the course Sede with matching level')
 
       useStore.getState().setRole('admin')
 

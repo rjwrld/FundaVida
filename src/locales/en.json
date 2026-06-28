@@ -404,6 +404,11 @@
     "message": "Demo snapshot — sample data frozen at {{date}}"
   },
   "enrollments": {
+    "approvalQueue": {
+      "actions": "Actions",
+      "capacityReached": "Course is at capacity",
+      "title": "Enrollment requests"
+    },
     "dialog": {
       "description": "Select a student to enroll in this course.",
       "noStudents": "No eligible students.",
@@ -789,6 +794,8 @@
     "coursePublished": "Course published.",
     "courseUpdated": "Course updated.",
     "enrolled": "Student enrolled.",
+    "enrollmentApproved": "Enrollment approved.",
+    "enrollmentRejected": "Enrollment rejected.",
     "enrollmentRequested": "Request submitted. Awaiting teacher approval.",
     "error": "Something went wrong: {{message}}",
     "gradeDeleted": "Grade deleted.",

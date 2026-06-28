@@ -73,6 +73,8 @@ export interface StoreState {
   enrollStudent: (studentId: string, courseId: string) => Enrollment
   requestEnrollment: (studentId: string, courseId: string) => Enrollment
   withdrawEnrollmentRequest: (enrollmentId: string) => void
+  approveEnrollment: (enrollmentId: string) => Enrollment
+  rejectEnrollment: (enrollmentId: string) => Enrollment
   unenrollStudent: (enrollmentId: string) => void
   setGrade: (studentId: string, courseId: string, score: number) => Grade
   updateGradeScore: (gradeId: string, score: number) => void
@@ -551,7 +553,6 @@ export const useStore = create<StoreState>((set, get) => ({
   },
   enrollStudent: (studentId, courseId) => {
     const state = get()
-    assertCan(state, 'create', 'enrollments')
     const { enrollments, students, courses } = state
     const existing = enrollments.find((e) => e.studentId === studentId && e.courseId === courseId)
     if (existing) return existing
@@ -565,12 +566,23 @@ export const useStore = create<StoreState>((set, get) => ({
     if (!course) {
       throw new Error(`cannot enroll in unknown course ${courseId}`)
     }
+    // Check permission with course context (teacher may only enroll into their own courses)
+    assertCan(state, 'create', 'enrollments', {
+      userId: state.currentUserId ?? undefined,
+      course,
+    })
     // A Student may only enrol in Courses at their own Sede (ADR-0011). The Enroll
     // dialog filters to same-Sede students, so this guards direct callers and
     // should never reach end users.
     if (student.sede !== course.sede) {
       throw new Error(
         `cannot enroll student ${studentId} (${student.sede}) in course ${courseId} (${course.sede}): Sede mismatch`
+      )
+    }
+    // A Student may only enroll in Courses matching their educational level or 'both' (ADR-0016).
+    if (course.level !== 'both' && course.level !== student.educationalLevel) {
+      throw new Error(
+        `cannot enroll student ${studentId} (${student.educationalLevel}) in course ${courseId} (${course.level}): Level mismatch`
       )
     }
     // A Teacher/admin direct-enroll lands straight in 'approved' (ADR-0016); the
@@ -680,6 +692,97 @@ export const useStore = create<StoreState>((set, get) => ({
         },
       }
     })
+  },
+  approveEnrollment: (enrollmentId) => {
+    const state = get()
+    const { enrollments, courses } = state
+    const target = enrollments.find((e) => e.id === enrollmentId)
+    if (!target) {
+      throw new Error(`cannot approve unknown enrollment ${enrollmentId}`)
+    }
+    const course = courses.find((c) => c.id === target.courseId)
+    if (!course) {
+      throw new Error(`cannot approve enrollment: unknown course ${target.courseId}`)
+    }
+    // Check permission: only course owner (teacher) or admin can approve
+    assertCan(state, 'approve', 'enrollments', {
+      userId: state.currentUserId ?? undefined,
+      course,
+    })
+    // Check capacity: count already-approved enrollments
+    const approvedCount = state.enrollments.filter(
+      (e) => e.courseId === target.courseId && e.status === 'approved'
+    ).length
+    if (approvedCount >= course.capacity) {
+      throw new Error(
+        `cannot approve enrollment: course ${target.courseId} has reached capacity (${course.capacity})`
+      )
+    }
+    const now = clock.now().toISOString()
+    const approved: Enrollment = {
+      ...target,
+      status: 'approved',
+      decidedBy: state.currentUserId ?? 'system',
+      decidedAt: now,
+    }
+    withAudit(set, (state) => {
+      const updatedStudents = state.students.map((s) =>
+        s.id === target.studentId && !s.enrolledCourseIds.includes(target.courseId)
+          ? { ...s, enrolledCourseIds: [...s.enrolledCourseIds, target.courseId] }
+          : s
+      )
+      return {
+        next: {
+          enrollments: state.enrollments.map((e) => (e.id === enrollmentId ? approved : e)),
+          students: updatedStudents,
+        },
+        audit: {
+          action: 'approve',
+          entity: 'enrollment',
+          entityId: enrollmentId,
+          summary: `Approved enrollment ${enrollmentId}`,
+        },
+      }
+    })
+    return approved
+  },
+  rejectEnrollment: (enrollmentId) => {
+    const state = get()
+    const { enrollments, courses } = state
+    const target = enrollments.find((e) => e.id === enrollmentId)
+    if (!target) {
+      throw new Error(`cannot reject unknown enrollment ${enrollmentId}`)
+    }
+    const course = courses.find((c) => c.id === target.courseId)
+    if (!course) {
+      throw new Error(`cannot reject enrollment: unknown course ${target.courseId}`)
+    }
+    // Check permission: only course owner (teacher) or admin can reject
+    assertCan(state, 'approve', 'enrollments', {
+      userId: state.currentUserId ?? undefined,
+      course,
+    })
+    const now = clock.now().toISOString()
+    const rejected: Enrollment = {
+      ...target,
+      status: 'rejected',
+      decidedBy: state.currentUserId ?? 'system',
+      decidedAt: now,
+    }
+    withAudit(set, (state) => {
+      return {
+        next: {
+          enrollments: state.enrollments.map((e) => (e.id === enrollmentId ? rejected : e)),
+        },
+        audit: {
+          action: 'approve',
+          entity: 'enrollment',
+          entityId: enrollmentId,
+          summary: `Rejected enrollment ${enrollmentId}`,
+        },
+      }
+    })
+    return rejected
   },
   unenrollStudent: (enrollmentId) => {
     const state = get()

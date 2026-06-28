@@ -408,6 +408,11 @@
     "message": "Versión de demostración — datos de ejemplo congelados al {{date}}"
   },
   "enrollments": {
+    "approvalQueue": {
+      "actions": "Acciones",
+      "capacityReached": "El curso ha alcanzado su capacidad",
+      "title": "Solicitudes de matrícula"
+    },
     "dialog": {
       "description": "Selecciona un estudiante para matricularlo en este curso.",
       "noStudents": "No hay estudiantes elegibles.",
@@ -794,6 +799,8 @@
     "coursePublished": "Curso publicado.",
     "courseUpdated": "Curso actualizado.",
     "enrolled": "Estudiante matriculado.",
+    "enrollmentApproved": "Matriculación aprobada.",
+    "enrollmentRejected": "Matriculación rechazada.",
     "enrollmentRequested": "Solicitud enviada. Esperando aprobación del docente.",
     "error": "Algo salió mal: {{message}}",
     "gradeDeleted": "Calificación eliminada.",
