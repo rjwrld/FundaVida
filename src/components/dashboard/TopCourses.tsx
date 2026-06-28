@@ -34,7 +34,7 @@ export function TopCourses({ courses, courseCapacities = {} }: TopCoursesProps) 
                 <div className="flex items-baseline justify-between gap-3">
                   <p className="truncate text-sm font-medium text-foreground">{course.name}</p>
                   <span
-                    className={`shrink-0 text-xs tabular-nums ${isFull ? 'text-brand-red-500 font-medium' : 'text-muted-foreground'}`}
+                    className={`shrink-0 text-xs tabular-nums ${isFull ? 'font-medium text-flame-red-500' : 'text-muted-foreground'}`}
                   >
                     {t('dashboard.topCourses.enrollmentCapacity', {
                       enrolled,
