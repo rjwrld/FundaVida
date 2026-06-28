@@ -364,28 +364,34 @@
     },
     "student": {
       "attendanceRate": "Tasa de asistencia este mes",
-      "myCourses": "Mis cursos"
+      "browseDescription": "Explora y solicita un lugar en cursos abiertos en tu sede.",
+      "browseOpenCourses": "Explorar cursos abiertos",
+      "myCourses": "Mis cursos",
+      "nextClass": "Próxima clase"
     },
     "tcu": {
       "hoursCompleted": "Horas completadas",
       "hoursRemaining": "Horas restantes hacia 300",
-      "recentActivities": "Actividades recientes"
+      "noActivities": "Aún no hay actividades registradas.",
+      "recentActivities": "Actividades recientes",
+      "recentActivitiesList": "Actividades recientes"
     },
     "teacher": {
       "createCourseButton": "Crear un curso",
       "createCourseDescription": "Ofrece un nuevo curso a los estudiantes de tu sede.",
       "createCourseTitle": "Crear un curso",
       "endedCoursesAwaitingGrades": "Cursos finalizados en espera de calificaciones",
+      "markAttendance": "Marcar",
       "myCourses": "Mis cursos",
       "nextSession": "Próxima sesión programada",
-      "noUpcoming": "Ninguno programado"
+      "nextSessions": "Próximas sesiones para marcar asistencia",
+      "noUpcomingSessions": "No hay próximas sesiones para marcar."
     },
     "title": "Sesión como {{role}}",
     "topCourses": {
+      "capacityLabel": "{{name}} — {{pct}}% de capacidad",
       "empty": "Aún no hay cursos.",
-      "enrollments_one": "{{count}} estudiante",
-      "enrollments_many": "{{count}} estudiantes",
-      "enrollments_other": "{{count}} estudiantes",
+      "enrollmentCapacity": "{{enrolled}}/{{capacity}}",
       "title": "Cursos destacados"
     },
     "upcoming": {

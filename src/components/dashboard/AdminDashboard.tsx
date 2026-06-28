@@ -23,6 +23,15 @@ export function AdminDashboard() {
   const courses = useStore((s) => s.courses)
   const programs = useStore((s) => s.programs)
 
+  // Build courseCapacities map for TopCourses (enrollment vs capacity).
+  const courseCapacities = useMemo(() => {
+    const capacities: Record<string, number> = {}
+    courses.forEach((c) => {
+      capacities[c.id] = c.capacity
+    })
+    return capacities
+  }, [courses])
+
   const upcoming = useMemo<UpcomingItem[]>(() => {
     const items: UpcomingItem[] = []
     const courseById = new Map(courses.map((c) => [c.id, c]))
@@ -58,6 +67,9 @@ export function AdminDashboard() {
   const greetingName = t('dashboard.recentActivity.actor.admin')
 
   // Admin sees every Sede's Courses; the sidebar calendar marks their Session days.
+  // Hero: Org Health Stats (total students, active courses, certs, tcu hours)
+  //       + Pending Approvals
+  // Supporting: Recent Activity, Top Courses (with capacity), Attendance Snapshot
   return (
     <DashboardShell courses={courses} upcoming={upcoming}>
       <motion.div variants={fadeUp} transition={transitionDefaults}>
@@ -83,6 +95,7 @@ export function AdminDashboard() {
         />
       </motion.div>
 
+      {/* Hero: Org Health Stats */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <StatRow
           totalStudents={stats.totalStudents}
@@ -93,14 +106,19 @@ export function AdminDashboard() {
         />
       </motion.div>
 
+      {/* Hero: Pending Approvals */}
+      <motion.div variants={fadeUp} transition={transitionDefaults}>
+        <PendingApprovals count={stats.pendingApprovals} />
+      </motion.div>
+
+      {/* Supporting: Recent Activity, Top Courses, Attendance */}
       <motion.div
         variants={fadeUp}
         transition={transitionDefaults}
         className="grid gap-4 lg:grid-cols-2"
       >
         <RecentActivity entries={stats.recentActivity} />
-        <TopCourses courses={stats.topCourses} />
-        <PendingApprovals count={stats.pendingApprovals} />
+        <TopCourses courses={stats.topCourses} courseCapacities={courseCapacities} />
         <AttendanceSnapshot ratePct={stats.attendanceRate} trend={stats.attendanceTrend} />
       </motion.div>
     </DashboardShell>

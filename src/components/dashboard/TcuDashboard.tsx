@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Clock, Activity } from 'lucide-react'
+import { Clock } from 'lucide-react'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useTcuActivities } from '@/hooks/api'
 import { StatCard } from '@/components/shared/StatCard'
+import { TcuActivityList } from './TcuActivityList'
 import type { Variants } from 'framer-motion'
 
 const stagger: Variants = {
@@ -23,11 +24,10 @@ export function TcuDashboard() {
 
   const totalHours = myActivities.reduce((sum, a) => sum + a.hours, 0)
   const remainingHours = Math.max(0, TARGET_HOURS - totalHours)
-  const recentActivitiesCount = Math.min(myActivities.length, 5)
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="grid gap-6">
-      {/* Hours Completed */}
+      {/* Hero: Hours Completed and Remaining */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <StatCard
           label={t('dashboard.tcu.hoursCompleted')}
@@ -37,7 +37,6 @@ export function TcuDashboard() {
         />
       </motion.div>
 
-      {/* Hours Remaining */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <StatCard
           label={t('dashboard.tcu.hoursRemaining')}
@@ -47,13 +46,9 @@ export function TcuDashboard() {
         />
       </motion.div>
 
-      {/* Recent Activities */}
+      {/* Supporting: Recent Activities List */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
-        <StatCard
-          label={t('dashboard.tcu.recentActivities')}
-          value={recentActivitiesCount}
-          icon={<Activity className="size-4" aria-hidden="true" />}
-        />
+        <TcuActivityList activities={myActivities} />
       </motion.div>
     </motion.div>
   )

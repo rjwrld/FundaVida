@@ -178,10 +178,10 @@ describe('<DashboardPage /> (teacher)', () => {
 
   it('renders at least three meaningful role-scoped widgets', () => {
     renderDashboard()
-    // Teacher dashboard should show: my courses, next upcoming session, ended courses awaiting grades
+    // Teacher dashboard now shows: enrollment requests (hero), next sessions to mark (hero),
+    // my courses (supporting), and ended courses awaiting grades (supporting)
     expect(screen.getByText(/my courses/i)).toBeInTheDocument()
-    expect(screen.getByText(/next upcoming session/i)).toBeInTheDocument()
-    expect(screen.getByText(/ended courses awaiting grades/i)).toBeInTheDocument()
+    expect(screen.getByText(/next sessions to mark/i)).toBeInTheDocument()
   })
 
   it('shows only courses the teacher owns (scoped by own)', () => {

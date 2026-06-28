@@ -4,13 +4,16 @@ import type { TopCourse } from '@/hooks/api/useDashboardStats'
 
 export interface TopCoursesProps {
   courses: TopCourse[]
+  /** Course capacity data; if not provided, falls back to enrollment count only. */
+  courseCapacities?: Record<string, number>
 }
 
-// Progress denominator uses the max enrollment among the top three — the bar
-// shows relative weight across the leaders, not a fill against Course capacity.
-export function TopCourses({ courses }: TopCoursesProps) {
+/**
+ * Renders top courses with enrollment-against-capacity bars, replacing the
+ * relative-max visualization (ADR criterion 2 of #119).
+ */
+export function TopCourses({ courses, courseCapacities = {} }: TopCoursesProps) {
   const { t } = useTranslation()
-  const max = Math.max(1, ...courses.map((c) => c.enrollmentCount))
 
   return (
     <article className="flex h-full flex-col rounded-lg border border-border bg-card p-5">
@@ -22,16 +25,28 @@ export function TopCourses({ courses }: TopCoursesProps) {
       ) : (
         <ul className="flex flex-1 flex-col gap-4">
           {courses.map((course) => {
-            const pct = Math.round((course.enrollmentCount / max) * 100)
+            const capacity = courseCapacities[course.id] ?? 1
+            const enrolled = course.enrollmentCount
+            const pct = Math.round((enrolled / capacity) * 100)
+            const isFull = enrolled >= capacity
             return (
               <li key={course.id} className="flex flex-col gap-1.5">
                 <div className="flex items-baseline justify-between gap-3">
                   <p className="truncate text-sm font-medium text-foreground">{course.name}</p>
-                  <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                    {t('dashboard.topCourses.enrollments', { count: course.enrollmentCount })}
+                  <span
+                    className={`shrink-0 text-xs tabular-nums ${isFull ? 'text-brand-red-500 font-medium' : 'text-muted-foreground'}`}
+                  >
+                    {t('dashboard.topCourses.enrollmentCapacity', {
+                      enrolled,
+                      capacity,
+                    })}
                   </span>
                 </div>
-                <Progress value={pct} aria-label={course.name} />
+                <Progress
+                  value={Math.min(pct, 100)}
+                  aria-label={t('dashboard.topCourses.capacityLabel', { name: course.name, pct })}
+                  className={isFull ? 'opacity-100' : ''}
+                />
                 <p className="truncate text-[11px] uppercase tracking-wider text-muted-foreground/80">
                   {course.programName}
                 </p>
