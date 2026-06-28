@@ -12,10 +12,12 @@ test('admin sees audit log and a new create entry after making one', async ({ pa
   await page.getByLabel('First name').fill(firstName)
   await page.getByLabel('Last name').fill('Log')
   await page.getByLabel('Email').fill(`a${suffix}@fv.cr`)
-  await page.getByLabel('Canton').fill('Central')
 
+  // Province first, then canton (its options are scoped to the province).
   await page.getByRole('combobox', { name: /province/i }).click()
   await page.getByRole('option', { name: 'San José' }).click()
+  await page.getByRole('combobox', { name: /canton/i }).click()
+  await page.getByRole('option', { name: 'Escazú' }).click()
 
   await page.getByRole('combobox', { name: /campus/i }).click()
   await page.getByRole('option', { name: 'Linda Vista' }).click()

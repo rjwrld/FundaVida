@@ -17,9 +17,11 @@ test('admin runs the full chain: create student, enroll, grade, certificate', as
   await page.getByLabel('First name').fill(firstName)
   await page.getByLabel('Last name').fill(lastName)
   await page.getByLabel('Email').fill(`e2e+${suffix}@example.com`)
-  await page.getByLabel('Canton').fill('Central')
+  // Province first, then canton (its options are scoped to the province).
   await page.getByRole('combobox', { name: /province/i }).click()
   await page.getByRole('option', { name: 'San José' }).click()
+  await page.getByRole('combobox', { name: /canton/i }).click()
+  await page.getByRole('option', { name: 'Escazú' }).click()
   await page.getByRole('combobox', { name: /campus/i }).click()
   await page.getByRole('option', { name: 'Linda Vista' }).click()
   await page.getByRole('button', { name: 'Save' }).click()

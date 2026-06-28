@@ -31,9 +31,9 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v4 key', () => {
+  it('persists state under the v5 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v4:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v5:state')).not.toBeNull()
   })
 
   it('reseeds from a stale v2 snapshot and removes the stale v2 state key (ADR-0014)', () => {
@@ -53,6 +53,16 @@ describe('persistence', () => {
 
     expect(loadPersistedState()).toBeNull()
     expect(window.localStorage.getItem('fundavida:v3:state')).toBeNull()
+  })
+
+  it('reseeds from a stale v4 snapshot and removes the stale v4 state key', () => {
+    // A returning v4 visitor's snapshot predates the Costa Rican name pools and
+    // @fundavida.es emails. The v5 key bump makes it stale; it is dropped so the
+    // app reseeds afresh rather than rehydrating Anglo faker names.
+    window.localStorage.setItem('fundavida:v4:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v4:state')).toBeNull()
   })
 
   it('reseeds cleanly from a stale v1 snapshot and removes the stale v1 keys', () => {
@@ -108,12 +118,12 @@ describe('persistence', () => {
   })
 
   it('returns null when stored JSON has the wrong shape', () => {
-    window.localStorage.setItem('fundavida:v4:state', JSON.stringify({ wrong: true }))
+    window.localStorage.setItem('fundavida:v5:state', JSON.stringify({ wrong: true }))
     expect(loadPersistedState()).toBeNull()
   })
 
   it('returns null when stored JSON is invalid', () => {
-    window.localStorage.setItem('fundavida:v4:state', 'not-json')
+    window.localStorage.setItem('fundavida:v5:state', 'not-json')
     expect(loadPersistedState()).toBeNull()
   })
 

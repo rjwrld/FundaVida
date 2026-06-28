@@ -50,9 +50,11 @@ describe('<StudentForm />', () => {
     await user.type(screen.getByLabelText('First name'), 'Ada')
     await user.type(screen.getByLabelText('Last name'), 'Lovelace')
     await user.type(screen.getByLabelText('Email'), 'ada@example.com')
-    await user.type(screen.getByLabelText('Canton'), 'Central')
     await user.click(screen.getByRole('combobox', { name: /province/i }))
     await user.click(await screen.findByRole('option', { name: 'San José' }))
+    // Canton options are scoped to the chosen province.
+    await user.click(screen.getByRole('combobox', { name: /canton/i }))
+    await user.click(await screen.findByRole('option', { name: 'Escazú' }))
     await user.click(screen.getByRole('combobox', { name: /campus/i }))
     await user.click(await screen.findByRole('option', { name: 'Linda Vista' }))
     await user.click(screen.getByRole('button', { name: 'Save' }))

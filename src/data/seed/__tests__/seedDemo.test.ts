@@ -7,7 +7,8 @@ import { resolveRecipients } from '@/lib/emailRecipients'
 import { PROGRAM_CATALOG } from '@/constants/programs'
 import { UNIVERSITIES } from '@/constants/university'
 import { SEDES } from '@/constants/sede'
-import { EDUCATIONAL_LEVELS, PROVINCES } from '@/constants/student'
+import { CANTONS_BY_PROVINCE, EDUCATIONAL_LEVELS, PROVINCES } from '@/constants/student'
+import { CR_FIRST_NAMES, CR_LAST_NAMES } from '@/constants/names'
 
 // A fixed Demo Epoch keeps assertions deterministic. Per ADR-0002 all seeded
 // dates float relative to whatever epoch is passed in, so we assert relative
@@ -397,6 +398,41 @@ describe('seedDemo — vocabulary is sourced from the shared constants', () => {
     world.students.forEach((student) => {
       expect(provinces.has(student.province)).toBe(true)
       expect(levels.has(student.educationalLevel)).toBe(true)
+    })
+  })
+
+  it('gives every student a canton that belongs to their province', () => {
+    const world = seedDemo(EPOCH)
+    world.students.forEach((student) => {
+      const cantons = CANTONS_BY_PROVINCE[student.province as keyof typeof CANTONS_BY_PROVINCE]
+      expect(cantons).toBeDefined()
+      expect(cantons).toContain(student.canton)
+    })
+  })
+
+  it('draws every person name from the Costa Rican name pools (@/constants/names)', () => {
+    const world = seedDemo(EPOCH)
+    const firstNames = new Set<string>(CR_FIRST_NAMES)
+    const lastNames = new Set<string>(CR_LAST_NAMES)
+
+    const people = [...world.teachers, ...world.students, ...world.tcuTrainees]
+    expect(people.length).toBeGreaterThan(0)
+    people.forEach((person) => {
+      expect(firstNames.has(person.firstName)).toBe(true)
+      expect(lastNames.has(person.lastName)).toBe(true)
+    })
+  })
+
+  it('gives every person a unique @fundavida.es email derived from their name', () => {
+    const world = seedDemo(EPOCH)
+    const people = [...world.teachers, ...world.students, ...world.tcuTrainees]
+    const seen = new Set<string>()
+
+    people.forEach((person) => {
+      expect(person.email).toMatch(/@fundavida\.es$/)
+      expect(person.email).toBe(person.email.toLowerCase())
+      expect(seen.has(person.email)).toBe(false)
+      seen.add(person.email)
     })
   })
 })

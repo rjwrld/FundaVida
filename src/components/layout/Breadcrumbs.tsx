@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronRight } from 'lucide-react'
 import { NAV_ITEMS } from '@/constants/nav'
+import { useStudents, useTeachers, usePrograms, useCourses } from '@/hooks/api'
 
 interface Crumb {
   label: string
@@ -19,9 +20,45 @@ function rootLabelForFirstSegment(segment: string): string | null {
   return match ? match.labelKey : null
 }
 
+// Resolve a detail-route id segment (stu-/tea-/prog-/cou-) to a human-readable
+// name. Reads go through the scoped list hooks, not the raw store, so the
+// breadcrumb never names an entity the current role's scope would hide
+// (ADR-0008/0012); an out-of-scope or still-loading id falls back to the raw id.
+function useEntityNameResolver() {
+  // React Query's `.data` references are stable between renders, so they keep the
+  // useMemo deps stable (unlike `data ?? []`, which allocates a fresh array).
+  const { data: students } = useStudents()
+  const { data: teachers } = useTeachers()
+  const { data: programs } = usePrograms()
+  const { data: courses } = useCourses()
+
+  return useMemo(
+    () =>
+      (id: string): string | null => {
+        if (id.startsWith('stu-')) {
+          const e = students?.find((x) => x.id === id)
+          return e ? `${e.firstName} ${e.lastName}` : null
+        }
+        if (id.startsWith('tea-')) {
+          const e = teachers?.find((x) => x.id === id)
+          return e ? `${e.firstName} ${e.lastName}` : null
+        }
+        if (id.startsWith('prog-')) {
+          return programs?.find((x) => x.id === id)?.name ?? null
+        }
+        if (id.startsWith('cou-')) {
+          return courses?.find((x) => x.id === id)?.name ?? null
+        }
+        return null
+      },
+    [students, teachers, programs, courses]
+  )
+}
+
 export function Breadcrumbs() {
   const location = useLocation()
   const { t } = useTranslation()
+  const resolveEntityName = useEntityNameResolver()
 
   const crumbs = useMemo<Crumb[]>(() => {
     const segments = location.pathname.split('/').filter(Boolean)
@@ -50,8 +87,9 @@ export function Breadcrumbs() {
       } else if (seg === 'edit') {
         list.push({ label: t('common.actions.edit') })
       } else {
-        // dynamic segment (id) — display raw, no link
-        list.push({ label: seg })
+        // dynamic segment (id) — resolve to the entity's name, falling back to
+        // the raw id if it's out of scope or the list hasn't loaded yet.
+        list.push({ label: resolveEntityName(seg) ?? seg })
       }
     }
 
@@ -61,7 +99,7 @@ export function Breadcrumbs() {
       list[list.length - 1] = { label: last.label }
     }
     return list
-  }, [location.pathname, t])
+  }, [location.pathname, t, resolveEntityName])
 
   if (crumbs.length === 0) return null
 

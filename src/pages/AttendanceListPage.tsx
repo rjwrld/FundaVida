@@ -53,6 +53,11 @@ export function AttendanceListPage() {
   // and they can't resolve the student roster — so the Student identity column would
   // only ever render an empty cell. Show it for the teacher/admin roster views only.
   const showStudentColumn = role !== 'student'
+  // The student filter is an admin triage aid across the whole roster; teachers
+  // are already scoped to their own students, so it stays admin-only. (Gating on
+  // role rather than students.length keeps it deterministic regardless of whether
+  // the students query is already cache-warm.)
+  const showStudentFilter = role === 'admin' && students.length > 0
   const hasFilters = Boolean(filters.studentId || filters.courseId || filters.status)
   const count = data.length
 
@@ -61,7 +66,7 @@ export function AttendanceListPage() {
       <PageHeader title={t('attendance.list.title')} description={t('attendance.list.subtitle')} />
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-3">
-        {students.length > 0 && (
+        {showStudentFilter && (
           <Select
             value={filters.studentId ?? 'any'}
             onValueChange={(v) =>

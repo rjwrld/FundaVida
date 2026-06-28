@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select'
 import { buildStudentSchema, type StudentFormValues } from '@/data/schemas/student'
 import { useCreateStudent, useStudent, useUpdateStudent } from '@/hooks/api'
-import { EDUCATIONAL_LEVELS, GENDERS, PROVINCES } from '@/constants/student'
+import { CANTONS_BY_PROVINCE, EDUCATIONAL_LEVELS, GENDERS, PROVINCES } from '@/constants/student'
 import { SEDES } from '@/constants/sede'
 
 interface StudentFormProps {
@@ -51,6 +51,13 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
       educationalLevel: 'primaria',
     },
   })
+
+  // Cantons offered depend on the chosen province (CANTONS_BY_PROVINCE).
+  const selectedProvince = watch('province')
+  const cantonOptions =
+    selectedProvince in CANTONS_BY_PROVINCE
+      ? CANTONS_BY_PROVINCE[selectedProvince as keyof typeof CANTONS_BY_PROVINCE]
+      : []
 
   useEffect(() => {
     if (existing) {
@@ -122,7 +129,13 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
           <Label>{t('students.form.fields.province')}</Label>
           <Select
             value={watch('province')}
-            onValueChange={(v) => setValue('province', v, { shouldValidate: true })}
+            onValueChange={(v) => {
+              if (!v || v === watch('province')) return
+              setValue('province', v, { shouldValidate: true })
+              // The current canton may not belong to the new province — clear it
+              // so an incoherent province/canton pair can never be saved.
+              setValue('canton', '', { shouldValidate: false })
+            }}
           >
             <SelectTrigger aria-label={t('students.form.fields.province')}>
               <SelectValue placeholder={t('students.form.fields.province')} />
@@ -138,8 +151,26 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
           {errors.province && <p className="text-xs text-destructive">{errors.province.message}</p>}
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="canton">{t('students.form.fields.canton')}</Label>
-          <Input id="canton" {...register('canton')} />
+          <Label>{t('students.form.fields.canton')}</Label>
+          <Select
+            value={watch('canton')}
+            // Radix can emit a spurious '' when the controlled value is applied
+            // before the province-scoped items register; ignore it (the dropdown
+            // never offers an empty option, so any real pick is a non-empty canton).
+            onValueChange={(v) => v && setValue('canton', v, { shouldValidate: true })}
+            disabled={!selectedProvince}
+          >
+            <SelectTrigger aria-label={t('students.form.fields.canton')}>
+              <SelectValue placeholder={t('students.form.fields.canton')} />
+            </SelectTrigger>
+            <SelectContent>
+              {cantonOptions.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {errors.canton && <p className="text-xs text-destructive">{errors.canton.message}</p>}
         </div>
       </div>

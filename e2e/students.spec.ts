@@ -12,10 +12,12 @@ test('admin creates a student and sees them in the list', async ({ page }) => {
   await page.getByLabel('First name').fill('Ada')
   await page.getByLabel('Last name').fill('Lovelace')
   await page.getByLabel('Email').fill('ada+e2e@example.com')
-  await page.getByLabel('Canton').fill('Central')
 
+  // Province first, then canton (its options are scoped to the province).
   await page.getByRole('combobox', { name: /province/i }).click()
   await page.getByRole('option', { name: 'San José' }).click()
+  await page.getByRole('combobox', { name: /canton/i }).click()
+  await page.getByRole('option', { name: 'Escazú' }).click()
 
   await page.getByRole('combobox', { name: /campus/i }).click()
   await page.getByRole('option', { name: 'Linda Vista' }).click()

@@ -1,13 +1,18 @@
 import { test, expect, type Page } from '@playwright/test'
 import { enterAs } from './helpers/auth'
+import { seedDemo } from '../src/data/seed'
 
-const STATE_KEY = 'fundavida:v4:state'
+const STATE_KEY = 'fundavida:v5:state'
 
-// Deterministic anchors from the seed: tea-1 "Garnet Reynolds-Miller" teaches at
-// Linda Vista; stu-1 is a Linda Vista / primaria student. A teacher-authored
-// primaria course at Linda Vista is therefore browseable by stu-1 once published.
-const TEACHER_NAME = 'Garnet Reynolds-Miller'
-const TEACHER_SEDE = 'Linda Vista'
+// Deterministic anchors from the seed (faker.seed(42), epoch-independent):
+// tea-1 is the teacher persona at Linda Vista; stu-1 is a Linda Vista / primaria
+// student. A teacher-authored primaria course at Linda Vista is therefore
+// browseable by stu-1 once published. Names are derived so the spec follows the
+// seed rather than hardcoding a person.
+const teacherPersona = seedDemo(new Date()).teachers[0]
+if (!teacherPersona) throw new Error('seed must include a teacher persona (tea-1)')
+const TEACHER_NAME = `${teacherPersona.firstName} ${teacherPersona.lastName}`
+const TEACHER_SEDE = teacherPersona.sede
 
 /** Fill the teacher create-course form (Sede + teacher are locked, status hidden). */
 async function fillCourseForm(
