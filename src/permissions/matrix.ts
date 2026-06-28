@@ -104,7 +104,9 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     programs: { view: true },
     students: { view: true },
     teachers: {},
-    courses: { view: true },
+    // A Teacher may create courses (ADR-0016) but the store enforces self-assignment
+    // at their own Sede. A Teacher may edit (and publish) courses they own.
+    courses: { view: true, create: true, edit: courseOwned },
     // A Teacher may view the enrollment roster of the Courses they own (ADR-0012):
     // the Course detail page gates the roster on this, while the no-context route/nav
     // checks stay denied (the predicate needs a course).

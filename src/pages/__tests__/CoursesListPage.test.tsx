@@ -47,7 +47,7 @@ describe('<CoursesListPage />', () => {
     })
   })
 
-  it('hides add course button for teacher role', async () => {
+  it('shows add course button for teacher role (ADR-0016)', async () => {
     useStore.getState().setRole('teacher')
     renderPage()
 
@@ -56,9 +56,9 @@ describe('<CoursesListPage />', () => {
       expect(screen.getByRole('heading', { name: /courses/i })).toBeInTheDocument()
     })
 
-    // Button should not exist
-    const addButton = screen.queryByRole('button', { name: /add course/i })
-    expect(addButton).not.toBeInTheDocument()
+    // Button should exist for teachers who can now create courses
+    const addButton = screen.getByRole('button', { name: /add course/i })
+    expect(addButton).toBeInTheDocument()
   })
 
   it('hides add course button for student role', async () => {

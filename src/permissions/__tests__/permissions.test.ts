@@ -162,8 +162,8 @@ describe('Permissions Matrix', () => {
         },
         courses: {
           view: true,
-          create: false,
-          edit: false,
+          create: true,
+          edit: 'courseOwned',
           delete: false,
           approve: false,
           mark: false,
@@ -171,7 +171,7 @@ describe('Permissions Matrix', () => {
           enter: false,
         },
         enrollments: {
-          view: false,
+          view: 'courseOwned',
           create: false,
           edit: false,
           delete: false,
