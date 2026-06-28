@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { faker, Faker, en } from '@faker-js/faker'
 import { addDays, addWeeks, differenceInDays, startOfDay, subDays, subWeeks } from 'date-fns'
 import type {
   Student,
@@ -24,7 +24,8 @@ import { resolveRecipients } from '@/lib/emailRecipients'
 import { PROGRAM_CATALOG } from '@/constants/programs'
 import { UNIVERSITIES, type University } from '@/constants/university'
 import { SEDES, type Sede } from '@/constants/sede'
-import { GENDERS, PROVINCES } from '@/constants/student'
+import { GENDERS, PROVINCES, CANTONS_BY_PROVINCE } from '@/constants/student'
+import { CR_FIRST_NAMES, CR_LAST_NAMES } from '@/constants/names'
 
 export interface SeedSnapshot {
   // The explicit Demo Epoch (ADR-0014): the frozen instant the clock reads as
@@ -212,6 +213,59 @@ function planCourses(epoch: Date): CoursePlan[] {
   ]
 }
 
+// Slugify a name part for use in an email local-part: strip accents, lowercase,
+// drop anything that isn't a-z.
+const COMBINING_MARKS = /[̀-ͯ]/g
+function emailSlug(part: string): string {
+  return part
+    .normalize('NFD')
+    .replace(COMBINING_MARKS, '')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '')
+}
+
+// Derive a `firstname.lastname@fundavida.es` address from a person's name,
+// appending a numeric suffix on collision so every seeded email is unique.
+function makePersonEmail(firstName: string, lastName: string, seen: Set<string>): string {
+  const base = `${emailSlug(firstName)}.${emailSlug(lastName)}`
+  let candidate = `${base}@fundavida.es`
+  let n = 2
+  while (seen.has(candidate)) {
+    candidate = `${base}${n}@fundavida.es`
+    n += 1
+  }
+  seen.add(candidate)
+  return candidate
+}
+
+// Overwrite every person's name + email (and each student's canton) with Costa
+// Rican data AFTER the structural graph is built. Critically this uses its OWN
+// faker instance: the main RNG drives every structural decision (enrollments,
+// attendance, grades, TCU course assignments), so localizing here keeps that
+// sequence byte-identical to a world seeded with plain faker names. Drawing CR
+// names from the main faker instead would shift the stream and reshuffle the
+// whole graph. Canton is drawn from the student's own province so the pair stays
+// coherent (replaces the prior random global-city value).
+function localizePeople(teachers: Teacher[], students: Student[], trainees: TcuTrainee[]): void {
+  const nameRng = new Faker({ locale: [en] })
+  nameRng.seed(42)
+  const emails = new Set<string>()
+
+  const rename = (person: { firstName: string; lastName: string; email: string }): void => {
+    person.firstName = nameRng.helpers.arrayElement(CR_FIRST_NAMES)
+    person.lastName = nameRng.helpers.arrayElement(CR_LAST_NAMES)
+    person.email = makePersonEmail(person.firstName, person.lastName, emails)
+  }
+
+  teachers.forEach(rename)
+  students.forEach((student) => {
+    rename(student)
+    const cantons = CANTONS_BY_PROVINCE[student.province as keyof typeof CANTONS_BY_PROVINCE]
+    if (cantons) student.canton = nameRng.helpers.arrayElement(cantons)
+  })
+  trainees.forEach(rename)
+}
+
 function buildTeachers(epoch: Date, count: number): Teacher[] {
   return Array.from({ length: count }, (_, i) => ({
     id: `tea-${i + 1}`,
@@ -328,6 +382,9 @@ function buildStudents(
     // stu-1 shares the teacher persona's Sede; others are distributed
     const studentSede = i === 0 ? personaSede : sede
 
+    // Names, email, and canton are localized post-build (see localizePeople) so
+    // they never perturb the structural RNG. Here we keep the original draws:
+    // province from the canonical list, canton a placeholder city.
     return {
       id: `stu-${i + 1}`,
       firstName: faker.person.firstName(),
@@ -725,6 +782,7 @@ function buildTcuTrainees(epoch: Date, courses: Course[]): TcuTrainee[] {
     const university = UNIVERSITIES[i % UNIVERSITIES.length] as University
     trainees.push({
       id: `tcu-${i + 1}`, // tcu-1 is the seeded TCU persona
+      // Name + email localized post-build (see localizePeople).
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
       email: faker.internet.email().toLowerCase(),
@@ -863,6 +921,11 @@ export function seedDemo(epoch: Date): SeedSnapshot {
   }
   const grades = buildGrades(epoch, enrollments, courses, goldenPathCourse.id)
   const tcuTrainees = buildTcuTrainees(epoch, courses)
+
+  // Localize names/emails/cantons now that the whole structural graph exists and
+  // all main-RNG draws are done — so the audit log below records CR names.
+  localizePeople(teachers, students, tcuTrainees)
+
   const tcuActivities = buildTcuActivities(epoch, tcuTrainees, courses)
 
   const auditLog = buildAuditLog({ teachers, students, courses, enrollments, grades })

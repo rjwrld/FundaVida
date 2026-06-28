@@ -53,9 +53,10 @@ describe('<EnrollStudentDialog /> Sede scoping (ADR-0011)', () => {
     const options = await screen.findAllByRole('option')
     expect(options).toHaveLength(sameSede.length)
 
-    const sedeByName = new Map(students.map((s) => [`${s.firstName} ${s.lastName}`, s.sede]))
-    options.forEach((opt) => {
-      expect(sedeByName.get(opt.textContent ?? '')).toBe(course.sede)
-    })
+    // Student names can repeat across the pool, so compare the offered options
+    // to the same-Sede students as a sorted multiset rather than keying by name.
+    const optionNames = options.map((opt) => opt.textContent ?? '').sort()
+    const sameSedeNames = sameSede.map((s) => `${s.firstName} ${s.lastName}`).sort()
+    expect(optionNames).toEqual(sameSedeNames)
   })
 })

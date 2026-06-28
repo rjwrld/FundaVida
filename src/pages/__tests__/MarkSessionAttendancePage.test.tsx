@@ -143,8 +143,12 @@ describe('<MarkSessionAttendancePage />', () => {
       expect(screen.getByRole('button', { name: /Save/i })).toBeInTheDocument()
     })
 
-    // Verify the table is rendered with students
-    expect(screen.getByText(/Aric|Windler/i)).toBeInTheDocument()
+    // Verify the table is rendered with an enrolled student's name
+    const enrolledStudentId = state.enrollments.find((e) => e.courseId === course.id)?.studentId
+    const enrolledStudent = state.students.find((s) => s.id === enrolledStudentId)
+    if (!enrolledStudent) throw new Error('expected an enrolled student for the course')
+    // Last names can repeat across the seeded roster, so assert at least one match.
+    expect(screen.getAllByText(new RegExp(enrolledStudent.lastName, 'i')).length).toBeGreaterThan(0)
     // Verify the Select buttons are rendered (one per student)
     const selectButtons = screen.getAllByRole('combobox')
     expect(selectButtons.length).toBeGreaterThan(0)
