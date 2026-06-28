@@ -10,6 +10,7 @@ import { parseISO, isBefore } from 'date-fns'
 import { clock } from '@/lib/clock'
 import type { Course } from '@/types'
 import { DashboardShell } from './DashboardShell'
+import { TcuApprovalQueue } from '@/components/tcu/TcuApprovalQueue'
 
 interface SessionWithCourse {
   date: string
@@ -86,6 +87,11 @@ export function TeacherDashboard() {
           value={endedCoursesCount}
           icon={<AlertCircle className="size-4" aria-hidden="true" />}
         />
+      </motion.div>
+
+      {/* TCU Approval Queue */}
+      <motion.div variants={fadeUp} transition={transitionDefaults}>
+        <TcuApprovalQueue />
       </motion.div>
     </DashboardShell>
   )
