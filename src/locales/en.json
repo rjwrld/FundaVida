@@ -781,6 +781,7 @@
     "certificateApproved": "Certificate approved.",
     "courseCreated": "Course created.",
     "courseDeleted": "Course deleted.",
+    "coursePublished": "Course published.",
     "courseUpdated": "Course updated.",
     "enrolled": "Student enrolled.",
     "enrollmentRequested": "Request submitted. Awaiting teacher approval.",
