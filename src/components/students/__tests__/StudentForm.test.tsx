@@ -41,7 +41,8 @@ describe('<StudentForm />', () => {
     await user.click(screen.getByRole('button', { name: 'Save' }))
     expect(await screen.findByText('First name is required')).toBeInTheDocument()
     expect(screen.getByText('Last name is required')).toBeInTheDocument()
-    expect(screen.getByText('Enter a valid email')).toBeInTheDocument()
+    // Both the student and guardian email fields flag on empty submit.
+    expect(screen.getAllByText('Enter a valid email').length).toBeGreaterThan(0)
   })
 
   it('creates a student and calls onSuccess', async () => {
@@ -57,9 +58,21 @@ describe('<StudentForm />', () => {
     await user.click(await screen.findByRole('option', { name: 'Escazú' }))
     await user.click(screen.getByRole('combobox', { name: /campus/i }))
     await user.click(await screen.findByRole('option', { name: 'Linda Vista' }))
+    // Encargado (guardian) — required.
+    await user.type(screen.getByLabelText(/guardian name/i), 'María Lovelace')
+    await user.click(screen.getByRole('combobox', { name: /relationship/i }))
+    await user.click(await screen.findByRole('option', { name: 'Mother' }))
+    await user.type(screen.getByLabelText(/guardian phone/i), '8888-8888')
+    await user.type(screen.getByLabelText(/guardian email/i), 'maria@example.com')
     await user.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
-    expect(useStore.getState().students.find((s) => s.email === 'ada@example.com')).toBeDefined()
+    const created = useStore.getState().students.find((s) => s.email === 'ada@example.com')
+    expect(created?.guardian).toMatchObject({
+      name: 'María Lovelace',
+      relationship: 'madre',
+      phone: '8888-8888',
+      email: 'maria@example.com',
+    })
   })
 
   it('prefills existing data on edit and updates on save', async () => {

@@ -16,6 +16,7 @@ import {
 import { buildTeacherSchema, type TeacherFormValues } from '@/data/schemas/teacher'
 import { useCreateTeacher, useTeacher, useUpdateTeacher } from '@/hooks/api'
 import { SEDES } from '@/constants/sede'
+import { CANTONS_BY_PROVINCE, PROVINCES } from '@/constants/student'
 
 interface TeacherFormProps {
   teacherId?: string
@@ -44,8 +45,17 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
       lastName: '',
       email: '',
       sede: '' as TeacherFormValues['sede'],
+      province: '',
+      canton: '',
     },
   })
+
+  // Cantons offered depend on the chosen province (CANTONS_BY_PROVINCE).
+  const selectedProvince = watch('province')
+  const cantonOptions =
+    selectedProvince in CANTONS_BY_PROVINCE
+      ? CANTONS_BY_PROVINCE[selectedProvince as keyof typeof CANTONS_BY_PROVINCE]
+      : []
 
   useEffect(() => {
     if (existing) {
@@ -54,6 +64,8 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
         lastName: existing.lastName,
         email: existing.email,
         sede: existing.sede,
+        province: existing.province,
+        canton: existing.canton,
       })
     }
   }, [existing, reset])
@@ -107,6 +119,49 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
             </SelectContent>
           </Select>
           {errors.sede && <p className="text-sm text-destructive">{errors.sede.message}</p>}
+        </div>
+        <div className="space-y-1.5">
+          <Label>{t('teachers.form.fields.province')}</Label>
+          <Select
+            value={watch('province')}
+            onValueChange={(v) => {
+              if (!v || v === watch('province')) return
+              setValue('province', v, { shouldValidate: true })
+              setValue('canton', '', { shouldValidate: false })
+            }}
+          >
+            <SelectTrigger aria-label={t('teachers.form.fields.province')}>
+              <SelectValue placeholder={t('teachers.form.fields.province')} />
+            </SelectTrigger>
+            <SelectContent>
+              {PROVINCES.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.province && <p className="text-sm text-destructive">{errors.province.message}</p>}
+        </div>
+        <div className="space-y-1.5">
+          <Label>{t('teachers.form.fields.canton')}</Label>
+          <Select
+            value={watch('canton')}
+            onValueChange={(v) => v && setValue('canton', v, { shouldValidate: true })}
+            disabled={!selectedProvince}
+          >
+            <SelectTrigger aria-label={t('teachers.form.fields.canton')}>
+              <SelectValue placeholder={t('teachers.form.fields.canton')} />
+            </SelectTrigger>
+            <SelectContent>
+              {cantonOptions.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.canton && <p className="text-sm text-destructive">{errors.canton.message}</p>}
         </div>
       </div>
       <div className="flex justify-end gap-2">

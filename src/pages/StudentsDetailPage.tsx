@@ -49,7 +49,7 @@ export function StudentsDetailPage() {
         }
       />
 
-      <section className="grid gap-4 sm:grid-cols-2">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>{t('students.detail.sections.identity')}</CardTitle>
@@ -76,6 +76,37 @@ export function StudentsDetailPage() {
             <p>
               <span className="text-muted-foreground">{t('students.form.fields.gender')}:</span>{' '}
               {t(`students.form.gender.${student.gender}`)}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('students.detail.sections.guardian')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <p>
+              <span className="text-muted-foreground">
+                {t('students.form.fields.guardianName')}:
+              </span>{' '}
+              {student.guardian.name}
+            </p>
+            <p>
+              <span className="text-muted-foreground">
+                {t('students.form.fields.guardianRelationship')}:
+              </span>{' '}
+              {t(`students.form.guardian.relationship.${student.guardian.relationship}`)}
+            </p>
+            <p>
+              <span className="text-muted-foreground">
+                {t('students.form.fields.guardianPhone')}:
+              </span>{' '}
+              {student.guardian.phone}
+            </p>
+            <p>
+              <span className="text-muted-foreground">
+                {t('students.form.fields.guardianEmail')}:
+              </span>{' '}
+              {student.guardian.email}
             </p>
           </CardContent>
         </Card>

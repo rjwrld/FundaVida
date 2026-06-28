@@ -15,7 +15,13 @@ import {
 } from '@/components/ui/select'
 import { buildStudentSchema, type StudentFormValues } from '@/data/schemas/student'
 import { useCreateStudent, useStudent, useUpdateStudent } from '@/hooks/api'
-import { CANTONS_BY_PROVINCE, EDUCATIONAL_LEVELS, GENDERS, PROVINCES } from '@/constants/student'
+import {
+  CANTONS_BY_PROVINCE,
+  EDUCATIONAL_LEVELS,
+  GENDERS,
+  GUARDIAN_RELATIONSHIPS,
+  PROVINCES,
+} from '@/constants/student'
 import { SEDES } from '@/constants/sede'
 
 interface StudentFormProps {
@@ -49,6 +55,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
       province: '',
       canton: '',
       educationalLevel: 'primaria',
+      guardian: { name: '', relationship: 'madre', phone: '', email: '' },
     },
   })
 
@@ -70,6 +77,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
         province: existing.province,
         canton: existing.canton,
         educationalLevel: existing.educationalLevel as StudentFormValues['educationalLevel'],
+        guardian: existing.guardian,
       })
     }
   }, [existing, reset])
@@ -219,6 +227,60 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
           </Select>
         </div>
       </div>
+
+      <fieldset className="space-y-4 rounded-lg border border-border/60 p-4">
+        <legend className="px-1 text-sm font-medium">{t('students.form.guardian.legend')}</legend>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="guardianName">{t('students.form.fields.guardianName')}</Label>
+            <Input id="guardianName" {...register('guardian.name')} />
+            {errors.guardian?.name && (
+              <p className="text-xs text-destructive">{errors.guardian.name.message}</p>
+            )}
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('students.form.fields.guardianRelationship')}</Label>
+            <Select
+              value={watch('guardian.relationship')}
+              onValueChange={(v) =>
+                setValue(
+                  'guardian.relationship',
+                  v as StudentFormValues['guardian']['relationship'],
+                  {
+                    shouldValidate: true,
+                  }
+                )
+              }
+            >
+              <SelectTrigger aria-label={t('students.form.fields.guardianRelationship')}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {GUARDIAN_RELATIONSHIPS.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {t(`students.form.guardian.relationship.${r}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="guardianPhone">{t('students.form.fields.guardianPhone')}</Label>
+            <Input id="guardianPhone" placeholder="8888-8888" {...register('guardian.phone')} />
+            {errors.guardian?.phone && (
+              <p className="text-xs text-destructive">{errors.guardian.phone.message}</p>
+            )}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="guardianEmail">{t('students.form.fields.guardianEmail')}</Label>
+            <Input id="guardianEmail" type="email" {...register('guardian.email')} />
+            {errors.guardian?.email && (
+              <p className="text-xs text-destructive">{errors.guardian.email.message}</p>
+            )}
+          </div>
+        </div>
+      </fieldset>
+
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
           {t('common.actions.cancel')}
