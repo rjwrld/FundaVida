@@ -58,10 +58,45 @@ export function TcuApprovalQueue() {
   // Get the trainees to display in the table
   const traineesToDisplay = isTeacher ? allTrainees : traineesForAdmin
 
+  const rows = pendingActivities.map((a) => {
+    const trainee = traineesToDisplay.find((x) => x.id === a.traineeId)
+    return {
+      activity: a,
+      traineeName: `${trainee?.firstName ?? ''} ${trainee?.lastName ?? ''}`.trim(),
+    }
+  })
+
+  const approveButton = (activityId: string, full?: boolean) => (
+    <Button
+      size="sm"
+      variant="default"
+      className={full ? 'flex-1' : undefined}
+      onClick={() => approveMutation.mutate({ activityId, decision: 'approved' })}
+      disabled={approveMutation.isPending}
+    >
+      {t('common.actions.approve')}
+    </Button>
+  )
+
+  const rejectButton = (activityId: string, full?: boolean) => (
+    <Button
+      size="sm"
+      variant="outline"
+      className={full ? 'flex-1' : undefined}
+      onClick={() => approveMutation.mutate({ activityId, decision: 'rejected' })}
+      disabled={approveMutation.isPending}
+    >
+      {t('common.actions.reject')}
+    </Button>
+  )
+
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-semibold">{t('tcu.approvalQueue.title')}</h2>
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+
+      {/* Desktop: a dense table. Hidden on mobile, where columns would push the
+          actions off-screen — the same rows render as stacked cards instead. */}
+      <div className="hidden overflow-hidden rounded-xl border border-border bg-card shadow-card sm:block">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -75,52 +110,42 @@ export function TcuApprovalQueue() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pendingActivities.map((a) => {
-              const trainee = traineesToDisplay.find((x) => x.id === a.traineeId)
-              return (
-                <TableRow key={a.id} className="h-12 hover:bg-muted/40">
-                  <TableCell>{a.title}</TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">
-                    {formatNumber(a.hours)}
-                  </TableCell>
-                  <TableCell>{formatDate(a.date)}</TableCell>
-                  <TableCell>
-                    {trainee?.firstName} {trainee?.lastName}
-                  </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={() =>
-                        approveMutation.mutate({
-                          activityId: a.id,
-                          decision: 'approved',
-                        })
-                      }
-                      disabled={approveMutation.isPending}
-                    >
-                      {t('common.actions.approve')}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        approveMutation.mutate({
-                          activityId: a.id,
-                          decision: 'rejected',
-                        })
-                      }
-                      disabled={approveMutation.isPending}
-                    >
-                      {t('common.actions.reject')}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
+            {rows.map(({ activity, traineeName }) => (
+              <TableRow key={activity.id} className="h-12 hover:bg-muted/40">
+                <TableCell>{activity.title}</TableCell>
+                <TableCell className="text-right font-mono tabular-nums">
+                  {formatNumber(activity.hours)}
+                </TableCell>
+                <TableCell>{formatDate(activity.date)}</TableCell>
+                <TableCell>{traineeName}</TableCell>
+                <TableCell className="space-x-2 text-right">
+                  {approveButton(activity.id)}
+                  {rejectButton(activity.id)}
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
+
+      {/* Mobile: one card per activity with the actions full-width underneath. */}
+      <ul className="space-y-3 sm:hidden">
+        {rows.map(({ activity, traineeName }) => (
+          <li key={activity.id} className="rounded-xl border border-border bg-card p-4 shadow-card">
+            <p className="font-medium text-foreground">{activity.title}</p>
+            <p className="text-sm text-muted-foreground">{traineeName}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {formatDate(activity.date)} ·{' '}
+              <span className="font-mono tabular-nums">{formatNumber(activity.hours)}</span>{' '}
+              {t('tcu.list.columns.hours').toLowerCase()}
+            </p>
+            <div className="mt-3 flex gap-2">
+              {approveButton(activity.id, true)}
+              {rejectButton(activity.id, true)}
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }
