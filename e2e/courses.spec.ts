@@ -43,8 +43,8 @@ test('student requests a course and withdraws the request without reload (ADR-00
   page,
 }) => {
   await enterAs(page, 'student')
-  await page.getByRole('link', { name: 'Browse Courses' }).click()
-  await expect(page.getByRole('heading', { name: 'Browse Courses' })).toBeVisible()
+  await page.getByRole('link', { name: 'Browse open courses' }).click()
+  await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
 
   // Open a browseable course. Each row's name is a button (not a link) that
   // navigates to the read-only detail.
