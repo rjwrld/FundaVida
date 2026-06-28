@@ -173,6 +173,7 @@
       "skipToMain": "Skip to main content"
     },
     "actions": {
+      "approve": "Approve",
       "backToHome": "Back to home",
       "cancel": "Cancel",
       "close": "Close",
@@ -182,6 +183,7 @@
       "edit": "Edit",
       "editItem": "Edit {{name}}",
       "new": "New",
+      "reject": "Reject",
       "save": "Save"
     },
     "commandPalette": {
@@ -214,6 +216,27 @@
     }
   },
   "courses": {
+    "browse": {
+      "columns": {
+        "actions": "Actions",
+        "seats": "Seats available"
+      },
+      "courseFullWarning": "This course is full. Requested seats are held as pending approval.",
+      "empty": "No courses available to request at your campus and level.",
+      "emptyFiltered": "No courses match your filter.",
+      "full": "Full",
+      "pendingDescription": "Your request is awaiting the teacher's approval. You'll be notified once reviewed.",
+      "pendingSection": "Your request",
+      "pendingStatus": "Request pending",
+      "requestButton": "Request a spot",
+      "requestSection": "Request enrollment",
+      "searchPlaceholder": "Search by name",
+      "seatsLabel": "Seats remaining",
+      "subtitle": "Find and request courses offered at your campus.",
+      "title": "Browse courses",
+      "viewButton": "View",
+      "withdrawButton": "Withdraw request"
+    },
     "detail": {
       "attendance": {
         "noMarkableSessions": "No past or current sessions available for marking.",
@@ -399,6 +422,12 @@
       "title": "Enrollments",
       "unenroll": "Unenroll",
       "unenrollConfirm": "Remove this enrollment?"
+    },
+    "status": {
+      "approved": "Approved",
+      "pending": "Pending",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
     }
   },
   "grades": {
@@ -666,6 +695,15 @@
     }
   },
   "tcu": {
+    "approvalQueue": {
+      "approval": "Approval needed",
+      "title": "TCU approval queue"
+    },
+    "dashboard": {
+      "approvedHours": "Approved hours",
+      "pendingHours": "Pending hours",
+      "progress": "Progress toward 300 hours"
+    },
     "dialog": {
       "logActivityTitle": "Log an activity",
       "submit": "Log activity",
@@ -682,6 +720,7 @@
       "columns": {
         "date": "Date",
         "hours": "Hours",
+        "status": "Status",
         "title": "Activity",
         "trainee": "Trainee"
       },
@@ -691,7 +730,6 @@
         "anyTrainee": "Any trainee",
         "traineePlaceholder": "Trainee"
       },
-      "hoursUnit": "hours",
       "subtitle": "Community service hours logged by trainees toward their 300-hour requirement.",
       "title": "TCU activities"
     }
@@ -745,12 +783,16 @@
     "courseDeleted": "Course deleted.",
     "courseUpdated": "Course updated.",
     "enrolled": "Student enrolled.",
+    "enrollmentRequested": "Request submitted. Awaiting teacher approval.",
     "error": "Something went wrong: {{message}}",
     "gradeDeleted": "Grade deleted.",
     "gradeSaved": "Grade saved.",
+    "requestWithdrawn": "Request withdrawn.",
     "studentCreated": "Student created.",
     "studentDeleted": "Student deleted.",
     "studentUpdated": "Student updated.",
+    "tcuActivityApproved": "Activity approved",
+    "tcuActivityLogged": "Activity logged",
     "teacherCreated": "Teacher created.",
     "teacherDeleted": "Teacher deleted.",
     "teacherUpdated": "Teacher updated.",

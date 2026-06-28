@@ -38,3 +38,38 @@ test('list renders in Spanish when locale is ES', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Cursos' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Agregar curso' })).toBeVisible()
 })
+
+test('student requests a course and withdraws the request without reload (ADR-0016)', async ({
+  page,
+}) => {
+  await enterAs(page, 'student')
+  await page.getByRole('link', { name: 'Browse Courses' }).click()
+  await expect(page.getByRole('heading', { name: 'Browse Courses' })).toBeVisible()
+
+  // Open a browseable course. Each row's name is a button (not a link) that
+  // navigates to the read-only detail.
+  const courseNameButton = page.getByRole('table').getByRole('button').first()
+  const courseName = ((await courseNameButton.textContent()) ?? '').trim()
+  await courseNameButton.click()
+
+  // Verify the course detail page loaded (heading is the course name)
+  await expect(page.getByRole('heading', { name: courseName })).toBeVisible()
+
+  // Request a spot
+  const requestButton = page.getByRole('button', { name: 'Request a spot' })
+  await expect(requestButton).toBeVisible()
+  await requestButton.click()
+
+  // The request section flips to the pending state without a page reload
+  await expect(requestButton).toBeHidden()
+  await expect(page.getByText('Request pending')).toBeVisible()
+
+  // Withdraw the request
+  const withdrawButton = page.getByRole('button', { name: 'Withdraw request' })
+  await expect(withdrawButton).toBeVisible()
+  await withdrawButton.click()
+
+  // Back to the request state (again, no reload)
+  await expect(withdrawButton).toBeHidden()
+  await expect(requestButton).toBeVisible()
+})

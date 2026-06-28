@@ -28,3 +28,12 @@ export const useLogTcuActivity = makeEntityMutation('logTcuActivity')({
   toastKey: 'toasts.tcuActivityLogged',
   invalidates: [TCU_KEY, TRAINEES_KEY],
 })
+
+export const useApproveTcuActivity = makeEntityMutation('approveTcuActivity')<{
+  activityId: string
+  decision: 'approved' | 'rejected'
+}>({
+  toastKey: 'toasts.tcuActivityApproved',
+  invalidates: [TCU_KEY, TRAINEES_KEY],
+  args: (vars) => [vars.activityId, vars.decision],
+})

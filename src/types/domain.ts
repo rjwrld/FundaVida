@@ -150,7 +150,7 @@ export interface Certificate {
   approvedBy?: string
 }
 
-export type TcuActivityStatus = 'pending' | 'approved'
+export type TcuActivityStatus = 'pending' | 'approved' | 'rejected'
 
 export interface TcuActivity {
   id: string
@@ -181,7 +181,9 @@ export type AuditAction =
   | 'update'
   | 'delete'
   | 'enroll'
+  | 'requestEnroll'
   | 'unenroll'
+  | 'withdraw'
   | 'grade'
   | 'approve'
   | 'log'

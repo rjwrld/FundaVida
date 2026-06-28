@@ -161,11 +161,42 @@ function applyCoursesScope(courses: CourseList, token: Scope, userId: string): C
       return courses.filter((c) => c.teacherId === userId)
     }
     case 'enrolled': {
-      // Courses the current user is enrolled in
+      // Courses the current user has any enrollment record in (ADR-0012). The
+      // course-detail page distinguishes active (approved/pending) from
+      // withdrawn/rejected for the browse-vs-records decision.
       const state = useStore.getState()
       const enrollments = state.enrollments.filter((e) => e.studentId === userId)
       const enrolledCourseIds = new Set(enrollments.map((e) => e.courseId))
       return courses.filter((c) => enrolledCourseIds.has(c.id))
+    }
+    case 'openForEnrollment': {
+      // Published, upcoming courses at the student's Sede with matching level,
+      // excluding already enrolled/pending courses (ADR-0016).
+      const state = useStore.getState()
+      const student = state.students.find((s) => s.id === userId)
+      if (!student) {
+        return []
+      }
+
+      // Exclude only courses the student is ALREADY enrolled in or pending for
+      // (ADR-0016). Withdrawn/rejected enrollments don't exclude — the student may
+      // re-request them.
+      const studentEnrollments = state.enrollments.filter(
+        (e) => e.studentId === userId && (e.status === 'approved' || e.status === 'pending')
+      )
+      const enrolledOrPendingIds = new Set(studentEnrollments.map((e) => e.courseId))
+
+      return courses.filter((c) => {
+        // Must be published
+        if (c.status !== 'published') return false
+        // Must be at student's sede
+        if (c.sede !== student.sede) return false
+        // Level must match student's level or be 'both'
+        if (c.level !== 'both' && c.level !== student.educationalLevel) return false
+        // Must not be already enrolled or pending
+        if (enrolledOrPendingIds.has(c.id)) return false
+        return true
+      })
     }
     default:
       return []
@@ -273,6 +304,19 @@ function applyTcuScope(activities: TcuList, token: Scope, userId: string): TcuLi
     case 'self': {
       // Activities logged by the current user (tcu trainee)
       return activities.filter((a) => a.traineeId === userId)
+    }
+    case 'assignedTrainees': {
+      // Activities for trainees assigned to courses owned by the current user (teacher).
+      // Build the set of the teacher's course ids, then the set of trainee ids
+      // assigned to those courses, then filter activities by traineeId.
+      const state = useStore.getState()
+      const teacherCourseIds = new Set(
+        state.courses.filter((c) => c.teacherId === userId).map((c) => c.id)
+      )
+      const assignedTraineeIds = new Set(
+        state.tcuTrainees.filter((t) => teacherCourseIds.has(t.courseId)).map((t) => t.id)
+      )
+      return activities.filter((a) => assignedTraineeIds.has(a.traineeId))
     }
     default:
       return []

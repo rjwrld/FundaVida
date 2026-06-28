@@ -70,6 +70,8 @@ export interface StoreState {
   updateTeacher: (id: string, patch: Partial<Omit<Teacher, 'id'>>) => void
   deleteTeacher: (id: string) => void
   enrollStudent: (studentId: string, courseId: string) => Enrollment
+  requestEnrollment: (studentId: string, courseId: string) => Enrollment
+  withdrawEnrollmentRequest: (enrollmentId: string) => void
   unenrollStudent: (enrollmentId: string) => void
   setGrade: (studentId: string, courseId: string, score: number) => Grade
   updateGradeScore: (gradeId: string, score: number) => void
@@ -78,6 +80,7 @@ export interface StoreState {
   logTcuActivity: (
     input: Omit<TcuActivity, 'id' | 'status' | 'approvedBy' | 'approvedAt'>
   ) => TcuActivity
+  approveTcuActivity: (activityId: string, decision: 'approved' | 'rejected') => TcuActivity
   markAttendance: (
     courseId: string,
     studentId: string,
@@ -575,6 +578,79 @@ export const useStore = create<StoreState>((set, get) => ({
     })
     return enrollment
   },
+  requestEnrollment: (studentId, courseId) => {
+    const state = get()
+    assertCan(state, 'request', 'enrollments')
+    const { enrollments, students, courses } = state
+    const existing = enrollments.find((e) => e.studentId === studentId && e.courseId === courseId)
+    if (existing) return existing
+    // Defensive guards for direct store callers; the UI filters to browseable courses, so this English text should never reach end users.
+    const student = students.find((s) => s.id === studentId)
+    if (!student) {
+      throw new Error(`cannot request enrollment for unknown student ${studentId}`)
+    }
+    const course = courses.find((c) => c.id === courseId)
+    if (!course) {
+      throw new Error(`cannot request enrollment in unknown course ${courseId}`)
+    }
+    // A Student may only request courses at their own Sede (ADR-0011, ADR-0016).
+    if (student.sede !== course.sede) {
+      throw new Error(
+        `cannot request enrollment for student ${studentId} (${student.sede}) in course ${courseId} (${course.sede}): Sede mismatch`
+      )
+    }
+    // A Student may only request courses matching their educational level or 'both' (ADR-0016).
+    if (course.level !== 'both' && course.level !== student.educationalLevel) {
+      throw new Error(
+        `cannot request enrollment for student ${studentId} (${student.educationalLevel}) in course ${courseId} (${course.level}): Level mismatch`
+      )
+    }
+    const now = clock.now().toISOString()
+    const enrollment: Enrollment = {
+      id: nextId('enr', enrollments),
+      studentId,
+      courseId,
+      enrolledAt: now,
+      status: 'pending',
+      requestedAt: now,
+    }
+    withAudit(set, (state) => {
+      return {
+        next: {
+          enrollments: [...state.enrollments, enrollment],
+        },
+        audit: {
+          action: 'requestEnroll',
+          entity: 'enrollment',
+          entityId: enrollment.id,
+          summary: `${studentId} requested enrollment in ${courseId}`,
+        },
+      }
+    })
+    return enrollment
+  },
+  withdrawEnrollmentRequest: (enrollmentId) => {
+    const state = get()
+    assertCan(state, 'withdraw', 'enrollments')
+    const { enrollments } = state
+    const target = enrollments.find((e) => e.id === enrollmentId)
+    if (!target) return
+    withAudit(set, (state) => {
+      return {
+        next: {
+          enrollments: state.enrollments.map((e) =>
+            e.id === enrollmentId ? { ...e, status: 'withdrawn' as const } : e
+          ),
+        },
+        audit: {
+          action: 'withdraw',
+          entity: 'enrollment',
+          entityId: enrollmentId,
+          summary: `Withdrew enrollment request ${enrollmentId}`,
+        },
+      }
+    })
+  },
   unenrollStudent: (enrollmentId) => {
     const state = get()
     assertCan(state, 'delete', 'enrollments')
@@ -764,6 +840,61 @@ export const useStore = create<StoreState>((set, get) => ({
       },
     }))
     return activity
+  },
+  approveTcuActivity: (activityId, decision) => {
+    const state = get()
+    const activity = state.tcuActivities.find((a) => a.id === activityId)
+    if (!activity) {
+      throw new Error(`cannot approve: unknown activity ${activityId}`)
+    }
+
+    // Find the trainee and their assigned course
+    const trainee = state.tcuTrainees.find((t) => t.id === activity.traineeId)
+    if (!trainee) {
+      throw new Error(`cannot approve: unknown trainee ${activity.traineeId}`)
+    }
+
+    // Find the course the trainee is assigned to
+    const course = state.courses.find((c) => c.id === trainee.courseId)
+    if (!course) {
+      throw new Error(`cannot approve: unknown course ${trainee.courseId}`)
+    }
+
+    // Permission flows through the matrix seam (ADR-0009): admin's tcu.approve is
+    // unconditional; the teacher predicate (teacherCanApproveTcuActivity) allows it
+    // only when they own the trainee's course. assertCan throws on a violation.
+    assertCan(state, 'approve', 'tcu', {
+      userId: state.currentUserId ?? undefined,
+      course,
+      activity,
+    })
+
+    // Approving or rejecting already-decided activities is a no-op
+    if (activity.status !== 'pending') {
+      return activity
+    }
+
+    const approvedBy = state.currentUserId ?? 'system'
+    const approvedAt = clock.now().toISOString()
+    const updated: TcuActivity = {
+      ...activity,
+      status: decision === 'approved' ? 'approved' : 'rejected',
+      approvedBy,
+      approvedAt,
+    }
+
+    withAudit(set, (state) => ({
+      next: {
+        tcuActivities: state.tcuActivities.map((a) => (a.id === activityId ? updated : a)),
+      },
+      audit: {
+        action: 'approve',
+        entity: 'tcuActivity',
+        entityId: activityId,
+        summary: `${decision === 'approved' ? 'Approved' : 'Rejected'} TCU activity ${activityId} for ${trainee.firstName} ${trainee.lastName}`,
+      },
+    }))
+    return updated
   },
   markAttendance: (courseId, studentId, sessionDate, status) => {
     const state = get()

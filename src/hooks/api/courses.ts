@@ -21,10 +21,20 @@ export function useCourses(filters: CourseFilters = {}) {
 }
 
 export function useCourse(id: string) {
+  const role = useStore((s) => s.role)
   return useQuery({
-    queryKey: courseKey(id),
+    queryKey: [...courseKey(id), role],
     queryFn: () => api.courses.get(id),
     enabled: id.length > 0,
+  })
+}
+
+export function useBrowseableCourse(id: string, enabled: boolean) {
+  const role = useStore((s) => s.role)
+  return useQuery({
+    queryKey: ['courses', 'browseable', id, role],
+    queryFn: () => api.courses.get(id, 'openForEnrollment'),
+    enabled: enabled && id.length > 0,
   })
 }
 
@@ -89,4 +99,23 @@ export const useSetGrade = makeEntityMutation('setGrade')<{
   // passing score auto-creates a pending Certificate the approvals view reads.
   invalidates: [COURSES_KEY, ['students'], ['grades'], ['certificates']],
   args: ({ studentId, courseId, score }) => [studentId, courseId, score],
+})
+
+export const useRequestEnrollment = makeEntityMutation('requestEnrollment')<{
+  studentId: string
+  courseId: string
+}>({
+  toastKey: 'toasts.enrollmentRequested',
+  // Invalidates: the courses queries (browse list uses openForEnrollment scope and
+  // shows browseable courses excluding pending requests), the enrollments query
+  // (student may see their pending requests), and dashboards (ADR-0016).
+  invalidates: [COURSES_KEY, ['enrollments'], ['dashboards']],
+  args: ({ studentId, courseId }) => [studentId, courseId],
+})
+
+export const useWithdrawEnrollmentRequest = makeEntityMutation('withdrawEnrollmentRequest')({
+  toastKey: 'toasts.requestWithdrawn',
+  // Invalidates: the courses queries (course becomes browseable again), enrollments,
+  // and dashboards (ADR-0016).
+  invalidates: [COURSES_KEY, ['enrollments'], ['dashboards']],
 })
