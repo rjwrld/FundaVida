@@ -18,6 +18,12 @@ export function buildTeacherSchema(t: TFunction) {
         message: t('validation.required', { field: t('teachers.form.fields.sede') }),
       }),
     }),
+    province: z
+      .string()
+      .min(1, t('validation.required', { field: t('teachers.form.fields.province') })),
+    canton: z
+      .string()
+      .min(1, t('validation.required', { field: t('teachers.form.fields.canton') })),
   })
 }
 

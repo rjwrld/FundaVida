@@ -30,6 +30,12 @@ describe('store permission guards', () => {
           province: 'San Jose',
           canton: 'San Jose',
           educationalLevel: 'primaria',
+          guardian: {
+            name: 'Encargado Test',
+            relationship: 'madre',
+            phone: '8888-8888',
+            email: 'enc@example.com',
+          },
         })
       }).toThrow()
 
@@ -248,6 +254,8 @@ describe('store permission guards', () => {
           lastName: 'Teacher',
           email: 'fake@test.com',
           sede: 'Linda Vista',
+          province: 'San José',
+          canton: 'San José',
         })
       }).toThrow()
 

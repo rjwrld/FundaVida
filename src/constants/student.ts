@@ -1,6 +1,16 @@
-import type { EducationalLevel, Gender } from '@/types'
+import type { EducationalLevel, Gender, GuardianRelationship } from '@/types'
 
 export const PROVINCES = ['San José', 'Heredia', 'Alajuela', 'Cartago'] as const
+
+// The relationship a Student's Encargado (guardian) has to them. Spanish model
+// tokens; the UI renders them bilingually through t(). Source of truth for the
+// type is the `GuardianRelationship` union in the domain model.
+export const GUARDIAN_RELATIONSHIPS = [
+  'madre',
+  'padre',
+  'tutor',
+  'otro',
+] as const satisfies readonly GuardianRelationship[]
 
 // Official Costa Rican cantones for each seeded Province. A Student's canton must
 // belong to their province, so the seed and the Student form draw cantons from

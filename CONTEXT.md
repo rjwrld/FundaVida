@@ -58,3 +58,7 @@ _Avoid_: headquarters, HQ, location, branch (the model term is Sede; the English
 **Educational Level**:
 A Student's schooling stage — _primary_ or _secondary_ (Primaria/Secundaria). The foundation serves through secondary only; there is no university level.
 _Avoid_: grade (that's the 0–100 course score — see Grade), year, university
+
+**Encargado** (guardian):
+The adult responsible for a Student — name, relationship (Madre/Padre/Tutor/Otro), phone, and email. Students are minors, so every Student has exactly one. The English UI renders it "Guardian".
+_Avoid_: parent (a guardian need not be a parent — use Encargado/Guardian)

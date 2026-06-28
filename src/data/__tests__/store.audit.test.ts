@@ -27,6 +27,12 @@ describe('audit log characterization', () => {
         province: 'p',
         canton: 'c',
         educationalLevel: 'primaria',
+        guardian: {
+          name: 'Encargado Test',
+          relationship: 'madre',
+          phone: '8888-8888',
+          email: 'enc@example.com',
+        },
       })
       store = useStore.getState()
       expect(store.auditLog.length).toBe(initialLength + 1)
@@ -41,6 +47,12 @@ describe('audit log characterization', () => {
         province: 'p',
         canton: 'c',
         educationalLevel: 'primaria',
+        guardian: {
+          name: 'Encargado Test',
+          relationship: 'madre',
+          phone: '8888-8888',
+          email: 'enc@example.com',
+        },
       })
       store = useStore.getState()
       expect(store.auditLog.length).toBe(initialLength + 2)
@@ -63,6 +75,12 @@ describe('audit log characterization', () => {
         province: 'p',
         canton: 'c',
         educationalLevel: 'primaria',
+        guardian: {
+          name: 'Encargado Test',
+          relationship: 'madre',
+          phone: '8888-8888',
+          email: 'enc@example.com',
+        },
       })
       store = useStore.getState()
       expect(store.auditLog[0]?.id).toMatch(/^log-\d+$/)
@@ -79,6 +97,12 @@ describe('audit log characterization', () => {
         province: 'p',
         canton: 'c',
         educationalLevel: 'primaria',
+        guardian: {
+          name: 'Encargado Test',
+          relationship: 'madre',
+          phone: '8888-8888',
+          email: 'enc@example.com',
+        },
       })
       store = useStore.getState()
       const timestamp = store.auditLog[0]?.timestamp
@@ -102,6 +126,12 @@ describe('audit log characterization', () => {
         province: 'p',
         canton: 'c',
         educationalLevel: 'primaria',
+        guardian: {
+          name: 'Encargado Test',
+          relationship: 'madre',
+          phone: '8888-8888',
+          email: 'enc@example.com',
+        },
       })
       store = useStore.getState()
       expect(store.auditLog[0]?.actorId).toBe('user-123')
@@ -119,6 +149,12 @@ describe('audit log characterization', () => {
         province: 'p',
         canton: 'c',
         educationalLevel: 'primaria',
+        guardian: {
+          name: 'Encargado Test',
+          relationship: 'madre',
+          phone: '8888-8888',
+          email: 'enc@example.com',
+        },
       })
       store = useStore.getState()
       expect(store.auditLog[0]?.actorId).toBe('system')
@@ -136,6 +172,12 @@ describe('audit log characterization', () => {
         province: 'p',
         canton: 'c',
         educationalLevel: 'primaria',
+        guardian: {
+          name: 'Encargado Test',
+          relationship: 'madre',
+          phone: '8888-8888',
+          email: 'enc@example.com',
+        },
       })
       store = useStore.getState()
       expect(store.auditLog[0]?.actorId).toBe('system')
@@ -154,6 +196,12 @@ describe('audit log characterization', () => {
         province: 'San Jose',
         canton: 'Central',
         educationalLevel: 'primaria',
+        guardian: {
+          name: 'Encargado Test',
+          relationship: 'madre',
+          phone: '8888-8888',
+          email: 'enc@example.com',
+        },
       })
       store = useStore.getState()
       expect(store.auditLog[0]?.action).toBe('create')
@@ -175,6 +223,12 @@ describe('audit log characterization', () => {
         province: 'Alajuela',
         canton: 'Central',
         educationalLevel: 'primaria',
+        guardian: {
+          name: 'Encargado Test',
+          relationship: 'madre',
+          phone: '8888-8888',
+          email: 'enc@example.com',
+        },
       })
       store.updateStudent(student.id, { lastName: 'Changed' })
       store = useStore.getState()
@@ -197,6 +251,12 @@ describe('audit log characterization', () => {
         province: 'Heredia',
         canton: 'Central',
         educationalLevel: 'secundaria',
+        guardian: {
+          name: 'Encargado Test',
+          relationship: 'madre',
+          phone: '8888-8888',
+          email: 'enc@example.com',
+        },
       })
       const studentId = student.id
       store.deleteStudent(studentId)
@@ -216,6 +276,8 @@ describe('audit log characterization', () => {
         lastName: 'Professor',
         email: 'prof@test.com',
         sede: 'Linda Vista',
+        province: 'San José',
+        canton: 'San José',
       })
       const course = store.createCourse({
         name: 'Mathematics 101',
@@ -245,6 +307,8 @@ describe('audit log characterization', () => {
         lastName: 'Professor',
         email: 'prof@test.com',
         sede: 'Linda Vista',
+        province: 'San José',
+        canton: 'San José',
       })
       const course = store.createCourse({
         name: 'Math 101',
@@ -273,12 +337,16 @@ describe('audit log characterization', () => {
         lastName: 'One',
         email: 'one@test.com',
         sede: 'Linda Vista',
+        province: 'San José',
+        canton: 'San José',
       })
       const teacher2 = store.createTeacher({
         firstName: 'Dr.',
         lastName: 'Two',
         email: 'two@test.com',
         sede: 'Linda Vista',
+        province: 'San José',
+        canton: 'San José',
       })
       const course = store.createCourse({
         name: 'Math 101',
@@ -309,6 +377,8 @@ describe('audit log characterization', () => {
         lastName: 'Professor',
         email: 'prof@test.com',
         sede: 'Linda Vista',
+        province: 'San José',
+        canton: 'San José',
       })
       const course = store.createCourse({
         name: 'Math 101',
@@ -340,6 +410,8 @@ describe('audit log characterization', () => {
         lastName: 'Educator',
         email: 'john@test.com',
         sede: 'Linda Vista',
+        province: 'San José',
+        canton: 'San José',
       })
       store = useStore.getState()
       expect(store.auditLog[0]?.action).toBe('create')
@@ -357,6 +429,8 @@ describe('audit log characterization', () => {
         lastName: 'Tutor',
         email: 'jane@test.com',
         sede: 'Linda Vista',
+        province: 'San José',
+        canton: 'San José',
       })
       store.updateTeacher(teacher.id, { lastName: 'Modified' })
       store = useStore.getState()
@@ -375,6 +449,8 @@ describe('audit log characterization', () => {
         lastName: 'Teacher',
         email: 'lonely@test.com',
         sede: 'Linda Vista',
+        province: 'San José',
+        canton: 'San José',
       })
       const teacherId = teacher.id
       store.deleteTeacher(teacherId)
@@ -393,6 +469,8 @@ describe('audit log characterization', () => {
         lastName: 'Teacher',
         email: 'test@test.com',
         sede: 'Linda Vista',
+        province: 'San José',
+        canton: 'San José',
       })
       store = useStore.getState()
       // Create a course for the teacher
@@ -591,6 +669,12 @@ describe('audit log characterization', () => {
         province: 'p',
         canton: 'c',
         educationalLevel: 'primaria',
+        guardian: {
+          name: 'Encargado Test',
+          relationship: 'madre',
+          phone: '8888-8888',
+          email: 'enc@example.com',
+        },
       })
       store = useStore.getState()
       // Verify the create student entry exists in audit log

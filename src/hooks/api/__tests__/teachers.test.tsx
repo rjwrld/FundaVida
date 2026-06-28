@@ -57,6 +57,8 @@ describe('useCreateTeacher', () => {
       lastName: 'Smith',
       email: 'alice@example.com',
       sede: 'Linda Vista' as const,
+      province: 'San José' as const,
+      canton: 'San José' as const,
     }
 
     result.current.mutate(newTeacher)
@@ -84,6 +86,8 @@ describe('useCreateTeacher', () => {
       lastName: 'Smith',
       email: 'alice@example.com',
       sede: 'Linda Vista' as const,
+      province: 'San José' as const,
+      canton: 'San José' as const,
     }
 
     result.current.mutate(newTeacher)
@@ -188,6 +192,8 @@ describe('useDeleteTeacher', () => {
         lastName: 'Test',
         email: 'nocourses@example.com',
         sede: 'Linda Vista',
+        province: 'San José',
+        canton: 'San José',
       })
       teacherId = newTeacher.id
     }

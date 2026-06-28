@@ -43,9 +43,15 @@ describe('<TeacherForm />', () => {
     await user.type(screen.getByLabelText('Email'), 'grace@example.com')
     await user.click(screen.getByRole('combobox', { name: /campus/i }))
     await user.click(await screen.findByRole('option', { name: 'Linda Vista' }))
+    // Province first, then canton (scoped to the province).
+    await user.click(screen.getByRole('combobox', { name: /province/i }))
+    await user.click(await screen.findByRole('option', { name: 'Cartago' }))
+    await user.click(screen.getByRole('combobox', { name: /canton/i }))
+    await user.click(await screen.findByRole('option', { name: 'Turrialba' }))
     await user.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
-    expect(useStore.getState().teachers.find((x) => x.email === 'grace@example.com')).toBeDefined()
+    const created = useStore.getState().teachers.find((x) => x.email === 'grace@example.com')
+    expect(created).toMatchObject({ province: 'Cartago', canton: 'Turrialba' })
   })
 
   it('calls onCancel when cancel is clicked', async () => {

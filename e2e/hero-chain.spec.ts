@@ -16,7 +16,7 @@ test('admin runs the full chain: create student, enroll, grade, certificate', as
 
   await page.getByLabel('First name').fill(firstName)
   await page.getByLabel('Last name').fill(lastName)
-  await page.getByLabel('Email').fill(`e2e+${suffix}@example.com`)
+  await page.getByLabel('Email', { exact: true }).fill(`e2e+${suffix}@example.com`)
   // Province first, then canton (its options are scoped to the province).
   await page.getByRole('combobox', { name: /province/i }).click()
   await page.getByRole('option', { name: 'San José' }).click()
@@ -24,6 +24,12 @@ test('admin runs the full chain: create student, enroll, grade, certificate', as
   await page.getByRole('option', { name: 'Escazú' }).click()
   await page.getByRole('combobox', { name: /campus/i }).click()
   await page.getByRole('option', { name: 'Linda Vista' }).click()
+  // Encargado (guardian) — required.
+  await page.getByLabel(/guardian name/i).fill(`${firstName} Guardian`)
+  await page.getByRole('combobox', { name: /relationship/i }).click()
+  await page.getByRole('option', { name: 'Mother' }).click()
+  await page.getByLabel(/guardian phone/i).fill('8888-8888')
+  await page.getByLabel(/guardian email/i).fill(`enc+${suffix}@gmail.com`)
   await page.getByRole('button', { name: 'Save' }).click()
 
   // Modal closes; the student now exists (selected via the Enroll dialog below).

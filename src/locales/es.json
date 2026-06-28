@@ -666,6 +666,7 @@
       "edit": "Editar",
       "sections": {
         "enrollments": "Matrículas",
+        "guardian": "Encargado",
         "identity": "Identidad",
         "noEnrollments": "No está matriculado en ningún curso."
       },
@@ -684,6 +685,10 @@
         "email": "Correo",
         "firstName": "Nombre",
         "gender": "Género",
+        "guardianEmail": "Correo del encargado",
+        "guardianName": "Nombre del encargado",
+        "guardianPhone": "Teléfono del encargado",
+        "guardianRelationship": "Parentesco",
         "lastName": "Apellido",
         "province": "Provincia",
         "sede": "Sede"
@@ -692,6 +697,15 @@
         "F": "Femenino",
         "M": "Masculino",
         "X": "Otro"
+      },
+      "guardian": {
+        "legend": "Encargado",
+        "relationship": {
+          "madre": "Madre",
+          "otro": "Otro",
+          "padre": "Padre",
+          "tutor": "Tutor"
+        }
       },
       "level": {
         "primaria": "Primaria",
@@ -776,9 +790,11 @@
     "form": {
       "editTitle": "Editar docente",
       "fields": {
+        "canton": "Cantón",
         "email": "Correo",
         "firstName": "Nombre",
         "lastName": "Apellido",
+        "province": "Provincia",
         "sede": "Sede"
       },
       "newTitle": "Nuevo docente"
@@ -836,6 +852,7 @@
     "numberMax": "Máximo {{max}}",
     "numberMin": "Mínimo {{min}}",
     "numberRequired": "Debe ser un número",
+    "phone": "Ingrese un teléfono válido (8888-8888)",
     "required": "Completa {{field}}",
     "selectValue": "Selecciona un valor para el filtro elegido",
     "termEndAfterStart": "La fecha de fin debe ser igual o posterior a la de inicio"

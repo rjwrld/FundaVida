@@ -57,6 +57,12 @@ t('students.form.gender.X')
 t('students.form.level.primaria')
 t('students.form.level.secundaria')
 
+// Keys referenced dynamically via t(`students.form.guardian.relationship.${value}`)
+t('students.form.guardian.relationship.madre')
+t('students.form.guardian.relationship.padre')
+t('students.form.guardian.relationship.tutor')
+t('students.form.guardian.relationship.otro')
+
 // Keys referenced dynamically via t(`courses.level.${level}`)
 t('courses.level.primaria')
 t('courses.level.secundaria')

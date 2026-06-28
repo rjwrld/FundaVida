@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test'
 import { seedDemo } from '../src/data/seed'
 
 // Storage keys must match src/data/persistence.ts.
-const STATE_KEY = 'fundavida:v5:state'
+const STATE_KEY = 'fundavida:v6:state'
 const ROLE_KEY = 'fundavida:v2:role'
 const USER_KEY = 'fundavida:v2:current-user'
 const LOCALE_KEY = 'fundavida:v2:locale'

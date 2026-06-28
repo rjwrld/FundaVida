@@ -1,7 +1,10 @@
 import { z } from 'zod'
 import type { TFunction } from 'i18next'
 import { SEDES } from '@/constants/sede'
-import { EDUCATIONAL_LEVELS } from '@/constants/student'
+import { EDUCATIONAL_LEVELS, GUARDIAN_RELATIONSHIPS } from '@/constants/student'
+
+// A Costa Rican mobile number, formatted "8888-8888" (8 digits, leading 6/7/8).
+const CR_PHONE = /^[678]\d{3}-\d{4}$/
 
 export function buildStudentSchema(t: TFunction) {
   return z.object({
@@ -27,6 +30,16 @@ export function buildStudentSchema(t: TFunction) {
       .string()
       .min(1, t('validation.required', { field: t('students.form.fields.canton') })),
     educationalLevel: z.enum(EDUCATIONAL_LEVELS),
+    // The encargado (guardian) — every Student is a minor, so it's required.
+    guardian: z.object({
+      name: z
+        .string()
+        .min(1, t('validation.required', { field: t('students.form.fields.guardianName') }))
+        .max(80),
+      relationship: z.enum(GUARDIAN_RELATIONSHIPS),
+      phone: z.string().regex(CR_PHONE, t('validation.phone')),
+      email: z.string().email(t('validation.email')),
+    }),
   })
 }
 

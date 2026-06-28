@@ -61,6 +61,12 @@ describe('store writes stamp timestamps from the clock, not wall-time (ADR-0014)
       province: 'San José',
       canton: 'Central',
       educationalLevel: 'primaria',
+      guardian: {
+        name: 'Encargado Test',
+        relationship: 'madre',
+        phone: '8888-8888',
+        email: 'enc@example.com',
+      },
     }).id
   }
 
@@ -74,6 +80,12 @@ describe('store writes stamp timestamps from the clock, not wall-time (ADR-0014)
       province: 'San José',
       canton: 'Central',
       educationalLevel: 'secundaria',
+      guardian: {
+        name: 'Encargado Test',
+        relationship: 'madre',
+        phone: '8888-8888',
+        email: 'enc@example.com',
+      },
     })
     expect(student.createdAt).toBe(FROZEN_ISO)
     expect(useStore.getState().auditLog[0]?.timestamp).toBe(FROZEN_ISO)

@@ -24,7 +24,12 @@ import { resolveRecipients } from '@/lib/emailRecipients'
 import { PROGRAM_CATALOG } from '@/constants/programs'
 import { UNIVERSITIES, type University } from '@/constants/university'
 import { SEDES, type Sede } from '@/constants/sede'
-import { GENDERS, PROVINCES, CANTONS_BY_PROVINCE } from '@/constants/student'
+import {
+  GENDERS,
+  PROVINCES,
+  CANTONS_BY_PROVINCE,
+  GUARDIAN_RELATIONSHIPS,
+} from '@/constants/student'
 import { CR_FIRST_NAMES, CR_LAST_NAMES } from '@/constants/names'
 
 export interface SeedSnapshot {
@@ -251,17 +256,39 @@ function localizePeople(teachers: Teacher[], students: Student[], trainees: TcuT
   nameRng.seed(42)
   const emails = new Set<string>()
 
+  // A Costa Rican mobile number: 8 digits starting 6/7/8, formatted "8888-8888".
+  const crPhone = (): string => {
+    const lead = nameRng.helpers.arrayElement(['6', '7', '8'])
+    const rest = nameRng.string.numeric({ length: 7, allowLeadingZeros: true })
+    return `${lead}${rest.slice(0, 3)}-${rest.slice(3)}`
+  }
+
   const rename = (person: { firstName: string; lastName: string; email: string }): void => {
     person.firstName = nameRng.helpers.arrayElement(CR_FIRST_NAMES)
     person.lastName = nameRng.helpers.arrayElement(CR_LAST_NAMES)
     person.email = makePersonEmail(person.firstName, person.lastName, emails)
   }
 
-  teachers.forEach(rename)
+  teachers.forEach((teacher) => {
+    rename(teacher)
+    const province = nameRng.helpers.arrayElement(PROVINCES)
+    teacher.province = province
+    teacher.canton = nameRng.helpers.arrayElement(CANTONS_BY_PROVINCE[province])
+  })
   students.forEach((student) => {
     rename(student)
     const cantons = CANTONS_BY_PROVINCE[student.province as keyof typeof CANTONS_BY_PROVINCE]
     if (cantons) student.canton = nameRng.helpers.arrayElement(cantons)
+
+    // The encargado (guardian): a Costa Rican adult with their own gmail contact.
+    const guardianFirst = nameRng.helpers.arrayElement(CR_FIRST_NAMES)
+    const guardianLast = nameRng.helpers.arrayElement(CR_LAST_NAMES)
+    student.guardian = {
+      name: `${guardianFirst} ${guardianLast}`,
+      relationship: nameRng.helpers.arrayElement(GUARDIAN_RELATIONSHIPS),
+      phone: crPhone(),
+      email: `${emailSlug(guardianFirst)}.${emailSlug(guardianLast)}@gmail.com`,
+    }
   })
   trainees.forEach(rename)
 }
@@ -274,6 +301,10 @@ function buildTeachers(epoch: Date, count: number): Teacher[] {
     email: faker.internet.email().toLowerCase(),
     // 3 Teachers per Sede: i=0,3,6→sede0; i=1,4,7→sede1; i=2,5,8→sede2
     sede: SEDES[i % SEDES.length] as Sede,
+    // Placeholder filled by localizePeople (separate RNG) so the home location
+    // never perturbs the structural sequence.
+    province: '',
+    canton: '',
     courseIds: [],
     // Teachers predate every Course they could teach.
     createdAt: subDays(epoch, 420 + faker.number.int({ min: 0, max: 180 })).toISOString(),
@@ -394,6 +425,9 @@ function buildStudents(
       sede: studentSede,
       province: faker.helpers.arrayElement(PROVINCES),
       canton: faker.location.city(),
+      // Placeholder filled by localizePeople (separate RNG) so the encargado
+      // never perturbs the structural sequence.
+      guardian: { name: '', relationship: 'otro', phone: '', email: '' },
       // ~50/50 distribution: even indices primaria, odd secundaria
       educationalLevel: i % 2 === 0 ? 'primaria' : 'secundaria',
       enrolledCourseIds: [],
