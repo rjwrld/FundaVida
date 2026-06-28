@@ -46,30 +46,30 @@ test('student requests a course and withdraws the request without reload (ADR-00
   await page.getByRole('link', { name: 'Browse Courses' }).click()
   await expect(page.getByRole('heading', { name: 'Browse Courses' })).toBeVisible()
 
-  // Find and click on a browseable course (one the student is not enrolled in)
-  const courseLink = page.getByRole('table').getByRole('link').first()
-  const courseName = await courseLink.textContent()
-  await courseLink.click()
+  // Open a browseable course. Each row's name is a button (not a link) that
+  // navigates to the read-only detail.
+  const courseNameButton = page.getByRole('table').getByRole('button').first()
+  const courseName = ((await courseNameButton.textContent()) ?? '').trim()
+  await courseNameButton.click()
 
-  // Verify the course detail page loaded
-  await expect(page.getByRole('heading', { name: courseName ?? '' })).toBeVisible()
+  // Verify the course detail page loaded (heading is the course name)
+  await expect(page.getByRole('heading', { name: courseName })).toBeVisible()
 
-  // Request enrollment
-  const requestButton = page.getByRole('button', { name: 'Request a Spot' })
+  // Request a spot
+  const requestButton = page.getByRole('button', { name: 'Request a spot' })
   await expect(requestButton).toBeVisible()
   await requestButton.click()
 
-  // Verify the request section changed to show pending status (without page reload)
+  // The request section flips to the pending state without a page reload
   await expect(requestButton).toBeHidden()
-  const pendingSection = page.getByText('Your request is pending')
-  await expect(pendingSection).toBeVisible()
+  await expect(page.getByText('Request pending')).toBeVisible()
 
   // Withdraw the request
-  const withdrawButton = page.getByRole('button', { name: 'Withdraw Request' })
+  const withdrawButton = page.getByRole('button', { name: 'Withdraw request' })
   await expect(withdrawButton).toBeVisible()
   await withdrawButton.click()
 
-  // Verify the request section changed back (again, no reload)
+  // Back to the request state (again, no reload)
   await expect(withdrawButton).toBeHidden()
   await expect(requestButton).toBeVisible()
 })
