@@ -161,13 +161,11 @@ function applyCoursesScope(courses: CourseList, token: Scope, userId: string): C
       return courses.filter((c) => c.teacherId === userId)
     }
     case 'enrolled': {
-      // Courses the current user has an ACTIVE enrollment in (approved or pending).
-      // Withdrawn/rejected enrollments don't count — those courses leave "my courses"
-      // and become browseable again (ADR-0016).
+      // Courses the current user has any enrollment record in (ADR-0012). The
+      // course-detail page distinguishes active (approved/pending) from
+      // withdrawn/rejected for the browse-vs-records decision.
       const state = useStore.getState()
-      const enrollments = state.enrollments.filter(
-        (e) => e.studentId === userId && (e.status === 'approved' || e.status === 'pending')
-      )
+      const enrollments = state.enrollments.filter((e) => e.studentId === userId)
       const enrolledCourseIds = new Set(enrollments.map((e) => e.courseId))
       return courses.filter((c) => enrolledCourseIds.has(c.id))
     }

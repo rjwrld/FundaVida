@@ -170,14 +170,24 @@ export function CoursesDetailPage() {
   const navigate = useNavigate()
   const { data: enrolledCourse, isLoading: enrolledLoading } = useCourse(id ?? '')
   const currentRole = useStore((s) => s.role)
+  const currentUserId = useStore((s) => s.currentUserId)
+  const enrollments = useStore((s) => s.enrollments)
+
+  // The student's enrollment in this course (by URL id), available before the
+  // course queries resolve. "Active" = approved or pending; withdrawn/rejected
+  // are treated as not-enrolled for the browse-vs-records decision (ADR-0016).
+  const enrollment =
+    currentUserId && id
+      ? enrollments.find((e) => e.studentId === currentUserId && e.courseId === id)
+      : undefined
+  const isActiveEnrollment = enrollment?.status === 'approved' || enrollment?.status === 'pending'
+
   const { data: browseableCourse, isLoading: browseLoading } = useBrowseableCourse(
     id ?? '',
-    currentRole === 'student' && !enrolledCourse
+    currentRole === 'student' && !isActiveEnrollment
   )
   const teachers = useStore((s) => s.teachers)
   const programs = useStore((s) => s.programs)
-  const currentUserId = useStore((s) => s.currentUserId)
-  const enrollments = useStore((s) => s.enrollments)
   const course = enrolledCourse ?? browseableCourse ?? null
   const isLoading = enrolledLoading || browseLoading
   // The roster reads through the API/scope seam, never raw store collections
@@ -211,21 +221,15 @@ export function CoursesDetailPage() {
   if (isLoading)
     return <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
 
-  // Get the student's enrollment in this course if any (pending or approved)
-  const enrollment =
-    currentUserId && course
-      ? enrollments.find((e) => e.studentId === currentUserId && e.courseId === course.id)
-      : undefined
-
-  // isEnrolled: student has the course in their enrolled scope with an active enrollment (approved or pending)
-  const isEnrolled =
-    !!enrolledCourse && (enrollment?.status === 'approved' || enrollment?.status === 'pending')
+  // isEnrolled: the student has an active (approved/pending) enrollment — they see
+  // their self-only records (ADR-0012).
+  const isEnrolled = isActiveEnrollment
 
   // isPending: student has a pending request for this course
   const isPending = enrollment?.status === 'pending'
 
-  // isBrowseable: a not-enrolled student looking at an open course
-  const isBrowseable = !enrolledCourse && !!browseableCourse
+  // isBrowseable: an open course the student is not actively enrolled in (ADR-0016).
+  const isBrowseable = !!browseableCourse && !isActiveEnrollment
 
   // Get seats remaining
   const getSeatsRemaining = (): number => {
