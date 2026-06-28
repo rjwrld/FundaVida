@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, waitFor, fireEvent, act, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -160,6 +161,31 @@ describe('<CertificatesListPage />', () => {
     await waitFor(() => {
       expect(useStore.getState().certificates.some((c) => c.status === 'pending')).toBe(false)
     })
+  })
+
+  it('explores the worklist by course via the course filter', async () => {
+    const user = userEvent.setup()
+    useStore.getState().setRole('admin')
+    const { certificates, courses } = useStore.getState()
+    const pendingCourseIds = [
+      ...new Set(certificates.filter((c) => c.status === 'pending').map((c) => c.courseId)),
+    ]
+    expect(pendingCourseIds.length).toBeGreaterThan(1)
+    const target = courses.find((c) => c.id === pendingCourseIds[0])
+    const other = courses.find((c) => c.id === pendingCourseIds[1])
+    if (!target || !other) throw new Error('expected two pending courses')
+
+    renderPage()
+    await screen.findByRole('button', { name: /approve all/i })
+    // Both courses' rows are present before filtering.
+    expect(screen.getAllByText(other.name).length).toBeGreaterThan(0)
+
+    await user.click(screen.getByRole('combobox', { name: /filter by course/i }))
+    await user.click(await screen.findByRole('option', { name: target.name }))
+
+    // Only the chosen course's certificates remain in the worklist.
+    await waitFor(() => expect(screen.queryByText(other.name)).toBeNull())
+    expect(screen.getAllByText(target.name).length).toBeGreaterThan(0)
   })
 
   it('lets a teacher approve a pending certificate in their own course', async () => {

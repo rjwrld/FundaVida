@@ -166,6 +166,7 @@
       "pending": "Pending"
     },
     "worklist": {
+      "allCourses": "All courses",
       "approveAll": "Approve all",
       "approveAllAria": "Approve all {{total}} pending certificates",
       "columns": {
@@ -177,6 +178,7 @@
       },
       "emptyApproved": "No approved certificates yet.",
       "emptyPending": "Nothing waiting — every certificate has been approved.",
+      "filterByCourse": "Filter by course",
       "tabs": {
         "approved": "Approved",
         "pending": "Needs approval"

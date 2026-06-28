@@ -167,6 +167,7 @@
       "pending": "Pendiente"
     },
     "worklist": {
+      "allCourses": "Todos los cursos",
       "approveAll": "Aprobar todos",
       "approveAllAria": "Aprobar los {{total}} certificados pendientes",
       "columns": {
@@ -178,6 +179,7 @@
       },
       "emptyApproved": "Aún no hay certificados aprobados.",
       "emptyPending": "Nada pendiente: todos los certificados están aprobados.",
+      "filterByCourse": "Filtrar por curso",
       "tabs": {
         "approved": "Aprobados",
         "pending": "Por aprobar"

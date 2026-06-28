@@ -8,6 +8,13 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Table,
   TableBody,
   TableCell,
@@ -31,6 +38,7 @@ import type { CertificateStatus } from '@/types'
 interface CardItem {
   id: string
   studentName: string
+  courseId: string
   courseName: string
   programName: string
   score: number
@@ -41,7 +49,15 @@ interface CardItem {
   issuedAt: string
 }
 
+interface CourseOption {
+  id: string
+  name: string
+}
+
 type Tab = 'pending' | 'approved'
+
+// Sentinel for the "all courses" filter option — Radix Select has no empty value.
+const ALL_COURSES = '__all__'
 
 function parseStatusFilter(value: string | null): CertificateStatus | null {
   return value === 'pending' || value === 'approved' ? value : null
@@ -67,6 +83,7 @@ export function CertificatesListPage() {
   const statusFilter = parseStatusFilter(searchParams.get('status'))
 
   const [query, setQuery] = useState('')
+  const [courseId, setCourseId] = useState<string>(ALL_COURSES)
   const [tab, setTab] = useState<Tab>(statusFilter === 'approved' ? 'approved' : 'pending')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [dataUrl, setDataUrl] = useState<string | null>(null)
@@ -85,6 +102,7 @@ export function CertificatesListPage() {
       result.push({
         id: cert.id,
         studentName: `${student.firstName} ${student.lastName}`,
+        courseId: cert.courseId,
         courseName: course.name,
         programName: programById.get(course.programId)?.name ?? '',
         score: cert.score,
@@ -103,8 +121,31 @@ export function CertificatesListPage() {
       q ? list.filter((c) => c.studentName.toLowerCase().includes(q)) : list
   }, [query])
 
-  const pending = useMemo(() => items.filter((c) => c.status === 'pending'), [items])
-  const approved = useMemo(() => items.filter((c) => c.status === 'approved'), [items])
+  // The courses present in this (already role-scoped) certificate list — a Teacher
+  // sees only their own, an admin sees all. Lets the worklist be explored by course.
+  const courseOptions = useMemo<CourseOption[]>(() => {
+    const byId = new Map<string, string>()
+    for (const c of items) byId.set(c.courseId, c.courseName)
+    return [...byId.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+  }, [items])
+
+  // A course filter narrows to one course; the tab counts and Approve all follow it.
+  const inCourse = useMemo(
+    () => (list: CardItem[]) =>
+      courseId === ALL_COURSES ? list : list.filter((c) => c.courseId === courseId),
+    [courseId]
+  )
+
+  const pending = useMemo(
+    () => inCourse(items.filter((c) => c.status === 'pending')),
+    [items, inCourse]
+  )
+  const approved = useMemo(
+    () => inCourse(items.filter((c) => c.status === 'approved')),
+    [items, inCourse]
+  )
 
   // Only an approved Certificate has a PDF to preview/download.
   const selected = useMemo(
@@ -197,6 +238,9 @@ export function CertificatesListPage() {
           approvedTotal={approved.length}
           query={query}
           onQueryChange={setQuery}
+          courseOptions={courseOptions}
+          courseId={courseId}
+          onCourseChange={setCourseId}
           onApprove={(id) => approve.mutate(id)}
           onApproveAll={() => approveAll.mutate(pending.map((c) => c.id))}
           approving={approve.isPending || approveAll.isPending}
@@ -277,6 +321,9 @@ function ApproverWorklist({
   approvedTotal,
   query,
   onQueryChange,
+  courseOptions,
+  courseId,
+  onCourseChange,
   onApprove,
   onApproveAll,
   approving,
@@ -290,6 +337,9 @@ function ApproverWorklist({
   approvedTotal: number
   query: string
   onQueryChange: (next: string) => void
+  courseOptions: CourseOption[]
+  courseId: string
+  onCourseChange: (next: string) => void
   onApprove: (id: string) => void
   onApproveAll: () => void
   approving: boolean
@@ -327,7 +377,29 @@ function ApproverWorklist({
         )}
       </div>
 
-      <SearchBox value={query} onChange={onQueryChange} />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex-1">
+          <SearchBox value={query} onChange={onQueryChange} />
+        </div>
+        {courseOptions.length > 1 && (
+          <Select value={courseId} onValueChange={onCourseChange}>
+            <SelectTrigger
+              aria-label={t('certificates.worklist.filterByCourse')}
+              className="sm:w-56"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_COURSES}>{t('certificates.worklist.allCourses')}</SelectItem>
+              {courseOptions.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
 
       {tab === 'pending' ? (
         pending.length === 0 ? (
