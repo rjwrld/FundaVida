@@ -3,13 +3,18 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { I18nProvider } from '@/lib/i18n'
 import { DemoBanner } from '@/components/demo/DemoBanner'
+import { DemoBadge } from '@/components/demo/DemoBadge'
 import { useStore } from '@/data/store'
 import { setDemoEpoch } from '@/lib/clock'
 
+// The banner (strip) and badge (header chip) share dismissed state, so the
+// integrated behaviour is tested with both mounted together — mirroring the
+// real layout where the strip sits above the header and the chip inside it.
 function renderBanner() {
   return render(
     <I18nProvider>
       <DemoBanner />
+      <DemoBadge />
     </I18nProvider>
   )
 }
@@ -36,8 +41,19 @@ describe('<DemoBanner />', () => {
 
     // The full banner copy is gone…
     expect(screen.queryByText(/sample data frozen at/i)).not.toBeInTheDocument()
-    // …replaced by a small, still-present badge.
+    // …replaced by a small, still-present badge (now in the header).
     expect(screen.getByRole('button', { name: /demo snapshot/i })).toBeInTheDocument()
+  })
+
+  it('re-opens the full banner from the badge', async () => {
+    const user = userEvent.setup()
+    renderBanner()
+    await screen.findByText(/sample data frozen at Jun 27, 2026/i)
+
+    await user.click(screen.getByRole('button', { name: /dismiss/i }))
+    await user.click(screen.getByRole('button', { name: /demo snapshot/i }))
+
+    expect(await screen.findByText(/sample data frozen at Jun 27, 2026/i)).toBeInTheDocument()
   })
 
   it('renders the Spanish copy when the locale is es', async () => {

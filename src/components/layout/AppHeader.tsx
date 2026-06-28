@@ -2,6 +2,7 @@ import { Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { RoleSwitcher } from '@/components/demo/RoleSwitcher'
+import { DemoBadge } from '@/components/demo/DemoBadge'
 import { BrandLockup } from '@/components/brand/BrandLockup'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 import { LanguageToggle } from '@/components/layout/LanguageToggle'
@@ -44,6 +45,7 @@ export function AppHeader() {
         <Search className="size-4" />
       </Button>
       <div className="flex items-center gap-1.5">
+        <DemoBadge />
         <ThemeToggle />
         <LanguageToggle variant="header" />
         <RoleSwitcher />
