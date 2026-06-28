@@ -202,6 +202,27 @@
     }
   },
   "courses": {
+    "browse": {
+      "columns": {
+        "actions": "Acciones",
+        "seats": "Espacios disponibles"
+      },
+      "courseFullWarning": "Este curso está lleno. Los espacios solicitados se retienen como aprobación pendiente.",
+      "empty": "No hay cursos disponibles para solicitar en tu sede y nivel.",
+      "emptyFiltered": "Ningún curso coincide con el filtro.",
+      "full": "Lleno",
+      "pendingDescription": "Tu solicitud está esperando la aprobación del docente. Te notificaremos una vez revisada.",
+      "pendingSection": "Tu solicitud",
+      "pendingStatus": "Solicitud pendiente",
+      "requestButton": "Solicitar un espacio",
+      "requestSection": "Solicitar matrícula",
+      "searchPlaceholder": "Buscar por nombre",
+      "seatsLabel": "Espacios restantes",
+      "subtitle": "Encuentra y solicita cursos ofrecidos en tu sede.",
+      "title": "Explorar cursos",
+      "viewButton": "Ver",
+      "withdrawButton": "Retirar solicitud"
+    },
     "detail": {
       "attendance": {
         "noMarkableSessions": "No hay sesiones pasadas o actuales disponibles para marcar.",
@@ -390,6 +411,12 @@
       "title": "Matrículas",
       "unenroll": "Desmatricular",
       "unenrollConfirm": "¿Eliminar esta matrícula?"
+    },
+    "status": {
+      "approved": "Aprobado",
+      "pending": "Pendiente",
+      "rejected": "Rechazado",
+      "withdrawn": "Retirado"
     }
   },
   "grades": {
@@ -746,9 +773,11 @@
     "courseDeleted": "Curso eliminado.",
     "courseUpdated": "Curso actualizado.",
     "enrolled": "Estudiante matriculado.",
+    "enrollmentRequested": "Solicitud enviada. Esperando aprobación del docente.",
     "error": "Algo salió mal: {{message}}",
     "gradeDeleted": "Calificación eliminada.",
     "gradeSaved": "Calificación guardada.",
+    "requestWithdrawn": "Solicitud retirada.",
     "studentCreated": "Estudiante creado.",
     "studentDeleted": "Estudiante eliminado.",
     "studentUpdated": "Estudiante actualizado.",

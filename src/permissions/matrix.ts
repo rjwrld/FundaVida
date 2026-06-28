@@ -1,7 +1,17 @@
 import { clock } from '@/lib/clock'
 import type { Role, Course, TcuActivity } from '@/types/domain'
 
-export type Action = 'view' | 'create' | 'edit' | 'delete' | 'approve' | 'mark' | 'log' | 'enter'
+export type Action =
+  | 'view'
+  | 'create'
+  | 'edit'
+  | 'delete'
+  | 'approve'
+  | 'mark'
+  | 'log'
+  | 'enter'
+  | 'request'
+  | 'withdraw'
 
 export type Resource =
   | 'programs'
@@ -23,6 +33,7 @@ export type Scope =
   | 'ownCourses'
   | 'enrolledInOwnCourses'
   | 'enrolled'
+  | 'openForEnrollment'
   | 'self'
   | 'assignedTrainees'
   | 'none'
@@ -112,7 +123,9 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     students: {},
     teachers: {},
     courses: { view: true },
-    enrollments: {},
+    // A Student may request an enrollment (self-enroll into pending) or withdraw their own
+    // pending request (ADR-0016). Other operations are teacher/admin only.
+    enrollments: { request: true, withdraw: true },
     grades: { view: true },
     certificates: { view: true },
     attendance: { view: true },

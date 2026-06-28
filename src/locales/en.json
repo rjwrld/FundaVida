@@ -201,6 +201,27 @@
     }
   },
   "courses": {
+    "browse": {
+      "columns": {
+        "actions": "Actions",
+        "seats": "Seats available"
+      },
+      "courseFullWarning": "This course is full. Requested seats are held as pending approval.",
+      "empty": "No courses available to request at your campus and level.",
+      "emptyFiltered": "No courses match your filter.",
+      "full": "Full",
+      "pendingDescription": "Your request is awaiting the teacher's approval. You'll be notified once reviewed.",
+      "pendingSection": "Your request",
+      "pendingStatus": "Request pending",
+      "requestButton": "Request a spot",
+      "requestSection": "Request enrollment",
+      "searchPlaceholder": "Search by name",
+      "seatsLabel": "Seats remaining",
+      "subtitle": "Find and request courses offered at your campus.",
+      "title": "Browse courses",
+      "viewButton": "View",
+      "withdrawButton": "Withdraw request"
+    },
     "detail": {
       "attendance": {
         "noMarkableSessions": "No past or current sessions available for marking.",
@@ -386,6 +407,12 @@
       "title": "Enrollments",
       "unenroll": "Unenroll",
       "unenrollConfirm": "Remove this enrollment?"
+    },
+    "status": {
+      "approved": "Approved",
+      "pending": "Pending",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
     }
   },
   "grades": {
@@ -741,9 +768,11 @@
     "courseDeleted": "Course deleted.",
     "courseUpdated": "Course updated.",
     "enrolled": "Student enrolled.",
+    "enrollmentRequested": "Request submitted. Awaiting teacher approval.",
     "error": "Something went wrong: {{message}}",
     "gradeDeleted": "Grade deleted.",
     "gradeSaved": "Grade saved.",
+    "requestWithdrawn": "Request withdrawn.",
     "studentCreated": "Student created.",
     "studentDeleted": "Student deleted.",
     "studentUpdated": "Student updated.",

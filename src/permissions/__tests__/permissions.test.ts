@@ -301,6 +301,8 @@ describe('Permissions Matrix', () => {
           mark: false,
           log: false,
           enter: false,
+          request: true,
+          withdraw: true,
         },
         grades: {
           view: true,

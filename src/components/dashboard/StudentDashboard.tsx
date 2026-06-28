@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Book, CheckCircle2 } from 'lucide-react'
+import { Book, CheckCircle2, Search } from 'lucide-react'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useCourses } from '@/hooks/api/courses'
 import { useAttendance } from '@/hooks/api/attendance'
@@ -50,6 +51,17 @@ export function StudentDashboard() {
           format={(v) => `${v}%`}
           icon={<CheckCircle2 className="size-4" aria-hidden="true" />}
         />
+      </motion.div>
+
+      {/* Browse open courses to request a spot (ADR-0016) */}
+      <motion.div variants={fadeUp} transition={transitionDefaults}>
+        <Link
+          to="/app/courses/browse"
+          className="inline-flex items-center gap-2 rounded-lg border border-foreground bg-transparent px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+        >
+          <Search className="size-4" aria-hidden="true" />
+          {t('courses.browse.title')}
+        </Link>
       </motion.div>
     </DashboardShell>
   )
