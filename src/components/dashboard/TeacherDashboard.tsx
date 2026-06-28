@@ -100,9 +100,13 @@ export function TeacherDashboard() {
 
       {/* Supporting: Create a Course CTA */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
-        <div className="rounded-lg border border-border bg-card p-6 shadow-card">
-          <h3 className="text-lg font-semibold mb-2">{t('dashboard.teacher.createCourseTitle')}</h3>
-          <p className="text-sm text-muted-foreground mb-4">
+        <article className="flex h-full flex-col rounded-lg border border-border bg-card p-5">
+          <header className="mb-4">
+            <h3 className="font-display text-lg text-foreground">
+              {t('dashboard.teacher.createCourseTitle')}
+            </h3>
+          </header>
+          <p className="mb-4 text-sm text-muted-foreground">
             {t('dashboard.teacher.createCourseDescription')}
           </p>
           <Button asChild>
@@ -111,7 +115,7 @@ export function TeacherDashboard() {
               {t('dashboard.teacher.createCourseButton')}
             </Link>
           </Button>
-        </div>
+        </article>
       </motion.div>
     </DashboardShell>
   )

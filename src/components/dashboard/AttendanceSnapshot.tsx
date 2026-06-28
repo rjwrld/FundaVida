@@ -38,8 +38,8 @@ export function AttendanceSnapshot({ ratePct, trend }: AttendanceSnapshotProps) 
         </p>
         <p className="text-xs text-muted-foreground">{t('dashboard.attendance.rateLabel')}</p>
       </div>
-      <div className="mt-4 flex-1 min-h-[80px]">
-        <ResponsiveContainer width="100%" height={80}>
+      <div className="mt-4 flex-1 min-h-[160px]">
+        <ResponsiveContainer width="100%" height={160}>
           <BarChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
             <XAxis dataKey="label" hide />
             <Tooltip

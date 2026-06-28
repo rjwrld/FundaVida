@@ -85,7 +85,7 @@ export function AdminDashboard() {
             stats.pendingApprovals > 0 ? (
               <Link
                 to="/app/certificates?status=pending"
-                className="inline-flex items-center gap-1 rounded-md bg-brand-green-500 px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-green-600"
+                className="inline-flex items-center gap-1 rounded-md bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 {ctaLabel}
                 <ArrowRight className="size-3.5" aria-hidden="true" />
