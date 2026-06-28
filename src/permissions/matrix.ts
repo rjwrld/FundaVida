@@ -24,6 +24,7 @@ export type Scope =
   | 'enrolledInOwnCourses'
   | 'enrolled'
   | 'self'
+  | 'assignedTrainees'
   | 'none'
 
 export interface PermissionContext {
@@ -83,7 +84,7 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     grades: { view: true, edit: true, enter: true, delete: true },
     certificates: { view: true, approve: true },
     attendance: { view: true, mark: true },
-    tcu: { view: true, log: true },
+    tcu: { view: true, log: true, approve: true },
     reports: { view: true },
     bulkEmail: { view: true, create: true },
     auditLog: { view: true },
@@ -100,7 +101,8 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     grades: { view: true, enter: courseOwnedAndEnded, edit: courseOwnedAndEnded },
     certificates: {},
     attendance: { view: true, mark: courseOwned },
-    tcu: {},
+    // A Teacher may approve TCU activities for trainees assigned to their courses (ADR-0017)
+    tcu: { approve: teacherCanApproveTcuActivity },
     reports: {},
     bulkEmail: {},
     auditLog: {},
@@ -166,7 +168,7 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     grades: 'ownCourses',
     certificates: 'none',
     attendance: 'ownCourses',
-    tcu: 'none',
+    tcu: 'assignedTrainees',
     reports: 'none',
     bulkEmail: 'none',
     auditLog: 'none',
@@ -241,6 +243,15 @@ function canLogTcuActivity(ctx: PermissionContext): boolean {
     return false
   }
   return ctx.activity.traineeId === ctx.userId
+}
+
+/**
+ * Predicate: Teacher can approve a TCU activity only if the trainee is assigned
+ * to one of the Teacher's own courses (ADR-0017). The store hydrates the context
+ * with that course (resolved from the trainee's courseId) before calling can().
+ */
+function teacherCanApproveTcuActivity(ctx: PermissionContext): boolean {
+  return ctx.course?.teacherId === ctx.userId
 }
 
 /**

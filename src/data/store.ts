@@ -78,6 +78,7 @@ export interface StoreState {
   logTcuActivity: (
     input: Omit<TcuActivity, 'id' | 'status' | 'approvedBy' | 'approvedAt'>
   ) => TcuActivity
+  approveTcuActivity: (activityId: string, decision: 'approved' | 'rejected') => TcuActivity
   markAttendance: (
     courseId: string,
     studentId: string,
@@ -759,6 +760,61 @@ export const useStore = create<StoreState>((set, get) => ({
       },
     }))
     return activity
+  },
+  approveTcuActivity: (activityId, decision) => {
+    const state = get()
+    const activity = state.tcuActivities.find((a) => a.id === activityId)
+    if (!activity) {
+      throw new Error(`cannot approve: unknown activity ${activityId}`)
+    }
+
+    // Find the trainee and their assigned course
+    const trainee = state.tcuTrainees.find((t) => t.id === activity.traineeId)
+    if (!trainee) {
+      throw new Error(`cannot approve: unknown trainee ${activity.traineeId}`)
+    }
+
+    // Find the course the trainee is assigned to
+    const course = state.courses.find((c) => c.id === trainee.courseId)
+    if (!course) {
+      throw new Error(`cannot approve: unknown course ${trainee.courseId}`)
+    }
+
+    // Permission flows through the matrix seam (ADR-0009): admin's tcu.approve is
+    // unconditional; the teacher predicate (teacherCanApproveTcuActivity) allows it
+    // only when they own the trainee's course. assertCan throws on a violation.
+    assertCan(state, 'approve', 'tcu', {
+      userId: state.currentUserId ?? undefined,
+      course,
+      activity,
+    })
+
+    // Approving or rejecting already-decided activities is a no-op
+    if (activity.status !== 'pending') {
+      return activity
+    }
+
+    const approvedBy = state.currentUserId ?? 'system'
+    const approvedAt = clock.now().toISOString()
+    const updated: TcuActivity = {
+      ...activity,
+      status: decision === 'approved' ? 'approved' : 'rejected',
+      approvedBy,
+      approvedAt,
+    }
+
+    withAudit(set, (state) => ({
+      next: {
+        tcuActivities: state.tcuActivities.map((a) => (a.id === activityId ? updated : a)),
+      },
+      audit: {
+        action: 'approve',
+        entity: 'tcuActivity',
+        entityId: activityId,
+        summary: `${decision === 'approved' ? 'Approved' : 'Rejected'} TCU activity ${activityId} for ${trainee.firstName} ${trainee.lastName}`,
+      },
+    }))
+    return updated
   },
   markAttendance: (courseId, studentId, sessionDate, status) => {
     const state = get()

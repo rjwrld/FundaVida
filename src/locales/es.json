@@ -159,6 +159,7 @@
       "skipToMain": "Saltar al contenido principal"
     },
     "actions": {
+      "approve": "Aprobar",
       "backToHome": "Volver al inicio",
       "cancel": "Cancelar",
       "close": "Cerrar",
@@ -168,6 +169,7 @@
       "edit": "Editar",
       "editItem": "Editar {{name}}",
       "new": "Nuevo",
+      "reject": "Rechazar",
       "save": "Guardar"
     },
     "commandPalette": {
@@ -655,6 +657,15 @@
     }
   },
   "tcu": {
+    "approvalQueue": {
+      "approval": "Aprobación necesaria",
+      "title": "Cola de aprobación TCU"
+    },
+    "dashboard": {
+      "approvedHours": "Horas aprobadas",
+      "pendingHours": "Horas pendientes",
+      "progress": "Progreso hacia 300 horas"
+    },
     "dialog": {
       "logActivityTitle": "Registrar una actividad",
       "submit": "Registrar actividad",
@@ -671,6 +682,7 @@
       "columns": {
         "date": "Fecha",
         "hours": "Horas",
+        "status": "Estado",
         "title": "Actividad",
         "trainee": "Becario"
       },
@@ -680,7 +692,6 @@
         "anyTrainee": "Cualquier becario",
         "traineePlaceholder": "Becario"
       },
-      "hoursUnit": "horas",
       "subtitle": "Horas de servicio comunitario registradas por becarios hacia su requisito de 300 horas.",
       "title": "Actividades TCU"
     }
@@ -741,6 +752,8 @@
     "studentCreated": "Estudiante creado.",
     "studentDeleted": "Estudiante eliminado.",
     "studentUpdated": "Estudiante actualizado.",
+    "tcuActivityApproved": "Actividad aprobada",
+    "tcuActivityLogged": "Actividad registrada",
     "teacherCreated": "Docente creado.",
     "teacherDeleted": "Docente eliminado.",
     "teacherUpdated": "Docente actualizado.",
