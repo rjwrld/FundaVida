@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -53,6 +53,24 @@ describe('<CourseForm />', () => {
     const { onCancel } = renderForm()
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(onCancel).toHaveBeenCalled()
+  })
+
+  it('populates the assigned Teacher when editing an existing course', async () => {
+    const { courses, teachers } = useStore.getState()
+    const course = courses.find((c) => teachers.some((t) => t.id === c.teacherId))
+    if (!course) throw new Error('seed has no course with a resolvable teacher')
+    const teacher = teachers.find((t) => t.id === course.teacherId)
+    if (!teacher) throw new Error('expected the assigned teacher to exist')
+    const teacherName = `${teacher.firstName} ${teacher.lastName}`
+
+    renderForm({ courseId: course.id })
+
+    // The Teacher options are Sede-filtered, so they are empty at first mount and
+    // appear only when the async course load resets `sede`. The selected label must
+    // still resolve to the assigned teacher rather than sticking on the placeholder.
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: 'Teacher' })).toHaveTextContent(teacherName)
+    )
   })
 
   it('offers only Teachers at the chosen Sede (ADR-0011)', async () => {

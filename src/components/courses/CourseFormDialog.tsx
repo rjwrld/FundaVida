@@ -254,6 +254,12 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
           </div>
         ) : (
           <Select
+            // The teacher options are filtered by the selected Sede, so on an edit
+            // they are empty at first mount and only appear once the async course
+            // load resets `sede`. Keying the Select to the Sede remounts it then, so
+            // Radix registers the items with the current `teacherId` and resolves the
+            // selected label instead of sticking on the placeholder.
+            key={`teacher-${watch('sede')}`}
             value={watch('teacherId')}
             onValueChange={(v) => setValue('teacherId', v, { shouldValidate: true })}
           >
