@@ -310,9 +310,11 @@
         "actions": "Acciones",
         "name": "Nombre",
         "program": "Programa",
+        "status": "Estado",
         "teacher": "Docente"
       },
       "emptyFiltered": "Ningún curso coincide con el filtro.",
+      "publishButton": "Publicar {{name}}",
       "searchPlaceholder": "Buscar por nombre o programa",
       "subtitle": "Catálogo de cursos ofrecidos en los programas y sedes.",
       "title": "Cursos"
@@ -370,6 +372,9 @@
       "recentActivities": "Actividades recientes"
     },
     "teacher": {
+      "createCourseButton": "Crear un curso",
+      "createCourseDescription": "Ofrece un nuevo curso a los estudiantes de tu sede.",
+      "createCourseTitle": "Crear un curso",
       "endedCoursesAwaitingGrades": "Cursos finalizados en espera de calificaciones",
       "myCourses": "Mis cursos",
       "nextSession": "Próxima sesión programada",
