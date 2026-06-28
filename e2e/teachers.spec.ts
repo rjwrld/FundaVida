@@ -17,6 +17,11 @@ test('admin creates a teacher', async ({ page }) => {
   await page.getByLabel('Email').fill(`e2e${suffix}@fv.cr`)
   await page.getByRole('combobox', { name: /campus/i }).click()
   await page.getByRole('option', { name: 'Linda Vista' }).click()
+  // Province first, then canton (scoped to the province).
+  await page.getByRole('combobox', { name: /province/i }).click()
+  await page.getByRole('option', { name: 'San José' }).click()
+  await page.getByRole('combobox', { name: /canton/i }).click()
+  await page.getByRole('option', { name: 'Escazú' }).click()
   await page.getByRole('button', { name: 'Save' }).click()
 
   // The modal closes and the new teacher shows up in the list.

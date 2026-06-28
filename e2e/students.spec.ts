@@ -11,7 +11,7 @@ test('admin creates a student and sees them in the list', async ({ page }) => {
 
   await page.getByLabel('First name').fill('Ada')
   await page.getByLabel('Last name').fill('Lovelace')
-  await page.getByLabel('Email').fill('ada+e2e@example.com')
+  await page.getByLabel('Email', { exact: true }).fill('ada+e2e@example.com')
 
   // Province first, then canton (its options are scoped to the province).
   await page.getByRole('combobox', { name: /province/i }).click()
@@ -21,6 +21,13 @@ test('admin creates a student and sees them in the list', async ({ page }) => {
 
   await page.getByRole('combobox', { name: /campus/i }).click()
   await page.getByRole('option', { name: 'Linda Vista' }).click()
+
+  // Encargado (guardian) — required.
+  await page.getByLabel(/guardian name/i).fill('María Lovelace')
+  await page.getByRole('combobox', { name: /relationship/i }).click()
+  await page.getByRole('option', { name: 'Mother' }).click()
+  await page.getByLabel(/guardian phone/i).fill('8888-8888')
+  await page.getByLabel(/guardian email/i).fill('maria.lovelace@gmail.com')
 
   await page.getByRole('button', { name: 'Save' }).click()
 

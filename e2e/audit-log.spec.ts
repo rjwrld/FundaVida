@@ -11,7 +11,7 @@ test('admin sees audit log and a new create entry after making one', async ({ pa
   await page.getByRole('button', { name: 'Add student' }).click()
   await page.getByLabel('First name').fill(firstName)
   await page.getByLabel('Last name').fill('Log')
-  await page.getByLabel('Email').fill(`a${suffix}@fv.cr`)
+  await page.getByLabel('Email', { exact: true }).fill(`a${suffix}@fv.cr`)
 
   // Province first, then canton (its options are scoped to the province).
   await page.getByRole('combobox', { name: /province/i }).click()
@@ -21,6 +21,13 @@ test('admin sees audit log and a new create entry after making one', async ({ pa
 
   await page.getByRole('combobox', { name: /campus/i }).click()
   await page.getByRole('option', { name: 'Linda Vista' }).click()
+
+  // Encargado (guardian) — required.
+  await page.getByLabel(/guardian name/i).fill(`${firstName} Guardian`)
+  await page.getByRole('combobox', { name: /relationship/i }).click()
+  await page.getByRole('option', { name: 'Mother' }).click()
+  await page.getByLabel(/guardian phone/i).fill('8888-8888')
+  await page.getByLabel(/guardian email/i).fill(`enc${suffix}@gmail.com`)
 
   await page.getByRole('button', { name: 'Save' }).click()
 
