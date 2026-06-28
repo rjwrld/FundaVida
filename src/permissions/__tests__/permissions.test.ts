@@ -844,7 +844,7 @@ describe('Permissions Matrix', () => {
         grades: 'ownCourses',
         certificates: 'none',
         attendance: 'ownCourses',
-        tcu: 'none',
+        tcu: 'assignedTrainees',
         reports: 'none',
         bulkEmail: 'none',
         auditLog: 'none',

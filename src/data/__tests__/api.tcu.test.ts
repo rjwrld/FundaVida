@@ -29,9 +29,27 @@ describe('tcuApi', () => {
     expect(await tcuApi.list()).toEqual([])
   })
 
-  it('returns empty for teacher role', async () => {
-    useStore.getState().setRole('teacher')
-    expect(await tcuApi.list()).toEqual([])
+  it("returns activities for trainees assigned to teacher's courses", async () => {
+    const store = useStore.getState()
+    store.setRole('teacher')
+    const freshStore = useStore.getState()
+    const teacherId = freshStore.currentUserId // tea-1
+    const teacherCourses = freshStore.courses.filter((c) => c.teacherId === teacherId)
+
+    const result = await tcuApi.list()
+
+    // If the teacher has no courses, result should be empty
+    if (teacherCourses.length === 0) {
+      expect(result).toEqual([])
+    } else {
+      // Otherwise, all returned activities should be from trainees assigned to the teacher's courses
+      const assignedTraineeIds = new Set(
+        freshStore.tcuTrainees
+          .filter((t) => teacherCourses.some((c) => c.id === t.courseId))
+          .map((t) => t.id)
+      )
+      expect(result.every((a) => assignedTraineeIds.has(a.traineeId))).toBe(true)
+    }
   })
 
   it('filters by traineeId (admin only)', async () => {

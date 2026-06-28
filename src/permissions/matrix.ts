@@ -24,6 +24,7 @@ export type Scope =
   | 'enrolledInOwnCourses'
   | 'enrolled'
   | 'self'
+  | 'assignedTrainees'
   | 'none'
 
 export interface PermissionContext {
@@ -167,7 +168,7 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     grades: 'ownCourses',
     certificates: 'none',
     attendance: 'ownCourses',
-    tcu: 'none',
+    tcu: 'assignedTrainees',
     reports: 'none',
     bulkEmail: 'none',
     auditLog: 'none',
