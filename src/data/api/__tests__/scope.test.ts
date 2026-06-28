@@ -47,7 +47,15 @@ describe('openForEnrollment scope', () => {
       expect(c.status).toBe('published')
       expect(c.sede).toBe(student.sede)
       expect(c.level === student.educationalLevel || c.level === 'both').toBe(true)
-      expect(!student.enrolledCourseIds.includes(c.id)).toBe(true)
+      // Not already enrolled or pending — withdrawn/rejected courses may reappear
+      // (ADR-0016).
+      const activeEnrollment = state.enrollments.find(
+        (e) =>
+          e.studentId === student.id &&
+          e.courseId === c.id &&
+          (e.status === 'approved' || e.status === 'pending')
+      )
+      expect(activeEnrollment).toBeUndefined()
     })
   })
 
