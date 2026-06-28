@@ -469,46 +469,75 @@ function PendingTable({
 }) {
   const { t } = useTranslation()
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-muted/50 hover:bg-muted/50">
-            <TableHead>{t('certificates.worklist.columns.student')}</TableHead>
-            <TableHead>{t('certificates.worklist.columns.course')}</TableHead>
-            <TableHead>{t('certificates.worklist.columns.issued')}</TableHead>
-            <TableHead className="text-right">{t('certificates.worklist.columns.grade')}</TableHead>
-            <TableHead className="text-right">
-              {t('certificates.worklist.columns.actions')}
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.map((c) => (
-            <TableRow key={c.id} className="h-12 hover:bg-muted/40">
-              <TableCell className="font-medium text-foreground">{c.studentName}</TableCell>
-              <TableCell className="text-muted-foreground">{c.courseName}</TableCell>
-              <TableCell className="font-mono text-xs tabular-nums text-muted-foreground">
-                {c.issuedAt}
-              </TableCell>
-              <TableCell className="text-right font-mono text-xs font-semibold tabular-nums">
-                {c.grade}
-              </TableCell>
-              <TableCell className="text-right">
-                <Button
-                  size="sm"
-                  onClick={() => onApprove(c.id)}
-                  disabled={approving}
-                  aria-label={t('certificates.list.approveAria', { student: c.studentName })}
-                  data-testid={`approve-${c.id}`}
-                >
-                  {t('certificates.list.approve')}
-                </Button>
-              </TableCell>
+    <>
+      {/* Desktop: a dense table. Hidden on mobile, where the columns would push the
+          Approve action off-screen — the same rows render as stacked cards instead. */}
+      <div className="hidden overflow-hidden rounded-xl border border-border bg-card shadow-card sm:block">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableHead>{t('certificates.worklist.columns.student')}</TableHead>
+              <TableHead>{t('certificates.worklist.columns.course')}</TableHead>
+              <TableHead>{t('certificates.worklist.columns.issued')}</TableHead>
+              <TableHead className="text-right">
+                {t('certificates.worklist.columns.grade')}
+              </TableHead>
+              <TableHead className="text-right">
+                {t('certificates.worklist.columns.actions')}
+              </TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+          <TableBody>
+            {items.map((c) => (
+              <TableRow key={c.id} className="h-12 hover:bg-muted/40">
+                <TableCell className="font-medium text-foreground">{c.studentName}</TableCell>
+                <TableCell className="text-muted-foreground">{c.courseName}</TableCell>
+                <TableCell className="font-mono text-xs tabular-nums text-muted-foreground">
+                  {c.issuedAt}
+                </TableCell>
+                <TableCell className="text-right font-mono text-xs font-semibold tabular-nums">
+                  {c.grade}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    size="sm"
+                    onClick={() => onApprove(c.id)}
+                    disabled={approving}
+                    aria-label={t('certificates.list.approveAria', { student: c.studentName })}
+                    data-testid={`approve-${c.id}`}
+                  >
+                    {t('certificates.list.approve')}
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile: one card per pending certificate with a full-width Approve action. */}
+      <ul className="space-y-3 sm:hidden">
+        {items.map((c) => (
+          <li key={c.id} className="rounded-xl border border-border bg-card p-4 shadow-card">
+            <p className="font-medium text-foreground">{c.studentName}</p>
+            <p className="text-sm text-muted-foreground">{c.courseName}</p>
+            <p className="mt-1 flex items-center gap-2 font-mono text-xs tabular-nums text-muted-foreground">
+              <span>{c.issuedAt}</span>
+              <span className="font-semibold text-foreground">{c.grade}</span>
+            </p>
+            <Button
+              size="sm"
+              className="mt-3 w-full"
+              onClick={() => onApprove(c.id)}
+              disabled={approving}
+              aria-label={t('certificates.list.approveAria', { student: c.studentName })}
+            >
+              {t('certificates.list.approve')}
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </>
   )
 }
 

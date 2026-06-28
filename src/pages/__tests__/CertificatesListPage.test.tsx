@@ -70,7 +70,10 @@ describe('<CertificatesListPage />', () => {
 
     renderPage('/app/certificates?status=pending')
 
-    const approveButtons = await screen.findAllByRole('button', { name: /approve certificate/i })
+    // Scope to the desktop table — the worklist also renders a mobile card list
+    // (hidden by CSS, which jsdom doesn't apply), so each row's Approve appears twice.
+    const table = await screen.findByRole('table')
+    const approveButtons = within(table).getAllByRole('button', { name: /approve certificate/i })
     expect(approveButtons.length).toBe(pendingBefore.length)
 
     const [firstApprove] = approveButtons
@@ -88,7 +91,8 @@ describe('<CertificatesListPage />', () => {
     injectCertificate('pending')
     renderPage()
 
-    expect(await screen.findByRole('button', { name: /approve certificate/i })).toBeInTheDocument()
+    const table = await screen.findByRole('table')
+    expect(within(table).getByRole('button', { name: /approve certificate/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /open preview/i })).toBeNull()
   })
 
@@ -201,7 +205,10 @@ describe('<CertificatesListPage />', () => {
 
     renderPage()
 
-    fireEvent.click(await screen.findByRole('button', { name: /approve certificate/i }))
+    const table = await screen.findByRole('table')
+    const [firstApprove] = within(table).getAllByRole('button', { name: /approve certificate/i })
+    if (!firstApprove) throw new Error('expected a pending approve button')
+    fireEvent.click(firstApprove)
 
     await waitFor(() => {
       const stillPending = useStore
@@ -291,7 +298,8 @@ describe('<CertificatesListPage />', () => {
     act(() => {
       useStore.getState().setRole('admin')
     })
-    fireEvent.click(await screen.findByRole('button', { name: /approve certificate/i }))
+    const adminTable = await screen.findByRole('table')
+    fireEvent.click(within(adminTable).getByRole('button', { name: /approve certificate/i }))
     await waitFor(() => {
       expect(useStore.getState().certificates.every((c) => c.status === 'approved')).toBe(true)
     })
@@ -310,7 +318,8 @@ describe('<CertificatesListPage />', () => {
     injectCertificate('pending')
     renderPage()
 
-    fireEvent.click(await screen.findByRole('button', { name: /approve certificate/i }))
+    const pendingTable = await screen.findByRole('table')
+    fireEvent.click(within(pendingTable).getByRole('button', { name: /approve certificate/i }))
 
     // Approval invalidates the certificates query key; the same-keyed worklist
     // refetches in place and the pending row disappears without a remount.
