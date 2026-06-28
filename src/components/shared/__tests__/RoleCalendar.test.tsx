@@ -97,7 +97,7 @@ describe('<RoleCalendar />', () => {
     renderCalendar(<RoleCalendar courses={[makeCourse()]} linkSessions={true} />)
 
     const link = screen.getByRole('link', { name: 'Matemáticas — Session 5' })
-    expect(link).toHaveAttribute('href', '/app/attendance?courseId=cou-A')
+    expect(link.getAttribute('href')).toMatch(/\/app\/courses\/cou-A\/sessions\/.*\/mark/)
   })
 
   it('renders read-only entries (no link) when linkSessions is false', () => {

@@ -32,7 +32,7 @@ export function SessionList({ sessions, linkSessions }: SessionListProps) {
           <li key={`${s.courseId}-${s.date}`} className="text-sm">
             {linkSessions ? (
               <Link
-                to={`/app/attendance?courseId=${s.courseId}`}
+                to={`/app/courses/${s.courseId}/sessions/${s.date}/mark`}
                 className="text-foreground hover:text-brand-green-700 hover:underline"
               >
                 {label}

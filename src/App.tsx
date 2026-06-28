@@ -19,6 +19,7 @@ import { GradesListPage } from '@/pages/GradesListPage'
 import { CertificatesListPage } from '@/pages/CertificatesListPage'
 import { TcuListPage } from '@/pages/TcuListPage'
 import { AttendanceListPage } from '@/pages/AttendanceListPage'
+import { MarkSessionAttendancePage } from '@/pages/MarkSessionAttendancePage'
 import { ReportsPage } from '@/pages/ReportsPage'
 import { AuditLogPage } from '@/pages/AuditLogPage'
 import { BulkEmailPage } from '@/pages/BulkEmailPage'
@@ -75,6 +76,10 @@ export function App() {
             </Route>
             <Route element={<RoleGate resource="attendance" />}>
               <Route path="attendance" element={<AttendanceListPage />} />
+              <Route
+                path="courses/:courseId/sessions/:sessionDate/mark"
+                element={<MarkSessionAttendancePage />}
+              />
             </Route>
             <Route element={<RoleGate resource="tcu" />}>
               <Route path="tcu" element={<TcuListPage />} />

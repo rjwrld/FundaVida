@@ -30,6 +30,21 @@
       },
       "subtitle": "Per-session attendance across your scope.",
       "title": "Attendance"
+    },
+    "mark": {
+      "cancel": "Cancel",
+      "empty": "No students enrolled in this session.",
+      "future": "This session is in the future and cannot be marked.",
+      "save": "Save",
+      "sessionNumber": "Session {{ordinal}} of {{total}}",
+      "status": {
+        "absent": "Absent",
+        "excused": "Excused",
+        "present": "Present"
+      },
+      "studentNameColumn": "Student",
+      "subtitle": "Mark attendance for the selected session. All students default to present.",
+      "title": "Mark Session Attendance"
     }
   },
   "auditLog": {

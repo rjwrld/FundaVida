@@ -87,6 +87,11 @@ export interface StoreState {
     sessionDate: string,
     status: AttendanceRecord['status']
   ) => AttendanceRecord
+  markSessionAttendance: (
+    courseId: string,
+    sessionDate: string,
+    attendanceByStudentId: Record<string, AttendanceRecord['status']>
+  ) => AttendanceRecord[]
   sendEmailCampaign: (input: {
     subject: string
     body: string
@@ -937,6 +942,70 @@ export const useStore = create<StoreState>((set, get) => ({
       }))
       return newRecord
     }
+  },
+  markSessionAttendance: (courseId, sessionDate, attendanceByStudentId) => {
+    const state = get()
+    const course = state.courses.find((c) => c.id === courseId)
+    if (!course) {
+      throw new Error(`cannot mark session attendance: unknown course ${courseId}`)
+    }
+    // Check permission: teacher of the course or admin, and session must be markable
+    // (on or before today). The route guard will also check markability, but we verify
+    // here to prevent permission bypass.
+    assertCan(state, 'mark', 'attendance', { userId: state.currentUserId ?? undefined, course })
+
+    // Bulk update/create attendance records. For each studentId, find existing record
+    // or create new one, then apply the new status.
+    const records: AttendanceRecord[] = []
+
+    withAudit(set, (state) => {
+      const updatedAttendance = [...state.attendance]
+      const createdRecords: AttendanceRecord[] = []
+
+      for (const [studentId, status] of Object.entries(attendanceByStudentId)) {
+        const existing = updatedAttendance.find(
+          (a) =>
+            a.courseId === courseId && a.studentId === studentId && a.sessionDate === sessionDate
+        )
+
+        if (existing) {
+          const updated: AttendanceRecord = { ...existing, status }
+          const index = updatedAttendance.indexOf(existing)
+          updatedAttendance[index] = updated
+          records.push(updated)
+        } else {
+          const newRecord: AttendanceRecord = {
+            id: nextId('att', updatedAttendance),
+            courseId,
+            studentId,
+            sessionDate,
+            status,
+          }
+          updatedAttendance.unshift(newRecord)
+          records.push(newRecord)
+          createdRecords.push(newRecord)
+        }
+      }
+
+      const summary =
+        createdRecords.length > 0
+          ? `Marked ${Object.keys(attendanceByStudentId).length} students for session on ${sessionDate} (${createdRecords.length} new, ${Object.keys(attendanceByStudentId).length - createdRecords.length} updated)`
+          : `Marked ${Object.keys(attendanceByStudentId).length} students for session on ${sessionDate}`
+
+      return {
+        next: {
+          attendance: updatedAttendance,
+        },
+        audit: {
+          action: 'update',
+          entity: 'attendance',
+          entityId: `${courseId}-${sessionDate}`,
+          summary,
+        },
+      }
+    })
+
+    return records
   },
   sendEmailCampaign: (input) => {
     const existing = get()
