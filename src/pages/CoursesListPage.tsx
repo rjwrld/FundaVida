@@ -27,6 +27,7 @@ import { CoursesEmpty } from '@/components/empty-states/CoursesEmpty'
 import { CourseFormDialog } from '@/components/courses/CourseFormDialog'
 import { useCourses, useDeleteCourse, usePublishCourse } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
+import { can } from '@/permissions'
 import { useFormDialogParams } from '@/hooks/useFormDialogParams'
 import { SEDES } from '@/constants/sede'
 import type { CourseFilters } from '@/data/api/courses'
@@ -43,10 +44,17 @@ export function CoursesListPage() {
   const [pendingDelete, setPendingDelete] = useState<Course | null>(null)
   const teachers = useStore((s) => s.teachers)
   const programs = useStore((s) => s.programs)
+  const role = useStore((s) => s.role)
+  const currentUserId = useStore((s) => s.currentUserId)
   const canCreate = useCan('create', 'courses')
   const canEdit = useCan('edit', 'courses')
   const canDelete = useCan('delete', 'courses')
-  const canActOnRows = canEdit || canDelete
+  // A Teacher's edit/publish right is per-Course (courseOwned, ADR-0016), so it
+  // must be evaluated against each Course — not the context-free page-level check
+  // that only resolves for admin's blanket grant.
+  const canEditCourse = (course: Course) =>
+    role ? can(role, 'edit', 'courses', { course, userId: currentUserId ?? undefined }) : false
+  const canActOnRows = canEdit || canDelete || data.some(canEditCourse)
 
   const hasFilters = Boolean(filters.search || filters.sede || filters.programId)
   const count = data.length
@@ -156,7 +164,7 @@ export function CoursesListPage() {
             </TableHeader>
             <TableBody>
               {data.map((c) => {
-                const canPublish = canEdit && c.status === 'draft'
+                const canPublish = canEditCourse(c) && c.status === 'draft'
                 return (
                   <TableRow key={c.id} className="h-12 hover:bg-muted/40">
                     <TableCell>
