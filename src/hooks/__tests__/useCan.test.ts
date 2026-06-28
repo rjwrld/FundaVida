@@ -34,10 +34,10 @@ describe('useCan hook', () => {
     expect(result.current).toBe(true)
   })
 
-  it('returns false for teacher creating courses', () => {
+  it('returns true for teacher creating courses (ADR-0016)', () => {
     useStore.getState().setRole('teacher')
     const { result } = renderHook(() => useCan('create', 'courses'))
-    expect(result.current).toBe(false)
+    expect(result.current).toBe(true)
   })
 
   it('returns false for student creating courses', () => {

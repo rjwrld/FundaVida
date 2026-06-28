@@ -37,6 +37,10 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
   const updateCourse = useUpdateCourse()
   const teachers = useStore((s) => s.teachers)
   const programs = useStore((s) => s.programs)
+  const role = useStore((s) => s.role)
+  const currentUserId = useStore((s) => s.currentUserId)
+  const currentTeacher = teachers.find((t) => t.id === currentUserId)
+  const isTeacher = role === 'teacher'
 
   const {
     register,
@@ -79,8 +83,23 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
         termEnd: format(termEndDate, 'yyyy-MM-dd'),
         meetingDays: existing.meetingDays,
       })
+    } else if (isTeacher && currentTeacher && !isEdit) {
+      // Pre-fill teacher's Sede and self for create (ADR-0016)
+      reset({
+        name: '',
+        description: '',
+        sede: currentTeacher.sede,
+        programId: '',
+        level: '' as CourseFormValues['level'],
+        status: 'draft',
+        capacity: 20,
+        teacherId: currentTeacher.id,
+        termStart: '',
+        termEnd: '',
+        meetingDays: [],
+      })
     }
-  }, [existing, reset])
+  }, [existing, reset, isTeacher, currentTeacher, isEdit])
 
   async function onSubmit(values: CourseFormValues) {
     const termStart = parseISO(values.termStart).toISOString()
@@ -120,26 +139,35 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>{t('courses.form.fields.sede')}</Label>
-          <Select
-            value={watch('sede')}
-            onValueChange={(v) => {
-              setValue('sede', v as CourseFormValues['sede'], { shouldValidate: true })
-              // A Teacher belongs to one Sede (ADR-0011); changing the Course Sede
-              // invalidates any Teacher already chosen for the old one.
-              setValue('teacherId', '', { shouldValidate: false })
-            }}
-          >
-            <SelectTrigger aria-label={t('courses.form.fields.sede')}>
-              <SelectValue placeholder={t('courses.form.fields.sede')} />
-            </SelectTrigger>
-            <SelectContent>
-              {SEDES.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {isTeacher ? (
+            <div
+              className="rounded border border-input bg-muted px-3 py-2 text-sm"
+              data-testid="sede-locked"
+            >
+              {watch('sede')}
+            </div>
+          ) : (
+            <Select
+              value={watch('sede')}
+              onValueChange={(v) => {
+                setValue('sede', v as CourseFormValues['sede'], { shouldValidate: true })
+                // A Teacher belongs to one Sede (ADR-0011); changing the Course Sede
+                // invalidates any Teacher already chosen for the old one.
+                setValue('teacherId', '', { shouldValidate: false })
+              }}
+            >
+              <SelectTrigger aria-label={t('courses.form.fields.sede')}>
+                <SelectValue placeholder={t('courses.form.fields.sede')} />
+              </SelectTrigger>
+              <SelectContent>
+                {SEDES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           {errors.sede && <p className="text-xs text-destructive">{errors.sede.message}</p>}
         </div>
         <div className="space-y-1.5">
@@ -164,7 +192,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
           )}
         </div>
       </div>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className={`grid gap-4 ${isTeacher && !isEdit ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}>
         <div className="space-y-1.5">
           <Label>{t('courses.form.fields.level')}</Label>
           <Select
@@ -186,27 +214,29 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
           </Select>
           {errors.level && <p className="text-xs text-destructive">{errors.level.message}</p>}
         </div>
-        <div className="space-y-1.5">
-          <Label>{t('courses.form.fields.status')}</Label>
-          <Select
-            value={watch('status')}
-            onValueChange={(v) =>
-              setValue('status', v as CourseFormValues['status'], { shouldValidate: true })
-            }
-          >
-            <SelectTrigger aria-label={t('courses.form.fields.status')}>
-              <SelectValue placeholder={t('courses.form.fields.status')} />
-            </SelectTrigger>
-            <SelectContent>
-              {COURSE_STATUSES.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {t(`courses.status.${s}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.status && <p className="text-xs text-destructive">{errors.status.message}</p>}
-        </div>
+        {!isTeacher || isEdit ? (
+          <div className="space-y-1.5">
+            <Label>{t('courses.form.fields.status')}</Label>
+            <Select
+              value={watch('status')}
+              onValueChange={(v) =>
+                setValue('status', v as CourseFormValues['status'], { shouldValidate: true })
+              }
+            >
+              <SelectTrigger aria-label={t('courses.form.fields.status')}>
+                <SelectValue placeholder={t('courses.form.fields.status')} />
+              </SelectTrigger>
+              <SelectContent>
+                {COURSE_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {t(`courses.status.${s}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.status && <p className="text-xs text-destructive">{errors.status.message}</p>}
+          </div>
+        ) : null}
         <div className="space-y-1.5">
           <Label htmlFor="capacity">{t('courses.form.fields.capacity')}</Label>
           <Input id="capacity" type="number" min={1} {...register('capacity')} />
@@ -215,23 +245,32 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
       </div>
       <div className="space-y-1.5">
         <Label>{t('courses.form.fields.teacherId')}</Label>
-        <Select
-          value={watch('teacherId')}
-          onValueChange={(v) => setValue('teacherId', v, { shouldValidate: true })}
-        >
-          <SelectTrigger aria-label={t('courses.form.fields.teacherId')}>
-            <SelectValue placeholder={t('courses.form.teacherPlaceholder')} />
-          </SelectTrigger>
-          <SelectContent>
-            {teachers
-              .filter((teacher) => teacher.sede === watch('sede'))
-              .map((teacher) => (
-                <SelectItem key={teacher.id} value={teacher.id}>
-                  {teacher.firstName} {teacher.lastName}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
+        {isTeacher && !isEdit ? (
+          <div
+            className="rounded border border-input bg-muted px-3 py-2 text-sm"
+            data-testid="teacher-locked"
+          >
+            {currentTeacher && `${currentTeacher.firstName} ${currentTeacher.lastName}`}
+          </div>
+        ) : (
+          <Select
+            value={watch('teacherId')}
+            onValueChange={(v) => setValue('teacherId', v, { shouldValidate: true })}
+          >
+            <SelectTrigger aria-label={t('courses.form.fields.teacherId')}>
+              <SelectValue placeholder={t('courses.form.teacherPlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              {teachers
+                .filter((teacher) => teacher.sede === watch('sede'))
+                .map((teacher) => (
+                  <SelectItem key={teacher.id} value={teacher.id}>
+                    {teacher.firstName} {teacher.lastName}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        )}
         {errors.teacherId && <p className="text-xs text-destructive">{errors.teacherId.message}</p>}
       </div>
       <div className="grid gap-4 sm:grid-cols-2">

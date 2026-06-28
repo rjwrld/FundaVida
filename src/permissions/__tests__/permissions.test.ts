@@ -162,8 +162,8 @@ describe('Permissions Matrix', () => {
         },
         courses: {
           view: true,
-          create: false,
-          edit: false,
+          create: true,
+          edit: 'courseOwned',
           delete: false,
           approve: false,
           mark: false,

@@ -309,9 +309,11 @@
         "actions": "Actions",
         "name": "Name",
         "program": "Program",
+        "status": "Status",
         "teacher": "Teacher"
       },
       "emptyFiltered": "No courses match your filter.",
+      "publishButton": "Publish {{name}}",
       "searchPlaceholder": "Search by name or program",
       "subtitle": "Catalog of courses offered across programs and campuses.",
       "title": "Courses"
@@ -368,6 +370,9 @@
       "recentActivities": "Recent activities"
     },
     "teacher": {
+      "createCourseButton": "Create a course",
+      "createCourseDescription": "Offer a new course to students at your campus.",
+      "createCourseTitle": "Author a course",
       "endedCoursesAwaitingGrades": "Ended courses awaiting grades",
       "myCourses": "My courses",
       "nextSession": "Next upcoming session",
@@ -786,6 +791,7 @@
     "certificateApproved": "Certificate approved.",
     "courseCreated": "Course created.",
     "courseDeleted": "Course deleted.",
+    "coursePublished": "Course published.",
     "courseUpdated": "Course updated.",
     "enrolled": "Student enrolled.",
     "enrollmentApproved": "Enrollment approved.",

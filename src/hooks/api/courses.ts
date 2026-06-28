@@ -119,3 +119,10 @@ export const useWithdrawEnrollmentRequest = makeEntityMutation('withdrawEnrollme
   // and dashboards (ADR-0016).
   invalidates: [COURSES_KEY, ['enrollments'], ['dashboards']],
 })
+
+export const usePublishCourse = makeEntityMutation('publishCourse')<{ courseId: string }>({
+  toastKey: 'toasts.coursePublished',
+  // Invalidates the courses list (course status changed) and the specific course detail.
+  invalidates: ({ courseId }) => [COURSES_KEY, courseKey(courseId)],
+  args: ({ courseId }) => [courseId],
+})

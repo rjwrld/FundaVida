@@ -127,7 +127,7 @@ describe('<RoleGate />', () => {
     expect(screen.getByText('courses list')).toBeInTheDocument()
   })
 
-  it('redirects a teacher away from a create-gated courses route', () => {
+  it('allows a teacher through a create-gated courses route (ADR-0016)', () => {
     useStore.getState().setRole('teacher')
     render(
       <MemoryRouter
@@ -142,8 +142,8 @@ describe('<RoleGate />', () => {
         </Routes>
       </MemoryRouter>
     )
-    expect(screen.getByText('dashboard')).toBeInTheDocument()
-    expect(screen.queryByText('course form')).not.toBeInTheDocument()
+    expect(screen.getByText('course form')).toBeInTheDocument()
+    expect(screen.queryByText('dashboard')).not.toBeInTheDocument()
   })
 
   it('allows an admin through a create-gated courses route', () => {

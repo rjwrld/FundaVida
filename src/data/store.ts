@@ -66,6 +66,7 @@ export interface StoreState {
   createCourse: (input: Omit<Course, 'id' | 'createdAt'>) => Course
   updateCourse: (id: string, patch: Partial<Omit<Course, 'id'>>) => void
   deleteCourse: (id: string) => void
+  publishCourse: (courseId: string) => void
   createTeacher: (input: Omit<Teacher, 'id' | 'createdAt' | 'courseIds'>) => Teacher
   updateTeacher: (id: string, patch: Partial<Omit<Teacher, 'id'>>) => void
   deleteTeacher: (id: string) => void
@@ -343,6 +344,13 @@ export const useStore = create<StoreState>((set, get) => ({
   createCourse: (input) => {
     const existing = get()
     assertCan(existing, 'create', 'courses')
+    // Teachers must self-assign (ADR-0016): enforce that the teacherId matches
+    // the current user if the role is 'teacher'.
+    if (existing.role === 'teacher' && input.teacherId !== existing.currentUserId) {
+      throw new Error(
+        `permission denied: teacher cannot create a course assigned to another teacher`
+      )
+    }
     // A Course is taught at its Teacher's Sede (ADR-0011). The Course form filters
     // the Teacher picker to the chosen Sede, so this guards direct callers.
     const courseTeacher = existing.teachers.find((t) => t.id === input.teacherId)
@@ -458,6 +466,28 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'course',
         entityId: id,
         summary: `Deleted course ${id}`,
+      },
+    }))
+  },
+  publishCourse: (courseId) => {
+    const existing = get()
+    const course = existing.courses.find((c) => c.id === courseId)
+    if (!course) {
+      throw new Error(`course ${courseId} not found`)
+    }
+    // Only the course's teacher (courseOwned) or admin can publish (ADR-0016).
+    assertCan(existing, 'edit', 'courses', { course, userId: existing.currentUserId ?? undefined })
+    withAudit(set, (state) => ({
+      next: {
+        courses: state.courses.map((c) =>
+          c.id === courseId ? { ...c, status: 'published' as const } : c
+        ),
+      },
+      audit: {
+        action: 'update',
+        entity: 'course',
+        entityId: courseId,
+        summary: `Published course ${course.name}`,
       },
     }))
   },
