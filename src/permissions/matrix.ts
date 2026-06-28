@@ -91,7 +91,7 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     students: { view: true, create: true, edit: true, delete: true },
     teachers: { view: true, create: true, edit: true, delete: true },
     courses: { view: true, create: true, edit: true, delete: true },
-    enrollments: { view: true, create: true, edit: true, delete: true },
+    enrollments: { view: true, create: true, edit: true, delete: true, approve: true },
     grades: { view: true, edit: true, enter: true, delete: true },
     certificates: { view: true, approve: true },
     attendance: { view: true, mark: true },
@@ -108,7 +108,7 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     // A Teacher may view the enrollment roster of the Courses they own (ADR-0012):
     // the Course detail page gates the roster on this, while the no-context route/nav
     // checks stay denied (the predicate needs a course).
-    enrollments: { view: courseOwned },
+    enrollments: { view: courseOwned, create: courseOwned, approve: courseOwned },
     grades: { view: true, enter: courseOwnedAndEnded, edit: courseOwnedAndEnded },
     certificates: {},
     attendance: { view: true, mark: courseOwned },
