@@ -25,9 +25,17 @@ describe('certificatesApi', () => {
     expect(result.every((c) => c.studentId === 'stu-1')).toBe(true)
   })
 
-  it('a teacher sees no certificates', async () => {
+  it('a teacher sees only certificates in their own courses', async () => {
     useStore.getState().setRole('teacher')
-    expect(await certificatesApi.list()).toEqual([])
+    const { currentUserId, courses } = useStore.getState()
+    const ownCourseIds = new Set(
+      courses.filter((c) => c.teacherId === currentUserId).map((c) => c.id)
+    )
+
+    const result = await certificatesApi.list()
+
+    expect(result.length).toBeGreaterThan(0)
+    expect(result.every((c) => ownCourseIds.has(c.courseId))).toBe(true)
   })
 
   it('a tcu trainee sees no certificates', async () => {

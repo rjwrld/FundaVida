@@ -112,7 +112,11 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     // checks stay denied (the predicate needs a course).
     enrollments: { view: courseOwned, create: courseOwned, approve: courseOwned },
     grades: { view: true, enter: courseOwnedAndEnded, edit: courseOwnedAndEnded },
-    certificates: {},
+    // A Teacher views certificates earned in the Courses they own and may approve
+    // them (ADR-0019). `view: true` (unscoped) opens the nav/route; the data scope
+    // ('ownCourses') narrows the list, and `approve` is gated per-course by the
+    // courseOwned predicate, enforced at the store with the cert's Course in context.
+    certificates: { view: true, approve: courseOwned },
     attendance: { view: true, mark: courseOwned },
     // A Teacher may approve TCU activities for trainees assigned to their courses (ADR-0017)
     tcu: { approve: teacherCanApproveTcuActivity },
@@ -181,7 +185,7 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     courses: 'own',
     enrollments: 'ownCourses',
     grades: 'ownCourses',
-    certificates: 'none',
+    certificates: 'ownCourses',
     attendance: 'ownCourses',
     tcu: 'assignedTrainees',
     reports: 'none',

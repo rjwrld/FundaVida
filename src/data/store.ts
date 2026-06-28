@@ -920,11 +920,18 @@ export const useStore = create<StoreState>((set, get) => ({
   },
   approveCertificate: (certificateId) => {
     const state = get()
-    assertCan(state, 'approve', 'certificates')
     const certificate = state.certificates.find((c) => c.id === certificateId)
     if (!certificate) {
       throw new Error(`cannot approve: unknown certificate ${certificateId}`)
     }
+    // Permission flows through the matrix seam (ADR-0009/0019): admin's
+    // certificates.approve is unconditional; the teacher predicate (courseOwned)
+    // allows it only for the certificate's own Course. assertCan throws otherwise.
+    const course = state.courses.find((c) => c.id === certificate.courseId)
+    assertCan(state, 'approve', 'certificates', {
+      userId: state.currentUserId ?? undefined,
+      course,
+    })
     // Approving an already-approved Certificate is a no-op (idempotent).
     if (certificate.status === 'approved') return
     const approvedBy = state.currentUserId ?? 'system'

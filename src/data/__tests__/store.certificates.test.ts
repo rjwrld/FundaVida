@@ -92,11 +92,61 @@ describe('certificates — admin approves a pending certificate', () => {
     expect(useStore.getState().auditLog.length).toBe(auditBefore + 1)
   })
 
-  it('refuses approval for a non-admin role', () => {
+  it('refuses approval for a student', () => {
     const id = seedPendingCertificate()
-    useStore.getState().setRole('teacher')
-    expect(() => useStore.getState().approveCertificate(id)).toThrow(/permission denied/i)
     useStore.getState().setRole('student')
+    expect(() => useStore.getState().approveCertificate(id)).toThrow(/permission denied/i)
+    expect(useStore.getState().certificates.find((c) => c.id === id)?.status).toBe('pending')
+  })
+})
+
+describe('certificates — a teacher approves only their own courses', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+  })
+
+  /**
+   * Seed a pending certificate in a course matching `ownedByTea1`: as admin, find an
+   * un-certified enrollment in such a course and save a passing grade for it.
+   */
+  function seedPendingCertificate(ownedByTea1: boolean): string {
+    useStore.getState().setRole('admin')
+    const { enrollments, certificates, courses } = useStore.getState()
+    const courseIds = new Set(
+      courses.filter((c) => (c.teacherId === 'tea-1') === ownedByTea1).map((c) => c.id)
+    )
+    const pair = enrollments.find(
+      (e) =>
+        courseIds.has(e.courseId) &&
+        !certificates.some((c) => c.studentId === e.studentId && c.courseId === e.courseId)
+    )
+    if (!pair) throw new Error('seed has no un-certified enrollment matching the course filter')
+    useStore.getState().setGrade(pair.studentId, pair.courseId, PASSING_SCORE)
+    const cert = useStore
+      .getState()
+      .certificates.find((c) => c.studentId === pair.studentId && c.courseId === pair.courseId)
+    if (!cert) throw new Error('expected a pending certificate to exist')
+    return cert.id
+  }
+
+  it('approves a pending certificate in a course the teacher owns', () => {
+    const id = seedPendingCertificate(true)
+    useStore.getState().setRole('teacher') // currentUserId === 'tea-1'
+
+    useStore.getState().approveCertificate(id)
+
+    const cert = useStore.getState().certificates.find((c) => c.id === id)
+    expect(cert?.status).toBe('approved')
+    expect(cert?.approvedBy).toBe('tea-1')
+  })
+
+  it('refuses to approve a certificate in another teacher’s course', () => {
+    const id = seedPendingCertificate(false)
+    useStore.getState().setRole('teacher') // currentUserId === 'tea-1'
+
     expect(() => useStore.getState().approveCertificate(id)).toThrow(/permission denied/i)
     expect(useStore.getState().certificates.find((c) => c.id === id)?.status).toBe('pending')
   })
