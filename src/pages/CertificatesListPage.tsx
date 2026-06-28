@@ -5,17 +5,27 @@ import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { CertificatesEmpty } from '@/components/empty-states/CertificatesEmpty'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { CertificateCard } from '@/components/certificates/CertificateCard'
 import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog'
 import { useStore } from '@/data/store'
-import { can } from '@/permissions'
-import { useCertificates, useApproveCertificate } from '@/hooks/api'
+import { useCertificates, useApproveCertificate, useApproveCertificates } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 import type { CertificateStatus } from '@/types'
 
 interface CardItem {
@@ -31,6 +41,8 @@ interface CardItem {
   issuedAt: string
 }
 
+type Tab = 'pending' | 'approved'
+
 function parseStatusFilter(value: string | null): CertificateStatus | null {
   return value === 'pending' || value === 'approved' ? value : null
 }
@@ -44,16 +56,18 @@ export function CertificatesListPage() {
   const programs = useStore((s) => s.programs)
   const { data: certificates = [], isLoading } = useCertificates()
   const approve = useApproveCertificate()
-  const canApprove = role ? can(role, 'approve', 'certificates') : false
+  const approveAll = useApproveCertificates()
   // A Student views their own Certificates from the receiving side (ADR-0012):
-  // pending reads as "in review" with the download disabled until an admin approves.
-  const recipientView = role === 'student'
+  // pending reads as "in review" with the download disabled. Admin and a Course's
+  // Teacher are approvers and get the pending-first worklist instead (ADR-0019).
+  const isRecipient = role === 'student'
 
   // The dashboard "Pending approvals" widget links here with ?status=pending.
   const [searchParams] = useSearchParams()
   const statusFilter = parseStatusFilter(searchParams.get('status'))
 
   const [query, setQuery] = useState('')
+  const [tab, setTab] = useState<Tab>(statusFilter === 'approved' ? 'approved' : 'pending')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [dataUrl, setDataUrl] = useState<string | null>(null)
 
@@ -83,16 +97,14 @@ export function CertificatesListPage() {
     return result
   }, [certificates, students, courses, programs, formatDate, formatGrade])
 
-  const statusFiltered = useMemo(
-    () => (statusFilter ? items.filter((c) => c.status === statusFilter) : items),
-    [items, statusFilter]
-  )
-
-  const filtered = useMemo(() => {
+  const bySearch = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return statusFiltered
-    return statusFiltered.filter((c) => c.studentName.toLowerCase().includes(q))
-  }, [statusFiltered, query])
+    return (list: CardItem[]) =>
+      q ? list.filter((c) => c.studentName.toLowerCase().includes(q)) : list
+  }, [query])
+
+  const pending = useMemo(() => items.filter((c) => c.status === 'pending'), [items])
+  const approved = useMemo(() => items.filter((c) => c.status === 'approved'), [items])
 
   // Only an approved Certificate has a PDF to preview/download.
   const selected = useMemo(
@@ -148,7 +160,6 @@ export function CertificatesListPage() {
   // Only an actually-loaded, empty list shows the empty state — never the
   // async loading gap, which would briefly flash "No certificates issued yet".
   const isEmpty = !isLoading && items.length === 0
-  const hasNoMatches = !isEmpty && filtered.length === 0
 
   return (
     <div className="space-y-6">
@@ -168,60 +179,29 @@ export function CertificatesListPage() {
         </div>
       ) : isEmpty ? (
         <CertificatesEmpty />
+      ) : isRecipient ? (
+        <RecipientGallery
+          items={bySearch(items)}
+          query={query}
+          onQueryChange={setQuery}
+          onOpen={(id) => setSelectedId(id)}
+          noMatches={bySearch(items).length === 0}
+        />
       ) : (
-        <>
-          <section aria-label={t('common.a11y.filters')} className="max-w-md">
-            <div className="relative">
-              <Search
-                size={16}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                aria-hidden="true"
-              />
-              <Input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t('certificates.list.search.placeholder')}
-                aria-label={t('certificates.list.search.ariaLabel')}
-                className="pl-9"
-              />
-            </div>
-          </section>
-
-          {hasNoMatches ? (
-            <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-              {t('certificates.list.noMatches', { query })}
-            </p>
-          ) : (
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              transition={transitionDefaults}
-              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-            >
-              {filtered.map((c) => (
-                <CertificateCard
-                  key={c.id}
-                  cert={{
-                    id: c.id,
-                    studentName: c.studentName,
-                    courseName: c.courseName,
-                    issuedAt: c.issuedAt,
-                    grade: c.grade,
-                    status: c.status,
-                  }}
-                  onOpen={c.status === 'approved' ? () => setSelectedId(c.id) : undefined}
-                  onApprove={
-                    canApprove && c.status === 'pending' ? () => approve.mutate(c.id) : undefined
-                  }
-                  approving={approve.isPending}
-                  recipientView={recipientView}
-                />
-              ))}
-            </motion.div>
-          )}
-        </>
+        <ApproverWorklist
+          tab={tab}
+          onTabChange={setTab}
+          pending={bySearch(pending)}
+          approved={bySearch(approved)}
+          pendingTotal={pending.length}
+          approvedTotal={approved.length}
+          query={query}
+          onQueryChange={setQuery}
+          onApprove={(id) => approve.mutate(id)}
+          onApproveAll={() => approveAll.mutate(pending.map((c) => c.id))}
+          approving={approve.isPending || approveAll.isPending}
+          onOpen={(id) => setSelectedId(id)}
+        />
       )}
 
       <CertificatePreviewDialog
@@ -232,5 +212,274 @@ export function CertificatesListPage() {
         onClose={() => setSelectedId(null)}
       />
     </div>
+  )
+}
+
+function SearchBox({ value, onChange }: { value: string; onChange: (next: string) => void }) {
+  const { t } = useTranslation()
+  return (
+    <section aria-label={t('common.a11y.filters')} className="max-w-md">
+      <div className="relative">
+        <Search
+          size={16}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+          aria-hidden="true"
+        />
+        <Input
+          type="search"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={t('certificates.list.search.placeholder')}
+          aria-label={t('certificates.list.search.ariaLabel')}
+          className="pl-9"
+        />
+      </div>
+    </section>
+  )
+}
+
+/** A Student's own-certificates gallery: pending reads as "in review" (ADR-0012). */
+function RecipientGallery({
+  items,
+  query,
+  onQueryChange,
+  onOpen,
+  noMatches,
+}: {
+  items: CardItem[]
+  query: string
+  onQueryChange: (next: string) => void
+  onOpen: (id: string) => void
+  noMatches: boolean
+}) {
+  const { t } = useTranslation()
+  return (
+    <>
+      <SearchBox value={query} onChange={onQueryChange} />
+      {noMatches ? (
+        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+          {t('certificates.list.noMatches', { query })}
+        </p>
+      ) : (
+        <CardGrid items={items} onOpen={onOpen} recipientView />
+      )}
+    </>
+  )
+}
+
+/** Admin / Teacher approver view: a pending-first worklist (ADR-0019). */
+function ApproverWorklist({
+  tab,
+  onTabChange,
+  pending,
+  approved,
+  pendingTotal,
+  approvedTotal,
+  query,
+  onQueryChange,
+  onApprove,
+  onApproveAll,
+  approving,
+  onOpen,
+}: {
+  tab: Tab
+  onTabChange: (next: Tab) => void
+  pending: CardItem[]
+  approved: CardItem[]
+  pendingTotal: number
+  approvedTotal: number
+  query: string
+  onQueryChange: (next: string) => void
+  onApprove: (id: string) => void
+  onApproveAll: () => void
+  approving: boolean
+  onOpen: (id: string) => void
+}) {
+  const { t } = useTranslation()
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div role="tablist" aria-label={t('certificates.list.title')} className="flex gap-1">
+          <TabButton
+            active={tab === 'pending'}
+            count={pendingTotal}
+            onClick={() => onTabChange('pending')}
+          >
+            {t('certificates.worklist.tabs.pending')}
+          </TabButton>
+          <TabButton
+            active={tab === 'approved'}
+            count={approvedTotal}
+            onClick={() => onTabChange('approved')}
+          >
+            {t('certificates.worklist.tabs.approved')}
+          </TabButton>
+        </div>
+        {tab === 'pending' && pendingTotal > 0 && (
+          <Button
+            size="sm"
+            onClick={onApproveAll}
+            disabled={approving}
+            aria-label={t('certificates.worklist.approveAllAria', { total: pendingTotal })}
+          >
+            {t('certificates.worklist.approveAll')}
+          </Button>
+        )}
+      </div>
+
+      <SearchBox value={query} onChange={onQueryChange} />
+
+      {tab === 'pending' ? (
+        pending.length === 0 ? (
+          <EmptyTab
+            message={
+              query.trim()
+                ? t('certificates.list.noMatches', { query })
+                : t('certificates.worklist.emptyPending')
+            }
+          />
+        ) : (
+          <PendingTable items={pending} onApprove={onApprove} approving={approving} />
+        )
+      ) : approved.length === 0 ? (
+        <EmptyTab
+          message={
+            query.trim()
+              ? t('certificates.list.noMatches', { query })
+              : t('certificates.worklist.emptyApproved')
+          }
+        />
+      ) : (
+        <CardGrid items={approved} onOpen={onOpen} />
+      )}
+    </div>
+  )
+}
+
+function TabButton({
+  active,
+  count,
+  onClick,
+  children,
+}: {
+  active: boolean
+  count: number
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={cn(
+        'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+        active
+          ? 'bg-card text-foreground shadow-card'
+          : 'text-muted-foreground hover:text-foreground'
+      )}
+    >
+      {children}
+      <Badge variant={active ? 'default' : 'neutral'}>{count}</Badge>
+    </button>
+  )
+}
+
+function PendingTable({
+  items,
+  onApprove,
+  approving,
+}: {
+  items: CardItem[]
+  onApprove: (id: string) => void
+  approving: boolean
+}) {
+  const { t } = useTranslation()
+  return (
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50 hover:bg-muted/50">
+            <TableHead>{t('certificates.worklist.columns.student')}</TableHead>
+            <TableHead>{t('certificates.worklist.columns.course')}</TableHead>
+            <TableHead>{t('certificates.worklist.columns.issued')}</TableHead>
+            <TableHead className="text-right">{t('certificates.worklist.columns.grade')}</TableHead>
+            <TableHead className="text-right">
+              {t('certificates.worklist.columns.actions')}
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((c) => (
+            <TableRow key={c.id} className="h-12 hover:bg-muted/40">
+              <TableCell className="font-medium text-foreground">{c.studentName}</TableCell>
+              <TableCell className="text-muted-foreground">{c.courseName}</TableCell>
+              <TableCell className="font-mono text-xs tabular-nums text-muted-foreground">
+                {c.issuedAt}
+              </TableCell>
+              <TableCell className="text-right font-mono text-xs font-semibold tabular-nums">
+                {c.grade}
+              </TableCell>
+              <TableCell className="text-right">
+                <Button
+                  size="sm"
+                  onClick={() => onApprove(c.id)}
+                  disabled={approving}
+                  aria-label={t('certificates.list.approveAria', { student: c.studentName })}
+                  data-testid={`approve-${c.id}`}
+                >
+                  {t('certificates.list.approve')}
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
+function CardGrid({
+  items,
+  onOpen,
+  recipientView,
+}: {
+  items: CardItem[]
+  onOpen: (id: string) => void
+  recipientView?: boolean
+}) {
+  return (
+    <motion.div
+      variants={fadeUp}
+      initial="hidden"
+      animate="visible"
+      transition={transitionDefaults}
+      className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+    >
+      {items.map((c) => (
+        <CertificateCard
+          key={c.id}
+          cert={{
+            id: c.id,
+            studentName: c.studentName,
+            courseName: c.courseName,
+            issuedAt: c.issuedAt,
+            grade: c.grade,
+            status: c.status,
+          }}
+          onOpen={c.status === 'approved' ? () => onOpen(c.id) : undefined}
+          recipientView={recipientView}
+        />
+      ))}
+    </motion.div>
+  )
+}
+
+function EmptyTab({ message }: { message: string }) {
+  return (
+    <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+      {message}
+    </p>
   )
 }

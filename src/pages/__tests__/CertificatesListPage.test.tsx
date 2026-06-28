@@ -91,6 +91,11 @@ describe('<CertificatesListPage />', () => {
     expect(screen.queryByRole('button', { name: /open preview/i })).toBeNull()
   })
 
+  /** The approver worklist defaults to the pending tab; approved certs live behind the Approved tab. */
+  async function showApprovedTab() {
+    fireEvent.click(await screen.findByRole('tab', { name: /^approved/i }))
+  }
+
   it('renders the certificate content as readable DOM in the preview dialog', async () => {
     useStore.getState().setRole('admin')
     const cert = injectCertificate('approved')
@@ -100,6 +105,7 @@ describe('<CertificatesListPage />', () => {
     if (!student || !course) throw new Error('seed missing student/course')
     renderPage()
 
+    await showApprovedTab()
     fireEvent.click(await screen.findByRole('button', { name: /open preview/i }))
 
     // The preview must be real DOM so it renders without a native PDF viewer
@@ -119,6 +125,7 @@ describe('<CertificatesListPage />', () => {
     if (!programName) throw new Error('seed missing program')
     renderPage()
 
+    await showApprovedTab()
     fireEvent.click(await screen.findByRole('button', { name: /open preview/i }))
 
     const dialog = await screen.findByRole('dialog')
@@ -135,8 +142,47 @@ describe('<CertificatesListPage />', () => {
     injectCertificate('approved')
     renderPage()
 
+    await showApprovedTab()
     expect(await screen.findByRole('button', { name: /open preview/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /approve certificate/i })).toBeNull()
+  })
+
+  it('defaults to the needs-approval tab and bulk-approves every pending certificate', async () => {
+    useStore.getState().setRole('admin')
+    const pendingBefore = useStore.getState().certificates.filter((c) => c.status === 'pending')
+    expect(pendingBefore.length).toBeGreaterThan(1)
+
+    renderPage()
+
+    // The pending-first worklist opens on "Needs approval" with one Approve all action.
+    fireEvent.click(await screen.findByRole('button', { name: /approve all/i }))
+
+    await waitFor(() => {
+      expect(useStore.getState().certificates.some((c) => c.status === 'pending')).toBe(false)
+    })
+  })
+
+  it('lets a teacher approve a pending certificate in their own course', async () => {
+    useStore.getState().setRole('teacher') // currentUserId === 'tea-1'
+    const { currentUserId, courses, certificates } = useStore.getState()
+    const ownCourseIds = new Set(
+      courses.filter((c) => c.teacherId === currentUserId).map((c) => c.id)
+    )
+    const ownPending = certificates.filter(
+      (c) => c.status === 'pending' && ownCourseIds.has(c.courseId)
+    )
+    expect(ownPending.length).toBeGreaterThan(0)
+
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: /approve certificate/i }))
+
+    await waitFor(() => {
+      const stillPending = useStore
+        .getState()
+        .certificates.filter((c) => c.status === 'pending' && ownCourseIds.has(c.courseId))
+      expect(stillPending.length).toBe(ownPending.length - 1)
+    })
   })
 
   it('shows a student their own certificate read-only (no approve action)', async () => {
@@ -233,16 +279,21 @@ describe('<CertificatesListPage />', () => {
     expect(screen.queryByText(/in review/i)).toBeNull()
   })
 
-  it('refreshes the list in place after approval, leaving no stale pending card', async () => {
+  it('drops an approved certificate out of the needs-approval list and into Approved', async () => {
     useStore.getState().setRole('admin')
     injectCertificate('pending')
     renderPage()
 
     fireEvent.click(await screen.findByRole('button', { name: /approve certificate/i }))
 
-    // Approval invalidates the certificates query key, so the same-keyed list
-    // refetches and the card re-renders as an approved preview without a remount.
+    // Approval invalidates the certificates query key; the same-keyed worklist
+    // refetches in place and the pending row disappears without a remount.
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /approve certificate/i })).toBeNull()
+    })
+
+    // It now lives under the Approved tab as a downloadable preview.
+    fireEvent.click(screen.getByRole('tab', { name: /^approved/i }))
     expect(await screen.findByRole('button', { name: /open preview/i })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /approve certificate/i })).toBeNull()
   })
 })

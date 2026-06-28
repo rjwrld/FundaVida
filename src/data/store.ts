@@ -80,6 +80,7 @@ export interface StoreState {
   updateGradeScore: (gradeId: string, score: number) => void
   deleteGrade: (gradeId: string) => void
   approveCertificate: (certificateId: string) => void
+  approveCertificates: (certificateIds: string[]) => void
   logTcuActivity: (
     input: Omit<TcuActivity, 'id' | 'status' | 'approvedBy' | 'approvedAt'>
   ) => TcuActivity
@@ -947,6 +948,46 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'certificate',
         entityId: certificateId,
         summary: `Approved certificate ${certificateId}`,
+      },
+    }))
+  },
+  approveCertificates: (certificateIds) => {
+    const state = get()
+    const approvedBy = state.currentUserId ?? 'system'
+    const approvedAt = clock.now().toISOString()
+    // Resolve and permission-check every certificate up front so a single
+    // violation throws before anything mutates (all-or-nothing). Each check runs
+    // through the matrix seam with the cert's Course in context (ADR-0009/0019),
+    // so a Teacher can bulk-approve only within their own Courses.
+    const targets = certificateIds.map((id) => {
+      const certificate = state.certificates.find((c) => c.id === id)
+      if (!certificate) {
+        throw new Error(`cannot approve: unknown certificate ${id}`)
+      }
+      const course = state.courses.find((c) => c.id === certificate.courseId)
+      assertCan(state, 'approve', 'certificates', {
+        userId: state.currentUserId ?? undefined,
+        course,
+      })
+      return certificate
+    })
+
+    // Approving an already-approved Certificate is a no-op; with nothing pending
+    // to flip, record no audit entry at all.
+    const pendingIds = new Set(targets.filter((c) => c.status === 'pending').map((c) => c.id))
+    if (pendingIds.size === 0) return
+
+    withAudit(set, (state) => ({
+      next: {
+        certificates: state.certificates.map((c) =>
+          pendingIds.has(c.id) ? { ...c, status: 'approved', approvedAt, approvedBy } : c
+        ),
+      },
+      audit: {
+        action: 'approve',
+        entity: 'certificate',
+        entityId: [...pendingIds].join(','),
+        summary: `Approved ${pendingIds.size} certificate(s)`,
       },
     }))
   },

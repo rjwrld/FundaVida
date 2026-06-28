@@ -618,17 +618,40 @@ function buildGrades(
  * admin later approves it — which is what makes the PDF available (CONTEXT.md).
  * The seed mirrors that story: every passing Grade earns a Certificate, the older
  * cohorts' Certificates are already approved, and the three most recently graded
- * sit pending so an admin has approvals waiting on first load (issue #69).
+ * sit pending so an admin has approvals waiting on first load (issue #69). At
+ * least one of those pending Certificates is forced onto a persona-Teacher Course
+ * so the Teacher's own approval worklist is non-empty on load (ADR-0019).
  */
-function buildCertificates(epoch: Date, grades: Grade[]): Certificate[] {
+function buildCertificates(
+  epoch: Date,
+  grades: Grade[],
+  personaCourseIds: Set<string>
+): Certificate[] {
   const epochDay = startOfDay(epoch)
   const passing = grades
     .filter((g) => g.score >= PASSING_SCORE)
     .sort((a, b) => (a.issuedAt < b.issuedAt ? -1 : a.issuedAt > b.issuedAt ? 1 : 0))
 
-  // Leave the most recently graded as pending; approve the rest.
+  // The most recently graded sit pending; approve the rest.
   const pendingCount = Math.min(3, passing.length)
-  const approvedCutoff = passing.length - pendingCount
+  const pendingIdx = new Set<number>()
+  for (let i = passing.length - pendingCount; i < passing.length; i++) pendingIdx.add(i)
+
+  // Guarantee the persona Teacher has at least one pending approval of their own:
+  // if none of the latest-graded fall on their Courses, also leave their most
+  // recent passing Grade pending (ADR-0019).
+  const isPersona = (i: number): boolean => {
+    const courseId = passing[i]?.courseId
+    return courseId !== undefined && personaCourseIds.has(courseId)
+  }
+  if (![...pendingIdx].some(isPersona)) {
+    for (let i = passing.length - 1; i >= 0; i--) {
+      if (isPersona(i)) {
+        pendingIdx.add(i)
+        break
+      }
+    }
+  }
 
   return passing.map((grade, i) => {
     const base = {
@@ -638,7 +661,7 @@ function buildCertificates(epoch: Date, grades: Grade[]): Certificate[] {
       score: grade.score,
       createdAt: grade.issuedAt,
     }
-    if (i >= approvedCutoff) {
+    if (pendingIdx.has(i)) {
       return { ...base, status: 'pending' as const }
     }
     // Approved a few days after the Grade was issued, never in the future.
@@ -976,7 +999,13 @@ export function seedDemo(epoch: Date): SeedSnapshot {
     students,
     enrollments,
     grades,
-    certificates: buildCertificates(epoch, grades),
+    certificates: buildCertificates(
+      epoch,
+      grades,
+      new Set(
+        courses.filter((c) => c.teacherId === `tea-${TEACHER_PERSONA_INDEX + 1}`).map((c) => c.id)
+      )
+    ),
     tcuTrainees,
     tcuActivities,
     attendance,

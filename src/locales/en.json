@@ -157,13 +157,30 @@
         "ariaLabel": "Search certificates by student name",
         "placeholder": "Search by student name…"
       },
-      "subtitle": "A passing grade (score ≥ 70) earns a certificate. An admin approves it; approved certificates can be previewed and downloaded as a PDF.",
+      "subtitle": "A passing grade (score ≥ 70) earns a certificate. Approving it unlocks the PDF to preview and download.",
       "title": "Certificates"
     },
     "status": {
       "approved": "Approved",
       "inReview": "In review",
       "pending": "Pending"
+    },
+    "worklist": {
+      "approveAll": "Approve all",
+      "approveAllAria": "Approve all {{total}} pending certificates",
+      "columns": {
+        "actions": "Actions",
+        "course": "Course",
+        "grade": "Grade",
+        "issued": "Issued",
+        "student": "Student"
+      },
+      "emptyApproved": "No approved certificates yet.",
+      "emptyPending": "Nothing waiting — every certificate has been approved.",
+      "tabs": {
+        "approved": "Approved",
+        "pending": "Needs approval"
+      }
     }
   },
   "common": {
@@ -812,6 +829,7 @@
   "toasts": {
     "campaignSent": "Campaign sent successfully.",
     "certificateApproved": "Certificate approved.",
+    "certificatesApproved": "Certificates approved.",
     "courseCreated": "Course created.",
     "courseDeleted": "Course deleted.",
     "coursePublished": "Course published.",
