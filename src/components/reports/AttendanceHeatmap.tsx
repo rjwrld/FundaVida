@@ -10,12 +10,16 @@ interface AttendanceHeatmapProps {
   data: Cell[]
 }
 
+// Buckets carry a dark-mode variant so the sequential scale ramps dark->bright
+// as attendance rises on the Ink canvas. The light-end ramp stops (green-100/200)
+// read as faint on white but, without an override, become the brightest cells on
+// dark — inverting the perceived order. Dark stops stay above the card L (~0.26).
 function bucketClass(rate: number, hasData: boolean): string {
   if (!hasData) return 'bg-muted/50'
-  if (rate >= 0.75) return 'bg-brand-green-500'
-  if (rate >= 0.5) return 'bg-brand-green-300'
-  if (rate >= 0.25) return 'bg-brand-green-200'
-  return 'bg-brand-green-100'
+  if (rate >= 0.75) return 'bg-brand-green-500 dark:bg-brand-green-400'
+  if (rate >= 0.5) return 'bg-brand-green-300 dark:bg-brand-green-500'
+  if (rate >= 0.25) return 'bg-brand-green-200 dark:bg-brand-green-600'
+  return 'bg-brand-green-100 dark:bg-brand-green-700'
 }
 
 export function AttendanceHeatmap({ data }: AttendanceHeatmapProps) {
@@ -66,16 +70,16 @@ export function AttendanceHeatmap({ data }: AttendanceHeatmapProps) {
         </span>
         <div className="flex items-center gap-1.5">
           <span aria-hidden="true">0%</span>
-          <span className="size-2.5 rounded-[2px] bg-brand-green-100">
+          <span className="size-2.5 rounded-[2px] bg-brand-green-100 dark:bg-brand-green-700">
             <span className="sr-only">{t('reports.attendanceHeatmap.legend.low')}</span>
           </span>
-          <span className="size-2.5 rounded-[2px] bg-brand-green-200">
+          <span className="size-2.5 rounded-[2px] bg-brand-green-200 dark:bg-brand-green-600">
             <span className="sr-only">{t('reports.attendanceHeatmap.legend.midLow')}</span>
           </span>
-          <span className="size-2.5 rounded-[2px] bg-brand-green-300">
+          <span className="size-2.5 rounded-[2px] bg-brand-green-300 dark:bg-brand-green-500">
             <span className="sr-only">{t('reports.attendanceHeatmap.legend.midHigh')}</span>
           </span>
-          <span className="size-2.5 rounded-[2px] bg-brand-green-500">
+          <span className="size-2.5 rounded-[2px] bg-brand-green-500 dark:bg-brand-green-400">
             <span className="sr-only">{t('reports.attendanceHeatmap.legend.high')}</span>
           </span>
           <span aria-hidden="true">100%</span>
