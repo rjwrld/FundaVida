@@ -158,6 +158,7 @@
       "skipToMain": "Skip to main content"
     },
     "actions": {
+      "approve": "Approve",
       "backToHome": "Back to home",
       "cancel": "Cancel",
       "close": "Close",
@@ -167,6 +168,7 @@
       "edit": "Edit",
       "editItem": "Edit {{name}}",
       "new": "New",
+      "reject": "Reject",
       "save": "Save"
     },
     "commandPalette": {
@@ -678,6 +680,15 @@
     }
   },
   "tcu": {
+    "approvalQueue": {
+      "approval": "Approval needed",
+      "title": "TCU approval queue"
+    },
+    "dashboard": {
+      "approvedHours": "Approved hours",
+      "pendingHours": "Pending hours",
+      "progress": "Progress toward 300 hours"
+    },
     "dialog": {
       "logActivityTitle": "Log an activity",
       "submit": "Log activity",
@@ -694,6 +705,7 @@
       "columns": {
         "date": "Date",
         "hours": "Hours",
+        "status": "Status",
         "title": "Activity",
         "trainee": "Trainee"
       },
@@ -703,7 +715,6 @@
         "anyTrainee": "Any trainee",
         "traineePlaceholder": "Trainee"
       },
-      "hoursUnit": "hours",
       "subtitle": "Community service hours logged by trainees toward their 300-hour requirement.",
       "title": "TCU activities"
     }
@@ -765,6 +776,8 @@
     "studentCreated": "Student created.",
     "studentDeleted": "Student deleted.",
     "studentUpdated": "Student updated.",
+    "tcuActivityApproved": "Activity approved",
+    "tcuActivityLogged": "Activity logged",
     "teacherCreated": "Teacher created.",
     "teacherDeleted": "Teacher deleted.",
     "teacherUpdated": "Teacher updated.",

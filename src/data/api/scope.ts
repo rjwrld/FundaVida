@@ -307,6 +307,19 @@ function applyTcuScope(activities: TcuList, token: Scope, userId: string): TcuLi
       // Activities logged by the current user (tcu trainee)
       return activities.filter((a) => a.traineeId === userId)
     }
+    case 'assignedTrainees': {
+      // Activities for trainees assigned to courses owned by the current user (teacher).
+      // Build the set of the teacher's course ids, then the set of trainee ids
+      // assigned to those courses, then filter activities by traineeId.
+      const state = useStore.getState()
+      const teacherCourseIds = new Set(
+        state.courses.filter((c) => c.teacherId === userId).map((c) => c.id)
+      )
+      const assignedTraineeIds = new Set(
+        state.tcuTrainees.filter((t) => teacherCourseIds.has(t.courseId)).map((t) => t.id)
+      )
+      return activities.filter((a) => assignedTraineeIds.has(a.traineeId))
+    }
     default:
       return []
   }

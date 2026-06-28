@@ -163,6 +163,8 @@ t('toasts.gradeSaved')
 t('toasts.gradeDeleted')
 t('toasts.campaignSent')
 t('toasts.certificateApproved')
+t('toasts.tcuActivityLogged')
+t('toasts.tcuActivityApproved')
 
 // Keys referenced dynamically via t(`enrollments.status.${enrollment.status}`)
 t('enrollments.status.approved')
