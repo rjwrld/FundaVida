@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { useStore } from '@/data/store'
@@ -21,9 +22,12 @@ function renderWithRouter(element: React.ReactNode) {
     ],
     { initialEntries: ['/'] }
   )
+  const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
   return render(
     <I18nProvider>
-      <RouterProvider router={router} />
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
     </I18nProvider>
   )
 }
