@@ -251,6 +251,14 @@ function applyCertificatesScope(
       // A Student sees only their own Certificates (ADR-0012).
       return certificates.filter((c) => c.studentId === userId)
     }
+    case 'ownCourses': {
+      // A Teacher sees Certificates earned in the Courses they own (ADR-0019).
+      const state = useStore.getState()
+      const ownCourseIds = new Set(
+        state.courses.filter((c) => c.teacherId === userId).map((c) => c.id)
+      )
+      return certificates.filter((c) => ownCourseIds.has(c.courseId))
+    }
     default:
       return []
   }

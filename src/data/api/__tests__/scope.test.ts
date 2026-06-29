@@ -169,3 +169,27 @@ describe('openForEnrollment scope', () => {
     }
   })
 })
+
+describe('certificates ownCourses scope', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+  })
+
+  it('filters certificates to those in courses owned by the current teacher', () => {
+    useStore.getState().setRole('teacher')
+    const { currentUserId, courses, certificates } = useStore.getState()
+    const ownCourseIds = new Set(
+      courses.filter((c) => c.teacherId === currentUserId).map((c) => c.id)
+    )
+
+    const scoped = applyScope('certificates', 'ownCourses', certificates)
+
+    expect(scoped.length).toBeGreaterThan(0)
+    expect(scoped.every((c) => ownCourseIds.has(c.courseId))).toBe(true)
+    // Proves it actually narrows: at least one seeded certificate is excluded.
+    expect(scoped.length).toBeLessThan(certificates.length)
+  })
+})
