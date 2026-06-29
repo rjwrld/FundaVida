@@ -262,6 +262,9 @@
         "noMarkableSessions": "No hay sesiones pasadas o actuales disponibles para marcar.",
         "status": "Estado"
       },
+      "certificates": {
+        "empty": "Los certificados aparecen aquí cuando se registran notas de aprobación en este curso."
+      },
       "deleteConfirm": "¿Eliminar este curso?",
       "edit": "Editar",
       "enrollButton": "Matricular estudiante",
@@ -277,6 +280,7 @@
       "loading": "Cargando…",
       "sections": {
         "attendance": "Marcar asistencia",
+        "certificates": "Certificados",
         "noStudents": "Ningún estudiante matriculado.",
         "overview": "Resumen",
         "students": "Estudiantes",

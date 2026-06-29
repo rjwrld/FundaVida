@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -211,5 +211,62 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     expect(
       await screen.findByText(`${classmate.firstName} ${classmate.lastName}`)
     ).toBeInTheDocument()
+  })
+})
+
+describe('<CoursesDetailPage /> — in-course certificates module (ADR-0019)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  function pendingCertFixture() {
+    const s = useStore.getState()
+    const cert = req(
+      s.certificates.find((c) => c.status === 'pending'),
+      'seed: no pending certificate'
+    )
+    const course = req(
+      s.courses.find((c) => c.id === cert.courseId),
+      'seed: certificate course missing'
+    )
+    const student = req(
+      s.students.find((st) => st.id === cert.studentId),
+      'seed: certificate student missing'
+    )
+    return { cert, course, student }
+  }
+
+  it('shows an admin the Course certificates and approves a pending one in context', async () => {
+    const { cert, course, student } = pendingCertFixture()
+    asRole('admin')
+    renderPage(course.id)
+
+    // The certificates module renders for the roster-viewing admin.
+    expect(await screen.findByRole('heading', { name: 'Certificates' })).toBeInTheDocument()
+
+    const approveButton = await screen.findByRole('button', {
+      name: new RegExp(`approve certificate for ${student.firstName}`, 'i'),
+    })
+    fireEvent.click(approveButton)
+
+    await waitFor(() => {
+      const updated = useStore.getState().certificates.find((c) => c.id === cert.id)
+      expect(updated?.status).toBe('approved')
+    })
+  })
+
+  it('hides the certificates module from a Student’s self-view', async () => {
+    const { gradedCourse } = fixtures()
+    asRole('student')
+    renderPage(gradedCourse.id)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: gradedCourse.name })).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('heading', { name: 'Certificates' })).not.toBeInTheDocument()
   })
 })

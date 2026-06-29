@@ -1,0 +1,9 @@
+# The Certificates module is surfaced inside each Course's detail page
+
+Certificates were reachable only through the global `/app/certificates` route (ADR-0019). A Course's earned Certificates now also appear inside that Course's detail page, as a `CourseCertificatesSection` rendered to the roster-viewing audience — the owning Teacher and admin — beside the roster and attendance, so a cohort's completion is handled in context when the Course finishes. The section reuses the existing pieces unchanged: `useCertificates({ courseId })` for the role-scoped read, `CertificateCard` for each record, the per-card Approve action wired to `useApproveCertificate` (gated by `can('approve', 'certificates', { course })`, so the owning Teacher and admin approve, a non-owning Teacher does not), and `CertificatePreviewDialog` + `CertificateTemplate` for the approved-only PDF preview/download. This is purely additive: the global worklist, admin's unconditional approval, and the Certificate lifecycle are unchanged. We rejected duplicating the certificate read/approve logic (the section composes the existing hooks and components) and showing the section in a Student's self-view (a Student already sees their own Certificate in the gallery; the in-course module is the approver surface).
+
+## Consequences
+
+- Extends ADR-0019 rather than replacing it: approval lives in two places now (the global worklist and the in-course section), both flowing through the same `useApproveCertificate` mutation and its `CERTIFICATES_KEY` invalidation, so either view refreshes the other and the dashboard's pending widget.
+- Gated by `canViewRoster` (admin + owning Teacher) for parity with the roster/attendance sections it sits beside; a Student viewing their own enrolled Course does not see it.
+- No new permission, route, scope token, or `STATE_KEY` bump — the section is a read+approve composition over existing seams (ADR-0008/0009).

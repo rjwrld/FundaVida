@@ -261,6 +261,9 @@
         "noMarkableSessions": "No past or current sessions available for marking.",
         "status": "Status"
       },
+      "certificates": {
+        "empty": "Certificates appear here once passing grades are saved for this course."
+      },
       "deleteConfirm": "Delete this course?",
       "edit": "Edit",
       "enrollButton": "Enroll student",
@@ -276,6 +279,7 @@
       "loading": "Loading…",
       "sections": {
         "attendance": "Mark attendance",
+        "certificates": "Certificates",
         "noStudents": "No students enrolled.",
         "overview": "Overview",
         "students": "Students",
