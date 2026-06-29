@@ -580,8 +580,8 @@ export const useStore = create<StoreState>((set, get) => ({
         `cannot enroll student ${studentId} (${student.sede}) in course ${courseId} (${course.sede}): Sede mismatch`
       )
     }
-    // A Student may only enroll in Courses matching their educational level or 'both' (ADR-0016).
-    if (course.level !== 'both' && course.level !== student.educationalLevel) {
+    // A Student may only enroll in Courses matching their educational level (ADR-0020).
+    if (course.level !== student.educationalLevel) {
       throw new Error(
         `cannot enroll student ${studentId} (${student.educationalLevel}) in course ${courseId} (${course.level}): Level mismatch`
       )
@@ -642,8 +642,8 @@ export const useStore = create<StoreState>((set, get) => ({
         `cannot request enrollment for student ${studentId} (${student.sede}) in course ${courseId} (${course.sede}): Sede mismatch`
       )
     }
-    // A Student may only request courses matching their educational level or 'both' (ADR-0016).
-    if (course.level !== 'both' && course.level !== student.educationalLevel) {
+    // A Student may only request courses matching their educational level (ADR-0020).
+    if (course.level !== student.educationalLevel) {
       throw new Error(
         `cannot request enrollment for student ${studentId} (${student.educationalLevel}) in course ${courseId} (${course.level}): Level mismatch`
       )

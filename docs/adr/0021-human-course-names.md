@@ -1,0 +1,9 @@
+# Courses get human, self-describing names instead of a program name plus a counter
+
+Seeded Course names were `${program.name} ${counter}` — "Alfabetización 1", "Alfabetización 2" — a program label with a running integer that read like placeholder data. A Course name is now composed from the things that actually distinguish a cohort: `${program.name} ${LevelEs} — ${sede} (${term month})`, e.g. "Alfabetización Primaria — Linda Vista (ene 2026)". The level segment uses a Spanish label map (`Primaria` / `Secundaria`) because the stored name is catalog-style data like the Spanish-only Program names (ADR-0015) and is never passed through `t()`; the level is still rendered bilingually elsewhere. The term month (date-fns `format(termStart, 'MMM yyyy', { locale: es })`) is required because Programs repeat across templates, so `program + level + sede` alone collides for the three Programs whose multi-Sede template shares a Program with a single-Sede one (Alfabetización, Computación, Música); the month also tells the reader which cohort/when it runs. We rejected a bare numeric counter (the thing being replaced), `program + sede` (collides across terms at one Sede), and nudging level assignments purely to dodge name clashes (couples the Level distribution to naming).
+
+## Consequences
+
+- Depends on ADR-0020: with each Course a single level, the level segment is always one clean word, and the name is unique once the term month is appended.
+- The term month shifts with the Demo Epoch (ADR-0002) on every reseed; names are demo data, so this is expected, and `STATE_KEY`'s `v7` bump (ADR-0020) reseeds names along with levels.
+- `CoursesDetailPage` and every list that shows `course.name` inherit the new names with no change; a test that built a `RegExp` from `course.name` now escapes it, since the name carries regex-significant characters (the `(…)` term suffix).

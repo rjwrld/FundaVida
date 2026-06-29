@@ -318,7 +318,6 @@
       }
     },
     "level": {
-      "both": "Primary & secondary",
       "primaria": "Primary",
       "secundaria": "Secondary"
     },

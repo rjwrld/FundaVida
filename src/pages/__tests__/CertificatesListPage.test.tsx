@@ -135,9 +135,15 @@ describe('<CertificatesListPage />', () => {
 
     const dialog = await screen.findByRole('dialog')
     // The on-screen preview must match the downloadable PDF artifact field-for-field.
+    // Course names carry regex-significant characters (e.g. the "(ene 2026)" term
+    // suffix, ADR-0021), so escape the dynamic parts before building the matcher.
+    const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     expect(
       within(dialog).getByText(
-        new RegExp(`completed ${course.name} \\(${programName}\\).*score of ${cert.score}`, 'i')
+        new RegExp(
+          `completed ${escapeRegExp(course.name)} \\(${escapeRegExp(programName)}\\).*score of ${cert.score}`,
+          'i'
+        )
       )
     ).toBeInTheDocument()
   })

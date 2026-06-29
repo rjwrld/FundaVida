@@ -29,7 +29,7 @@ describe('enrollment request mutations', () => {
         (c) =>
           c.status === 'published' &&
           c.sede === student.sede &&
-          (c.level === student.educationalLevel || c.level === 'both') &&
+          c.level === student.educationalLevel &&
           !student.enrolledCourseIds.includes(c.id)
       )
 
@@ -77,7 +77,7 @@ describe('enrollment request mutations', () => {
 
       // Find a course with non-matching level
       const differentLevelCourse = state.courses.find(
-        (c) => c.sede === student.sede && c.level !== student.educationalLevel && c.level !== 'both'
+        (c) => c.sede === student.sede && c.level !== student.educationalLevel
       )
 
       // Skip if no such course exists in the seed
@@ -99,7 +99,7 @@ describe('enrollment request mutations', () => {
         (c) =>
           c.status === 'published' &&
           c.sede === student.sede &&
-          (c.level === student.educationalLevel || c.level === 'both') &&
+          c.level === student.educationalLevel &&
           !student.enrolledCourseIds.includes(c.id)
       )
 
@@ -128,7 +128,7 @@ describe('enrollment request mutations', () => {
         (c) =>
           c.status === 'published' &&
           c.sede === student.sede &&
-          (c.level === student.educationalLevel || c.level === 'both') &&
+          c.level === student.educationalLevel &&
           !student.enrolledCourseIds.includes(c.id)
       )
 
@@ -155,7 +155,7 @@ describe('enrollment request mutations', () => {
         (c) =>
           c.status === 'published' &&
           c.sede === student.sede &&
-          (c.level === student.educationalLevel || c.level === 'both') &&
+          c.level === student.educationalLevel &&
           !student.enrolledCourseIds.includes(c.id)
       )
 

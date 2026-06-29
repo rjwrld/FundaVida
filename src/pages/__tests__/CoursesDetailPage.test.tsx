@@ -85,7 +85,7 @@ function fixtures() {
       (c) =>
         c.status === 'published' &&
         c.sede === student.sede &&
-        (c.level === 'both' || c.level === student.educationalLevel) &&
+        c.level === student.educationalLevel &&
         !s.enrollments.some((e) => e.studentId === self && e.courseId === c.id)
     ),
     'seed: no browseable course found for stu-1'

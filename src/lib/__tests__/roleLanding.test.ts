@@ -16,7 +16,7 @@ function makeCourse(overrides: Partial<Course> & Pick<Course, 'id' | 'teacherId'
     description: '',
     sede: 'Linda Vista',
     programId: 'prog-1',
-    level: 'both',
+    level: 'primaria',
     status: 'published',
     capacity: 20,
     term: ENDED,

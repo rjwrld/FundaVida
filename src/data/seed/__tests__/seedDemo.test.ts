@@ -539,17 +539,17 @@ describe('seedDemo — Program catalog is a first-class entity (ADR-0015)', () =
   })
 })
 
-describe('seedDemo — Course gains level, status, capacity (ADR-0016)', () => {
-  it('gives every Course a known level, a published status, and a positive capacity', () => {
+describe('seedDemo — Course gains level, status, capacity (ADR-0016, ADR-0020)', () => {
+  it('gives every Course a single known level, a published status, and a positive capacity', () => {
     const world = seedDemo(EPOCH)
     world.courses.forEach((course) => {
-      expect(['primaria', 'secundaria', 'both']).toContain(course.level)
+      expect(['primaria', 'secundaria']).toContain(course.level)
       expect(course.status).toBe('published')
       expect(course.capacity).toBeGreaterThan(0)
     })
   })
 
-  it('enrolls students only in Courses whose Level matches theirs or is both (ADR-0016)', () => {
+  it('enrolls students only in Courses whose Level matches theirs (ADR-0020)', () => {
     const world = seedDemo(EPOCH)
     const studentById = new Map(world.students.map((s) => [s.id, s]))
     const courseById = new Map(world.courses.map((c) => [c.id, c]))
@@ -560,7 +560,7 @@ describe('seedDemo — Course gains level, status, capacity (ADR-0016)', () => {
       expect(student).toBeDefined()
       expect(course).toBeDefined()
       if (!student || !course) return
-      expect(course.level === 'both' || course.level === student.educationalLevel).toBe(true)
+      expect(course.level === student.educationalLevel).toBe(true)
     })
   })
 
@@ -657,20 +657,18 @@ describe('seedDemo — Issue #113: seed overhaul (24 cohorts, CR names, Spanish 
     expect(completed.length + inProgress.length + upcoming.length).toBe(24)
   })
 
-  it('runs "both"-level courses at all three Sedes (3 templates × 3 Sedes each)', () => {
+  it('runs the support-course programs at all three Sedes (3 templates × 3 Sedes each)', () => {
     const world = seedDemo(EPOCH)
-    const bothCoursesPerSede = new Map<string, number>()
 
-    world.courses
-      .filter((c) => c.level === 'both')
-      .forEach((c) => {
-        bothCoursesPerSede.set(c.sede, (bothCoursesPerSede.get(c.sede) ?? 0) + 1)
-      })
-
-    // Each of 3 Sedes should have at least 3 "both"-level courses (one per template)
-    expect(bothCoursesPerSede.size).toBe(3)
-    bothCoursesPerSede.forEach((count) => {
-      expect(count).toBeGreaterThanOrEqual(3)
+    // The all-sedes templates (0, 4, 14) instantiate three programs — Alfabetización
+    // (prog-1), Computación (prog-5), and Música (prog-7) — each of which should
+    // therefore have a cohort at every Sede.
+    const supportProgramIds = ['prog-1', 'prog-5', 'prog-7']
+    supportProgramIds.forEach((programId) => {
+      const sedes = new Set(
+        world.courses.filter((c) => c.programId === programId).map((c) => c.sede)
+      )
+      expect(sedes).toEqual(new Set(SEDES))
     })
   })
 

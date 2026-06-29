@@ -1,0 +1,10 @@
+# Every Course targets exactly one Level; `'both'` is removed
+
+A Course's `level` was `'primaria' | 'secundaria' | 'both'`, where `'both'` admitted Students of either educational level (ADR-0016). We drop `'both'`: `CourseLevel` is now `'primaria' | 'secundaria'`, and each cohort is one schooling stage. A Student therefore sees and may enroll only in Courses whose `level` equals their own `educationalLevel` — the eligibility rule narrows from "matches mine or is `'both'`" to a plain equality, enforced in the store enroll/request guards (ADR-0009), the `'openForEnrollment'` and enrolled-Courses scopes (ADR-0008), and the seed's enrollment eligibility. The Course form picker and zod schema offer two levels, not three. The seed's former `'both'` templates are reassigned to a concrete level: the teacher persona's golden-path cohorts (templates 0 and 4) become `'primaria'` to match the student persona `stu-1` (`educationalLevel: 'primaria'`), keeping the persona enrolled with a Grade and a Certificate; the remaining cohorts are balanced 8 `'primaria'` / 8 `'secundaria'`. We rejected keeping `'both'` as a default-avoided value (it leaves the mixed-roster ambiguity in the model) and splitting each `'both'` cohort into two single-level cohorts (it doubles dependent seed rows for realism the demo does not need).
+
+## Consequences
+
+- Supersedes the `'both'` half of ADR-0016: Level eligibility is now exact equality, still a hard, store-enforced invariant (not a UI-only filter) alongside Sede (ADR-0011).
+- A Student's open-for-enrollment and browse lists shrink to their own level; this is the intended, more realistic behavior, not a regression.
+- Stale snapshots reseed, never migrate (ADR-0003): `STATE_KEY` bumps to `v7` and the `v6` key joins the dropped-legacy list so no `'both'`-level world rehydrates.
+- Test fixtures and eligibility-mirroring assertions drop their `'both'` branch; the seed invariant "support-course templates run at all three Sedes" is re-expressed against the three multi-Sede Programs rather than the `'both'` level.
