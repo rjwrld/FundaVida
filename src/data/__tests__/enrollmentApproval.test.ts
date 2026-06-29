@@ -84,52 +84,39 @@ describe('enrollment approval mutations', () => {
       useStore.getState().setRole('admin')
       const state = useStore.getState()
 
-      // Find a course with capacity > 0
+      // Pick a course and the unenrolled students eligible for it: same Sede and
+      // matching level (ADR-0020).
       const course = state.courses.find((c) => c.capacity > 0)
       if (!course) return
+      const enrolledIds = new Set(
+        state.enrollments.filter((e) => e.courseId === course.id).map((e) => e.studentId)
+      )
+      const eligible = state.students.filter(
+        (s) =>
+          s.sede === course.sede && s.educationalLevel === course.level && !enrolledIds.has(s.id)
+      )
+      // Need two more eligible students than the course has room for.
+      if (eligible.length < 2) return
 
-      // Count currently approved enrollments
-      const approvedCount = state.enrollments.filter(
+      // Set capacity to one seat above the already-approved count, so a single
+      // new approval fills it and the next one overruns.
+      const approvedNow = state.enrollments.filter(
         (e) => e.courseId === course.id && e.status === 'approved'
       ).length
+      useStore.getState().updateCourse(course.id, { capacity: approvedNow + 1 })
 
-      // If there's room, fill it up
-      if (approvedCount < course.capacity) {
-        const students = state.students.filter((s) => s.sede === course.sede)
-        const pendingIds: string[] = []
+      const pendingIds = eligible.slice(0, 2).map((s) => {
+        useStore.getState().setRole('student')
+        return useStore.getState().requestEnrollment(s.id, course.id).id
+      })
 
-        // Create enough pending enrollments to exceed capacity
-        for (let i = 0; i < course.capacity - approvedCount + 1 && i < students.length; i++) {
-          const student = students[i]
-          if (student) {
-            // Make sure student doesn't already have an enrollment
-            if (
-              !state.enrollments.some((e) => e.studentId === student.id && e.courseId === course.id)
-            ) {
-              useStore.getState().setRole('student')
-              const enrollment = useStore.getState().requestEnrollment(student.id, course.id)
-              pendingIds.push(enrollment.id)
-            }
-          }
-        }
+      useStore.getState().setRole('admin')
+      useStore.getState().approveEnrollment(pendingIds[0] as string) // fills the last seat
 
-        // Now approve up to capacity
-        useStore.getState().setRole('admin')
-        for (let i = 0; i < course.capacity - approvedCount && pendingIds[i]; i++) {
-          const id = pendingIds[i]
-          if (id) {
-            useStore.getState().approveEnrollment(id)
-          }
-        }
-
-        // The next approval should throw
-        const nextId = pendingIds[course.capacity - approvedCount]
-        if (nextId) {
-          expect(() => {
-            useStore.getState().approveEnrollment(nextId)
-          }).toThrow(/capacity/)
-        }
-      }
+      // The next approval exceeds capacity.
+      expect(() => {
+        useStore.getState().approveEnrollment(pendingIds[1] as string)
+      }).toThrow(/capacity/)
     })
 
     it('emits an audit entry when approved', () => {
@@ -253,7 +240,7 @@ describe('enrollment approval mutations', () => {
 
       // Find a course with non-matching level
       const differentLevelCourse = state.courses.find(
-        (c) => c.sede === student.sede && c.level !== student.educationalLevel && c.level !== 'both'
+        (c) => c.sede === student.sede && c.level !== student.educationalLevel
       )
 
       if (!differentLevelCourse) {
@@ -280,7 +267,7 @@ describe('enrollment approval mutations', () => {
       const matchingCourse = state.courses.find(
         (c) =>
           c.sede === student.sede &&
-          (c.level === student.educationalLevel || c.level === 'both') &&
+          c.level === student.educationalLevel &&
           !state.enrollments.some((e) => e.studentId === student.id && e.courseId === c.id)
       )
 

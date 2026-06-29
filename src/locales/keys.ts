@@ -66,7 +66,6 @@ t('students.form.guardian.relationship.otro')
 // Keys referenced dynamically via t(`courses.level.${level}`)
 t('courses.level.primaria')
 t('courses.level.secundaria')
-t('courses.level.both')
 
 // Keys referenced dynamically via t(`courses.status.${status}`)
 t('courses.status.draft')
