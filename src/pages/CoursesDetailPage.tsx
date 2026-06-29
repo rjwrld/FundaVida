@@ -34,6 +34,7 @@ import { clock } from '@/lib/clock'
 import type { AttendanceRecord, AttendanceStatus, Course, Enrollment, Student } from '@/types'
 import { GradeDialog } from '@/components/courses/GradeDialog'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
+import { CourseCertificatesSection } from '@/components/courses/CourseCertificatesSection'
 import { parseISO } from 'date-fns'
 
 interface GradingTarget {
@@ -437,6 +438,8 @@ export function CoursesDetailPage() {
               />
             </section>
           )}
+
+          <CourseCertificatesSection course={course} />
         </Fragment>
       )}
 
