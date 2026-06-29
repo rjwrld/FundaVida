@@ -1,0 +1,11 @@
+# The admin Enrollments page is an oversight view grouped by Sede → Course
+
+The Enrollments page was a flat student/course-filtered table whose only action was unenroll, with approval living solely on the Teacher dashboard. It is rebuilt as a per-Sede → per-Course oversight surface: enrollments are grouped under their Course's Sede, then by Course (each a card showing the Course name, its Teacher, and a live pending count), with summary chips (pending, approved, Sedes, Courses), a student search, a Sede filter, and a status filter. Admin keeps full power inline — Approve / Reject on a pending row, Unenroll on an approved row — so the page is a real approval-and-oversight workspace, not a dead table. Rejected enrollments are hidden by default (the status filter defaults to `'active'`, which excludes `'rejected'`); choosing a specific status, including Rejected, reveals them.
+
+Permission is evaluated per Course rather than once for the page: `delete` (unenroll) reads `can(role, 'delete', 'enrollments')` (admin only), while `approve` is checked with the row's Course in context (`can(role, 'approve', 'enrollments', { course })`) so the predicate resolves correctly — admin unconditionally, a Teacher only for Courses they own (`courseOwned`), avoiding the context-free-predicate trap where a `courseOwned` cell returns false without a Course. Reads stay on the API/scope seam (`useEnrollments`), so a Teacher sees only their own Courses' rows. We rejected making the page read-only (admin keeps approval, per the owner's direction) and a global flat table (the Sede → Course grouping is the requested shape).
+
+## Consequences
+
+- Reuses the existing `useApproveEnrollment` / `useRejectEnrollment` / `useDeleteEnrollment` mutations and their cache-invalidation keys (`enrollments`, `students`, `courses`), so the page, the roster, and the Teacher dashboard stay in sync; no new mutation, scope token, or `STATE_KEY` bump.
+- The `approve` predicate is evaluated with the Course in context, the pattern ADR-0019 established for certificates, keeping the store the real boundary (ADR-0009) and the UI a defense-in-depth guard.
+- Dynamic `t()` keys (`enrollments.list.stats.*`, `enrollments.list.statusFilter.*`) are registered in the `keys.ts` i18n manifest so the extractor retains them.

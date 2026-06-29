@@ -447,20 +447,39 @@
       "title": "Enroll student"
     },
     "list": {
+      "approveAria": "Approve {{student}}'s enrollment",
       "columns": {
-        "actions": "Actions",
         "course": "Course",
         "enrolledAt": "Enrolled",
         "student": "Student"
       },
       "empty": "No enrollments yet.",
-      "emptyFiltered": "No enrollments match your filter.",
-      "filterAnyCourse": "Any course",
-      "filterAnyStudent": "Any student",
-      "subtitle": "Every student-course enrollment. Unenroll to also remove the matching grade.",
+      "emptyFiltered": "No enrollments match your filters.",
+      "filterAnySede": "All campuses",
+      "filterSede": "Filter by campus",
+      "filterStatus": "Filter by status",
+      "pendingCount_one": "{{count}} pending",
+      "pendingCount_other": "{{count}} pending",
+      "rejectAria": "Reject {{student}}'s enrollment",
+      "searchPlaceholder": "Search students",
+      "stats": {
+        "approved": "Approved",
+        "courses": "Courses",
+        "pending": "Pending",
+        "sedes": "Campuses"
+      },
+      "statusFilter": {
+        "active": "Active",
+        "all": "All statuses",
+        "approved": "Approved",
+        "pending": "Pending",
+        "rejected": "Rejected",
+        "withdrawn": "Withdrawn"
+      },
+      "subtitle": "Review and approve enrollments across every campus and course.",
       "title": "Enrollments",
       "unenroll": "Unenroll",
-      "unenrollConfirm": "Remove this enrollment?"
+      "unenrollConfirm": "Remove this enrollment? This also removes the matching grade."
     },
     "status": {
       "approved": "Approved",
