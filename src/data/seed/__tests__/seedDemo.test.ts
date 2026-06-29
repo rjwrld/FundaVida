@@ -347,6 +347,27 @@ describe('seedDemo — TCU trainees and activities', () => {
     })
   })
 
+  it('seeds TCU activity titles in Spanish (catalog data, like Course names)', () => {
+    // TCU activity titles are stored catalog-style data rendered raw (a.title),
+    // never passed through t() — so they ship in Spanish like Program/Course
+    // names. Assert every seeded title is from the Spanish catalog.
+    const SPANISH_TCU_TITLES = new Set([
+      'Día de lectura en la biblioteca comunitaria',
+      'Campaña de limpieza del parque',
+      'Visita al hogar de ancianos',
+      'Colecta de útiles escolares',
+      'Taller de concientización ambiental',
+      'Voluntariado en el banco de alimentos',
+      'Sesión de tutoría juvenil',
+      'Feria de salud pública',
+    ])
+    const world = seedDemo(EPOCH)
+    expect(world.tcuActivities.length).toBeGreaterThan(0)
+    world.tcuActivities.forEach((activity) => {
+      expect(SPANISH_TCU_TITLES.has(activity.title)).toBe(true)
+    })
+  })
+
   it('seeds trainees with realistic partial progress toward 300 hours', () => {
     const world = seedDemo(EPOCH)
 
