@@ -347,8 +347,11 @@ describe('enrollment referential integrity', () => {
     )
     const sameSede = useStore
       .getState()
-      .students.find((s) => s.sede === course.sede && !enrolledIds.has(s.id))
-    if (!sameSede) throw new Error('expected an unenrolled student at the same Sede')
+      .students.find(
+        (s) =>
+          s.sede === course.sede && s.educationalLevel === course.level && !enrolledIds.has(s.id)
+      )
+    if (!sameSede) throw new Error('expected an unenrolled student at the same Sede and level')
     const before = useStore.getState().enrollments.length
     const enrollment = useStore.getState().enrollStudent(sameSede.id, course.id)
     expect(enrollment.courseId).toBe(course.id)

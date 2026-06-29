@@ -323,7 +323,6 @@
       }
     },
     "level": {
-      "both": "Primaria y secundaria",
       "primaria": "Primaria",
       "secundaria": "Secundaria"
     },

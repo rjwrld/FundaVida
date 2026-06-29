@@ -1,5 +1,14 @@
 import { faker, Faker, en } from '@faker-js/faker'
-import { addDays, addWeeks, differenceInDays, startOfDay, subDays, subWeeks } from 'date-fns'
+import {
+  addDays,
+  addWeeks,
+  differenceInDays,
+  format,
+  startOfDay,
+  subDays,
+  subWeeks,
+} from 'date-fns'
+import { es } from 'date-fns/locale'
 import type {
   Student,
   Teacher,
@@ -85,25 +94,36 @@ const MEETING_DAY_PATTERNS: Weekday[][] = [
 ]
 
 // 16 course templates (each runs at multiple sedes, creating 24 cohorts).
-// Teacher persona's courses (indices 0 and 4) are 'both' for golden-path.
+// Every Course is a single level (ADR-0020). The teacher persona's courses
+// (indices 0 and 4) are 'primaria' to match the student persona stu-1
+// (educationalLevel 'primaria'), keeping the golden path eligible. Levels are
+// balanced 8 primaria / 8 secundaria across the 24 cohorts.
 const COURSE_LEVEL_PATTERN: CourseLevel[] = [
-  'both', // 0: completed, 3 sedes
+  'primaria', // 0: completed, 3 sedes (persona's golden-path)
   'secundaria', // 1: completed
   'secundaria', // 2: completed
   'primaria', // 3: completed
-  'both', // 4: just-ended, 3 sedes (persona's golden-path)
+  'primaria', // 4: just-ended, 3 sedes (persona's golden-path)
   'primaria', // 5: in-progress
   'secundaria', // 6: in-progress
   'secundaria', // 7: in-progress
   'primaria', // 8: in-progress
-  'both', // 9: in-progress, 3 sedes
+  'secundaria', // 9: in-progress, 3 sedes
   'primaria', // 10: in-progress
   'secundaria', // 11: in-progress
   'primaria', // 12: upcoming
   'secundaria', // 13: upcoming
-  'both', // 14: upcoming, 3 sedes
+  'secundaria', // 14: upcoming, 3 sedes
   'primaria', // 15: upcoming
 ]
+
+// Spanish level labels for Course names (ADR-0021). The stored Course name is
+// catalog-style data like the Spanish-only Program names — it is never passed
+// through t(); the level is still rendered bilingually elsewhere via t().
+const COURSE_LEVEL_LABEL_ES: Record<CourseLevel, string> = {
+  primaria: 'Primaria',
+  secundaria: 'Secundaria',
+}
 
 const TCU_ACTIVITY_TITLES = [
   'Community library reading day',
@@ -316,20 +336,12 @@ function buildCourses(epoch: Date, plans: CoursePlan[], teachers: Teacher[]): Co
   const courseIdCounter = { val: 1 }
 
   // Create 24 cohorts from 16 templates:
-  // - 3 "both" templates run at 3 Sedes = 9 cohorts (0, 4, 14)
-  // - 1 "both" template runs at 2 Sedes = 2 cohorts (9)
-  // - 2 other templates run at 2 Sedes = 4 cohorts (1, 3)
-  // - 10 templates run at 1 Sede = 10 cohorts
-  // - Total = 9 + 2 + 4 + 10 = 25... need to adjust
-
-  // Create 24 cohorts from 16 templates:
-  // - 3 "both" at 3 sedes = 9 (0, 4, 14)
-  // - 2 others at 2 sedes = 4 (12, 13 for upcoming level coverage)
-  // - 11 at 1 sede = 11
-  // - Total = 24
+  // - 3 templates run at 3 Sedes = 9 cohorts (0, 4, 14)
+  // - 2 templates run at 2 Sedes = 4 cohorts (1, 3)
+  // - 11 templates run at 1 Sede = 11 cohorts
+  // - Total = 9 + 4 + 11 = 24
   const allSedesTemplates = [0, 4, 14] // Run at 3 sedes each (3 support courses, AC requirement)
-  const doubleRunBothTemplates: number[] = [] // No double-run both templates
-  const doubleRunOtherTemplates = [1, 3] // Non-"both" templates that run at 2 sedes
+  const doubleRunTemplates = [1, 3] // Templates that run at 2 sedes
   const courses: Course[] = []
 
   plans.forEach((plan, templateIndex) => {
@@ -346,12 +358,9 @@ function buildCourses(epoch: Date, plans: CoursePlan[], teachers: Teacher[]): Co
     // Determine which sedes this template runs at
     let sedesToRun: Sede[]
     if (allSedesTemplates.includes(templateIndex)) {
-      // Specific "both"-level courses run at all 3 sedes
+      // These templates run at all 3 sedes (support courses, AC requirement)
       sedesToRun = [...SEDES]
-    } else if (
-      doubleRunBothTemplates.includes(templateIndex) ||
-      doubleRunOtherTemplates.includes(templateIndex)
-    ) {
+    } else if (doubleRunTemplates.includes(templateIndex)) {
       // These courses run at 2 sedes (base sede + next one)
       const baseTeacherSede = sedeByTeacherId.get(teacherId)
       if (!baseTeacherSede) {
@@ -377,9 +386,12 @@ function buildCourses(epoch: Date, plans: CoursePlan[], teachers: Teacher[]): Co
       }
 
       const courseId = `cou-${courseIdCounter.val++}`
+      // Human, self-describing cohort name (ADR-0021): Program, level, Sede, and
+      // the term month to disambiguate cohorts that share program/level/sede.
+      const cohortPeriod = format(termStart, 'MMM yyyy', { locale: es })
       courses.push({
         id: courseId,
-        name: `${program.name} ${courseIdCounter.val}`,
+        name: `${program.name} ${COURSE_LEVEL_LABEL_ES[level]} — ${sede} (${cohortPeriod})`,
         description: program.description,
         sede,
         programId: program.id,
@@ -464,10 +476,10 @@ function buildEnrollments(epoch: Date, students: Student[], courses: Course[]): 
 
   students.forEach((student, si) => {
     // A Student may only enrol in Courses at their own Sede (ADR-0011) and whose
-    // Level matches theirs or is 'both' (ADR-0016). The persona (stu-1) shares
-    // tea-1's Sede and tea-1's Courses are 'both', so the persona's Courses qualify.
+    // Level matches theirs (ADR-0020). The persona (stu-1) shares tea-1's Sede and
+    // tea-1's Courses are 'primaria' like stu-1, so the persona's Courses qualify.
     const isEligible = (c: Course) =>
-      c.sede === student.sede && (c.level === 'both' || c.level === student.educationalLevel)
+      c.sede === student.sede && c.level === student.educationalLevel
     const eligibleCourseIds = courses.filter(isEligible).map((c) => c.id)
     const isRecentJoiner = si >= students.length - RECENT_JOINER_COUNT
     let courseIds: string[]

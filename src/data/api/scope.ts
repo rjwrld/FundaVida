@@ -191,8 +191,8 @@ function applyCoursesScope(courses: CourseList, token: Scope, userId: string): C
         if (c.status !== 'published') return false
         // Must be at student's sede
         if (c.sede !== student.sede) return false
-        // Level must match student's level or be 'both'
-        if (c.level !== 'both' && c.level !== student.educationalLevel) return false
+        // Level must match the student's level (ADR-0020)
+        if (c.level !== student.educationalLevel) return false
         // Must not be already enrolled or pending
         if (enrolledOrPendingIds.has(c.id)) return false
         return true

@@ -181,9 +181,7 @@ describe('store permission guards', () => {
       if (!inProgressCourse) throw new Error('no not-ended teacher-owned course in seed')
 
       const student = store.students.find(
-        (s) =>
-          s.sede === inProgressCourse.sede &&
-          (inProgressCourse.level === 'both' || inProgressCourse.level === s.educationalLevel)
+        (s) => s.sede === inProgressCourse.sede && inProgressCourse.level === s.educationalLevel
       )
       if (!student) throw new Error('no student at the course Sede with matching level')
 
@@ -216,8 +214,7 @@ describe('store permission guards', () => {
       if (!course) throw new Error('no cou-4 in seed')
 
       const student = store.students.find(
-        (s) =>
-          s.sede === course.sede && (course.level === 'both' || course.level === s.educationalLevel)
+        (s) => s.sede === course.sede && course.level === s.educationalLevel
       )
       if (!student) throw new Error('no student at the course Sede with matching level')
 
@@ -278,7 +275,7 @@ describe('store permission guards', () => {
           description: 'Nope',
           sede: 'Linda Vista',
           programId: 'prog-1',
-          level: 'both',
+          level: 'primaria',
           status: 'published',
           capacity: 20,
           teacherId: 'tea-1',

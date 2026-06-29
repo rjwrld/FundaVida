@@ -10,7 +10,7 @@ describe('courseSchema', () => {
     description: 'Intro to literacy skills',
     sede: 'Linda Vista',
     programId: 'prog-1',
-    level: 'both',
+    level: 'primaria',
     status: 'published',
     capacity: 20,
     teacherId: 'tea-1',

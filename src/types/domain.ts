@@ -18,10 +18,12 @@ export type EducationalLevel = 'primaria' | 'secundaria'
 export type GuardianRelationship = 'madre' | 'padre' | 'tutor' | 'otro'
 
 /**
- * The schooling stage a Course targets. `'both'` admits Students of either
- * level (ADR-0016). Bilingual via t(), unlike the Spanish-only program names.
+ * The schooling stage a Course targets. Each Course is exactly one level
+ * (ADR-0020, superseding ADR-0016's `'both'`): a Student only sees and enrolls
+ * in Courses matching their own level. Bilingual via t(), unlike the
+ * Spanish-only program names.
  */
-export type CourseLevel = 'primaria' | 'secundaria' | 'both'
+export type CourseLevel = 'primaria' | 'secundaria'
 
 /**
  * A Course's publication state (ADR-0016): a Teacher authors in `'draft'` and

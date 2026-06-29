@@ -40,13 +40,13 @@ describe('openForEnrollment scope', () => {
     // - published (not draft)
     // - upcoming or in-progress (term start is not in past relative to now)
     // - at student's sede
-    // - level matches student's level or is 'both'
+    // - level matches the student's level (ADR-0020)
     // - student is not already enrolled or pending
 
     scoped.forEach((c) => {
       expect(c.status).toBe('published')
       expect(c.sede).toBe(student.sede)
-      expect(c.level === student.educationalLevel || c.level === 'both').toBe(true)
+      expect(c.level === student.educationalLevel).toBe(true)
       // Not already enrolled or pending — withdrawn/rejected courses may reappear
       // (ADR-0016).
       const activeEnrollment = state.enrollments.find(
@@ -110,9 +110,9 @@ describe('openForEnrollment scope', () => {
     const courses = state.courses
     const scoped = applyScope('courses', 'openForEnrollment', courses)
 
-    // All scoped courses should have level matching student or 'both'
+    // All scoped courses should have level matching the student (ADR-0020)
     scoped.forEach((c) => {
-      expect(c.level === student.educationalLevel || c.level === 'both').toBe(true)
+      expect(c.level === student.educationalLevel).toBe(true)
     })
   })
 
@@ -143,7 +143,7 @@ describe('openForEnrollment scope', () => {
       (c) =>
         c.status === 'published' &&
         c.sede === student.sede &&
-        (c.level === student.educationalLevel || c.level === 'both') &&
+        c.level === student.educationalLevel &&
         !student.enrolledCourseIds.includes(c.id)
     )
 
