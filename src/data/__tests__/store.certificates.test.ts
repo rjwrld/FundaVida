@@ -151,3 +151,67 @@ describe('certificates — a teacher approves only their own courses', () => {
     expect(useStore.getState().certificates.find((c) => c.id === id)?.status).toBe('pending')
   })
 })
+
+describe('certificates — bulk approval', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
+  })
+
+  /** Ids of every currently-pending certificate. */
+  function pendingIds(): string[] {
+    return useStore
+      .getState()
+      .certificates.filter((c) => c.status === 'pending')
+      .map((c) => c.id)
+  }
+
+  it('approves every pending certificate in one audit entry', () => {
+    const ids = pendingIds()
+    expect(ids.length).toBeGreaterThan(1)
+    const auditBefore = useStore.getState().auditLog.length
+
+    useStore.getState().approveCertificates(ids)
+
+    const certs = useStore.getState().certificates
+    expect(ids.every((id) => certs.find((c) => c.id === id)?.status === 'approved')).toBe(true)
+    // One batch → exactly one audit entry, not one per certificate.
+    expect(useStore.getState().auditLog.length).toBe(auditBefore + 1)
+    expect(useStore.getState().auditLog[0]?.action).toBe('approve')
+    expect(useStore.getState().auditLog[0]?.entity).toBe('certificate')
+  })
+
+  it('skips already-approved ids (idempotent) and records nothing when none are pending', () => {
+    const ids = pendingIds()
+    useStore.getState().approveCertificates(ids)
+    const auditAfterFirst = useStore.getState().auditLog.length
+
+    // Re-approving the same ids is a no-op: no new audit entry.
+    useStore.getState().approveCertificates(ids)
+    expect(useStore.getState().auditLog.length).toBe(auditAfterFirst)
+  })
+
+  it('throws and approves nothing when any id is outside the teacher’s courses', () => {
+    // Pending ids split across owned and unowned courses for tea-1.
+    const { certificates, courses } = useStore.getState()
+    const ownCourseIds = new Set(courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id))
+    const owned = certificates.find((c) => c.status === 'pending' && ownCourseIds.has(c.courseId))
+    const foreign = certificates.find(
+      (c) => c.status === 'pending' && !ownCourseIds.has(c.courseId)
+    )
+    if (!owned || !foreign) throw new Error('seed lacks pending certs on both sides of ownership')
+
+    useStore.getState().setRole('teacher') // currentUserId === 'tea-1'
+
+    expect(() => useStore.getState().approveCertificates([owned.id, foreign.id])).toThrow(
+      /permission denied/i
+    )
+    // All-or-nothing: the owned one must NOT have flipped.
+    const after = useStore.getState().certificates
+    expect(after.find((c) => c.id === owned.id)?.status).toBe('pending')
+    expect(after.find((c) => c.id === foreign.id)?.status).toBe('pending')
+  })
+})

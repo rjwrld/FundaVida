@@ -4,6 +4,9 @@ import { enterAs } from './helpers/auth'
 async function openCertificatePreview(page: import('@playwright/test').Page) {
   await enterAs(page, 'admin')
   await page.getByRole('link', { name: 'Certificates' }).click()
+  // The approver worklist opens on "Needs approval"; approved certificates (the
+  // ones with a downloadable PDF) live behind the Approved tab (ADR-0019).
+  await page.getByRole('tab', { name: 'Approved' }).click()
   await page.getByRole('button', { name: 'Preview' }).first().click()
   await expect(page.getByRole('heading', { name: 'Certificate preview' })).toBeVisible()
 }
@@ -39,6 +42,7 @@ test('admin previews and downloads a certificate', async ({ page }) => {
   await page.getByRole('link', { name: 'Certificates' }).click()
   await expect(page.getByRole('heading', { name: 'Certificates', exact: true })).toBeVisible()
 
+  await page.getByRole('tab', { name: 'Approved' }).click()
   await page.getByRole('button', { name: 'Preview' }).first().click()
   await expect(page.getByRole('heading', { name: 'Certificate preview' })).toBeVisible()
 
@@ -54,6 +58,33 @@ test('admin previews and downloads a certificate', async ({ page }) => {
   await downloadBtn.click()
   const download = await downloadPromise
   expect(download.suggestedFilename()).toMatch(/^certificate-.*\.pdf$/)
+})
+
+test('a teacher approves a pending certificate in their own course', async ({ page }) => {
+  await enterAs(page, 'teacher')
+  await page.getByRole('link', { name: 'Certificates' }).click()
+  await expect(page.getByRole('heading', { name: 'Certificates', exact: true })).toBeVisible()
+
+  // The seed guarantees the persona teacher has a pending approval waiting (ADR-0019).
+  const approve = page.getByRole('button', { name: /Approve certificate for/ }).first()
+  await expect(approve).toBeVisible()
+  await approve.click()
+
+  // The row leaves the worklist in place (the role-scoped query invalidates),
+  // landing on the empty "Needs approval" state rather than a stale pending row.
+  await expect(
+    page.getByText('Nothing waiting — every certificate has been approved.')
+  ).toBeVisible()
+})
+
+test('an admin clears the queue with Approve all', async ({ page }) => {
+  await enterAs(page, 'admin')
+  await page.getByRole('link', { name: 'Certificates' }).click()
+  await page.getByRole('button', { name: 'Approve all' }).click()
+
+  await expect(
+    page.getByText('Nothing waiting — every certificate has been approved.')
+  ).toBeVisible()
 })
 
 test('renders in Spanish when locale is ES', async ({ page }) => {

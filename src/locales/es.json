@@ -158,13 +158,32 @@
         "ariaLabel": "Buscar certificados por nombre del estudiante",
         "placeholder": "Buscar por nombre del estudiante…"
       },
-      "subtitle": "Una nota de aprobación (≥ 70) genera un certificado. Un administrador lo aprueba; los certificados aprobados se pueden previsualizar y descargar en PDF.",
+      "subtitle": "Una nota de aprobación (≥ 70) genera un certificado. Al aprobarlo se habilita el PDF para previsualizar y descargar.",
       "title": "Certificados"
     },
     "status": {
       "approved": "Aprobado",
       "inReview": "En revisión",
       "pending": "Pendiente"
+    },
+    "worklist": {
+      "allCourses": "Todos los cursos",
+      "approveAll": "Aprobar todos",
+      "approveAllAria": "Aprobar los {{total}} certificados pendientes",
+      "columns": {
+        "actions": "Acciones",
+        "course": "Curso",
+        "grade": "Nota",
+        "issued": "Emitido",
+        "student": "Estudiante"
+      },
+      "emptyApproved": "Aún no hay certificados aprobados.",
+      "emptyPending": "Nada pendiente: todos los certificados están aprobados.",
+      "filterByCourse": "Filtrar por curso",
+      "tabs": {
+        "approved": "Aprobados",
+        "pending": "Por aprobar"
+      }
     }
   },
   "common": {
@@ -816,6 +835,7 @@
   "toasts": {
     "campaignSent": "Campaña enviada correctamente.",
     "certificateApproved": "Certificado aprobado.",
+    "certificatesApproved": "Certificados aprobados.",
     "courseCreated": "Curso creado.",
     "courseDeleted": "Curso eliminado.",
     "coursePublished": "Curso publicado.",

@@ -20,3 +20,10 @@ export const useApproveCertificate = makeEntityMutation('approveCertificate')({
   toastKey: 'toasts.certificateApproved',
   invalidates: [CERTIFICATES_KEY],
 })
+
+// Bulk approve: one toast, one audit entry. Invalidates the same key as the
+// single approve so the worklist and the dashboard's pending widget refresh.
+export const useApproveCertificates = makeEntityMutation('approveCertificates')({
+  toastKey: 'toasts.certificatesApproved',
+  invalidates: [CERTIFICATES_KEY],
+})

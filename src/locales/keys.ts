@@ -189,6 +189,7 @@ t('toasts.gradeSaved')
 t('toasts.gradeDeleted')
 t('toasts.campaignSent')
 t('toasts.certificateApproved')
+t('toasts.certificatesApproved')
 t('toasts.tcuActivityLogged')
 t('toasts.tcuActivityApproved')
 

@@ -285,9 +285,34 @@ describe('seedDemo — Certificates mirror the pending → approved story (#69)'
     const pending = world.certificates.filter((c) => c.status === 'pending')
     const approved = world.certificates.filter((c) => c.status === 'approved')
 
+    // The recent batch (≤3) plus, when none of those land on the persona Teacher's
+    // courses, one forced persona-pending certificate (ADR-0019) — so at most 4.
     expect(pending.length).toBeGreaterThanOrEqual(2)
-    expect(pending.length).toBeLessThanOrEqual(3)
+    expect(pending.length).toBeLessThanOrEqual(4)
     expect(approved.length).toBeGreaterThan(0)
+  })
+
+  it('leaves at least one pending Certificate on the persona Teacher’s courses (ADR-0019)', () => {
+    const world = seedDemo(EPOCH)
+    const personaCourseIds = new Set(
+      world.courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id)
+    )
+    const personaPending = world.certificates.filter(
+      (c) => c.status === 'pending' && personaCourseIds.has(c.courseId)
+    )
+    expect(personaPending.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('spreads the persona Teacher’s certificates across more than one Course (ADR-0019)', () => {
+    const world = seedDemo(EPOCH)
+    const personaCourseIds = new Set(
+      world.courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id)
+    )
+    const certCourseIds = new Set(
+      world.certificates.filter((c) => personaCourseIds.has(c.courseId)).map((c) => c.courseId)
+    )
+    // Two+ cert-bearing courses so the worklist's by-course filter is demoable.
+    expect(certCourseIds.size).toBeGreaterThanOrEqual(2)
   })
 
   it('stamps approval metadata only on approved Certificates', () => {
