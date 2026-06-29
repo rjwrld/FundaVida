@@ -23,6 +23,7 @@ import {
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { can } from '@/permissions'
+import { shortCourseName } from '@/lib/courseName'
 import { SEDES } from '@/constants/sede'
 import type { EnrollmentStatus } from '@/types'
 
@@ -242,7 +243,7 @@ export function EnrollmentsListPage() {
                   >
                     <div className="flex items-center justify-between gap-3 border-b border-border/60 bg-muted/40 px-4 py-2.5">
                       <div className="min-w-0">
-                        <span className="text-sm font-medium">{course.name}</span>
+                        <span className="text-sm font-medium">{shortCourseName(course)}</span>
                         {teacher && (
                           <span className="ml-2 text-xs text-muted-foreground">
                             {teacher.firstName} {teacher.lastName}

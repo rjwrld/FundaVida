@@ -3,6 +3,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
+import { shortCourseName } from '@/lib/courseName'
 import { EnrollmentsListPage } from '@/pages/EnrollmentsListPage'
 import { useStore } from '@/data/store'
 import {
@@ -55,8 +56,9 @@ describe('<EnrollmentsListPage /> — admin oversight by Sede → Course (ADR-00
     )
     renderPage()
 
-    // The course card (grouped under its Sede) renders the pending student.
-    expect(await screen.findByText(course.name)).toBeInTheDocument()
+    // The course card (grouped under its Sede) renders; the short display name can
+    // recur across Sedes, so just assert at least one card shows it.
+    expect((await screen.findAllByText(shortCourseName(course))).length).toBeGreaterThan(0)
     const approveButton = await screen.findByRole('button', {
       name: new RegExp(`approve ${student.firstName} ${student.lastName}'s enrollment`, 'i'),
     })

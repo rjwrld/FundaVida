@@ -33,6 +33,7 @@ import { SEDES } from '@/constants/sede'
 import type { CourseFilters } from '@/data/api/courses'
 import type { Course } from '@/types'
 import { useStore } from '@/data/store'
+import { shortCourseName } from '@/lib/courseName'
 
 export function CoursesListPage() {
   const { t } = useTranslation()
@@ -169,7 +170,7 @@ export function CoursesListPage() {
                   <TableRow key={c.id} className="h-12 hover:bg-muted/40">
                     <TableCell>
                       <Link to={`/app/courses/${c.id}`} className="hover:underline">
-                        {c.name}
+                        {shortCourseName(c)}
                       </Link>
                     </TableCell>
                     <TableCell>{programName(c.programId)}</TableCell>

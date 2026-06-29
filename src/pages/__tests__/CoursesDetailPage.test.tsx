@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { formatGrade } from '@/lib/format'
+import { shortCourseName } from '@/lib/courseName'
 import { CoursesDetailPage } from '@/pages/CoursesDetailPage'
 import { useStore } from '@/data/store'
 import {
@@ -113,7 +114,9 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
 
     // Course info is visible to the enrolled Student…
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: gradedCourse.name })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { name: shortCourseName(gradedCourse) })
+      ).toBeInTheDocument()
     })
     // …but no other student's record (roster row) appears.
     expect(
@@ -127,7 +130,9 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     renderPage(gradedCourse.id)
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: gradedCourse.name })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { name: shortCourseName(gradedCourse) })
+      ).toBeInTheDocument()
     })
     // The grade loads from a separate async query, so wait for it rather than
     // asserting synchronously off the heading (raced on slower CI).
@@ -173,7 +178,9 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
 
     // Course info is visible to the browsing Student…
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: browseableCourse.name })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { name: shortCourseName(browseableCourse) })
+      ).toBeInTheDocument()
     })
     // …but no roster section appears (ADR-0012: student scope yields empty enrollments).
     expect(screen.queryByRole('heading', { name: /enrolled students/i })).not.toBeInTheDocument()
@@ -187,7 +194,9 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     renderPage(gradedCourse.id)
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: gradedCourse.name })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { name: shortCourseName(gradedCourse) })
+      ).toBeInTheDocument()
     })
     // The roster loads from a separate async query, so wait for the row rather
     // than asserting synchronously off the heading (raced on slower CI).
@@ -204,7 +213,9 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     renderPage(gradedCourse.id)
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: gradedCourse.name })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { name: shortCourseName(gradedCourse) })
+      ).toBeInTheDocument()
     })
     // The roster loads from a separate async query, so wait for the row rather
     // than asserting synchronously off the heading (raced on slower CI).
@@ -265,7 +276,9 @@ describe('<CoursesDetailPage /> — in-course certificates module (ADR-0019)', (
     renderPage(gradedCourse.id)
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: gradedCourse.name })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { name: shortCourseName(gradedCourse) })
+      ).toBeInTheDocument()
     })
     expect(screen.queryByRole('heading', { name: 'Certificates' })).not.toBeInTheDocument()
   })
