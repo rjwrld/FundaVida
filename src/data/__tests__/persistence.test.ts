@@ -31,9 +31,9 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v7 key', () => {
+  it('persists state under the v8 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v7:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v8:state')).not.toBeNull()
   })
 
   it('reseeds from a stale v2 snapshot and removes the stale v2 state key (ADR-0014)', () => {
@@ -83,6 +83,16 @@ describe('persistence', () => {
 
     expect(loadPersistedState()).toBeNull()
     expect(window.localStorage.getItem('fundavida:v6:state')).toBeNull()
+  })
+
+  it('reseeds from a stale v7 snapshot and removes the stale v7 state key', () => {
+    // A returning v7 visitor's snapshot predates the level-neutral Program
+    // descriptions. The v8 key bump makes it stale; it is dropped so the app
+    // reseeds rather than rehydrating a Course whose blurb contradicts its level.
+    window.localStorage.setItem('fundavida:v7:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v7:state')).toBeNull()
   })
 
   it('rejects a snapshot whose students lack the encargado (pre-guardian reseeds)', () => {
@@ -146,12 +156,12 @@ describe('persistence', () => {
   })
 
   it('returns null when stored JSON has the wrong shape', () => {
-    window.localStorage.setItem('fundavida:v7:state', JSON.stringify({ wrong: true }))
+    window.localStorage.setItem('fundavida:v8:state', JSON.stringify({ wrong: true }))
     expect(loadPersistedState()).toBeNull()
   })
 
   it('returns null when stored JSON is invalid', () => {
-    window.localStorage.setItem('fundavida:v7:state', 'not-json')
+    window.localStorage.setItem('fundavida:v8:state', 'not-json')
     expect(loadPersistedState()).toBeNull()
   })
 

@@ -9,12 +9,14 @@ export const PROGRAM_CATALOG: readonly Program[] = [
   {
     id: 'prog-1',
     name: 'Alfabetización',
-    description: 'Refuerzo de lectura y escritura para estudiantes de primaria y secundaria.',
+    description:
+      'Refuerzo de lectura, escritura y comprensión para fortalecer las bases académicas.',
   },
   {
     id: 'prog-2',
     name: 'Matemáticas',
-    description: 'Apoyo en razonamiento numérico y resolución de problemas según el nivel escolar.',
+    description:
+      'Apoyo en razonamiento numérico y resolución de problemas para fortalecer el pensamiento lógico.',
   },
   {
     id: 'prog-3',
