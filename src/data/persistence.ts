@@ -3,16 +3,18 @@ import { WEEKDAYS, type Role, type Weekday } from '@/types'
 import { SEDES, type Sede } from '@/constants/sede'
 import { COURSE_LEVELS, COURSE_STATUSES } from '@/constants/course'
 
-const STATE_KEY = 'fundavida:v8:state'
+const STATE_KEY = 'fundavida:v9:state'
 const ROLE_KEY = 'fundavida:v2:role'
 
 // Stale pre-v4 snapshot keys this layer owns. They are not migrated (ADR-0003,
 // ADR-0014): they are removed on first load so the app reseeds cleanly at a
 // fresh Demo Epoch instead of rehydrating an incoherent older world. The v3
 // state snapshot predates the Program entity and the new Course/Enrollment/TCU
-// fields (ADR-0015/0016/0017). The v8 key bump makes the Program descriptions
-// level-neutral (so a single-level Course never contradicts its blurb), on top
-// of v7's single-level Courses (ADR-0020) + human names (ADR-0021), v6's Student
+// fields (ADR-0015/0016/0017). The v9 key bump translates the TCU service-
+// activity titles to Spanish (catalog data rendered raw, never via t()), on top
+// of v8's level-neutral Program descriptions (so a single-level Course never
+// contradicts its blurb), v7's single-level Courses (ADR-0020) + human names
+// (ADR-0021), v6's Student
 // encargado (guardian) and teacher province/canton, v5's Costa Rican names,
 // `@fundavida.es` emails, and province-coherent cantons — so every prior
 // snapshot (incl. v7) is stale and joins this list. Only keys this module owns
@@ -31,6 +33,7 @@ const LEGACY_SNAPSHOT_KEYS = [
   'fundavida:v5:state',
   'fundavida:v6:state',
   'fundavida:v7:state',
+  'fundavida:v8:state',
 ]
 
 export type PersistedState = SeedSnapshot

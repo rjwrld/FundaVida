@@ -3,7 +3,7 @@ import { seedDemo } from '../src/data/seed'
 import { shortCourseName } from '../src/lib/courseName'
 
 // Storage keys must match src/data/persistence.ts.
-const STATE_KEY = 'fundavida:v8:state'
+const STATE_KEY = 'fundavida:v9:state'
 const ROLE_KEY = 'fundavida:v2:role'
 const USER_KEY = 'fundavida:v2:current-user'
 const LOCALE_KEY = 'fundavida:v2:locale'
