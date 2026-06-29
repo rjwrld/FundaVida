@@ -450,20 +450,40 @@
       "title": "Matricular estudiante"
     },
     "list": {
+      "approveAria": "Aprobar la matrícula de {{student}}",
       "columns": {
-        "actions": "Acciones",
         "course": "Curso",
         "enrolledAt": "Matriculado",
         "student": "Estudiante"
       },
       "empty": "Aún no hay matrículas.",
-      "emptyFiltered": "Ninguna matrícula coincide con el filtro.",
-      "filterAnyCourse": "Cualquier curso",
-      "filterAnyStudent": "Cualquier estudiante",
-      "subtitle": "Cada matrícula estudiante-curso. Desmatricular también elimina la calificación correspondiente.",
+      "emptyFiltered": "Ninguna matrícula coincide con los filtros.",
+      "filterAnySede": "Todas las sedes",
+      "filterSede": "Filtrar por sede",
+      "filterStatus": "Filtrar por estado",
+      "pendingCount_one": "{{count}} pendiente",
+      "pendingCount_many": "{{count}} pendientes",
+      "pendingCount_other": "{{count}} pendientes",
+      "rejectAria": "Rechazar la matrícula de {{student}}",
+      "searchPlaceholder": "Buscar estudiantes",
+      "stats": {
+        "approved": "Aprobadas",
+        "courses": "Cursos",
+        "pending": "Pendientes",
+        "sedes": "Sedes"
+      },
+      "statusFilter": {
+        "active": "Activas",
+        "all": "Todos los estados",
+        "approved": "Aprobadas",
+        "pending": "Pendientes",
+        "rejected": "Rechazadas",
+        "withdrawn": "Retiradas"
+      },
+      "subtitle": "Revisa y aprueba matrículas en cada sede y curso.",
       "title": "Matrículas",
       "unenroll": "Desmatricular",
-      "unenrollConfirm": "¿Eliminar esta matrícula?"
+      "unenrollConfirm": "¿Eliminar esta matrícula? Esto también elimina la calificación correspondiente."
     },
     "status": {
       "approved": "Aprobado",

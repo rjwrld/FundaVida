@@ -6,17 +6,16 @@ test('admin unenrolls a student from the enrollments list', async ({ page }) => 
   await page.getByRole('link', { name: 'Enrollments' }).click()
   await expect(page.getByRole('heading', { name: 'Enrollments' })).toBeVisible()
 
-  // Wait for the table to populate before counting rows.
-  await expect(page.getByRole('button', { name: /^Delete / }).first()).toBeVisible()
-  const initialRows = await page.getByRole('row').count()
-  await page
-    .getByRole('button', { name: /^Delete / })
-    .first()
-    .click()
+  // Wait for the grouped list to populate, then count the per-row Unenroll
+  // actions (their accessible name is "Delete {name}" via aria-label).
+  const rowUnenroll = page.getByRole('button', { name: /^Delete / })
+  await expect(rowUnenroll.first()).toBeVisible()
+  const initialCount = await rowUnenroll.count()
+  await rowUnenroll.first().click()
   // Styled confirmation modal — confirm with the "Unenroll" action.
   await page.getByRole('button', { name: 'Unenroll' }).click()
 
-  await expect.poll(async () => page.getByRole('row').count()).toBeLessThan(initialRows)
+  await expect.poll(async () => rowUnenroll.count()).toBeLessThan(initialCount)
 })
 
 test('list renders in Spanish when locale is ES', async ({ page }) => {
