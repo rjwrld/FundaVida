@@ -52,8 +52,10 @@ test('student requests a course and withdraws the request without reload (ADR-00
   const courseName = ((await courseNameButton.textContent()) ?? '').trim()
   await courseNameButton.click()
 
-  // Verify the course detail page loaded (heading is the course name)
-  await expect(page.getByRole('heading', { name: courseName })).toBeVisible()
+  // The browse list shows the full name; the detail heading shows the
+  // Sede-stripped display name (ADR-0021), so drop the "— {Sede}" segment.
+  const detailHeading = courseName.replace(/ — [^(]+?(?= \()/, '')
+  await expect(page.getByRole('heading', { name: detailHeading })).toBeVisible()
 
   // Request a spot
   const requestButton = page.getByRole('button', { name: 'Request a spot' })

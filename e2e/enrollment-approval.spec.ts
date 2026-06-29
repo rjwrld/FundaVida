@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import { seedDemo } from '../src/data/seed'
+import { shortCourseName } from '../src/lib/courseName'
 
 // Storage keys must match src/data/persistence.ts.
 const STATE_KEY = 'fundavida:v7:state'
@@ -28,7 +29,10 @@ if (!seedStudent) throw new Error(`seed must include ${STUDENT_ID}`)
 const STUDENT_NAME = `${seedStudent.firstName} ${seedStudent.lastName}`
 const seedCourse = seedSnapshot.courses.find((c) => c.id === COURSE_ID)
 if (!seedCourse) throw new Error(`seed must include ${COURSE_ID}`)
+// The approval queue and browse list show the full (unique) name; the courses
+// table and the Course detail heading show the Sede-stripped display name (ADR-0021).
 const COURSE_NAME = seedCourse.name
+const COURSE_SHORT = shortCourseName(seedCourse)
 
 type Snapshot = ReturnType<typeof seedDemo>
 
@@ -120,10 +124,11 @@ test.describe('enrollment approval workflow', () => {
     // Wait for the approval to persist before switching roles.
     await expect.poll(async () => persistedStatus(page, PENDING_ID)).toBe('approved')
 
-    // The approved course now appears in the student's own course list.
+    // The approved course now appears in the student's own course list (the
+    // courses table shows the Sede-stripped display name).
     await switchTo(page, 'student', STUDENT_ID)
     await page.getByRole('link', { name: 'Courses', exact: true }).click()
-    await expect(page.getByText(COURSE_NAME)).toBeVisible()
+    await expect(page.getByText(COURSE_SHORT)).toBeVisible()
   })
 
   test('teacher rejects a pending request', async ({ page }) => {
@@ -162,9 +167,10 @@ test.describe('enrollment approval workflow', () => {
     await page.getByRole('link', { name: 'Browse open courses' }).click()
     await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
 
-    // Open the browseable course detail and request a spot.
+    // Open the browseable course detail (browse list shows the full name; the
+    // detail heading shows the Sede-stripped display name) and request a spot.
     await page.getByRole('button', { name: COURSE_NAME }).click()
-    await expect(page.getByRole('heading', { name: COURSE_NAME })).toBeVisible()
+    await expect(page.getByRole('heading', { name: COURSE_SHORT })).toBeVisible()
     await page.getByRole('button', { name: 'Request a spot' }).click()
     await expect(page.getByText('Request pending')).toBeVisible()
 

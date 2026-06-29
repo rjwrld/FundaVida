@@ -35,6 +35,7 @@ import type { AttendanceRecord, AttendanceStatus, Course, Enrollment, Student } 
 import { GradeDialog } from '@/components/courses/GradeDialog'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
 import { CourseCertificatesSection } from '@/components/courses/CourseCertificatesSection'
+import { shortCourseName } from '@/lib/courseName'
 import { parseISO } from 'date-fns'
 
 interface GradingTarget {
@@ -274,7 +275,7 @@ export function CoursesDetailPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow={t('courses.detail.title')}
-        title={course.name}
+        title={shortCourseName(course)}
         description={programName}
         action={
           <>
