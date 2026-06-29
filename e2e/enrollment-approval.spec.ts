@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test'
 import { seedDemo } from '../src/data/seed'
 
 // Storage keys must match src/data/persistence.ts.
-const STATE_KEY = 'fundavida:v6:state'
+const STATE_KEY = 'fundavida:v7:state'
 const ROLE_KEY = 'fundavida:v2:role'
 const USER_KEY = 'fundavida:v2:current-user'
 const LOCALE_KEY = 'fundavida:v2:locale'
@@ -12,20 +12,23 @@ const EPOCH = new Date('2026-06-01T12:00:00.000Z')
 const EPOCH_ISO = EPOCH.toISOString()
 
 // Deterministic anchors probed from the seed:
-// cou-8 "Habilidades para la Vida 9" is published at Linda Vista (primaria),
+// cou-8 is a published primaria "Habilidades para la Vida" cohort at Linda Vista,
 // taught by tea-7, capacity 20, with stu-15 already approved. stu-1 (Linda
 // Vista/primaria) has no prior cou-8 enrollment, so a fresh 'pending' request is
-// valid and lands in tea-7's approval queue. The student name is derived from
-// the seed so the spec follows it rather than hardcoding a person.
+// valid and lands in tea-7's approval queue. The student and course names are
+// derived from the seed so the spec follows it rather than hardcoding strings.
 const TEACHER_ID = 'tea-7'
 const STUDENT_ID = 'stu-1'
 const COURSE_ID = 'cou-8'
-const COURSE_NAME = 'Habilidades para la Vida 9'
 const PENDING_ID = 'enr-e2e-pending'
 
-const seedStudent = seedDemo(EPOCH).students.find((s) => s.id === STUDENT_ID)
+const seedSnapshot = seedDemo(EPOCH)
+const seedStudent = seedSnapshot.students.find((s) => s.id === STUDENT_ID)
 if (!seedStudent) throw new Error(`seed must include ${STUDENT_ID}`)
 const STUDENT_NAME = `${seedStudent.firstName} ${seedStudent.lastName}`
+const seedCourse = seedSnapshot.courses.find((c) => c.id === COURSE_ID)
+if (!seedCourse) throw new Error(`seed must include ${COURSE_ID}`)
+const COURSE_NAME = seedCourse.name
 
 type Snapshot = ReturnType<typeof seedDemo>
 

@@ -1,5 +1,16 @@
 import { test, expect } from '@playwright/test'
 import { enterAs } from './helpers/auth'
+import { seedDemo } from '../src/data/seed'
+
+// The TCU approver is the Teacher who owns the volunteer's assigned Course
+// (ADR-0017). Derive that owner from the seed (deterministic under faker.seed(42))
+// rather than hardcoding it, so the spec follows seed changes.
+const tcuSnapshot = seedDemo(new Date())
+const tcuTrainee = tcuSnapshot.tcuTrainees.find((t) => t.id === 'tcu-1')
+if (!tcuTrainee) throw new Error('seed must include tcu-1')
+const tcuCourse = tcuSnapshot.courses.find((c) => c.id === tcuTrainee.courseId)
+if (!tcuCourse) throw new Error(`seed must include the trainee's course ${tcuTrainee.courseId}`)
+const TCU_COURSE_OWNER_ID = tcuCourse.teacherId
 
 test('tcu trainee sees only their own TCU activities', async ({ page }) => {
   await enterAs(page, 'tcu')
@@ -53,12 +64,12 @@ test('volunteer logs activity (pending) and teacher approves it', async ({ page 
   await expect(volunteerActivityRow.getByText('Pending')).toBeVisible()
 
   // Switch to the teacher who OWNS the volunteer's assigned course. The role
-  // switcher only maps teacher→tea-1, but tcu-1 is assigned to cou-22, owned by
-  // tea-8 (deterministic under faker.seed(42)). Seed that specific owner directly.
-  await page.evaluate(() => {
+  // switcher only maps teacher→tea-1, so seed the specific owner (derived from
+  // the seed above) directly.
+  await page.evaluate((ownerId) => {
     window.localStorage.setItem('fundavida:v2:role', 'teacher')
-    window.localStorage.setItem('fundavida:v2:current-user', 'tea-8')
-  })
+    window.localStorage.setItem('fundavida:v2:current-user', ownerId)
+  }, TCU_COURSE_OWNER_ID)
   await page.goto('/app')
 
   // Wait for the page to fully load
