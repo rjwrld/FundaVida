@@ -338,6 +338,17 @@ function applyTraineesScope(trainees: TraineeList, token: Scope, userId: string)
       // sees only their own record, never other volunteers (ADR-0008, ADR-0013 pattern).
       return trainees.filter((t) => t.id === userId)
     }
+    case 'assignedTrainees': {
+      // A Teacher sees the volunteers assigned to the Courses they own (ADR-0011/0017),
+      // mirroring the tcu-activities scope above — never a raw, unscoped store read.
+      const teacherCourseIds = new Set(
+        useStore
+          .getState()
+          .courses.filter((c) => c.teacherId === userId)
+          .map((c) => c.id)
+      )
+      return trainees.filter((t) => teacherCourseIds.has(t.courseId))
+    }
     default:
       return []
   }

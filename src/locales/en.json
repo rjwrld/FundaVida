@@ -264,9 +264,13 @@
       "sections": {
         "attendance": "Mark attendance",
         "certificates": "Certificates",
+        "noSchedule": "No sessions scheduled for this course.",
         "noStudents": "No students enrolled.",
+        "noVolunteers": "No volunteers assigned to this course.",
         "overview": "Overview",
+        "schedule": "Schedule",
         "students": "Students",
+        "volunteers": "Volunteers",
         "yourAttendance": "Your attendance",
         "yourRecords": "Your records"
       },
