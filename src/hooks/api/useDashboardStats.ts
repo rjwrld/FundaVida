@@ -23,7 +23,6 @@ export interface DashboardStats {
   activeCourses: number
   certsIssued: number
   tcuHours: number
-  pendingApprovals: number
   recentActivity: AuditLogEntry[]
   topCourses: TopCourse[]
   recentTcu: TcuActivity[]
@@ -55,10 +54,8 @@ export function useDashboardStats(): DashboardStats {
     const activeCourses = courses.filter((c) => (courseEnrollmentCounts.get(c.id) ?? 0) > 0).length
 
     // A Certificate is "issued" the moment it exists — closing its Course emits it
-    // already downloadable (ADR-0024). Approval is gone, so nothing is ever pending;
-    // the `pendingApprovals` surfaces are retired in a follow-up (#149).
+    // already downloadable (ADR-0024). Approval is gone, so there is no pending count.
     const certsIssued = certificates.length
-    const pendingApprovals = 0
 
     const tcuHours = tcuActivities.reduce((sum, t) => sum + t.hours, 0)
 
@@ -109,7 +106,6 @@ export function useDashboardStats(): DashboardStats {
       activeCourses,
       certsIssued,
       tcuHours,
-      pendingApprovals,
       recentActivity,
       topCourses,
       recentTcu,
