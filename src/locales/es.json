@@ -337,15 +337,6 @@
       "title": "Asistencia este mes",
       "trendLabel": "Últimas 7 sesiones"
     },
-    "pendingApprovals": {
-      "cta": "Revisar",
-      "description_one": "{{count}} matrícula está esperando calificación.",
-      "description_many": "{{count}} matrículas están esperando calificación.",
-      "description_other": "{{count}} matrículas están esperando calificación.",
-      "title": "Pendientes de aprobación",
-      "zero": "¡Todo al día!",
-      "zeroSubtitle": "Todas las matrículas tienen calificación. Buen trabajo."
-    },
     "recentActivity": {
       "actor": {
         "admin": "Admin",
@@ -406,11 +397,7 @@
       "tcuLogged": "TCU registrado: {{title}}"
     },
     "welcome": {
-      "context_one": "Tienes {{count}} matrícula esperando calificación.",
-      "context_many": "Tienes {{count}} matrículas esperando calificación.",
-      "context_other": "Tienes {{count}} matrículas esperando calificación.",
-      "contextZero": "Todo está calificado. Hora de un café.",
-      "cta": "Revisar pendientes",
+      "context": "Así van tus sedes hoy.",
       "eyebrow": "Hoy",
       "greeting": "Hola, {{name}} 👋"
     }

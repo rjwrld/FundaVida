@@ -336,14 +336,6 @@
       "title": "Attendance this month",
       "trendLabel": "Last 7 sessions"
     },
-    "pendingApprovals": {
-      "cta": "Review",
-      "description_one": "{{count}} enrollment is awaiting a grade.",
-      "description_other": "{{count}} enrollments are awaiting a grade.",
-      "title": "Pending approvals",
-      "zero": "All caught up!",
-      "zeroSubtitle": "Every enrollment has a grade. Nice work."
-    },
     "recentActivity": {
       "actor": {
         "admin": "Admin",
@@ -404,10 +396,7 @@
       "tcuLogged": "TCU logged: {{title}}"
     },
     "welcome": {
-      "context_one": "You have {{count}} enrollment awaiting a grade.",
-      "context_other": "You have {{count}} enrollments awaiting a grade.",
-      "contextZero": "Everything is graded. Time for a coffee.",
-      "cta": "Review pending",
+      "context": "Here's how your campuses are doing today.",
       "eyebrow": "Today",
       "greeting": "Hola, {{name}} 👋"
     }
