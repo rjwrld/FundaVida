@@ -1,6 +1,18 @@
 import { test, expect } from '@playwright/test'
+import { seedDemo } from '../src/data/seed'
 
-test('admin runs the full chain: create student, enroll, grade, certificate', async ({ page }) => {
+// A published Linda Vista / primaria cohort — matches the new student the chain
+// creates (campus Linda Vista, default level primaria), so they are enroll-eligible,
+// and it is published so the chain can close it to emit the Certificate (ADR-0024).
+const world = seedDemo(new Date())
+const chainCourse = world.courses.find(
+  (c) => c.status === 'published' && c.sede === 'Linda Vista' && c.level === 'primaria'
+)
+if (!chainCourse) throw new Error('seed has no published Linda Vista primaria course')
+
+test('admin runs the full chain: create student, enroll, grade, close, certificate', async ({
+  page,
+}) => {
   const suffix = Date.now()
   const firstName = `E2EChain${suffix}`
   const lastName = 'Tester'
@@ -35,9 +47,11 @@ test('admin runs the full chain: create student, enroll, grade, certificate', as
   // Modal closes; the student now exists (selected via the Enroll dialog below).
   await expect(page.getByRole('heading', { name: 'New student' })).toBeHidden()
 
+  // Navigate via the SPA (not page.goto) so the just-created student stays in the
+  // in-memory store — a full reload could race the debounced localStorage flush.
   await page.getByRole('link', { name: 'Courses' }).click()
   await expect(page.getByRole('heading', { name: 'Courses' })).toBeVisible()
-  await page.getByRole('table').getByRole('link').first().click()
+  await page.locator(`a[href$="/courses/${chainCourse.id}"]`).click()
 
   await page.getByRole('button', { name: 'Enroll student' }).click()
   await expect(page.getByRole('heading', { name: 'Enroll student' })).toBeVisible()
@@ -57,20 +71,17 @@ test('admin runs the full chain: create student, enroll, grade, certificate', as
 
   await expect(page.getByRole('row').filter({ hasText: fullName })).toContainText('95')
 
-  await page.getByRole('link', { name: 'Certificates' }).click()
-  await expect(page.getByRole('heading', { name: 'Certificates', exact: true })).toBeVisible()
+  // Closing the Course emits a downloadable Certificate for every passing Student,
+  // all at once (ADR-0024) — there is no separate approval step.
+  await page.getByRole('button', { name: 'Close course' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Close course' }).click()
 
-  // A passing grade creates a *pending* certificate; an admin approves it from the
-  // pending-first worklist's "Needs approval" tab (ADR-0019), which makes the PDF
-  // available under the "Approved" tab.
-  await page
-    .getByRole('button', { name: new RegExp(`Approve certificate for ${firstName}`, 'i') })
-    .click()
-
-  await page.getByRole('tab', { name: 'Approved' }).click()
+  // The new student's Certificate now appears in the in-course Certificates section,
+  // immediately downloadable; the Close action is gone (the cohort is closed).
   const certCard = page.getByRole('button', {
     name: new RegExp(`Open preview for ${firstName}`, 'i'),
   })
   await expect(certCard).toBeVisible()
   await expect(certCard).toContainText('95')
+  await expect(page.getByRole('button', { name: 'Close course' })).toHaveCount(0)
 })

@@ -1,10 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import type { CertificateStatus } from '@/types'
 
 interface Props {
   cert: {
@@ -13,37 +11,15 @@ interface Props {
     courseName: string
     issuedAt: string
     grade: string
-    status: CertificateStatus
   }
-  /** Open the PDF preview — only wired for approved Certificates. */
+  /** Open the PDF preview. A Certificate exists iff its PDF is available (ADR-0024). */
   onOpen?: () => void
-  /** Approve a pending Certificate — only wired for an admin. */
-  onApprove?: () => void
-  approving?: boolean
-  /**
-   * The Certificate's owner (a Student) viewing their own record. Shifts the
-   * pending label to "in review" and surfaces a disabled download, so the
-   * receiving side reads the workflow from its own perspective (issue #73).
-   */
-  recipientView?: boolean
   className?: string
 }
 
-export function CertificateCard({
-  cert,
-  onOpen,
-  onApprove,
-  approving,
-  recipientView,
-  className,
-}: Props) {
+export function CertificateCard({ cert, onOpen, className }: Props) {
   const { t } = useTranslation()
-  const isApproved = cert.status === 'approved'
-  const clickable = isApproved && Boolean(onOpen)
-  const statusLabel =
-    recipientView && !isApproved
-      ? t('certificates.status.inReview')
-      : t(`certificates.status.${cert.status}`)
+  const clickable = Boolean(onOpen)
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (!clickable) return
@@ -102,26 +78,10 @@ export function CertificateCard({
               {cert.grade}
             </span>
           </div>
-          <Badge variant={isApproved ? 'success' : 'warning'} dot>
-            {statusLabel}
+          <Badge variant="success" dot>
+            {t('certificates.status.issued')}
           </Badge>
         </div>
-        {!isApproved && onApprove && (
-          <Button
-            size="sm"
-            className="mt-4 w-full"
-            onClick={onApprove}
-            disabled={approving}
-            aria-label={t('certificates.list.approveAria', { student: cert.studentName })}
-          >
-            {t('certificates.list.approve')}
-          </Button>
-        )}
-        {!isApproved && recipientView && (
-          <Button size="sm" variant="outline" className="mt-4 w-full" disabled aria-disabled="true">
-            {t('certificates.list.downloadPdf')}
-          </Button>
-        )}
       </CardContent>
     </Card>
   )

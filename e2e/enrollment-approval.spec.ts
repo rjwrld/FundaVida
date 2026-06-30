@@ -3,7 +3,7 @@ import { seedDemo } from '../src/data/seed'
 import { shortCourseName } from '../src/lib/courseName'
 
 // Storage keys must match src/data/persistence.ts.
-const STATE_KEY = 'fundavida:v9:state'
+const STATE_KEY = 'fundavida:v10:state'
 const ROLE_KEY = 'fundavida:v2:role'
 const USER_KEY = 'fundavida:v2:current-user'
 const LOCALE_KEY = 'fundavida:v2:locale'
@@ -13,14 +13,15 @@ const EPOCH = new Date('2026-06-01T12:00:00.000Z')
 const EPOCH_ISO = EPOCH.toISOString()
 
 // Deterministic anchors probed from the seed:
-// cou-8 is a published primaria "Habilidades para la Vida" cohort at Linda Vista,
-// taught by tea-7, capacity 20, with stu-15 already approved. stu-1 (Linda
-// Vista/primaria) has no prior cou-8 enrollment, so a fresh 'pending' request is
-// valid and lands in tea-7's approval queue. The student and course names are
-// derived from the seed so the spec follows it rather than hardcoding strings.
-const TEACHER_ID = 'tea-7'
+// cou-12 is a published primaria cohort at Linda Vista, taught by tea-4, capacity
+// 30, with several students already approved. stu-1 (Linda Vista/primaria) has no
+// prior cou-12 enrollment, so a fresh 'pending' request is valid and lands in
+// tea-4's approval queue. (cou-8 — the prior anchor — became a *closed* completed
+// cohort under ADR-0024, so it is no longer browseable.) The student and course
+// names are derived from the seed so the spec follows it rather than hardcoding.
+const TEACHER_ID = 'tea-4'
 const STUDENT_ID = 'stu-1'
-const COURSE_ID = 'cou-8'
+const COURSE_ID = 'cou-12'
 const PENDING_ID = 'enr-e2e-pending'
 
 const seedSnapshot = seedDemo(EPOCH)
@@ -142,10 +143,10 @@ test.describe('enrollment approval workflow', () => {
   })
 
   test('approve is disabled with a reason when the course is at capacity', async ({ page }) => {
-    // cou-8 already has one approved (stu-15); capping capacity at 1 makes it full.
+    // cou-12 already has approved enrollments; capping capacity at 1 makes it full.
     const snapshot = snapshotWithPending((snap) => {
       const course = snap.courses.find((c) => c.id === COURSE_ID)
-      if (!course) throw new Error('cou-8 missing from seed')
+      if (!course) throw new Error(`${COURSE_ID} missing from seed`)
       course.capacity = 1
     })
     await seedAndEnter(page, snapshot, 'teacher', TEACHER_ID)

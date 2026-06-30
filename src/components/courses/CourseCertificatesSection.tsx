@@ -4,8 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { CertificateCard } from '@/components/certificates/CertificateCard'
 import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog'
 import { useStore } from '@/data/store'
-import { useCertificates, useApproveCertificate } from '@/hooks/api'
-import { useCan } from '@/hooks/useCan'
+import { useCertificates } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
 import type { Course } from '@/types'
@@ -16,16 +15,15 @@ interface CardItem {
   programName: string
   score: number
   grade: string
-  status: 'pending' | 'approved'
   issuedAtIso: string
   issuedAt: string
 }
 
 /**
  * The Certificates module embedded in a Course's detail page: the owning Teacher
- * and admin see this Course's earned Certificates and approve the pending ones
- * in context (ADR-0019, ADR-0022), with the same preview/download as the global
- * worklist. Gated by the caller to the roster-viewing audience.
+ * and admin see this Course's emitted Certificates and can preview/download each
+ * (ADR-0024, list-only — closing the Course is what emits them). Gated by the
+ * caller to the roster-viewing audience.
  */
 export function CourseCertificatesSection({ course }: { course: Course }) {
   const { t } = useTranslation()
@@ -33,8 +31,6 @@ export function CourseCertificatesSection({ course }: { course: Course }) {
   const students = useStore((s) => s.students)
   const programName = useStore((s) => s.programs).find((p) => p.id === course.programId)?.name ?? ''
   const { data: certificates = [] } = useCertificates({ courseId: course.id })
-  const approve = useApproveCertificate()
-  const canApprove = useCan('approve', 'certificates', { course })
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [dataUrl, setDataUrl] = useState<string | null>(null)
@@ -45,30 +41,26 @@ export function CourseCertificatesSection({ course }: { course: Course }) {
     for (const cert of certificates) {
       const student = studentById.get(cert.studentId)
       if (!student) continue
-      const dateIso =
-        cert.status === 'approved' ? (cert.approvedAt ?? cert.createdAt) : cert.createdAt
       result.push({
         id: cert.id,
         studentName: `${student.firstName} ${student.lastName}`,
         programName,
         score: cert.score,
         grade: formatGrade(cert.score),
-        status: cert.status,
-        issuedAtIso: dateIso,
-        issuedAt: formatDate(dateIso),
+        issuedAtIso: cert.issuedAt,
+        issuedAt: formatDate(cert.issuedAt),
       })
     }
     return result
   }, [certificates, students, programName, formatDate, formatGrade])
 
-  // Only an approved Certificate has a PDF to preview/download.
   const selected = useMemo(
-    () => items.find((c) => c.id === selectedId && c.status === 'approved') ?? null,
+    () => items.find((c) => c.id === selectedId) ?? null,
     [items, selectedId]
   )
 
-  // Pre-generate the PDF as an opaque blob URL when an approved certificate is
-  // selected, matching the global worklist's download behavior.
+  // Pre-generate the PDF as an opaque blob URL when a certificate is selected,
+  // matching the global gallery's download behavior.
   useEffect(() => {
     if (!selected) {
       setDataUrl(null)
@@ -118,13 +110,8 @@ export function CourseCertificatesSection({ course }: { course: Course }) {
                 courseName: course.name,
                 issuedAt: item.issuedAt,
                 grade: item.grade,
-                status: item.status,
               }}
-              onOpen={item.status === 'approved' ? () => setSelectedId(item.id) : undefined}
-              onApprove={
-                canApprove && item.status === 'pending' ? () => approve.mutate(item.id) : undefined
-              }
-              approving={approve.isPending}
+              onOpen={() => setSelectedId(item.id)}
             />
           ))}
         </div>

@@ -94,7 +94,9 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     courses: { view: true, create: true, edit: true, delete: true, close: true },
     enrollments: { view: true, create: true, edit: true, delete: true, approve: true },
     grades: { view: true, edit: true, enter: true, delete: true },
-    certificates: { view: true, approve: true },
+    // Certificates are emitted by closing a Course (ADR-0024); there is no
+    // approval, so admin only views them.
+    certificates: { view: true },
     attendance: { view: true, mark: true },
     tcu: { view: true, log: true, approve: true },
     reports: { view: true },
@@ -114,11 +116,10 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     // checks stay denied (the predicate needs a course).
     enrollments: { view: courseOwned, create: courseOwned, approve: courseOwned },
     grades: { view: true, enter: courseOwnedAndEnded, edit: courseOwnedAndEnded },
-    // A Teacher views certificates earned in the Courses they own and may approve
-    // them (ADR-0019). `view: true` (unscoped) opens the nav/route; the data scope
-    // ('ownCourses') narrows the list, and `approve` is gated per-course by the
-    // courseOwned predicate, enforced at the store with the cert's Course in context.
-    certificates: { view: true, approve: courseOwned },
+    // A Teacher views certificates earned in the Courses they own (ADR-0024).
+    // `view: true` (unscoped) opens the nav/route; the data scope ('ownCourses')
+    // narrows the list. There is no approval — closing the Course emits them.
+    certificates: { view: true },
     attendance: { view: true, mark: courseOwned },
     // A Teacher may approve TCU activities for trainees assigned to their courses (ADR-0017)
     tcu: { approve: teacherCanApproveTcuActivity },

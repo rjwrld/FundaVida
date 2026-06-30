@@ -31,9 +31,9 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v9 key', () => {
+  it('persists state under the v10 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v9:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v10:state')).not.toBeNull()
   })
 
   it('reseeds from a stale v2 snapshot and removes the stale v2 state key (ADR-0014)', () => {
@@ -103,6 +103,29 @@ describe('persistence', () => {
 
     expect(loadPersistedState()).toBeNull()
     expect(window.localStorage.getItem('fundavida:v8:state')).toBeNull()
+  })
+
+  it('reseeds from a stale v9 snapshot and removes the stale v9 state key (ADR-0024)', () => {
+    // A returning v9 visitor's snapshot predates the Certificate rework: its certs
+    // carry status/approvedAt instead of issuedAt. The v10 key bump makes it stale;
+    // it is dropped so the app reseeds rather than rehydrating approval-era certs.
+    window.localStorage.setItem('fundavida:v9:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v9:state')).toBeNull()
+  })
+
+  it('rejects a snapshot whose certificate has the v9 shape (status, no issuedAt)', () => {
+    // A v9-shaped Certificate (pending/approved status, createdAt, no issuedAt)
+    // under the v10 key must be rejected so the world reseeds (ADR-0024).
+    const snapshot = seedDemo(new Date())
+    expect(snapshot.certificates.length).toBeGreaterThan(0)
+    const cert = snapshot.certificates[0] as unknown as Record<string, unknown>
+    delete cert.issuedAt
+    cert.status = 'approved'
+    cert.createdAt = new Date().toISOString()
+    savePersistedState(snapshot as never)
+    expect(loadPersistedState()).toBeNull()
   })
 
   it('rejects a snapshot whose students lack the encargado (pre-guardian reseeds)', () => {

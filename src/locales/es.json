@@ -141,49 +141,28 @@
   },
   "certificates": {
     "empty": {
-      "body": "Un certificado aparece aquí cuando se guarda una nota de aprobación.",
+      "body": "Un certificado aparece aquí cuando se cierra un curso.",
       "cta": "Ver matrículas",
       "heading": "Aún no hay certificados emitidos"
     },
     "list": {
-      "approve": "Aprobar",
-      "approveAria": "Aprobar certificado de {{student}}",
+      "allCourses": "Todos los cursos",
       "cardAria": "Abrir vista previa de {{student}} — {{course}}",
       "dialog": {
         "title": "Vista previa del certificado"
       },
       "downloadPdf": "Descargar PDF",
+      "filterByCourse": "Filtrar por curso",
       "noMatches": "Ningún certificado coincide con \"{{query}}\".",
       "search": {
         "ariaLabel": "Buscar certificados por nombre del estudiante",
         "placeholder": "Buscar por nombre del estudiante…"
       },
-      "subtitle": "Una nota de aprobación (≥ 70) genera un certificado. Al aprobarlo se habilita el PDF para previsualizar y descargar.",
+      "subtitle": "Al cerrar un curso se emite un certificado para cada estudiante aprobado: aquí puede previsualizar y descargar cada uno.",
       "title": "Certificados"
     },
     "status": {
-      "approved": "Aprobado",
-      "inReview": "En revisión",
-      "pending": "Pendiente"
-    },
-    "worklist": {
-      "allCourses": "Todos los cursos",
-      "approveAll": "Aprobar todos",
-      "approveAllAria": "Aprobar los {{total}} certificados pendientes",
-      "columns": {
-        "actions": "Acciones",
-        "course": "Curso",
-        "grade": "Nota",
-        "issued": "Emitido",
-        "student": "Estudiante"
-      },
-      "emptyApproved": "Aún no hay certificados aprobados.",
-      "emptyPending": "Nada pendiente: todos los certificados están aprobados.",
-      "filterByCourse": "Filtrar por curso",
-      "tabs": {
-        "approved": "Aprobados",
-        "pending": "Por aprobar"
-      }
+      "issued": "Emitido"
     }
   },
   "common": {
@@ -263,7 +242,7 @@
         "status": "Estado"
       },
       "certificates": {
-        "empty": "Los certificados aparecen aquí cuando se registran notas de aprobación en este curso."
+        "empty": "Los certificados aparecen aquí cuando se cierra este curso."
       },
       "close": "Cerrar curso",
       "closeConfirm": {
@@ -863,8 +842,6 @@
   },
   "toasts": {
     "campaignSent": "Campaña enviada correctamente.",
-    "certificateApproved": "Certificado aprobado.",
-    "certificatesApproved": "Certificados aprobados.",
     "courseClosed": "Curso cerrado.",
     "courseCreated": "Curso creado.",
     "courseDeleted": "Curso eliminado.",

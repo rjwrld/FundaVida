@@ -58,15 +58,9 @@ describe('useCan hook', () => {
     expect(result.current).toBe(true)
   })
 
-  it('returns true for admin approving certificates', () => {
+  it('returns true for admin viewing certificates', () => {
     useStore.getState().setRole('admin')
-    const { result } = renderHook(() => useCan('approve', 'certificates'))
+    const { result } = renderHook(() => useCan('view', 'certificates'))
     expect(result.current).toBe(true)
-  })
-
-  it('returns false for student approving certificates', () => {
-    useStore.getState().setRole('student')
-    const { result } = renderHook(() => useCan('approve', 'certificates'))
-    expect(result.current).toBe(false)
   })
 })

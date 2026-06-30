@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/data/api'
 import { useStore } from '@/data/store'
 import type { CertificateFilters } from '@/data/api/certificates'
-import { makeEntityMutation } from './makeEntityMutation'
 
 export const CERTIFICATES_KEY = ['certificates'] as const
 
@@ -15,15 +14,3 @@ export function useCertificates(filters: CertificateFilters = {}) {
     queryFn: () => api.certificates.list(filters),
   })
 }
-
-export const useApproveCertificate = makeEntityMutation('approveCertificate')({
-  toastKey: 'toasts.certificateApproved',
-  invalidates: [CERTIFICATES_KEY],
-})
-
-// Bulk approve: one toast, one audit entry. Invalidates the same key as the
-// single approve so the worklist and the dashboard's pending widget refresh.
-export const useApproveCertificates = makeEntityMutation('approveCertificates')({
-  toastKey: 'toasts.certificatesApproved',
-  invalidates: [CERTIFICATES_KEY],
-})

@@ -1,5 +1,25 @@
 import { test, expect } from '@playwright/test'
 import { enterAs } from './helpers/auth'
+import { seedDemo } from '../src/data/seed'
+import { shortCourseName } from '../src/lib/courseName'
+
+// A clean browseable course for the student persona (stu-1, Linda Vista / primaria)
+// with no prior enrollment — so the request flow below is a fresh request, not a
+// re-request of stu-1's seeded rejected/withdrawn cohorts. Derived from the seed
+// (faker.seed(42), epoch-independent structure; the floating month matches the app
+// because both seed at wall-time).
+const browseWorld = seedDemo(new Date())
+const stu1Enrolled = new Set(
+  browseWorld.enrollments.filter((e) => e.studentId === 'stu-1').map((e) => e.courseId)
+)
+const cleanBrowseCourse = browseWorld.courses.find(
+  (c) =>
+    c.status === 'published' &&
+    c.sede === 'Linda Vista' &&
+    c.level === 'primaria' &&
+    !stu1Enrolled.has(c.id)
+)
+if (!cleanBrowseCourse) throw new Error('seed has no clean browseable course for stu-1')
 
 test('teacher grades a student in their course', async ({ page }) => {
   await enterAs(page, 'teacher')
@@ -46,16 +66,16 @@ test('student requests a course and withdraws the request without reload (ADR-00
   await page.getByRole('link', { name: 'Browse open courses' }).click()
   await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
 
-  // Open a browseable course. Each row's name is a button (not a link) that
-  // navigates to the read-only detail.
-  const courseNameButton = page.getByRole('table').getByRole('button').first()
-  const courseName = ((await courseNameButton.textContent()) ?? '').trim()
-  await courseNameButton.click()
+  // Open a clean browseable course (no prior enrollment for stu-1) so this exercises
+  // a fresh request rather than a re-request of a rejected/withdrawn cohort. Each
+  // row's name is a button (not a link) that navigates to the read-only detail.
+  await page.getByRole('table').getByRole('button', { name: cleanBrowseCourse.name }).click()
 
   // The browse list shows the full name; the detail heading shows the
-  // Sede-stripped display name (ADR-0021), so drop the "— {Sede}" segment.
-  const detailHeading = courseName.replace(/ — [^(]+?(?= \()/, '')
-  await expect(page.getByRole('heading', { name: detailHeading })).toBeVisible()
+  // Sede-stripped display name (ADR-0021).
+  await expect(
+    page.getByRole('heading', { name: shortCourseName(cleanBrowseCourse) })
+  ).toBeVisible()
 
   // Request a spot
   const requestButton = page.getByRole('button', { name: 'Request a spot' })

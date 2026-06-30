@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test'
 import { enterAs } from './helpers/auth'
 import { seedDemo } from '../src/data/seed'
 
-const STATE_KEY = 'fundavida:v9:state'
+const STATE_KEY = 'fundavida:v10:state'
 
 // Deterministic anchors from the seed (faker.seed(42), epoch-independent):
 // tea-1 is the teacher persona at Linda Vista; stu-1 is a Linda Vista / primaria

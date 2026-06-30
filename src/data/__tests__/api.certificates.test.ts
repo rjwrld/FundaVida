@@ -11,12 +11,13 @@ describe('certificatesApi', () => {
     useStore.getState().resetDemo()
   })
 
-  it('returns all certificates for admin, pending and approved alike', async () => {
+  it('returns all certificates for admin, each downloadable (ADR-0024)', async () => {
     useStore.getState().setRole('admin')
     const result = await certificatesApi.list()
     expect(result.length).toBeGreaterThan(0)
-    expect(result.some((c) => c.status === 'pending')).toBe(true)
-    expect(result.some((c) => c.status === 'approved')).toBe(true)
+    // No pending/approved status — every Certificate exists already downloadable,
+    // carrying its emit instant as issuedAt.
+    expect(result.every((c) => typeof c.issuedAt === 'string')).toBe(true)
   })
 
   it('a student sees only their own certificates (ADR-0012)', async () => {
@@ -43,10 +44,13 @@ describe('certificatesApi', () => {
     expect(await certificatesApi.list()).toEqual([])
   })
 
-  it('filters by status', async () => {
+  it('filters by courseId', async () => {
     useStore.getState().setRole('admin')
-    const pending = await certificatesApi.list({ status: 'pending' })
-    expect(pending.length).toBeGreaterThan(0)
-    expect(pending.every((c) => c.status === 'pending')).toBe(true)
+    const all = await certificatesApi.list()
+    const courseId = all[0]?.courseId
+    expect(courseId).toBeTruthy()
+    const filtered = await certificatesApi.list({ courseId })
+    expect(filtered.length).toBeGreaterThan(0)
+    expect(filtered.every((c) => c.courseId === courseId)).toBe(true)
   })
 })

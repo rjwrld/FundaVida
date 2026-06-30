@@ -32,8 +32,8 @@ The single 0–100 score a Teacher issues for one Enrollment after the Term ends
 _Avoid_: score (as an entity name), mark
 
 **Certificate**:
-Recognition of a passing Grade. Created automatically as _pending_ when the passing Grade is saved; _approved_ by an admin, which is what makes the PDF available.
-_Avoid_: diploma, eligible/eligibility (the old derived-list vocabulary)
+Recognition of a passing Grade. Emitted when the Course is **closed** (ADR-0024), one per enrolled Student with a passing Grade (≥70), with the Grade's score snapshotted. A Certificate exists iff its Course was closed iff the PDF is available — there is no _pending_ or _approved_ state, and no approval step.
+_Avoid_: diploma, eligible/eligibility (the old derived-list vocabulary); pending/approved (the removed approval vocabulary)
 
 **Attendance**:
 A per-Session, per-enrolled-student present/absent record, marked by the Course's Teacher (or an admin).

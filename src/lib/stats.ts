@@ -29,7 +29,7 @@ export interface StatDeltas {
 export interface StatDeltaInput {
   students: readonly { createdAt: string }[]
   enrollments: readonly { courseId: string; enrolledAt: string }[]
-  certificates: readonly { status: 'pending' | 'approved'; approvedAt?: string }[]
+  certificates: readonly { issuedAt: string }[]
   tcuActivities: readonly { hours: number; date: string }[]
 }
 
@@ -51,9 +51,10 @@ export function dashboardStatDeltas(data: StatDeltaInput, now: Date): StatDeltas
     data.enrollments.filter((e) => before(e.enrolledAt)).map((e) => e.courseId)
   ).size
 
-  const approved = data.certificates.filter((c) => c.status === 'approved')
-  const certsNow = approved.length
-  const certsPrior = approved.filter((c) => before(c.approvedAt)).length
+  // A Certificate is "issued" the moment it exists — closing its Course emits it
+  // already downloadable (ADR-0024), dated by `issuedAt`.
+  const certsNow = data.certificates.length
+  const certsPrior = data.certificates.filter((c) => before(c.issuedAt)).length
 
   const sumHours = (records: StatDeltaInput['tcuActivities']) =>
     records.reduce((sum, t) => sum + t.hours, 0)

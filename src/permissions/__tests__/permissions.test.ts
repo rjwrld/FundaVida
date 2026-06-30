@@ -73,7 +73,7 @@ describe('Permissions Matrix', () => {
           create: false,
           edit: false,
           delete: false,
-          approve: true,
+          approve: false,
           mark: false,
           log: false,
           enter: false,
@@ -195,7 +195,7 @@ describe('Permissions Matrix', () => {
           create: false,
           edit: false,
           delete: false,
-          approve: 'courseOwned',
+          approve: false,
           mark: false,
           log: false,
           enter: false,
@@ -771,54 +771,6 @@ describe('Permissions Matrix', () => {
           },
         }
         expect(can('teacher', 'view', 'enrollments', context)).toBe(false)
-      })
-
-      it('teacher approve certificates: true when the certificate course is owned', () => {
-        const context: PermissionContext = {
-          userId: 'teacher-1',
-          course: {
-            id: 'course-1',
-            name: 'Math 101',
-            description: 'Advanced calculus',
-            sede: 'Linda Vista',
-            programId: 'prog-1',
-            level: 'primaria',
-            status: 'published',
-            capacity: 20,
-            teacherId: 'teacher-1',
-            term: {
-              start: '2025-01-01T00:00:00.000Z',
-              end: '2025-06-01T00:00:00.000Z',
-            },
-            meetingDays: ['mon', 'wed'],
-            createdAt: '2025-01-01T00:00:00.000Z',
-          },
-        }
-        expect(can('teacher', 'approve', 'certificates', context)).toBe(true)
-      })
-
-      it('teacher approve certificates: false when the certificate course is not owned', () => {
-        const context: PermissionContext = {
-          userId: 'teacher-1',
-          course: {
-            id: 'course-1',
-            name: 'Math 101',
-            description: 'Advanced calculus',
-            sede: 'Linda Vista',
-            programId: 'prog-1',
-            level: 'primaria',
-            status: 'published',
-            capacity: 20,
-            teacherId: 'teacher-2', // different teacher
-            term: {
-              start: '2025-01-01T00:00:00.000Z',
-              end: '2025-06-01T00:00:00.000Z',
-            },
-            meetingDays: ['mon', 'wed'],
-            createdAt: '2025-01-01T00:00:00.000Z',
-          },
-        }
-        expect(can('teacher', 'approve', 'certificates', context)).toBe(false)
       })
 
       it('tcu log activity: true when activity traineeId matches userId', () => {

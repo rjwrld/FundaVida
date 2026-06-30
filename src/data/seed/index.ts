@@ -64,7 +64,7 @@ export interface SeedSnapshot {
 
 // The seeded teacher persona (the current user behind the 'teacher' role) owns
 // the just-ended, ungraded Course — the golden-path runway for the
-// teacher-grades → admin-approves → student-downloads story.
+// teacher-grades → teacher-closes → student-downloads story (ADR-0024).
 const TEACHER_PERSONA_INDEX = 0 // tea-1
 
 // A few students join within the dashboard's trailing window so the headline
@@ -398,7 +398,9 @@ function buildCourses(epoch: Date, plans: CoursePlan[], teachers: Teacher[]): Co
         sede,
         programId: program.id,
         level,
-        status: 'published',
+        // Completed cohorts are closed — a Teacher ran the close ceremony, which
+        // emitted their Certificates (ADR-0024). Every other role stays published.
+        status: plan.role === 'completed' ? 'closed' : 'published',
         capacity: 20 + (templateIndex % 3) * 5,
         teacherId: cohortTeacherId,
         term: { start: termStart.toISOString(), end: termEnd.toISOString() },
@@ -628,64 +630,33 @@ function buildGrades(
 }
 
 /**
- * A Certificate is created (pending) the moment a passing Grade is saved, and an
- * admin later approves it — which is what makes the PDF available (CONTEXT.md).
- * The seed mirrors that story: every passing Grade earns a Certificate, the older
- * cohorts' Certificates are already approved, and the three most recently graded
- * sit pending so an admin has approvals waiting on first load (issue #69). At
- * least one of those pending Certificates is forced onto a persona-Teacher Course
- * so the Teacher's own approval worklist is non-empty on load (ADR-0019).
+ * A Certificate is emitted when a Course closes (ADR-0024): one per enrolled
+ * Student with a passing Grade, immediately downloadable. The seed mirrors that
+ * story — every passing Grade in a *closed* cohort earns a downloadable
+ * Certificate, dated a few days after the Grade was issued (the stand-in close
+ * instant), never in the future. There is no pending/approved state.
  */
 function buildCertificates(
   epoch: Date,
   grades: Grade[],
-  personaCourseIds: Set<string>
+  closedCourseIds: Set<string>
 ): Certificate[] {
   const epochDay = startOfDay(epoch)
   const passing = grades
-    .filter((g) => g.score >= PASSING_SCORE)
+    .filter((g) => g.score >= PASSING_SCORE && closedCourseIds.has(g.courseId))
     .sort((a, b) => (a.issuedAt < b.issuedAt ? -1 : a.issuedAt > b.issuedAt ? 1 : 0))
 
-  // The most recently graded sit pending; approve the rest.
-  const pendingCount = Math.min(3, passing.length)
-  const pendingIdx = new Set<number>()
-  for (let i = passing.length - pendingCount; i < passing.length; i++) pendingIdx.add(i)
-
-  // Guarantee the persona Teacher has at least one pending approval of their own:
-  // if none of the latest-graded fall on their Courses, also leave their most
-  // recent passing Grade pending (ADR-0019).
-  const isPersona = (i: number): boolean => {
-    const courseId = passing[i]?.courseId
-    return courseId !== undefined && personaCourseIds.has(courseId)
-  }
-  if (![...pendingIdx].some(isPersona)) {
-    for (let i = passing.length - 1; i >= 0; i--) {
-      if (isPersona(i)) {
-        pendingIdx.add(i)
-        break
-      }
-    }
-  }
-
   return passing.map((grade, i) => {
-    const base = {
+    // Issued a few days after the Grade, standing in for the close instant; capped
+    // at the epoch so it is never in the future.
+    let issuedAt = addDays(new Date(grade.issuedAt), faker.number.int({ min: 1, max: 7 }))
+    if (issuedAt > epochDay) issuedAt = epochDay
+    return {
       id: `cert-${i + 1}`,
       studentId: grade.studentId,
       courseId: grade.courseId,
       score: grade.score,
-      createdAt: grade.issuedAt,
-    }
-    if (pendingIdx.has(i)) {
-      return { ...base, status: 'pending' as const }
-    }
-    // Approved a few days after the Grade was issued, never in the future.
-    let approvedAt = addDays(new Date(grade.issuedAt), faker.number.int({ min: 1, max: 7 }))
-    if (approvedAt > epochDay) approvedAt = epochDay
-    return {
-      ...base,
-      status: 'approved' as const,
-      approvedAt: approvedAt.toISOString(),
-      approvedBy: 'admin',
+      issuedAt: issuedAt.toISOString(),
     }
   })
 }
@@ -1043,9 +1014,7 @@ export function seedDemo(epoch: Date): SeedSnapshot {
     certificates: buildCertificates(
       epoch,
       grades,
-      new Set(
-        courses.filter((c) => c.teacherId === `tea-${TEACHER_PERSONA_INDEX + 1}`).map((c) => c.id)
-      )
+      new Set(courses.filter((c) => c.status === 'closed').map((c) => c.id))
     ),
     tcuTrainees,
     tcuActivities,
