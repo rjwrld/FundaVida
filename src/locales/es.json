@@ -595,7 +595,6 @@
     "enrollments": "Matrículas",
     "grades": "Calificaciones",
     "programs": "Programas",
-    "reports": "Reportes",
     "sections": {
       "people": "Personas",
       "programs": "Programas",
@@ -622,47 +621,6 @@
       "empty": "El catálogo aún no tiene programas.",
       "subtitle": "El catálogo de programas educativos de la fundación.",
       "title": "Programas"
-    }
-  },
-  "reports": {
-    "attendanceHeatmap": {
-      "legend": {
-        "high": "75–100%",
-        "low": "0–25%",
-        "midHigh": "50–75%",
-        "midLow": "25–50%"
-      },
-      "title": "Mapa de asistencia"
-    },
-    "averageGrade": {
-      "caption": "promedio",
-      "title": "Nota promedio"
-    },
-    "certsThisMonth": {
-      "delta": "vs mes anterior",
-      "title": "Certificados del mes"
-    },
-    "empty": {
-      "body": "Genera el primer reporte cuando tengas datos suficientes.",
-      "heading": "Aún no hay reportes"
-    },
-    "enrollmentTrend": {
-      "currentYear": "Año actual",
-      "priorYear": "Año anterior",
-      "title": "Tendencia de matrículas"
-    },
-    "noRecords": "Sin registros",
-    "subtitle": "Totales transversales del programa.",
-    "tcuProgress": {
-      "aria": "{{completed}} de {{target}} horas TCU",
-      "title": "Progreso TCU"
-    },
-    "title": "Reportes",
-    "topCourses": {
-      "title": "Cursos principales"
-    },
-    "upcoming": {
-      "title": "Próximos hitos"
     }
   },
   "roles": {
