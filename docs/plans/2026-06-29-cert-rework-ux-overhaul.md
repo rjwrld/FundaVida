@@ -2,6 +2,8 @@
 
 _Planning doc (2026-06-29). Companion ADR drafts: 0024–0028. Status: Proposed — no code lands from this doc; it defines the ADRs and the milestone of TDD-able issues._
 
+_GitHub: [milestone #2 — Certificate lifecycle rework + UI/UX overhaul](https://github.com/rjwrld/FundaVida/milestone/2). Issue → number: 1 #146 · 2 #147 · 3 #148 · 4 #149 · 5 #150 · 6 #151 · 7 #152 · 8 #153 · 9 #154 · 10 #155 · 11 #156 · 12 #157._
+
 ## Goal
 
 Two coupled improvements:
