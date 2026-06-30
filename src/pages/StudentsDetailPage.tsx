@@ -12,6 +12,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { AnimatedNumber } from '@/components/shared/AnimatedNumber'
+import { Progress } from '@/components/ui/progress'
 import { StudentCertificatesSection } from '@/components/students/StudentCertificatesSection'
 import {
   useAttendance,
@@ -147,7 +149,20 @@ export function StudentsDetailPage() {
                     </TableCell>
                     <TableCell>
                       {attendanceBucket ? (
-                        formatPercent(attendanceBucket.present / attendanceBucket.total)
+                        <div className="flex items-center gap-2">
+                          <Progress
+                            value={Math.round(
+                              (attendanceBucket.present / attendanceBucket.total) * 100
+                            )}
+                            aria-label={t('students.detail.enrollments.attendance')}
+                            className="h-1.5 w-16"
+                          />
+                          <AnimatedNumber
+                            value={attendanceBucket.present / attendanceBucket.total}
+                            format={formatPercent}
+                            className="text-sm tabular-nums"
+                          />
+                        </div>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
@@ -155,7 +170,7 @@ export function StudentsDetailPage() {
                     <TableCell>
                       {grade ? (
                         <span className="flex items-center gap-2">
-                          <span>{formatGrade(grade.score)}</span>
+                          <AnimatedNumber value={grade.score} format={formatGrade} />
                           {isPassingScore(grade.score) && (
                             <Badge variant="success">
                               {t('students.detail.enrollments.passing')}
