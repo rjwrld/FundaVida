@@ -16,7 +16,7 @@ import type {
   Role,
 } from '@/types'
 import { can, type Action, type Resource, type PermissionContext } from '@/permissions'
-import { emitCertificatesForClose } from '@/lib/certificates'
+import { emitCertificatesForClose, isPassingScore } from '@/lib/certificates'
 import { clock, setDemoEpoch } from '@/lib/clock'
 import { seedDemo } from './seed'
 import { debounce } from './debounce'
@@ -140,6 +140,9 @@ function assertCan(
 function makeAuditEntry(state: StoreState, entry: AuditDescriptor): AuditLogEntry {
   return {
     id: nextId('log', state.auditLog),
+    // The `'system'` fallback is defensive only (ADR-0025): every set role maps to a
+    // concrete `currentUserId` via `userIdForRole`, and `assertCan` throws when no
+    // role is set (ADR-0009), so no in-app mutation actually attributes to 'system'.
     actorId: state.currentUserId ?? 'system',
     timestamp: clock.now().toISOString(),
     ...entry,
@@ -227,6 +230,44 @@ function nextId(prefix: string, existing: { id: string }[]): string {
     .filter((n) => Number.isFinite(n))
   const max = nums.length > 0 ? Math.max(...nums) : 0
   return `${prefix}-${max + 1}`
+}
+
+/**
+ * Reconcile one (student, course) Certificate against the latest Grade score
+ * (ADR-0025). Before the Course is closed no Certificate exists, so a Grade edit
+ * leaves the list untouched. Once it is closed, a passing score (re)issues the
+ * Certificate with a fresh `score` snapshot and `issuedAt` while a failing score
+ * revokes it — idempotent, it rebuilds the pair's Certificate from the current
+ * score rather than appending. Returns the next `certificates` array.
+ */
+function reconcileCertificate(
+  certificates: Certificate[],
+  course: Course,
+  studentId: string,
+  courseId: string,
+  score: number
+): Certificate[] {
+  // Pre-close (draft/published): Grades move freely without minting or revoking
+  // Certificates — emission is the close ceremony's job (ADR-0024).
+  if (course.status !== 'closed') {
+    return certificates
+  }
+  // Drop any existing Certificate for the pair so the result converges on the
+  // current score rather than stacking a second one.
+  const without = certificates.filter(
+    (c) => !(c.studentId === studentId && c.courseId === courseId)
+  )
+  if (!isPassingScore(score)) {
+    return without
+  }
+  const reissued: Certificate = {
+    id: nextId('cert', certificates),
+    studentId,
+    courseId,
+    score,
+    issuedAt: clock.now().toISOString(),
+  }
+  return [...without, reissued]
 }
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -888,6 +929,15 @@ export const useStore = create<StoreState>((set, get) => ({
       withAudit(set, (state) => ({
         next: {
           grades: state.grades.map((g) => (g.id === existing.id ? updated : g)),
+          // Post-close, an edited Grade reconciles its Certificate (ADR-0025);
+          // pre-close this is a no-op.
+          certificates: reconcileCertificate(
+            state.certificates,
+            course,
+            studentId,
+            courseId,
+            score
+          ),
         },
         audit: {
           action: 'grade',
@@ -908,6 +958,9 @@ export const useStore = create<StoreState>((set, get) => ({
     withAudit(set, (state) => ({
       next: {
         grades: [...state.grades, grade],
+        // A new Grade on an already-closed Course reconciles too (ADR-0025);
+        // pre-close this is a no-op.
+        certificates: reconcileCertificate(state.certificates, course, studentId, courseId, score),
       },
       audit: {
         action: 'grade',
@@ -933,6 +986,15 @@ export const useStore = create<StoreState>((set, get) => ({
       next: {
         grades: state.grades.map((g) =>
           g.id === gradeId ? { ...g, score, issuedAt: clock.now().toISOString() } : g
+        ),
+        // A post-close score correction reconciles the Certificate (ADR-0025):
+        // below 70 revokes it, at/above 70 (re)issues with the new snapshot.
+        certificates: reconcileCertificate(
+          state.certificates,
+          course,
+          grade.studentId,
+          course.id,
+          score
         ),
       },
       audit: {

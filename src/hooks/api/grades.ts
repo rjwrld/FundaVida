@@ -19,7 +19,10 @@ export const useUpdateGradeScore = makeEntityMutation('updateGradeScore')<{
   score: number
 }>({
   toastKey: 'toasts.gradeSaved',
-  invalidates: [GRADES_KEY],
+  // A post-close score correction reconciles the Certificate (ADR-0025): below 70
+  // revokes it, at/above 70 re-issues it. So invalidate ['certificates'] (gallery +
+  // in-course section) and ['courses'] alongside ['grades'], or those reads go stale.
+  invalidates: [GRADES_KEY, ['certificates'], ['courses']],
   args: ({ id, score }) => [id, score],
 })
 

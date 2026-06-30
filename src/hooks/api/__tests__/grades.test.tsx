@@ -72,6 +72,26 @@ describe('useUpdateGradeScore', () => {
     })
   })
 
+  it('invalidates grades, certificates, and courses so a post-close revocation is not stale', async () => {
+    // A post-close grade correction reconciles the Certificate (ADR-0025), so the
+    // mutation must invalidate ['certificates'] and ['courses'] alongside ['grades']
+    // — otherwise the Certificates gallery and Course detail read a revoked cert.
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const { result } = renderHook(() => useUpdateGradeScore(), { wrapper: createWrapper() })
+
+    const grade = useStore.getState().grades[0]
+    if (!grade) throw new Error('expected at least one grade')
+
+    await act(async () => {
+      result.current.mutate({ id: grade.id, score: 88 })
+    })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['grades'] })
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['certificates'] })
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['courses'] })
+  })
+
   it('fires error toast on grade score update failure', async () => {
     const { toast } = await import('sonner')
     const { result } = renderHook(() => useUpdateGradeScore(), { wrapper: createWrapper() })

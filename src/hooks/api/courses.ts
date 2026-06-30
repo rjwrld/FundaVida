@@ -95,9 +95,10 @@ export const useSetGrade = makeEntityMutation('setGrade')<{
 }>({
   toastKey: 'toasts.gradeSaved',
   // ['grades'] so the Course detail roster (scoped grades query, ADR-0012) shows
-  // the saved score without a manual refresh. Saving a Grade no longer touches
-  // Certificates — those are emitted when the Course is closed (ADR-0024).
-  invalidates: [COURSES_KEY, ['students'], ['grades']],
+  // the saved score without a manual refresh. ['certificates'] because a Grade
+  // edited on an already-closed Course reconciles its Certificate (ADR-0025) —
+  // the in-course Certificates section would otherwise show a revoked/stale one.
+  invalidates: [COURSES_KEY, ['students'], ['grades'], ['certificates']],
   args: ({ studentId, courseId, score }) => [studentId, courseId, score],
 })
 

@@ -183,12 +183,12 @@ describe('Permissions Matrix', () => {
         grades: {
           view: true,
           create: false,
-          edit: 'courseOwnedAndEnded',
+          edit: 'teacherCanGrade',
           delete: false,
           approve: false,
           mark: false,
           log: false,
-          enter: 'courseOwnedAndEnded',
+          enter: 'teacherCanGrade',
         },
         certificates: {
           view: true,
@@ -677,6 +677,31 @@ describe('Permissions Matrix', () => {
         expect(can('teacher', 'edit', 'grades', context)).toBe(false)
       })
 
+      it('teacher enter/edit grades: false when the owned, ended course is closed (ADR-0025)', () => {
+        const context: PermissionContext = {
+          userId: 'teacher-1',
+          course: {
+            id: 'course-1',
+            name: 'Math 101',
+            description: 'Advanced calculus',
+            sede: 'Linda Vista',
+            programId: 'prog-1',
+            level: 'primaria',
+            status: 'closed', // owned + ended, but the cohort is locked
+            capacity: 20,
+            teacherId: 'teacher-1',
+            term: {
+              start: '2025-01-01T00:00:00.000Z',
+              end: '2025-06-01T00:00:00.000Z', // in the past
+            },
+            meetingDays: ['mon', 'wed'],
+            createdAt: '2025-01-01T00:00:00.000Z',
+          },
+        }
+        expect(can('teacher', 'enter', 'grades', context)).toBe(false)
+        expect(can('teacher', 'edit', 'grades', context)).toBe(false)
+      })
+
       it('teacher mark attendance: true when course is owned', () => {
         const context: PermissionContext = {
           userId: 'teacher-1',
@@ -912,7 +937,7 @@ describe('Permissions Matrix', () => {
   })
 })
 
-describe('courseOwnedAndEnded reads the frozen clock, not wall-time (ADR-0014)', () => {
+describe('teacherCanGrade reads the frozen clock, not wall-time (ADR-0014)', () => {
   // A Demo Epoch well in the past, so "has the course ended" diverges from real
   // wall-time: a term that ended in 2022 is past for a live new Date() but still
   // in the future for this frozen 2020 now.

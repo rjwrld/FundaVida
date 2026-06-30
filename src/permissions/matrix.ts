@@ -115,7 +115,7 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     // the Course detail page gates the roster on this, while the no-context route/nav
     // checks stay denied (the predicate needs a course).
     enrollments: { view: courseOwned, create: courseOwned, approve: courseOwned },
-    grades: { view: true, enter: courseOwnedAndEnded, edit: courseOwnedAndEnded },
+    grades: { view: true, enter: teacherCanGrade, edit: teacherCanGrade },
     // A Teacher views certificates earned in the Courses they own (ADR-0024).
     // `view: true` (unscoped) opens the nav/route; the data scope ('ownCourses')
     // narrows the list. There is no approval — closing the Course emits them.
@@ -236,14 +236,20 @@ function courseOwned(ctx: PermissionContext): boolean {
 }
 
 /**
- * Predicate: Course is owned by the current user AND the course has ended.
- * A course has ended if today's date is on or after the term.end date.
+ * Predicate: a Teacher may enter/edit Grades only on a Course they own whose Term
+ * has passed AND that is still `published` (ADR-0025). Closing a cohort locks it —
+ * post-close corrections flow through an admin, whose grade cells are unconditional
+ * and reconcile the Certificate. Narrowed from the old "owned + ended" rule.
  */
-function courseOwnedAndEnded(ctx: PermissionContext): boolean {
+function teacherCanGrade(ctx: PermissionContext): boolean {
   if (!ctx.userId || !ctx.course) {
     return false
   }
   if (ctx.course.teacherId !== ctx.userId) {
+    return false
+  }
+  // A closed cohort is terminal: the Teacher can no longer touch its Grades.
+  if (ctx.course.status !== 'published') {
     return false
   }
 
