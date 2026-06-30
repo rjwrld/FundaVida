@@ -89,8 +89,9 @@ test('teacher closes a published course from its detail page (ADR-0024)', async 
     )
     .toBe('closed')
 
-  // …the overview reflects it, and the close action is gone (closed is terminal).
-  await expect(page.getByText('Status: Closed')).toBeVisible()
+  // …the overview reflects it via the status badge, and the close action is gone
+  // (closed is terminal).
+  await expect(page.getByTestId('course-status-badge')).toHaveText('Closed')
   await expect(page.getByRole('button', { name: 'Close course' })).toBeHidden()
 })
 
