@@ -689,9 +689,21 @@
   },
   "students": {
     "detail": {
+      "certificates": {
+        "empty": "Aún no hay certificados. Se emite un certificado cuando se cierra un curso."
+      },
       "deleteConfirm": "¿Eliminar este estudiante? Esta acción no se puede deshacer.",
       "edit": "Editar",
+      "enrollments": {
+        "attendance": "Asistencia",
+        "certificate": "Certificado",
+        "course": "Curso",
+        "grade": "Nota",
+        "notGraded": "Sin calificar",
+        "passing": "Aprobado"
+      },
       "sections": {
+        "certificates": "Certificados",
         "enrollments": "Matrículas",
         "guardian": "Encargado",
         "identity": "Identidad",
