@@ -31,9 +31,9 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v8 key', () => {
+  it('persists state under the v9 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v8:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v9:state')).not.toBeNull()
   })
 
   it('reseeds from a stale v2 snapshot and removes the stale v2 state key (ADR-0014)', () => {
@@ -93,6 +93,16 @@ describe('persistence', () => {
 
     expect(loadPersistedState()).toBeNull()
     expect(window.localStorage.getItem('fundavida:v7:state')).toBeNull()
+  })
+
+  it('reseeds from a stale v8 snapshot and removes the stale v8 state key', () => {
+    // A returning v8 visitor's snapshot predates the Spanish TCU activity titles.
+    // The v9 key bump makes it stale; it is dropped so the app reseeds rather than
+    // rehydrating English service-activity titles.
+    window.localStorage.setItem('fundavida:v8:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v8:state')).toBeNull()
   })
 
   it('rejects a snapshot whose students lack the encargado (pre-guardian reseeds)', () => {

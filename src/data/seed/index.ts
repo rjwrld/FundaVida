@@ -125,15 +125,17 @@ const COURSE_LEVEL_LABEL_ES: Record<CourseLevel, string> = {
   secundaria: 'Secundaria',
 }
 
+// Catalog-style seed data rendered raw (a.title), never passed through t() —
+// so it ships in Spanish like the Program/Course names above (ADR-0021).
 const TCU_ACTIVITY_TITLES = [
-  'Community library reading day',
-  'Park cleanup campaign',
-  'Elderly home visit',
-  'School supply drive',
-  'Environmental awareness workshop',
-  'Food bank volunteering',
-  'Youth tutoring session',
-  'Public health awareness fair',
+  'Día de lectura en la biblioteca comunitaria',
+  'Campaña de limpieza del parque',
+  'Visita al hogar de ancianos',
+  'Colecta de útiles escolares',
+  'Taller de concientización ambiental',
+  'Voluntariado en el banco de alimentos',
+  'Sesión de tutoría juvenil',
+  'Feria de salud pública',
 ]
 
 // The seeded TCU persona (the current user behind the 'tcu' role) organizes a
