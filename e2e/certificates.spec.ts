@@ -23,6 +23,35 @@ const closableCourse = world.courses.find(
 )
 if (!closableCourse) throw new Error('seed has no closable tea-1 course with a passing student')
 
+// Distinct, structurally-derived passing+approved Students per course (ADR-0002:
+// faker.seed(42) makes this match what the browser hydrates).
+function passingApprovedIds(courseId: string): string[] {
+  return [
+    ...new Set(
+      world.enrollments
+        .filter(
+          (e) =>
+            e.courseId === courseId &&
+            e.status === 'approved' &&
+            passingPair.has(`${e.studentId}:${courseId}`)
+        )
+        .map((e) => e.studentId)
+    ),
+  ]
+}
+// A published Course with at least TWO passing approved Students: closing emits two
+// Certificates, so revoking one still leaves the course in the gallery's course
+// filter (it never empties to zero mid-test).
+const revocableCourse = world.courses.find(
+  (c) => c.status === 'published' && passingApprovedIds(c.id).length >= 2
+)
+if (!revocableCourse) throw new Error('seed has no published course with two passing students')
+const revocableIds = passingApprovedIds(revocableCourse.id)
+const REVOCABLE_CERT_COUNT = revocableIds.length
+const revokedStudent = world.students.find((s) => s.id === revocableIds[0])
+if (!revokedStudent) throw new Error('expected a passing approved student')
+const revokedStudentName = `${revokedStudent.firstName} ${revokedStudent.lastName}`
+
 async function openCertificatePreview(page: Page) {
   await enterAs(page, 'admin')
   await page.getByRole('link', { name: 'Certificates' }).click()
@@ -109,6 +138,59 @@ test('closing a course emits its certificates, downloadable in context', async (
   await expect(page.getByRole('heading', { name: 'Certificate preview' })).toBeVisible()
   const downloadBtn = page.getByRole('button', { name: 'Download PDF' })
   await expect(downloadBtn).not.toHaveAttribute('aria-disabled', 'true')
+})
+
+test('lowering a passing grade below 70 after close revokes the certificate (ADR-0025)', async ({
+  page,
+}) => {
+  await enterAs(page, 'admin')
+
+  // 1. Admin closes the cohort — it emits one downloadable Certificate per passing
+  //    Student. (Only one full page load here; everything after is client-side nav,
+  //    so the React Query cache stays alive and the staleness bug can surface.)
+  await page.goto(`/app/courses/${revocableCourse.id}`)
+  await page.getByRole('button', { name: 'Close course' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Close course' }).click()
+  await expect(page.getByRole('button', { name: /open preview/i }).first()).toBeVisible()
+
+  // 2. The global gallery (now cached) lists this course's Certificates, including
+  //    the target Student's.
+  await page.getByRole('link', { name: 'Certificates' }).click()
+  await page.getByRole('combobox', { name: 'Filter by course' }).click()
+  await page.getByRole('option', { name: revocableCourse.name }).click()
+  await expect(page.getByText(revokedStudentName)).toBeVisible()
+  await expect(page.getByRole('button', { name: /open preview/i })).toHaveCount(
+    REVOCABLE_CERT_COUNT
+  )
+
+  // 3. Admin lowers that Student's grade below 70 on the Grades page (updateGradeScore).
+  await page.getByRole('link', { name: 'Grades' }).click()
+  // Scope to the page's Filters region — the app header also has a (role-switcher)
+  // combobox, so a bare nth() would pick the wrong control.
+  const filters = page.getByRole('region', { name: 'Filters' }).getByRole('combobox')
+  await filters.nth(0).click() // student filter
+  await page.getByRole('option', { name: revokedStudentName }).click()
+  await filters.nth(1).click() // course filter
+  await page.getByRole('option', { name: revocableCourse.name }).click()
+  await page
+    .getByRole('button', { name: /^Edit / })
+    .first()
+    .click()
+  await expect(page.getByRole('heading', { name: 'Edit grade' })).toBeVisible()
+  await page.getByLabel('Score').fill('40')
+  await page.getByRole('button', { name: 'Save grade' }).click()
+  await expect(page.getByRole('heading', { name: 'Edit grade' })).toBeHidden()
+
+  // 4. Back on the gallery the certificate is gone: updateGradeScore invalidated
+  //    ['certificates'], so the 5-minute-stale cache refetches and drops the revoked
+  //    credential rather than serving it. (Without the invalidation it would persist.)
+  await page.getByRole('link', { name: 'Certificates' }).click()
+  await page.getByRole('combobox', { name: 'Filter by course' }).click()
+  await page.getByRole('option', { name: revocableCourse.name }).click()
+  await expect(page.getByText(revokedStudentName)).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /open preview/i })).toHaveCount(
+    REVOCABLE_CERT_COUNT - 1
+  )
 })
 
 test('renders in Spanish when locale is ES', async ({ page }) => {

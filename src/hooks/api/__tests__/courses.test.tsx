@@ -466,6 +466,29 @@ describe('useSetGrade', () => {
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['grades'] })
   })
 
+  it('invalidates the certificates cache so a post-close reconciliation is not stale', async () => {
+    // The in-course roster edits Grades through setGrade, which reconciles the
+    // Certificate once the Course is closed (ADR-0025). Without ['certificates'] the
+    // in-course Certificates section would read a revoked or stale credential.
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const { result } = renderHook(() => useSetGrade(), { wrapper: createWrapper() })
+
+    const state = useStore.getState()
+    const enrollment = state.enrollments[0]
+    if (!enrollment) throw new Error('expected at least one enrollment')
+
+    await act(async () => {
+      result.current.mutate({
+        studentId: enrollment.studentId,
+        courseId: enrollment.courseId,
+        score: 88,
+      })
+    })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['certificates'] })
+  })
+
   it('fires error toast on grade setting failure', async () => {
     const { toast } = await import('sonner')
     const { result } = renderHook(() => useSetGrade(), { wrapper: createWrapper() })

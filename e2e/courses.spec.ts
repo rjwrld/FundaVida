@@ -21,13 +21,26 @@ const cleanBrowseCourse = browseWorld.courses.find(
 )
 if (!cleanBrowseCourse) throw new Error('seed has no clean browseable course for stu-1')
 
+// A still-published, already-ended course owned by the teacher persona (tea-1) with
+// an approved Student. A Teacher may only grade an owned, ended, published cohort —
+// a closed one is locked (ADR-0025) — so target one explicitly rather than "the
+// first course in the list", which may be a completed (closed) cohort.
+const teacherNow = new Date()
+const teacherGradableCourse = browseWorld.courses.find(
+  (c) =>
+    c.status === 'published' &&
+    c.teacherId === 'tea-1' &&
+    new Date(c.term.end) <= teacherNow &&
+    browseWorld.enrollments.some((e) => e.courseId === c.id && e.status === 'approved')
+)
+if (!teacherGradableCourse) throw new Error('seed has no gradable published, ended tea-1 course')
+
 test('teacher grades a student in their course', async ({ page }) => {
   await enterAs(page, 'teacher')
-  await page.getByRole('link', { name: 'Courses' }).click()
-  await expect(page.getByRole('heading', { name: 'Courses' })).toBeVisible()
-
-  // Open the first course in the list (link inside the table body)
-  await page.getByRole('table').getByRole('link').first().click()
+  await page.goto(`/app/courses/${teacherGradableCourse.id}`)
+  await expect(
+    page.getByRole('heading', { name: shortCourseName(teacherGradableCourse) })
+  ).toBeVisible()
 
   // Click Grade on the first enrolled student
   await page.getByRole('button', { name: 'Grade' }).first().click()

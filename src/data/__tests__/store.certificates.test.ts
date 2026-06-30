@@ -99,6 +99,115 @@ describe('certificates — closing a Course emits certificates', () => {
   })
 })
 
+describe('certificates — reconciling a grade to the latest score (ADR-0025)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
+  })
+
+  it('revokes the certificate when a post-close grade edit drops below passing', () => {
+    const { course, approved } = publishedCourseWithApprovedEnrollments()
+    const [passing] = approved
+    if (!passing) throw new Error('expected an approved enrollment')
+    useStore.getState().setGrade(passing.studentId, course.id, PASSING_SCORE)
+    useStore.getState().closeCourse(course.id)
+    // The close emitted a downloadable certificate for the passing student.
+    const certBefore = useStore
+      .getState()
+      .certificates.find((c) => c.studentId === passing.studentId && c.courseId === course.id)
+    expect(certBefore).toBeDefined()
+
+    // An admin correction drops the grade below 70 — the credential is no longer earned.
+    const grade = useStore
+      .getState()
+      .grades.find((g) => g.studentId === passing.studentId && g.courseId === course.id)
+    if (!grade) throw new Error('expected a grade')
+    useStore.getState().updateGradeScore(grade.id, PASSING_SCORE - 1)
+
+    const certAfter = useStore
+      .getState()
+      .certificates.find((c) => c.studentId === passing.studentId && c.courseId === course.id)
+    expect(certAfter).toBeUndefined()
+  })
+
+  it('(re)issues a certificate with the new score when a post-close edit rises to passing', () => {
+    const { course, approved } = publishedCourseWithApprovedEnrollments()
+    const [failing] = approved
+    if (!failing) throw new Error('expected an approved enrollment')
+    useStore.getState().setGrade(failing.studentId, course.id, PASSING_SCORE - 10)
+    useStore.getState().closeCourse(course.id)
+    // Closing a course with a failing student emits no certificate for them.
+    expect(
+      useStore
+        .getState()
+        .certificates.some((c) => c.studentId === failing.studentId && c.courseId === course.id)
+    ).toBe(false)
+
+    const grade = useStore
+      .getState()
+      .grades.find((g) => g.studentId === failing.studentId && g.courseId === course.id)
+    if (!grade) throw new Error('expected a grade')
+    useStore.getState().updateGradeScore(grade.id, 88)
+
+    const cert = useStore
+      .getState()
+      .certificates.find((c) => c.studentId === failing.studentId && c.courseId === course.id)
+    expect(cert).toBeDefined()
+    expect(cert?.score).toBe(88) // snapshots the new score, not the failing one
+    expect(cert?.issuedAt).toBeTruthy()
+  })
+
+  it('re-snapshots the score when a post-close edit moves between two passing values', () => {
+    const { course, approved } = publishedCourseWithApprovedEnrollments()
+    const [passing] = approved
+    if (!passing) throw new Error('expected an approved enrollment')
+    useStore.getState().setGrade(passing.studentId, course.id, 95)
+    useStore.getState().closeCourse(course.id)
+    const certBefore = useStore
+      .getState()
+      .certificates.find((c) => c.studentId === passing.studentId && c.courseId === course.id)
+    expect(certBefore?.score).toBe(95)
+
+    const grade = useStore
+      .getState()
+      .grades.find((g) => g.studentId === passing.studentId && g.courseId === course.id)
+    if (!grade) throw new Error('expected a grade')
+    useStore.getState().updateGradeScore(grade.id, 80)
+
+    const certs = useStore
+      .getState()
+      .certificates.filter((c) => c.studentId === passing.studentId && c.courseId === course.id)
+    // Exactly one certificate survives — the helper rebuilds rather than appends.
+    expect(certs).toHaveLength(1)
+    expect(certs[0]?.score).toBe(80)
+  })
+
+  it('creates or removes no certificate when a grade is edited before the course is closed', () => {
+    const { course, approved } = publishedCourseWithApprovedEnrollments()
+    const [student] = approved
+    if (!student) throw new Error('expected an approved enrollment')
+    useStore.getState().setGrade(student.studentId, course.id, 60)
+    const grade = useStore
+      .getState()
+      .grades.find((g) => g.studentId === student.studentId && g.courseId === course.id)
+    if (!grade) throw new Error('expected a grade')
+    const before = useStore.getState().certificates.length
+
+    // Raising the grade well above passing on a still-published Course mints nothing.
+    useStore.getState().updateGradeScore(grade.id, 98)
+
+    expect(useStore.getState().certificates.length).toBe(before)
+    expect(
+      useStore
+        .getState()
+        .certificates.some((c) => c.studentId === student.studentId && c.courseId === course.id)
+    ).toBe(false)
+  })
+})
+
 describe('certificates — saving a grade no longer emits a certificate', () => {
   beforeEach(() => {
     clearPersistedState()
