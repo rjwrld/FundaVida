@@ -813,6 +813,14 @@
     "detail": {
       "cannotDeleteWithCourses_one": "This teacher has {{count}} course assigned — reassign before deleting.",
       "cannotDeleteWithCourses_other": "This teacher has {{count}} courses assigned — reassign before deleting.",
+      "coursesTable": {
+        "certificates": "Certificates",
+        "course": "Course",
+        "graded": "Graded",
+        "roster": "Roster",
+        "status": "Status",
+        "term": "Term"
+      },
       "deleteConfirm": "Delete this teacher?",
       "edit": "Edit",
       "sections": {
