@@ -38,6 +38,18 @@ export function useBrowseableCourse(id: string, enabled: boolean) {
   })
 }
 
+// Seats remaining for a Course, read through the data-layer aggregate seam so a
+// Student never reads other students' raw enrollments (issue #166, ADR-0012). The
+// key is prefixed ['courses'] so enrollment mutations (which invalidate the
+// courses key) refresh the count.
+export function useCourseSeats(id: string, enabled = true) {
+  return useQuery({
+    queryKey: ['courses', 'seats', id],
+    queryFn: () => api.courses.seatsRemaining(id),
+    enabled: enabled && id.length > 0,
+  })
+}
+
 export const useCreateCourse = makeEntityMutation('createCourse')({
   toastKey: 'toasts.courseCreated',
   invalidates: [COURSES_KEY],

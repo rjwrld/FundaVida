@@ -22,11 +22,11 @@ import { useStore } from '../store'
  *
  * Token semantics:
  * - 'all' → unfiltered list
- * - 'own' → filtered by userId (e.g., grade.studentId === userId, course.teacherId === userId)
+ * - 'own' → filtered by userId (e.g., grade.studentId === userId, enrollment.studentId === userId, course.teacherId === userId)
  * - 'ownCourses' → filtered by userId's owned courses (e.g., teacher's courses for grades/attendance)
  * - 'enrolledInOwnCourses' → filtered by userId's enrollments in their own courses (students in teacher's courses)
  * - 'enrolled' → filtered by userId's enrollments (students see courses they're enrolled in)
- * - 'self' → filtered by userId as trainee/owner (e.g., tcu activities where traineeId === userId)
+ * - 'self' → filtered to the userId's own record (a Student's own student record; a tcu trainee/owner — traineeId === userId)
  * - 'none' → always return empty array
  *
  * The Program catalog is org-wide and read-only: every role's token is 'all'
@@ -130,6 +130,12 @@ function applyProgramsScope(_programs: ProgramList, token: Scope): ProgramList {
 
 function applyStudentsScope(students: StudentList, token: Scope, userId: string): StudentList {
   switch (token) {
+    case 'self': {
+      // A Student reads only their own record (issue #166, ADR-0012). The route
+      // gate (can('view','students')) stays denied, so this is the sole path a
+      // Student has to the students collection — and it never reveals another.
+      return students.filter((s) => s.id === userId)
+    }
     case 'enrolledInOwnCourses': {
       // Students having an enrollment in a course owned by the current user
       const state = useStore.getState()
@@ -209,6 +215,12 @@ function applyEnrollmentsScope(
   userId: string
 ): EnrollmentList {
   switch (token) {
+    case 'own': {
+      // A Student reads only their own Enrollments (issue #166). Closes the
+      // latent ADR-0012 violation where CoursesDetailPage read raw enrollments
+      // and filtered by currentUserId in the component.
+      return enrollments.filter((e) => e.studentId === userId)
+    }
     case 'ownCourses': {
       // Enrollments in courses owned by the current user (a Teacher's rosters).
       const state = useStore.getState()

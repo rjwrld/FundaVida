@@ -382,6 +382,8 @@
       "browseDescription": "Explora y solicita un lugar en cursos abiertos en tu sede.",
       "browseOpenCourses": "Explorar cursos abiertos",
       "myCourses": "Mis cursos",
+      "myProfile": "Mi perfil",
+      "myProfileDescription": "Consulta tus matrículas, asistencia, calificaciones y certificados en un solo lugar.",
       "nextClass": "Próxima clase"
     },
     "tcu": {
@@ -583,6 +585,9 @@
         "tests": "Pruebas"
       }
     }
+  },
+  "me": {
+    "title": "Mi perfil"
   },
   "nav": {
     "attendance": "Asistencia",
