@@ -95,3 +95,27 @@ test('student requests a course and withdraws the request without reload (ADR-00
   await expect(withdrawButton).toBeHidden()
   await expect(requestButton).toBeVisible()
 })
+
+test('student can re-request a course after withdrawing the prior request', async ({ page }) => {
+  await enterAs(page, 'student')
+  await page.getByRole('link', { name: 'Browse open courses' }).click()
+  await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
+
+  await page.getByRole('table').getByRole('button').first().click()
+
+  // Request a spot, then withdraw it — leaving a withdrawn enrollment on record.
+  const requestButton = page.getByRole('button', { name: 'Request a spot' })
+  await requestButton.click()
+  await expect(page.getByText('Request pending')).toBeVisible()
+
+  const withdrawButton = page.getByRole('button', { name: 'Withdraw request' })
+  await withdrawButton.click()
+  await expect(requestButton).toBeVisible()
+
+  // Re-request the same (now withdrawn) course: previously this silently no-opped
+  // because requestEnrollment returned the stale withdrawn record. It must now flip
+  // back to pending.
+  await requestButton.click()
+  await expect(requestButton).toBeHidden()
+  await expect(page.getByText('Request pending')).toBeVisible()
+})
