@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MotionConfig } from 'framer-motion'
 import { I18nProvider } from '@/lib/i18n'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 
@@ -40,6 +41,14 @@ function bodyRowNames() {
     .getAllByRole('row')
     .slice(1) // drop header row
     .map((row) => within(row).getAllByRole('cell')[0]?.textContent)
+}
+
+/** First body (data) row element in the rendered table. */
+function firstBodyRow() {
+  const table = screen.getByRole('table')
+  const row = within(table).getAllByRole('row')[1]
+  if (!row) throw new Error('expected at least one body row')
+  return row as HTMLElement
 }
 
 describe('<DataTable />', () => {
@@ -208,6 +217,23 @@ describe('<DataTable />', () => {
 
     await user.click(screen.getByRole('button', { name: 'Next page' }))
     expect(screen.getAllByRole('listitem')[0]).toHaveTextContent('Card Name 11')
+  })
+
+  it('keeps rows mounted and visible under prefers-reduced-motion (no hidden initial state)', () => {
+    // reducedMotion="always" drives the same useReducedMotion() seam the app wires
+    // globally via <MotionConfig reducedMotion="user"> in main.tsx. With it on, the
+    // body opts out of the enter/exit variants so no row is left in an opacity-0
+    // initial state that depends on an animation firing to become visible.
+    render(
+      <I18nProvider>
+        <MotionConfig reducedMotion="always">
+          <DataTable data={makeRows(25)} columns={columns} getRowKey={(r) => r.id} />
+        </MotionConfig>
+      </I18nProvider>
+    )
+    expect(firstBodyRow().style.opacity).not.toBe('0')
+    expect(screen.getByText('Name 1')).toBeVisible()
+    expect(screen.getByText('Name 10')).toBeVisible()
   })
 
   it('hides the desktop table on mobile and shows the card list, only when cards are given', () => {

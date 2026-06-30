@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
   Table,
   TableBody,
@@ -11,7 +12,14 @@ import {
 } from '@/components/ui/table'
 import { Pager } from '@/components/ui/pager'
 import { usePagination } from '@/hooks/usePagination'
+import { fadeUp, staggerContainer, transitionFast } from '@/lib/motion'
 import { cn } from '@/lib/utils'
+
+// Animate row presence through the shared motion tokens (ADR-0027). Rows fade
+// and rise in on mount (staggered by the body) and fade out on removal; under
+// prefers-reduced-motion the body opts out entirely so nothing animates.
+const MotionTableBody = motion.create(TableBody)
+const MotionTableRow = motion.create(TableRow)
 
 export interface DataTableColumn<T> {
   /** Stable column identifier (also the React key). */
@@ -66,6 +74,7 @@ export function DataTable<T>({
   renderCard,
 }: DataTableProps<T>) {
   const { t } = useTranslation()
+  const reduce = useReducedMotion()
   const [sort, setSort] = React.useState<SortState | null>(null)
 
   const sortedData = React.useMemo(() => {
@@ -152,29 +161,58 @@ export function DataTable<T>({
               })}
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {pageItems.map((row) => (
-              <TableRow key={getRowKey(row)} className="h-12 hover:bg-muted/40">
-                {columns.map((col) => (
-                  <TableCell
-                    key={col.id}
-                    className={cn(col.align === 'right' && 'text-right', col.className)}
-                  >
-                    {col.cell(row)}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
+          <MotionTableBody
+            // Remount per page so each page entrance re-runs the staggered fade.
+            key={pagination.page}
+            variants={reduce ? undefined : staggerContainer}
+            initial={reduce ? false : 'hidden'}
+            animate={reduce ? false : 'visible'}
+          >
+            <AnimatePresence initial={false}>
+              {pageItems.map((row) => (
+                <MotionTableRow
+                  key={getRowKey(row)}
+                  className="h-12 hover:bg-muted/40"
+                  variants={reduce ? undefined : fadeUp}
+                  exit={reduce ? undefined : 'hidden'}
+                  transition={transitionFast}
+                >
+                  {columns.map((col) => (
+                    <TableCell
+                      key={col.id}
+                      className={cn(col.align === 'right' && 'text-right', col.className)}
+                    >
+                      {col.cell(row)}
+                    </TableCell>
+                  ))}
+                </MotionTableRow>
+              ))}
+            </AnimatePresence>
+          </MotionTableBody>
         </Table>
       </div>
 
       {renderCard && (
-        <ul className="space-y-3 sm:hidden">
-          {pageItems.map((row) => (
-            <li key={getRowKey(row)}>{renderCard(row)}</li>
-          ))}
-        </ul>
+        <motion.ul
+          key={pagination.page}
+          className="space-y-3 sm:hidden"
+          variants={reduce ? undefined : staggerContainer}
+          initial={reduce ? false : 'hidden'}
+          animate={reduce ? false : 'visible'}
+        >
+          <AnimatePresence initial={false}>
+            {pageItems.map((row) => (
+              <motion.li
+                key={getRowKey(row)}
+                variants={reduce ? undefined : fadeUp}
+                exit={reduce ? undefined : 'hidden'}
+                transition={transitionFast}
+              >
+                {renderCard(row)}
+              </motion.li>
+            ))}
+          </AnimatePresence>
+        </motion.ul>
       )}
 
       <Pager pagination={pagination} pageSizeOptions={pageSizeOptions} />
