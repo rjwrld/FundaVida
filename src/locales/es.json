@@ -206,7 +206,20 @@
     "language": {
       "label": "Idioma"
     },
+    "pagination": {
+      "first": "Primera página",
+      "label": "Paginación",
+      "last": "Última página",
+      "next": "Página siguiente",
+      "pageSize": "Filas por página",
+      "previous": "Página anterior",
+      "range": "Mostrando {{from}}–{{to}} de {{total}}",
+      "status": "Página {{page}} de {{pageCount}}"
+    },
     "search": "Buscar",
+    "table": {
+      "empty": "Sin resultados"
+    },
     "theme": {
       "dark": "Oscuro",
       "light": "Claro",
