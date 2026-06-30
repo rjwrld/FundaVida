@@ -116,6 +116,106 @@ describe('enrollment request mutations', () => {
         expect(newState.auditLog[0].action).toBe('requestEnroll')
       }
     })
+
+    it('re-pends the same record after a rejection (re-request lands pending)', () => {
+      const student = getStudent()
+
+      // Any course the student can browse; admin rejects (unconditional approve),
+      // which decouples the test from teacher↔course ownership.
+      const course = useStore
+        .getState()
+        .courses.find(
+          (c) =>
+            c.status === 'published' &&
+            c.sede === student.sede &&
+            c.level === student.educationalLevel &&
+            !student.enrolledCourseIds.includes(c.id)
+        )
+      if (!course) return
+
+      // Student requests; admin rejects.
+      useStore.getState().setRole('student')
+      const requested = useStore.getState().requestEnrollment(student.id, course.id)
+      const enrollmentCountAfterRequest = useStore.getState().enrollments.length
+
+      useStore.getState().setRole('admin')
+      const rejected = useStore.getState().rejectEnrollment(requested.id)
+      expect(rejected.status).toBe('rejected')
+      expect(rejected.decidedBy).toBe('admin')
+
+      // Student re-requests the same course: the SAME record flips back to pending,
+      // the prior decision is cleared, and no duplicate enrollment is created.
+      useStore.getState().setRole('student')
+      const reRequested = useStore.getState().requestEnrollment(student.id, course.id)
+
+      expect(reRequested.id).toBe(requested.id)
+      expect(reRequested.status).toBe('pending')
+      expect(reRequested.decidedBy).toBeUndefined()
+      expect(reRequested.decidedAt).toBeUndefined()
+      expect(useStore.getState().enrollments.length).toBe(enrollmentCountAfterRequest)
+
+      const stored = useStore.getState().enrollments.find((e) => e.id === requested.id)
+      expect(stored?.status).toBe('pending')
+    })
+
+    it('re-pends the same record after a withdrawal', () => {
+      useStore.getState().setRole('student')
+      const student = getStudent()
+      const course = useStore
+        .getState()
+        .courses.find(
+          (c) =>
+            c.status === 'published' &&
+            c.sede === student.sede &&
+            c.level === student.educationalLevel &&
+            !student.enrolledCourseIds.includes(c.id)
+        )
+      if (!course) return
+
+      const requested = useStore.getState().requestEnrollment(student.id, course.id)
+      useStore.getState().withdrawEnrollmentRequest(requested.id)
+      expect(useStore.getState().enrollments.find((e) => e.id === requested.id)?.status).toBe(
+        'withdrawn'
+      )
+
+      const countBefore = useStore.getState().enrollments.length
+      const reRequested = useStore.getState().requestEnrollment(student.id, course.id)
+
+      expect(reRequested.id).toBe(requested.id)
+      expect(reRequested.status).toBe('pending')
+      expect(useStore.getState().enrollments.length).toBe(countBefore)
+    })
+
+    it('short-circuits (no-op) when an approved enrollment already exists', () => {
+      const student = getStudent()
+      const course = useStore
+        .getState()
+        .courses.find(
+          (c) =>
+            c.status === 'published' &&
+            c.sede === student.sede &&
+            c.level === student.educationalLevel &&
+            !student.enrolledCourseIds.includes(c.id)
+        )
+      if (!course) return
+
+      // Build an approved enrollment: student requests, admin approves.
+      useStore.getState().setRole('student')
+      const requested = useStore.getState().requestEnrollment(student.id, course.id)
+      useStore.getState().setRole('admin')
+      const approved = useStore.getState().approveEnrollment(requested.id)
+      expect(approved.status).toBe('approved')
+
+      // Re-requesting an approved course is an idempotent no-op: same record back,
+      // status untouched, no new enrollment.
+      useStore.getState().setRole('student')
+      const countBefore = useStore.getState().enrollments.length
+      const result = useStore.getState().requestEnrollment(student.id, course.id)
+
+      expect(result.id).toBe(requested.id)
+      expect(result.status).toBe('approved')
+      expect(useStore.getState().enrollments.length).toBe(countBefore)
+    })
   })
 
   describe('withdrawEnrollmentRequest', () => {

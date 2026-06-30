@@ -660,7 +660,13 @@ export const useStore = create<StoreState>((set, get) => ({
     assertCan(state, 'request', 'enrollments')
     const { enrollments, students, courses } = state
     const existing = enrollments.find((e) => e.studentId === studentId && e.courseId === courseId)
-    if (existing) return existing
+    // An active request (approved or pending) short-circuits — re-requesting is a
+    // no-op. A rejected/withdrawn record does NOT: the openForEnrollment scope lets
+    // such courses reappear in Browse, so re-pend the same record below rather than
+    // returning the stale decision (which silently no-ops the request).
+    if (existing && (existing.status === 'approved' || existing.status === 'pending')) {
+      return existing
+    }
     // Defensive guards for direct store callers; the UI filters to browseable courses, so this English text should never reach end users.
     const student = students.find((s) => s.id === studentId)
     if (!student) {
@@ -683,6 +689,31 @@ export const useStore = create<StoreState>((set, get) => ({
       )
     }
     const now = clock.now().toISOString()
+    // Re-request after a rejection/withdrawal: flip the SAME record back to
+    // pending (clearing the prior decision) instead of creating a second one. The
+    // browse detail and approval queue both key off the single (student, course)
+    // enrollment, so a duplicate would let the stale record win their lookups.
+    if (existing) {
+      const repended: Enrollment = {
+        ...existing,
+        status: 'pending',
+        requestedAt: now,
+        decidedBy: undefined,
+        decidedAt: undefined,
+      }
+      withAudit(set, (state) => ({
+        next: {
+          enrollments: state.enrollments.map((e) => (e.id === existing.id ? repended : e)),
+        },
+        audit: {
+          action: 'requestEnroll',
+          entity: 'enrollment',
+          entityId: existing.id,
+          summary: `${studentId} re-requested enrollment in ${courseId}`,
+        },
+      }))
+      return repended
+    }
     const enrollment: Enrollment = {
       id: nextId('enr', enrollments),
       studentId,
