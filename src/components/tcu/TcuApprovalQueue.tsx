@@ -10,7 +10,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { useTcuActivities, useTcuTrainees, useApproveTcuActivity } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
-import { useStore } from '@/data/store'
 
 /**
  * Renders an approval queue for pending TCU activities.
@@ -21,45 +20,21 @@ import { useStore } from '@/data/store'
 export function TcuApprovalQueue() {
   const { t } = useTranslation()
   const { formatDate, formatNumber } = useFormat()
-  const role = useStore((s) => s.role)
-  const userId = useStore((s) => s.currentUserId)
-  const courses = useStore((s) => s.courses)
-  const allTrainees = useStore((s) => s.tcuTrainees)
-  const { data = [] } = useTcuActivities({})
-  const { data: scopedTrainees = [] } = useTcuTrainees()
+  // Both rides the scope seam (ADR-0012): a Teacher sees activities and trainees
+  // for the volunteers assigned to their own Courses; an admin sees all (ADR-0017).
+  const { data: activities = [] } = useTcuActivities({})
+  const { data: trainees = [] } = useTcuTrainees()
   const approveMutation = useApproveTcuActivity()
 
-  // For teachers: get their courses and pending activities for their trainees.
-  // We use allTrainees from the store (not the scoped list from the hook) because
-  // teachers don't have a trainees scope and useTcuTrainees returns empty for them.
-  const isTeacher = role === 'teacher'
-  const teacherCourseIds = isTeacher
-    ? courses.filter((c) => c.teacherId === userId).map((c) => c.id)
-    : []
-  const pendingActivitiesForTeacher = isTeacher
-    ? data.filter((a) => {
-        const trainee = allTrainees.find((t) => t.id === a.traineeId)
-        return a.status === 'pending' && trainee && teacherCourseIds.includes(trainee.courseId)
-      })
-    : []
-
-  // For admin: show all pending activities, use scoped trainees from hook
-  const traineesForAdmin = role === 'admin' ? scopedTrainees : []
-  const pendingActivitiesForAdmin =
-    role === 'admin' ? data.filter((a) => a.status === 'pending') : []
-  const pendingActivities =
-    role === 'admin' ? pendingActivitiesForAdmin : pendingActivitiesForTeacher
+  const pendingActivities = activities.filter((a) => a.status === 'pending')
 
   // Only render if there are pending activities
   if (pendingActivities.length === 0) {
     return null
   }
 
-  // Get the trainees to display in the table
-  const traineesToDisplay = isTeacher ? allTrainees : traineesForAdmin
-
   const rows = pendingActivities.map((a) => {
-    const trainee = traineesToDisplay.find((x) => x.id === a.traineeId)
+    const trainee = trainees.find((x) => x.id === a.traineeId)
     return {
       activity: a,
       traineeName: `${trainee?.firstName ?? ''} ${trainee?.lastName ?? ''}`.trim(),

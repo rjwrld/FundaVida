@@ -3,8 +3,10 @@ import { render, screen, waitFor, fireEvent, within } from '@testing-library/rea
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
-import { formatGrade } from '@/lib/format'
+import { formatGrade, formatDate } from '@/lib/format'
 import { shortCourseName } from '@/lib/courseName'
+import { sessionsFor } from '@/lib/sessions'
+import { SEDES } from '@/constants/sede'
 import { CoursesDetailPage } from '@/pages/CoursesDetailPage'
 import { useStore } from '@/data/store'
 import {
@@ -356,5 +358,142 @@ describe('<CoursesDetailPage /> — close course action (ADR-0024)', () => {
     })
     expect(screen.getByText('Closed')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Close course' })).not.toBeInTheDocument()
+  })
+})
+
+describe('<CoursesDetailPage /> — schedule & roster (issue 153, ADR-0001/0011)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  it('shows the Course’s derived Schedule (session ordinal + date) to an admin', async () => {
+    const { gradedCourse } = fixtures()
+    const sessions = sessionsFor(gradedCourse)
+    expect(sessions.length).toBeGreaterThan(0)
+    asRole('admin')
+    renderPage(gradedCourse.id)
+
+    const heading = await screen.findByRole('heading', { name: 'Schedule' })
+    const section = req(
+      heading.closest('section') ?? undefined,
+      'Schedule heading has no <section>'
+    )
+    const first = req(sessions[0], 'seed: course has no sessions')
+    // Scope to the Schedule section: the attendance marker lists the same sessions.
+    expect(
+      within(section).getByText(`Session ${first.ordinal} · ${formatDate(first.date, 'en')}`)
+    ).toBeInTheDocument()
+    // Every derived Session is listed (ordinal + date), nothing Session-shaped stored.
+    expect(within(section).getAllByRole('listitem')).toHaveLength(sessions.length)
+  })
+
+  // A seeded TCU trainee and the Course they are assigned to (trainee.courseId).
+  // Derived from the deterministic seed rather than hard-coded.
+  function volunteerFixture() {
+    const s = useStore.getState()
+    const trainee = req(s.tcuTrainees[0], 'seed: no TCU trainees')
+    const course = req(
+      s.courses.find((c) => c.id === trainee.courseId),
+      'seed: trainee’s assigned course missing'
+    )
+    return { trainee, course }
+  }
+
+  it('shows the Volunteers (assigned TCU trainees) for the Course to an admin', async () => {
+    const { trainee, course } = volunteerFixture()
+    asRole('admin')
+    renderPage(course.id)
+
+    const heading = await screen.findByRole('heading', { name: 'Volunteers' })
+    const section = req(
+      heading.closest('section') ?? undefined,
+      'Volunteers heading has no <section>'
+    )
+    expect(
+      within(section).getByText(`${trainee.firstName} ${trainee.lastName}`)
+    ).toBeInTheDocument()
+  })
+
+  it('drops a Sede-mismatched volunteer from the list (One-Sede invariant, ADR-0011)', async () => {
+    const { trainee, course } = volunteerFixture()
+    const otherSede = req(
+      SEDES.find((x) => x !== course.sede),
+      'expected more than one Sede'
+    )
+    // A volunteer carrying this Course's id but a different Sede is an invariant
+    // violation; the view must defensively drop it, never render it on the roster.
+    const rogue = {
+      ...trainee,
+      id: 'tcu-rogue',
+      firstName: 'Rogue',
+      lastName: 'Volunteer',
+      sede: otherSede,
+    }
+    const s = useStore.getState()
+    useStore.setState({ tcuTrainees: [...s.tcuTrainees, rogue] })
+
+    asRole('admin')
+    renderPage(course.id)
+
+    const heading = await screen.findByRole('heading', { name: 'Volunteers' })
+    const section = req(
+      heading.closest('section') ?? undefined,
+      'Volunteers heading has no <section>'
+    )
+    // The legitimate same-Sede volunteer is shown…
+    expect(
+      within(section).getByText(`${trainee.firstName} ${trainee.lastName}`)
+    ).toBeInTheDocument()
+    // …but the Sede-mismatched one never appears.
+    expect(within(section).queryByText('Rogue Volunteer')).not.toBeInTheDocument()
+  })
+
+  it('shows the owning Teacher the Volunteers for their own Course (scope seam)', async () => {
+    const s = useStore.getState()
+    const ownCourseIds = new Set(s.courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id))
+    const trainee = req(
+      s.tcuTrainees.find((t) => ownCourseIds.has(t.courseId)),
+      'seed: no volunteer assigned to a tea-1 course'
+    )
+    const course = req(
+      s.courses.find((c) => c.id === trainee.courseId),
+      'seed: trainee’s assigned course missing'
+    )
+    asRole('teacher')
+    renderPage(course.id)
+
+    const heading = await screen.findByRole('heading', { name: 'Volunteers' })
+    const section = req(
+      heading.closest('section') ?? undefined,
+      'Volunteers heading has no <section>'
+    )
+    expect(
+      within(section).getByText(`${trainee.firstName} ${trainee.lastName}`)
+    ).toBeInTheDocument()
+  })
+
+  it('renders a closed Course’s status as a Closed badge', async () => {
+    const { publishedOwnCourse } = fixtures()
+    asRole('admin')
+    useStore.getState().closeCourse(publishedOwnCourse.id)
+    renderPage(publishedOwnCourse.id)
+
+    const badge = await screen.findByTestId('course-status-badge')
+    expect(badge).toHaveTextContent('Closed')
+  })
+
+  it('shows a published Course’s status badge, not a Closed one', async () => {
+    const { publishedOwnCourse } = fixtures()
+    expect(publishedOwnCourse.status).toBe('published')
+    asRole('admin')
+    renderPage(publishedOwnCourse.id)
+
+    const badge = await screen.findByTestId('course-status-badge')
+    expect(badge).toHaveTextContent('Published')
+    expect(badge).not.toHaveTextContent('Closed')
   })
 })

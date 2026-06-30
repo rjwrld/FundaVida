@@ -17,7 +17,7 @@ describe('AdminDashboard — hero + supporting layout', () => {
     })
   })
 
-  it('renders pending approvals as the hero widget', () => {
+  it('surfaces no certificate-approval widget (approval removed, ADR-0024)', () => {
     render(
       <I18nProvider>
         <QueryClientProvider client={queryClient}>
@@ -27,8 +27,8 @@ describe('AdminDashboard — hero + supporting layout', () => {
         </QueryClientProvider>
       </I18nProvider>
     )
-    // PendingApprovals should be visible; the admin hero focuses on cert approvals.
-    expect(screen.getByText(/pending approvals/i)).toBeInTheDocument()
+    // Certificates emit on course close — there is no pending queue to review.
+    expect(screen.queryByText(/pending approvals/i)).not.toBeInTheDocument()
   })
 
   it('renders org health stats (active courses, students, etc.)', () => {

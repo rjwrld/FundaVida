@@ -35,6 +35,14 @@ const teacherGradableCourse = browseWorld.courses.find(
 )
 if (!teacherGradableCourse) throw new Error('seed has no gradable published, ended tea-1 course')
 
+// A seeded volunteer (TCU trainee) and the Course they are assigned to, so the
+// Course detail page renders both a derived Schedule and a populated Volunteers
+// section. Names are localized in the seed, matching what the app renders.
+const seedVolunteer = browseWorld.tcuTrainees[0]
+if (!seedVolunteer) throw new Error('seed has no TCU trainees')
+const volunteerCourse = browseWorld.courses.find((c) => c.id === seedVolunteer.courseId)
+if (!volunteerCourse) throw new Error('seed volunteer has no assigned course')
+
 test('teacher grades a student in their course', async ({ page }) => {
   await enterAs(page, 'teacher')
   await page.goto(`/app/courses/${teacherGradableCourse.id}`)
@@ -60,6 +68,28 @@ test('teacher grades a student in their course', async ({ page }) => {
   await expect(gradeHeading).toBeHidden()
   await expect(
     page.getByRole('row').filter({ hasText: studentName }).getByText('92.0')
+  ).toBeVisible()
+})
+
+test('course detail shows the derived Schedule and assigned Volunteers (issue 153)', async ({
+  page,
+}) => {
+  await enterAs(page, 'admin')
+  await page.goto(`/app/courses/${volunteerCourse.id}`)
+  await expect(page.getByRole('heading', { name: shortCourseName(volunteerCourse) })).toBeVisible()
+
+  // Schedule: derived Sessions (Term × Meeting Days) list at least one entry.
+  const scheduleSection = page
+    .locator('section')
+    .filter({ has: page.getByRole('heading', { name: 'Schedule' }) })
+  await expect(scheduleSection.getByRole('listitem').first()).toBeVisible()
+
+  // Volunteers: the assigned TCU trainee is listed for this Course.
+  const volunteersSection = page
+    .locator('section')
+    .filter({ has: page.getByRole('heading', { name: 'Volunteers' }) })
+  await expect(
+    volunteersSection.getByText(`${seedVolunteer.firstName} ${seedVolunteer.lastName}`)
   ).toBeVisible()
 })
 

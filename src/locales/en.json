@@ -205,7 +205,20 @@
     "language": {
       "label": "Language"
     },
+    "pagination": {
+      "first": "First page",
+      "label": "Pagination",
+      "last": "Last page",
+      "next": "Next page",
+      "pageSize": "Rows per page",
+      "previous": "Previous page",
+      "range": "Showing {{from}}–{{to}} of {{total}}",
+      "status": "Page {{page}} of {{pageCount}}"
+    },
     "search": "Search",
+    "table": {
+      "empty": "No results"
+    },
     "theme": {
       "dark": "Dark",
       "light": "Light",
@@ -264,9 +277,13 @@
       "sections": {
         "attendance": "Mark attendance",
         "certificates": "Certificates",
+        "noSchedule": "No sessions scheduled for this course.",
         "noStudents": "No students enrolled.",
+        "noVolunteers": "No volunteers assigned to this course.",
         "overview": "Overview",
+        "schedule": "Schedule",
         "students": "Students",
+        "volunteers": "Volunteers",
         "yourAttendance": "Your attendance",
         "yourRecords": "Your records"
       },
@@ -336,14 +353,6 @@
       "title": "Attendance this month",
       "trendLabel": "Last 7 sessions"
     },
-    "pendingApprovals": {
-      "cta": "Review",
-      "description_one": "{{count}} enrollment is awaiting a grade.",
-      "description_other": "{{count}} enrollments are awaiting a grade.",
-      "title": "Pending approvals",
-      "zero": "All caught up!",
-      "zeroSubtitle": "Every enrollment has a grade. Nice work."
-    },
     "recentActivity": {
       "actor": {
         "admin": "Admin",
@@ -404,10 +413,7 @@
       "tcuLogged": "TCU logged: {{title}}"
     },
     "welcome": {
-      "context_one": "You have {{count}} enrollment awaiting a grade.",
-      "context_other": "You have {{count}} enrollments awaiting a grade.",
-      "contextZero": "Everything is graded. Time for a coffee.",
-      "cta": "Review pending",
+      "context": "Here's how your campuses are doing today.",
       "eyebrow": "Today",
       "greeting": "Hola, {{name}} 👋"
     }
