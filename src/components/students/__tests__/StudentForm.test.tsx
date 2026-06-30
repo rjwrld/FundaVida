@@ -82,7 +82,9 @@ describe('<StudentForm />', () => {
     const { onSuccess } = renderForm({ studentId: first.id })
 
     const firstNameInput = (await screen.findByLabelText('First name')) as HTMLInputElement
-    await waitFor(() => expect(firstNameInput.value).toBe(first.firstName))
+    // Prefill is async (react-hook-form reset() after the student loads); the default
+    // 1000ms waitFor timeout is too tight for slow CI runners, so allow more headroom.
+    await waitFor(() => expect(firstNameInput.value).toBe(first.firstName), { timeout: 3000 })
 
     await user.clear(firstNameInput)
     await user.type(firstNameInput, 'Renamed')
