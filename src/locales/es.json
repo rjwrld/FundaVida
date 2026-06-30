@@ -278,9 +278,13 @@
       "sections": {
         "attendance": "Marcar asistencia",
         "certificates": "Certificados",
+        "noSchedule": "No hay sesiones programadas para este curso.",
         "noStudents": "Ningún estudiante matriculado.",
+        "noVolunteers": "No hay voluntarios asignados a este curso.",
         "overview": "Resumen",
+        "schedule": "Cronograma",
         "students": "Estudiantes",
+        "volunteers": "Voluntarios",
         "yourAttendance": "Tu asistencia",
         "yourRecords": "Tus registros"
       },

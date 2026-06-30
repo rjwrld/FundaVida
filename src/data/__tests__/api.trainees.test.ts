@@ -29,8 +29,22 @@ describe('traineesApi', () => {
     expect(await traineesApi.list()).toEqual([])
   })
 
-  it('returns empty for teacher role', async () => {
-    useStore.getState().setRole('teacher')
-    expect(await traineesApi.list()).toEqual([])
+  it('returns only trainees assigned to the teacher’s own courses', async () => {
+    useStore.getState().setRole('teacher') // persona tea-1
+    const s = useStore.getState()
+    const ownCourseIds = new Set(
+      s.courses.filter((c) => c.teacherId === s.currentUserId).map((c) => c.id)
+    )
+    const expected = s.tcuTrainees
+      .filter((t) => ownCourseIds.has(t.courseId))
+      .map((t) => t.id)
+      .sort()
+    // The seed assigns volunteers to some of tea-1's courses, so this is non-trivial.
+    expect(expected.length).toBeGreaterThan(0)
+
+    const result = await traineesApi.list()
+    expect(result.map((t) => t.id).sort()).toEqual(expected)
+    // A volunteer assigned to another teacher's course is never leaked (ADR-0011/0017).
+    expect(result.every((t) => ownCourseIds.has(t.courseId))).toBe(true)
   })
 })

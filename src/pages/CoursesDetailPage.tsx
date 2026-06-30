@@ -23,6 +23,7 @@ import {
   useGrades,
   useMarkAttendance,
   useStudents,
+  useTcuTrainees,
   useUnenrollStudent,
   useRequestEnrollment,
   useWithdrawEnrollmentRequest,
@@ -32,7 +33,14 @@ import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { findSession, sessionsFor } from '@/lib/sessions'
 import { clock } from '@/lib/clock'
-import type { AttendanceRecord, AttendanceStatus, Course, Enrollment, Student } from '@/types'
+import type {
+  AttendanceRecord,
+  AttendanceStatus,
+  Course,
+  CourseStatus,
+  Enrollment,
+  Student,
+} from '@/types'
 import { GradeDialog } from '@/components/courses/GradeDialog'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
 import { CourseCertificatesSection } from '@/components/courses/CourseCertificatesSection'
@@ -49,6 +57,12 @@ function statusVariant(status: AttendanceStatus): 'success' | 'destructive' | 'i
   if (status === 'present') return 'success'
   if (status === 'absent') return 'destructive'
   return 'info'
+}
+
+function courseStatusVariant(status: CourseStatus): 'success' | 'secondary' | 'warning' {
+  if (status === 'published') return 'success'
+  if (status === 'closed') return 'secondary'
+  return 'warning'
 }
 
 interface AttendanceMarkingSectionProps {
@@ -198,6 +212,7 @@ export function CoursesDetailPage() {
   // records, and a Student's scope collapses these to self (or empty).
   const { data: courseEnrollments = [] } = useEnrollments({ courseId: id ?? '' })
   const { data: scopedStudents = [] } = useStudents()
+  const { data: scopedTrainees = [] } = useTcuTrainees()
   const { data: scopedGrades = [] } = useGrades({ courseId: id ?? '' })
   const { data: ownAttendance = [] } = useAttendance({ courseId: id ?? '' })
   const unenroll = useUnenrollStudent()
@@ -271,6 +286,14 @@ export function CoursesDetailPage() {
 
   const teacher = teachers.find((tt) => tt.id === course.teacherId)
   const programName = programs.find((p) => p.id === course.programId)?.name ?? course.programId
+  // Sessions are derived from Term × Meeting Days, never stored (ADR-0001).
+  const sessions = sessionsFor(course)
+  // Volunteers (TCU trainees) assigned to this Course, read through the scope seam.
+  // Cross-check the One-Sede invariant (ADR-0011): a volunteer must share the
+  // Course's Sede — a mismatch is a data violation and is dropped, never shown.
+  const volunteers = scopedTrainees.filter(
+    (tr) => tr.courseId === course.id && tr.sede === course.sede
+  )
   // For the Student self-view: scope 'own' already narrows scopedGrades to the
   // current Student, so this is their own Grade for the Course (or undefined).
   const ownGrade = scopedGrades.find((g) => g.courseId === course.id)
@@ -318,10 +341,12 @@ export function CoursesDetailPage() {
               <span className="text-muted-foreground">{t('courses.form.fields.level')}:</span>{' '}
               {t(`courses.level.${course.level}`)}
             </p>
-            <p>
-              <span className="text-muted-foreground">{t('courses.form.fields.status')}:</span>{' '}
-              {t(`courses.status.${course.status}`)}
-            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">{t('courses.form.fields.status')}:</span>
+              <Badge variant={courseStatusVariant(course.status)} data-testid="course-status-badge">
+                {t(`courses.status.${course.status}`)}
+              </Badge>
+            </div>
             <p>
               <span className="text-muted-foreground">{t('courses.form.fields.capacity')}:</span>{' '}
               {course.capacity}
@@ -340,6 +365,31 @@ export function CoursesDetailPage() {
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">{course.description}</CardContent>
         </Card>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold tracking-tight">
+          {t('courses.detail.sections.schedule')}
+        </h2>
+        {sessions.length === 0 ? (
+          <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+            {t('courses.detail.sections.noSchedule')}
+          </p>
+        ) : (
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {sessions.map((session) => (
+              <li
+                key={session.date}
+                className="rounded-md border bg-card px-3 py-2 text-sm text-foreground"
+              >
+                {`${t('attendance.list.session', { ordinal: String(session.ordinal) } as Record<
+                  string,
+                  string
+                >)} · ${formatDate(session.date)}`}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       {canViewRoster && (
@@ -429,6 +479,32 @@ export function CoursesDetailPage() {
                   })}
                 </TableBody>
               </Table>
+            )}
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold tracking-tight">
+              {t('courses.detail.sections.volunteers')}
+            </h2>
+            {volunteers.length === 0 ? (
+              <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+                {t('courses.detail.sections.noVolunteers')}
+              </p>
+            ) : (
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {volunteers.map((volunteer) => (
+                  <li
+                    key={volunteer.id}
+                    className="flex flex-col rounded-md border bg-card px-3 py-2 text-sm"
+                  >
+                    <span className="font-medium text-foreground">
+                      {volunteer.firstName} {volunteer.lastName}
+                    </span>
+                    {/* University is a Spanish proper noun, never passed through t() (ADR-0017). */}
+                    <span className="text-muted-foreground">{volunteer.university}</span>
+                  </li>
+                ))}
+              </ul>
             )}
           </section>
 
