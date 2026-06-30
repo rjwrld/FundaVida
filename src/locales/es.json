@@ -779,6 +779,14 @@
       "cannotDeleteWithCourses_one": "Este docente tiene {{count}} curso asignado — reasígnalo antes de eliminar.",
       "cannotDeleteWithCourses_many": "Este docente tiene {{count}} cursos asignados — reasígnalos antes de eliminar.",
       "cannotDeleteWithCourses_other": "Este docente tiene {{count}} cursos asignados — reasígnalos antes de eliminar.",
+      "coursesTable": {
+        "certificates": "Certificados",
+        "course": "Curso",
+        "graded": "Calificados",
+        "roster": "Matrícula",
+        "status": "Estado",
+        "term": "Periodo"
+      },
       "deleteConfirm": "¿Eliminar este docente?",
       "edit": "Editar",
       "sections": {
