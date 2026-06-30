@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppToaster } from '../AppToaster'
 import { useTheme } from '@/hooks/useTheme'
 import { Toaster } from 'sonner'
+import { useReducedMotion } from 'framer-motion'
 
 // Mock the useTheme hook
 vi.mock('@/hooks/useTheme', () => ({
@@ -14,9 +15,16 @@ vi.mock('sonner', () => ({
   Toaster: vi.fn(() => null),
 }))
 
+// AppToaster's only framer-motion dependency is the reduced-motion seam; mock it
+// directly (per the StatCard/AnimatedNumber precedent) so each test can drive it.
+vi.mock('framer-motion', () => ({
+  useReducedMotion: vi.fn(() => false),
+}))
+
 describe('AppToaster', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(useReducedMotion).mockReturnValue(false)
   })
 
   it('renders with light theme when useTheme returns light', () => {
@@ -76,6 +84,37 @@ describe('AppToaster', () => {
     render(<AppToaster />)
     expect(vi.mocked(Toaster)).toHaveBeenCalledWith(
       expect.objectContaining({ theme: 'system' }),
+      expect.anything()
+    )
+  })
+
+  it('times the toast enter/exit transition from the shared motion token', () => {
+    vi.mocked(useTheme).mockReturnValue({ theme: 'light', setTheme: vi.fn() })
+
+    render(<AppToaster />)
+
+    expect(vi.mocked(Toaster)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toastOptions: expect.objectContaining({
+          style: expect.objectContaining({ '--fv-toast-duration': '0.2s' }),
+        }),
+      }),
+      expect.anything()
+    )
+  })
+
+  it('collapses the toast transition to zero under prefers-reduced-motion', () => {
+    vi.mocked(useTheme).mockReturnValue({ theme: 'light', setTheme: vi.fn() })
+    vi.mocked(useReducedMotion).mockReturnValue(true)
+
+    render(<AppToaster />)
+
+    expect(vi.mocked(Toaster)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toastOptions: expect.objectContaining({
+          style: expect.objectContaining({ '--fv-toast-duration': '0s' }),
+        }),
+      }),
       expect.anything()
     )
   })

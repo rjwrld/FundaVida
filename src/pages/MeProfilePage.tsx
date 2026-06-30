@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -12,41 +12,53 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { AnimatedNumber } from '@/components/shared/AnimatedNumber'
-import { Progress } from '@/components/ui/progress'
 import { StudentCertificatesSection } from '@/components/students/StudentCertificatesSection'
 import {
   useAttendance,
   useCertificates,
   useCourses,
+  useCurrentStudent,
   useEnrollments,
   useGrades,
-  useStudent,
 } from '@/hooks/api'
+import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { shortCourseName } from '@/lib/courseName'
 import { isPassingScore } from '@/lib/certificates'
 import type { Course, Enrollment } from '@/types'
 
-export function StudentsDetailPage() {
+/**
+ * The Student's own self-service profile (/app/me, issue #166): a read-only "my
+ * progress" hub mirroring the admin/teacher StudentsDetailPage sections, but read
+ * entirely through the self-scoped seams (students:'self', enrollments:'own',
+ * grades/certificates/attendance:'own'). A dedicated route — not the admin
+ * students/:id page — keeps self-only structural (ADR-0008/0012): no Edit/Delete,
+ * and a non-Student role is sent back to their dashboard.
+ */
+export function MeProfilePage() {
   const { t } = useTranslation()
   const { formatGrade, formatPercent } = useFormat()
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const { data: student, isLoading } = useStudent(id ?? '')
-  const { data: enrollments = [] } = useEnrollments({ studentId: id ?? '' })
+  const role = useStore((s) => s.role)
+  const { data: student, isLoading } = useCurrentStudent()
+  const studentId = student?.id ?? ''
+  const { data: enrollments = [] } = useEnrollments({ studentId })
   const { data: courses = [] } = useCourses()
-  const { data: grades = [] } = useGrades({ studentId: id ?? '' })
-  const { data: attendance = [] } = useAttendance({ studentId: id ?? '' })
-  const { data: certificates = [] } = useCertificates({ studentId: id ?? '' })
+  const { data: grades = [] } = useGrades({ studentId })
+  const { data: attendance = [] } = useAttendance({ studentId })
+  const { data: certificates = [] } = useCertificates({ studentId })
+
+  // Only a Student has a self-profile; any other role is redirected to their
+  // dashboard. Branching on the synchronous role (not the async query) avoids a
+  // flash of the loading state for admin/teacher/tcu.
+  if (role && role !== 'student') return <Navigate to="/app" replace />
 
   if (isLoading) return <p className="text-sm text-muted-foreground">…</p>
   if (!student) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">{t('students.detail.title')}</p>
+        <p className="text-sm text-muted-foreground">{t('me.title')}</p>
         <Button asChild variant="outline">
-          <Link to="/app/students">{t('common.actions.backToHome')}</Link>
+          <Link to="/app">{t('common.actions.backToHome')}</Link>
         </Button>
       </div>
     )
@@ -72,18 +84,13 @@ export function StudentsDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow={t('students.detail.title')}
+        eyebrow={t('me.title')}
         title={`${student.firstName} ${student.lastName}`}
         description={student.email}
         action={
-          <>
-            <Button variant="outline" onClick={() => navigate('/app/students')}>
-              {t('common.actions.backToHome')}
-            </Button>
-            <Button onClick={() => navigate(`/app/students?edit=${student.id}`)}>
-              {t('students.detail.edit')}
-            </Button>
-          </>
+          <Button asChild variant="outline">
+            <Link to="/app">{t('common.actions.backToHome')}</Link>
+          </Button>
         }
       />
 
@@ -149,20 +156,7 @@ export function StudentsDetailPage() {
                     </TableCell>
                     <TableCell>
                       {attendanceBucket ? (
-                        <div className="flex items-center gap-2">
-                          <Progress
-                            value={Math.round(
-                              (attendanceBucket.present / attendanceBucket.total) * 100
-                            )}
-                            aria-label={t('students.detail.enrollments.attendance')}
-                            className="h-1.5 w-16"
-                          />
-                          <AnimatedNumber
-                            value={attendanceBucket.present / attendanceBucket.total}
-                            format={formatPercent}
-                            className="text-sm tabular-nums"
-                          />
-                        </div>
+                        formatPercent(attendanceBucket.present / attendanceBucket.total)
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
@@ -170,7 +164,7 @@ export function StudentsDetailPage() {
                     <TableCell>
                       {grade ? (
                         <span className="flex items-center gap-2">
-                          <AnimatedNumber value={grade.score} format={formatGrade} />
+                          <span>{formatGrade(grade.score)}</span>
                           {isPassingScore(grade.score) && (
                             <Badge variant="success">
                               {t('students.detail.enrollments.passing')}

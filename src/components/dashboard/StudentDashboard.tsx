@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Book, CheckCircle2, Search, Clock } from 'lucide-react'
+import { Book, CheckCircle2, Search, Clock, UserCircle } from 'lucide-react'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useCourses } from '@/hooks/api/courses'
 import { useAttendance } from '@/hooks/api/attendance'
@@ -102,6 +102,24 @@ export function StudentDashboard() {
           </header>
           <p className="text-sm text-muted-foreground">
             {t('dashboard.student.browseDescription')}
+          </p>
+        </Link>
+      </motion.div>
+
+      {/* Hero: My Profile — the Student's self-service hub (issue #166). */}
+      <motion.div variants={fadeUp} transition={transitionDefaults}>
+        <Link
+          to="/app/me"
+          className="flex h-full flex-col rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/30"
+        >
+          <header className="mb-4 flex items-center gap-2">
+            <UserCircle className="size-4 text-brand-green-700" aria-hidden="true" />
+            <h3 className="font-display text-lg text-foreground">
+              {t('dashboard.student.myProfile')}
+            </h3>
+          </header>
+          <p className="text-sm text-muted-foreground">
+            {t('dashboard.student.myProfileDescription')}
           </p>
         </Link>
       </motion.div>

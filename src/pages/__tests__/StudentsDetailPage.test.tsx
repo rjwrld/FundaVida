@@ -114,6 +114,21 @@ describe('<StudentsDetailPage />', () => {
     expect(within(row).getByText(expected)).toBeInTheDocument()
   })
 
+  it('visualizes per-course attendance with a progress bar reflecting the percentage', async () => {
+    const { subject, course } = adminFixtures()
+    const records = useStore
+      .getState()
+      .attendance.filter((a) => a.studentId === subject.id && a.courseId === course.id)
+    const present = records.filter((r) => r.status === 'present').length
+    const expectedValue = Math.round((present / records.length) * 100)
+    renderDetail(subject.id)
+
+    const link = await screen.findByRole('link', { name: shortCourseName(course) })
+    const row = req(link.closest('tr') ?? undefined, 'enrollment row missing')
+    const bar = within(row).getByRole('progressbar')
+    expect(bar).toHaveAttribute('aria-valuenow', String(expectedValue))
+  })
+
   it('marks an enrollment as Issued only when its course has emitted a certificate', async () => {
     const { subject, course } = adminFixtures()
     const certCount = useStore

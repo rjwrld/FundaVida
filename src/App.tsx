@@ -7,6 +7,7 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { CalendarPage } from '@/pages/CalendarPage'
 import { StudentsListPage } from '@/pages/StudentsListPage'
 import { StudentsDetailPage } from '@/pages/StudentsDetailPage'
+import { MeProfilePage } from '@/pages/MeProfilePage'
 import { TeachersListPage } from '@/pages/TeachersListPage'
 import { TeachersDetailPage } from '@/pages/TeachersDetailPage'
 import { EnrollmentsListPage } from '@/pages/EnrollmentsListPage'
@@ -20,7 +21,6 @@ import { CertificatesListPage } from '@/pages/CertificatesListPage'
 import { TcuListPage } from '@/pages/TcuListPage'
 import { AttendanceListPage } from '@/pages/AttendanceListPage'
 import { MarkSessionAttendancePage } from '@/pages/MarkSessionAttendancePage'
-import { ReportsPage } from '@/pages/ReportsPage'
 import { AuditLogPage } from '@/pages/AuditLogPage'
 import { BulkEmailPage } from '@/pages/BulkEmailPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -37,6 +37,10 @@ export function App() {
         <Route element={<RoleRequired />}>
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<DashboardPage />} />
+            {/* The Student's own self-service profile (issue #166). Self-only is
+                structural — the page reads self-scoped seams and redirects any
+                non-Student role — so it needs no RoleGate, like the dashboard. */}
+            <Route path="me" element={<MeProfilePage />} />
             {/* Role-scoped by derived Sessions, not a permission, so it has no RoleGate (ADR-0013). */}
             <Route path="calendar" element={<CalendarPage />} />
             <Route element={<RoleGate resource="students" />}>
@@ -61,9 +65,6 @@ export function App() {
             </Route>
             <Route element={<RoleGate resource="grades" />}>
               <Route path="grades" element={<GradesListPage />} />
-            </Route>
-            <Route element={<RoleGate resource="reports" />}>
-              <Route path="reports" element={<ReportsPage />} />
             </Route>
             <Route element={<RoleGate resource="auditLog" />}>
               <Route path="audit-log" element={<AuditLogPage />} />

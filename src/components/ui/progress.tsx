@@ -8,6 +8,10 @@ const Progress = React.forwardRef<
 >(({ className, value, ...props }, ref) => (
   <ProgressPrimitive.Root
     ref={ref}
+    // Forward the value so the bar exposes role=progressbar with aria-valuenow,
+    // not Radix's valueless "indeterminate" state. The fill is still driven by
+    // the indicator transform below (with its own duration-500 transition).
+    value={value}
     className={cn('relative h-2 w-full overflow-hidden rounded-full bg-muted', className)}
     {...props}
   >

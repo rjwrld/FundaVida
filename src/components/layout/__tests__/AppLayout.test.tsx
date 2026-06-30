@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
+import { MotionConfig } from 'framer-motion'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { AppLayout } from '@/components/layout/AppLayout'
@@ -59,5 +60,36 @@ describe('<AppLayout />', () => {
     renderWithRouter(<div id="main-content">Content</div>)
     const skipLink = screen.getByRole('link', { name: 'Skip to main content' })
     expect(skipLink).toHaveAttribute('href', '#main-content')
+  })
+
+  it('keeps the animated route outlet content mounted under prefers-reduced-motion', () => {
+    // The outlet is wrapped in AnimatePresence/motion (fadeUp); reducedMotion="always"
+    // mirrors the app's global <MotionConfig reducedMotion="user">. The route content
+    // must still mount through the presence boundary — a missed MotionConfig boundary
+    // would surface here first (ADR-0027). (Opacity fades are reduced-motion-safe, so
+    // the outlet keeps a fade; only transform is suppressed.)
+    useStore.getState().setRole('admin')
+    const router = createMemoryRouter(
+      [
+        {
+          path: '/',
+          element: <AppLayout />,
+          children: [{ index: true, element: <div>Reduced-motion outlet</div> }],
+        },
+      ],
+      { initialEntries: ['/'] }
+    )
+    const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
+    render(
+      <I18nProvider>
+        <QueryClientProvider client={client}>
+          <MotionConfig reducedMotion="always">
+            <RouterProvider router={router} />
+          </MotionConfig>
+        </QueryClientProvider>
+      </I18nProvider>
+    )
+
+    expect(screen.getByText('Reduced-motion outlet')).toBeInTheDocument()
   })
 })

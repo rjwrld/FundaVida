@@ -170,6 +170,36 @@ describe('openForEnrollment scope', () => {
   })
 })
 
+describe('student self/own scopes (#166)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('student')
+  })
+
+  it("'self' narrows students to only the current student", () => {
+    const { currentUserId, students } = useStore.getState()
+    const scoped = applyScope('students', 'self', students)
+
+    expect(scoped).toHaveLength(1)
+    expect(scoped[0]?.id).toBe(currentUserId)
+    // Proves it actually narrows: the seed has more than one student.
+    expect(students.length).toBeGreaterThan(1)
+  })
+
+  it("'own' narrows enrollments to only the current student's enrollments", () => {
+    const { currentUserId, enrollments } = useStore.getState()
+    const scoped = applyScope('enrollments', 'own', enrollments)
+
+    expect(scoped.length).toBeGreaterThan(0)
+    expect(scoped.every((e) => e.studentId === currentUserId)).toBe(true)
+    // Proves it narrows: at least one seeded enrollment belongs to another student.
+    expect(scoped.length).toBeLessThan(enrollments.length)
+  })
+})
+
 describe('certificates ownCourses scope', () => {
   beforeEach(() => {
     clearPersistedState()

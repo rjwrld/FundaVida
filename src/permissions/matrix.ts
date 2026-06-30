@@ -24,7 +24,6 @@ export type Resource =
   | 'certificates'
   | 'attendance'
   | 'tcu'
-  | 'reports'
   | 'bulkEmail'
   | 'auditLog'
 
@@ -99,7 +98,6 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     certificates: { view: true },
     attendance: { view: true, mark: true },
     tcu: { view: true, log: true, approve: true },
-    reports: { view: true },
     bulkEmail: { view: true, create: true },
     auditLog: { view: true },
   },
@@ -123,7 +121,6 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     attendance: { view: true, mark: courseOwned },
     // A Teacher may approve TCU activities for trainees assigned to their courses (ADR-0017)
     tcu: { approve: teacherCanApproveTcuActivity },
-    reports: {},
     bulkEmail: {},
     auditLog: {},
   },
@@ -140,7 +137,6 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     attendance: { view: true },
     // A Student is not a TCU Trainee, so they have no TCU access (issue #71).
     tcu: {},
-    reports: {},
     bulkEmail: {},
     auditLog: {},
   },
@@ -154,7 +150,6 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     certificates: {},
     attendance: {},
     tcu: { view: true, log: canLogTcuActivity },
-    reports: {},
     bulkEmail: {},
     auditLog: {},
   },
@@ -177,7 +172,6 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     certificates: 'all',
     attendance: 'all',
     tcu: 'all',
-    reports: 'all',
     bulkEmail: 'all',
     auditLog: 'all',
   },
@@ -191,21 +185,24 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     certificates: 'ownCourses',
     attendance: 'ownCourses',
     tcu: 'assignedTrainees',
-    reports: 'none',
     bulkEmail: 'none',
     auditLog: 'none',
   },
   student: {
     programs: 'all',
-    students: 'none',
+    // A Student may read their own record ('self') and own enrollments ('own')
+    // through the scope seam. There is deliberately no context-free can('view')
+    // cell for either — the admin /app/students and /app/enrollments routes/nav
+    // stay denied, so self-only is structural, not an accident of scope (issue
+    // #166, ADR-0008/0012).
+    students: 'self',
     teachers: 'none',
     courses: 'enrolled',
-    enrollments: 'none',
+    enrollments: 'own',
     grades: 'own',
     certificates: 'own',
     attendance: 'own',
     tcu: 'none',
-    reports: 'none',
     bulkEmail: 'none',
     auditLog: 'none',
   },
@@ -219,7 +216,6 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     certificates: 'none',
     attendance: 'none',
     tcu: 'self',
-    reports: 'none',
     bulkEmail: 'none',
     auditLog: 'none',
   },
@@ -296,7 +292,6 @@ function allScopesNone(): Record<Resource, Scope> {
     certificates: 'none',
     attendance: 'none',
     tcu: 'none',
-    reports: 'none',
     bulkEmail: 'none',
     auditLog: 'none',
   }
