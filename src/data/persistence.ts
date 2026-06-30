@@ -3,16 +3,18 @@ import { WEEKDAYS, type Role, type Weekday } from '@/types'
 import { SEDES, type Sede } from '@/constants/sede'
 import { COURSE_LEVELS, COURSE_STATUSES } from '@/constants/course'
 
-const STATE_KEY = 'fundavida:v9:state'
+const STATE_KEY = 'fundavida:v10:state'
 const ROLE_KEY = 'fundavida:v2:role'
 
 // Stale pre-v4 snapshot keys this layer owns. They are not migrated (ADR-0003,
 // ADR-0014): they are removed on first load so the app reseeds cleanly at a
 // fresh Demo Epoch instead of rehydrating an incoherent older world. The v3
 // state snapshot predates the Program entity and the new Course/Enrollment/TCU
-// fields (ADR-0015/0016/0017). The v9 key bump translates the TCU service-
-// activity titles to Spanish (catalog data rendered raw, never via t()), on top
-// of v8's level-neutral Program descriptions (so a single-level Course never
+// fields (ADR-0015/0016/0017). The v10 key bump reworks the Certificate model
+// (ADR-0024): emitted on course-close, no pending/approved status, `createdAt →
+// issuedAt` — so a v9 cert's shape no longer validates. It sits on top of v9's
+// Spanish TCU service-activity titles (catalog data rendered raw, never via
+// t()), on top of v8's level-neutral Program descriptions (so a single-level Course never
 // contradicts its blurb), v7's single-level Courses (ADR-0020) + human names
 // (ADR-0021), v6's Student
 // encargado (guardian) and teacher province/canton, v5's Costa Rican names,
@@ -34,6 +36,7 @@ const LEGACY_SNAPSHOT_KEYS = [
   'fundavida:v6:state',
   'fundavida:v7:state',
   'fundavida:v8:state',
+  'fundavida:v9:state',
 ]
 
 export type PersistedState = SeedSnapshot
@@ -127,6 +130,24 @@ function isValidSnapshot(value: unknown): value is PersistedState {
     if (!PERSISTED_COURSE_STATUSES.includes(c.status as (typeof PERSISTED_COURSE_STATUSES)[number]))
       return false
     if (typeof c.capacity !== 'number') return false
+  }
+
+  // Every Certificate is the post-rework shape (ADR-0024): emitted on course-close
+  // with a required `issuedAt` and no `status`/`approvedAt`. A v9 cert carries
+  // `status` + `createdAt` but no `issuedAt`, so it is rejected and the world
+  // reseeds rather than rehydrating an approval-era Certificate.
+  for (const certificate of v.certificates as unknown[]) {
+    if (!certificate || typeof certificate !== 'object') return false
+    const c = certificate as Record<string, unknown>
+    if (
+      typeof c.id !== 'string' ||
+      typeof c.studentId !== 'string' ||
+      typeof c.courseId !== 'string' ||
+      typeof c.score !== 'number' ||
+      typeof c.issuedAt !== 'string'
+    ) {
+      return false
+    }
   }
 
   // Teacher and Student each gained a required Sede; an old snapshot lacking it

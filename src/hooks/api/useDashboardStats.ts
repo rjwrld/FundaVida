@@ -54,9 +54,11 @@ export function useDashboardStats(): DashboardStats {
     })
     const activeCourses = courses.filter((c) => (courseEnrollmentCounts.get(c.id) ?? 0) > 0).length
 
-    // A certificate is "issued" once an admin approves it; pending ones await approval.
-    const certsIssued = certificates.filter((c) => c.status === 'approved').length
-    const pendingApprovals = certificates.filter((c) => c.status === 'pending').length
+    // A Certificate is "issued" the moment it exists — closing its Course emits it
+    // already downloadable (ADR-0024). Approval is gone, so nothing is ever pending;
+    // the `pendingApprovals` surfaces are retired in a follow-up (#149).
+    const certsIssued = certificates.length
+    const pendingApprovals = 0
 
     const tcuHours = tcuActivities.reduce((sum, t) => sum + t.hours, 0)
 

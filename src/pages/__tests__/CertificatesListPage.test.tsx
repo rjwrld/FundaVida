@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, waitFor, fireEvent, act, within } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -36,19 +36,18 @@ function renderPage(entry = '/app/certificates') {
   )
 }
 
-function injectCertificate(status: Certificate['status']): Certificate {
+/** Replace the store's certificates with a single one for students[0] (stu-1). */
+function injectCertificate(): Certificate {
   const { students, courses } = useStore.getState()
   const student = students[0]
   const course = courses[0]
   if (!student || !course) throw new Error('seed missing student/course')
   const cert: Certificate = {
-    id: `cert-test-${status}`,
+    id: 'cert-test',
     studentId: student.id,
     courseId: course.id,
     score: 88,
-    status,
-    createdAt: new Date().toISOString(),
-    ...(status === 'approved' ? { approvedAt: new Date().toISOString(), approvedBy: 'admin' } : {}),
+    issuedAt: new Date().toISOString(),
   }
   useStore.setState({ certificates: [cert] })
   return cert
@@ -63,54 +62,34 @@ describe('<CertificatesListPage />', () => {
     useStore.getState().setLocale('en')
   })
 
-  it('lets an admin approve a pending certificate from the ?status=pending view', async () => {
+  it('shows an admin a gallery of previewable certificate cards', async () => {
     useStore.getState().setRole('admin')
-    const pendingBefore = useStore.getState().certificates.filter((c) => c.status === 'pending')
-    expect(pendingBefore.length).toBeGreaterThan(0)
-
-    renderPage('/app/certificates?status=pending')
-
-    // Scope to the desktop table — the worklist also renders a mobile card list
-    // (hidden by CSS, which jsdom doesn't apply), so each row's Approve appears twice.
-    const table = await screen.findByRole('table')
-    const approveButtons = within(table).getAllByRole('button', { name: /approve certificate/i })
-    expect(approveButtons.length).toBe(pendingBefore.length)
-
-    const [firstApprove] = approveButtons
-    if (!firstApprove) throw new Error('expected at least one approve button')
-    fireEvent.click(firstApprove)
-
-    await waitFor(() => {
-      const pendingNow = useStore.getState().certificates.filter((c) => c.status === 'pending')
-      expect(pendingNow.length).toBe(pendingBefore.length - 1)
-    })
-  })
-
-  it('offers approval but no PDF preview for a pending certificate', async () => {
-    useStore.getState().setRole('admin')
-    injectCertificate('pending')
+    injectCertificate()
     renderPage()
 
-    const table = await screen.findByRole('table')
-    expect(within(table).getByRole('button', { name: /approve certificate/i })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /open preview/i })).toBeNull()
+    expect(await screen.findByRole('button', { name: /open preview/i })).toBeInTheDocument()
   })
 
-  /** The approver worklist defaults to the pending tab; approved certs live behind the Approved tab. */
-  async function showApprovedTab() {
-    fireEvent.click(await screen.findByRole('tab', { name: /^approved/i }))
-  }
+  it('never offers an approval affordance (approval removed, ADR-0024)', async () => {
+    useStore.getState().setRole('admin')
+    renderPage()
+
+    await screen.findAllByRole('button', { name: /open preview/i })
+    expect(screen.queryByRole('button', { name: /approve certificate/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /approve all/i })).toBeNull()
+    expect(screen.queryByRole('tab', { name: /needs approval/i })).toBeNull()
+    expect(screen.queryByRole('tab', { name: /^approved/i })).toBeNull()
+  })
 
   it('renders the certificate content as readable DOM in the preview dialog', async () => {
     useStore.getState().setRole('admin')
-    const cert = injectCertificate('approved')
+    const cert = injectCertificate()
     const { students, courses } = useStore.getState()
     const student = students.find((s) => s.id === cert.studentId)
     const course = courses.find((c) => c.id === cert.courseId)
     if (!student || !course) throw new Error('seed missing student/course')
     renderPage()
 
-    await showApprovedTab()
     fireEvent.click(await screen.findByRole('button', { name: /open preview/i }))
 
     // The preview must be real DOM so it renders without a native PDF viewer
@@ -122,7 +101,7 @@ describe('<CertificatesListPage />', () => {
 
   it('mirrors the certificate details (course, program, score) in the preview', async () => {
     useStore.getState().setRole('admin')
-    const cert = injectCertificate('approved')
+    const cert = injectCertificate()
     const { courses, programs } = useStore.getState()
     const course = courses.find((c) => c.id === cert.courseId)
     if (!course) throw new Error('seed missing course')
@@ -130,7 +109,6 @@ describe('<CertificatesListPage />', () => {
     if (!programName) throw new Error('seed missing program')
     renderPage()
 
-    await showApprovedTab()
     fireEvent.click(await screen.findByRole('button', { name: /open preview/i }))
 
     const dialog = await screen.findByRole('dialog')
@@ -148,137 +126,17 @@ describe('<CertificatesListPage />', () => {
     ).toBeInTheDocument()
   })
 
-  it('offers a PDF preview but no approval for an approved certificate', async () => {
-    useStore.getState().setRole('admin')
-    injectCertificate('approved')
-    renderPage()
-
-    await showApprovedTab()
-    expect(await screen.findByRole('button', { name: /open preview/i })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /approve certificate/i })).toBeNull()
-  })
-
-  it('defaults to the needs-approval tab and bulk-approves every pending certificate', async () => {
-    useStore.getState().setRole('admin')
-    const pendingBefore = useStore.getState().certificates.filter((c) => c.status === 'pending')
-    expect(pendingBefore.length).toBeGreaterThan(1)
-
-    renderPage()
-
-    // The pending-first worklist opens on "Needs approval" with one Approve all action.
-    fireEvent.click(await screen.findByRole('button', { name: /approve all/i }))
-
-    await waitFor(() => {
-      expect(useStore.getState().certificates.some((c) => c.status === 'pending')).toBe(false)
-    })
-  })
-
-  it('explores the worklist by course via the course filter', async () => {
-    const user = userEvent.setup()
-    useStore.getState().setRole('admin')
-    const { certificates, courses } = useStore.getState()
-    const pendingCourseIds = [
-      ...new Set(certificates.filter((c) => c.status === 'pending').map((c) => c.courseId)),
-    ]
-    expect(pendingCourseIds.length).toBeGreaterThan(1)
-    const target = courses.find((c) => c.id === pendingCourseIds[0])
-    const other = courses.find((c) => c.id === pendingCourseIds[1])
-    if (!target || !other) throw new Error('expected two pending courses')
-
-    renderPage()
-    await screen.findByRole('button', { name: /approve all/i })
-    // Both courses' rows are present before filtering.
-    expect(screen.getAllByText(other.name).length).toBeGreaterThan(0)
-
-    await user.click(screen.getByRole('combobox', { name: /filter by course/i }))
-    await user.click(await screen.findByRole('option', { name: target.name }))
-
-    // Only the chosen course's certificates remain in the worklist.
-    await waitFor(() => expect(screen.queryByText(other.name)).toBeNull())
-    expect(screen.getAllByText(target.name).length).toBeGreaterThan(0)
-  })
-
-  it('lets a teacher approve a pending certificate in their own course', async () => {
-    useStore.getState().setRole('teacher') // currentUserId === 'tea-1'
-    const { currentUserId, courses, certificates } = useStore.getState()
-    const ownCourseIds = new Set(
-      courses.filter((c) => c.teacherId === currentUserId).map((c) => c.id)
-    )
-    const ownPending = certificates.filter(
-      (c) => c.status === 'pending' && ownCourseIds.has(c.courseId)
-    )
-    expect(ownPending.length).toBeGreaterThan(0)
-
-    renderPage()
-
-    const table = await screen.findByRole('table')
-    const [firstApprove] = within(table).getAllByRole('button', { name: /approve certificate/i })
-    if (!firstApprove) throw new Error('expected a pending approve button')
-    fireEvent.click(firstApprove)
-
-    await waitFor(() => {
-      const stillPending = useStore
-        .getState()
-        .certificates.filter((c) => c.status === 'pending' && ownCourseIds.has(c.courseId))
-      expect(stillPending.length).toBe(ownPending.length - 1)
-    })
-  })
-
-  it('shows a student their own certificate read-only (no approve action)', async () => {
-    // injectCertificate targets students[0] === stu-1, the student persona.
-    useStore.getState().setRole('student')
-    injectCertificate('approved')
-    renderPage()
-
-    expect(await screen.findByRole('button', { name: /open preview/i })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /approve certificate/i })).toBeNull()
-  })
-
-  it('labels a student’s pending certificate as in review with the download disabled', async () => {
-    useStore.getState().setRole('student')
-    injectCertificate('pending')
-    renderPage()
-
-    // The receiving side calls a pending Certificate "in review" (CONTEXT.md).
-    expect(await screen.findByText(/in review/i)).toBeInTheDocument()
-
-    // The PDF is not available until approval: the download is present but disabled.
-    const download = screen.getByRole('button', { name: /download pdf/i })
-    expect(download).toBeDisabled()
-
-    // A Student never approves their own Certificate.
-    expect(screen.queryByRole('button', { name: /approve certificate/i })).toBeNull()
-  })
-
   it('shows a student only their own certificate, never a classmate’s', async () => {
     const { students, courses } = useStore.getState()
     const self = students[0]
     const classmate = students[1]
     const course = courses[0]
     if (!self || !classmate || !course) throw new Error('seed missing students/course')
-    const approvedAt = new Date().toISOString()
+    const issuedAt = new Date().toISOString()
     useStore.setState({
       certificates: [
-        {
-          id: 'cert-self',
-          studentId: self.id,
-          courseId: course.id,
-          score: 90,
-          status: 'approved',
-          createdAt: approvedAt,
-          approvedAt,
-          approvedBy: 'admin',
-        },
-        {
-          id: 'cert-other',
-          studentId: classmate.id,
-          courseId: course.id,
-          score: 95,
-          status: 'approved',
-          createdAt: approvedAt,
-          approvedAt,
-          approvedBy: 'admin',
-        },
+        { id: 'cert-self', studentId: self.id, courseId: course.id, score: 90, issuedAt },
+        { id: 'cert-other', studentId: classmate.id, courseId: course.id, score: 95, issuedAt },
       ],
     })
     // setRole('student') binds currentUserId to stu-1 === students[0]; the scope
@@ -291,50 +149,34 @@ describe('<CertificatesListPage />', () => {
     expect(screen.queryByText(`${classmate.firstName} ${classmate.lastName}`)).toBeNull()
   })
 
-  it('makes an admin-approved certificate downloadable after switching to the student role', async () => {
-    // The student first sees their own certificate in review, with no download.
-    useStore.getState().setRole('student')
-    injectCertificate('pending')
+  it('filters the gallery by course', async () => {
+    const user = userEvent.setup()
+    useStore.getState().setRole('admin')
+    const { certificates, courses } = useStore.getState()
+    const certCourseIds = [...new Set(certificates.map((c) => c.courseId))]
+    expect(certCourseIds.length).toBeGreaterThan(1)
+    const target = courses.find((c) => c.id === certCourseIds[0])
+    const other = courses.find((c) => c.id === certCourseIds[1])
+    if (!target || !other) throw new Error('expected two cert-bearing courses')
+
     renderPage()
-    expect(await screen.findByText(/in review/i)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /open preview/i })).toBeNull()
+    await screen.findAllByRole('button', { name: /open preview/i })
+    // Both courses' cards are present before filtering.
+    expect(screen.getAllByText(other.name).length).toBeGreaterThan(0)
 
-    // An admin approves it through the real action (which invalidates the
-    // certificates query key shared across roles).
-    act(() => {
-      useStore.getState().setRole('admin')
-    })
-    const adminTable = await screen.findByRole('table')
-    fireEvent.click(within(adminTable).getByRole('button', { name: /approve certificate/i }))
-    await waitFor(() => {
-      expect(useStore.getState().certificates.every((c) => c.status === 'approved')).toBe(true)
-    })
+    await user.click(screen.getByRole('combobox', { name: /filter by course/i }))
+    await user.click(await screen.findByRole('option', { name: target.name }))
 
-    // Back as the student, the PDF download is offered — the role-keyed query
-    // refetched rather than serving a stale "in review" card (#87).
-    act(() => {
-      useStore.getState().setRole('student')
-    })
-    expect(await screen.findByRole('button', { name: /open preview/i })).toBeInTheDocument()
-    expect(screen.queryByText(/in review/i)).toBeNull()
+    // Only the chosen course's certificates remain in the gallery.
+    await screen.findAllByText(target.name)
+    expect(screen.queryByText(other.name)).toBeNull()
   })
 
-  it('drops an approved certificate out of the needs-approval list and into Approved', async () => {
+  it('shows the empty state when no certificates exist', async () => {
     useStore.getState().setRole('admin')
-    injectCertificate('pending')
+    useStore.setState({ certificates: [] })
     renderPage()
 
-    const pendingTable = await screen.findByRole('table')
-    fireEvent.click(within(pendingTable).getByRole('button', { name: /approve certificate/i }))
-
-    // Approval invalidates the certificates query key; the same-keyed worklist
-    // refetches in place and the pending row disappears without a remount.
-    await waitFor(() => {
-      expect(screen.queryByRole('button', { name: /approve certificate/i })).toBeNull()
-    })
-
-    // It now lives under the Approved tab as a downloadable preview.
-    fireEvent.click(screen.getByRole('tab', { name: /^approved/i }))
-    expect(await screen.findByRole('button', { name: /open preview/i })).toBeInTheDocument()
+    expect(await screen.findByText(/no certificates issued yet/i)).toBeInTheDocument()
   })
 })

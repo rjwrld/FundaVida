@@ -46,8 +46,12 @@ describe('store writes stamp timestamps from the clock, not wall-time (ADR-0014)
   })
 
   function lindaVistaCourseId(): string {
-    const course = useStore.getState().courses.find((c) => c.sede === 'Linda Vista')
-    if (!course) throw new Error('seed: no Linda Vista course')
+    // A published Linda Vista course, so it can be both graded and closed (closing
+    // requires a published cohort, ADR-0024).
+    const course = useStore
+      .getState()
+      .courses.find((c) => c.sede === 'Linda Vista' && c.status === 'published')
+    if (!course) throw new Error('seed: no published Linda Vista course')
     return course.id
   }
 
@@ -96,30 +100,25 @@ describe('store writes stamp timestamps from the clock, not wall-time (ADR-0014)
     expect(enrollment.enrolledAt).toBe(FROZEN_ISO)
   })
 
-  it('stamps grade issuedAt and the pending certificate createdAt from clock.now()', () => {
+  it('stamps grade issuedAt from clock.now()', () => {
     const studentId = newStudentId()
     const courseId = lindaVistaCourseId()
     useStore.getState().enrollStudent(studentId, courseId)
     const grade = useStore.getState().setGrade(studentId, courseId, 95)
     expect(grade.issuedAt).toBe(FROZEN_ISO)
-    const cert = useStore
-      .getState()
-      .certificates.find((c) => c.studentId === studentId && c.courseId === courseId)
-    expect(cert?.createdAt).toBe(FROZEN_ISO)
   })
 
-  it('stamps certificate approvedAt from clock.now()', () => {
+  it('stamps the emitted certificate issuedAt from clock.now() on close', () => {
     const studentId = newStudentId()
     const courseId = lindaVistaCourseId()
     useStore.getState().enrollStudent(studentId, courseId)
     useStore.getState().setGrade(studentId, courseId, 95)
+    useStore.getState().closeCourse(courseId)
     const cert = useStore
       .getState()
       .certificates.find((c) => c.studentId === studentId && c.courseId === courseId)
-    if (!cert) throw new Error('expected a pending certificate from the passing grade')
-    useStore.getState().approveCertificate(cert.id)
-    const approved = useStore.getState().certificates.find((c) => c.id === cert.id)
-    expect(approved?.approvedAt).toBe(FROZEN_ISO)
+    if (!cert) throw new Error('expected a certificate emitted by closing the course')
+    expect(cert.issuedAt).toBe(FROZEN_ISO)
   })
 
   it('stamps email campaign sentAt from clock.now()', () => {

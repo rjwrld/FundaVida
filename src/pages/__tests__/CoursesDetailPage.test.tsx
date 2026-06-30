@@ -91,7 +91,23 @@ function fixtures() {
     ),
     'seed: no browseable course found for stu-1'
   )
-  return { self, gradedCourse, ownGrade, classmate, ungradedCourse, notEnrolled, browseableCourse }
+  // tea-1's just-ended cohort is still published (the teacher hasn't run the close
+  // ceremony) — the runway for the Close-course action. cou-1 is now closed (a
+  // completed cohort), so the close tests need this separate published fixture.
+  const publishedOwnCourse = req(
+    s.courses.find((c) => c.teacherId === 'tea-1' && c.status === 'published'),
+    'seed: tea-1 has no published course'
+  )
+  return {
+    self,
+    gradedCourse,
+    ownGrade,
+    classmate,
+    ungradedCourse,
+    notEnrolled,
+    browseableCourse,
+    publishedOwnCourse,
+  }
 }
 
 function asRole(role: Role) {
@@ -225,7 +241,7 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
   })
 })
 
-describe('<CoursesDetailPage /> — in-course certificates module (ADR-0019)', () => {
+describe('<CoursesDetailPage /> — in-course certificates module (ADR-0024)', () => {
   beforeEach(() => {
     clearPersistedState()
     clearPersistedRole()
@@ -234,12 +250,9 @@ describe('<CoursesDetailPage /> — in-course certificates module (ADR-0019)', (
     useStore.getState().setLocale('en')
   })
 
-  function pendingCertFixture() {
+  function emittedCertFixture() {
     const s = useStore.getState()
-    const cert = req(
-      s.certificates.find((c) => c.status === 'pending'),
-      'seed: no pending certificate'
-    )
+    const cert = req(s.certificates[0], 'seed: no emitted certificate')
     const course = req(
       s.courses.find((c) => c.id === cert.courseId),
       'seed: certificate course missing'
@@ -251,23 +264,18 @@ describe('<CoursesDetailPage /> — in-course certificates module (ADR-0019)', (
     return { cert, course, student }
   }
 
-  it('shows an admin the Course certificates and approves a pending one in context', async () => {
-    const { cert, course, student } = pendingCertFixture()
+  it('shows an admin the Course’s emitted certificates, list-only (no approve)', async () => {
+    const { course, student } = emittedCertFixture()
     asRole('admin')
     renderPage(course.id)
 
-    // The certificates module renders for the roster-viewing admin.
+    // The certificates module renders for the roster-viewing admin, listing the
+    // emitted Certificate — but offers no approval (closing the Course emits them).
     expect(await screen.findByRole('heading', { name: 'Certificates' })).toBeInTheDocument()
-
-    const approveButton = await screen.findByRole('button', {
-      name: new RegExp(`approve certificate for ${student.firstName}`, 'i'),
-    })
-    fireEvent.click(approveButton)
-
-    await waitFor(() => {
-      const updated = useStore.getState().certificates.find((c) => c.id === cert.id)
-      expect(updated?.status).toBe('approved')
-    })
+    expect(await screen.findByText(`${student.firstName} ${student.lastName}`)).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /approve certificate for/i })
+    ).not.toBeInTheDocument()
   })
 
   it('hides the certificates module from a Student’s self-view', async () => {
@@ -294,20 +302,20 @@ describe('<CoursesDetailPage /> — close course action (ADR-0024)', () => {
   })
 
   it('shows the owning Teacher a Close course button on a published course', async () => {
-    const { gradedCourse } = fixtures()
-    // cou-1 is published and owned by tea-1, the seeded teacher persona.
-    expect(gradedCourse.status).toBe('published')
-    expect(gradedCourse.teacherId).toBe('tea-1')
+    const { publishedOwnCourse } = fixtures()
+    // tea-1's just-ended cohort is still published and owned by the teacher persona.
+    expect(publishedOwnCourse.status).toBe('published')
+    expect(publishedOwnCourse.teacherId).toBe('tea-1')
     asRole('teacher')
-    renderPage(gradedCourse.id)
+    renderPage(publishedOwnCourse.id)
 
     expect(await screen.findByRole('button', { name: 'Close course' })).toBeInTheDocument()
   })
 
   it('lets an admin close a published course through the confirm dialog', async () => {
-    const { gradedCourse } = fixtures()
+    const { publishedOwnCourse } = fixtures()
     asRole('admin')
-    renderPage(gradedCourse.id)
+    renderPage(publishedOwnCourse.id)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Close course' }))
 
@@ -316,7 +324,7 @@ describe('<CoursesDetailPage /> — close course action (ADR-0024)', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Close course' }))
 
     await waitFor(() => {
-      const updated = useStore.getState().courses.find((c) => c.id === gradedCourse.id)
+      const updated = useStore.getState().courses.find((c) => c.id === publishedOwnCourse.id)
       expect(updated?.status).toBe('closed')
     })
   })
@@ -335,15 +343,15 @@ describe('<CoursesDetailPage /> — close course action (ADR-0024)', () => {
   })
 
   it('hides the Close course button once a course is closed and shows the Closed status', async () => {
-    const { gradedCourse } = fixtures()
+    const { publishedOwnCourse } = fixtures()
     // Close it first, then view it as admin.
     asRole('admin')
-    useStore.getState().closeCourse(gradedCourse.id)
-    renderPage(gradedCourse.id)
+    useStore.getState().closeCourse(publishedOwnCourse.id)
+    renderPage(publishedOwnCourse.id)
 
     await waitFor(() => {
       expect(
-        screen.getByRole('heading', { name: shortCourseName(gradedCourse) })
+        screen.getByRole('heading', { name: shortCourseName(publishedOwnCourse) })
       ).toBeInTheDocument()
     })
     expect(screen.getByText('Closed')).toBeInTheDocument()

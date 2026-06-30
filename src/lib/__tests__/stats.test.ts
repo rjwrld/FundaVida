@@ -35,12 +35,8 @@ describe('dashboardStatDeltas', () => {
           { courseId: 'cou-a', enrolledAt: RECENT },
           { courseId: 'cou-b', enrolledAt: RECENT },
         ],
-        // 1 approved before the window, 1 within it; a pending one is ignored → 2 vs 1
-        certificates: [
-          { status: 'approved', approvedAt: OLD },
-          { status: 'approved', approvedAt: RECENT },
-          { status: 'pending' },
-        ],
+        // 1 issued before the window, 1 within it → 2 vs 1
+        certificates: [{ issuedAt: OLD }, { issuedAt: RECENT }],
         // 10h before the window, 5h within it → 15 vs 10
         tcuActivities: [
           { hours: 10, date: OLD },
@@ -81,7 +77,7 @@ describe('dashboardStatDeltas', () => {
       {
         students: [{ createdAt: RECENT }],
         enrollments: [{ courseId: 'cou-a', enrolledAt: RECENT }],
-        certificates: [{ status: 'approved', approvedAt: RECENT }],
+        certificates: [{ issuedAt: RECENT }],
         tcuActivities: [{ hours: 4, date: RECENT }],
       },
       NOW

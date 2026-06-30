@@ -266,65 +266,46 @@ describe('seedDemo — email campaigns reuse the Bulk Email recipient resolution
   })
 })
 
-describe('seedDemo — Certificates mirror the pending → approved story (#69)', () => {
-  it('earns one Certificate per passing Grade, each backed by a real passing Grade', () => {
+describe('seedDemo — Certificates are emitted on course close (ADR-0024)', () => {
+  it('earns one downloadable Certificate per passing Grade in a closed Course, score snapshotted', () => {
     const world = seedDemo(EPOCH)
-    const passingGrades = world.grades.filter((g) => g.score >= 70)
-    expect(world.certificates.length).toBe(passingGrades.length)
+    const closedCourseIds = new Set(
+      world.courses.filter((c) => c.status === 'closed').map((c) => c.id)
+    )
+    const passingInClosed = world.grades.filter(
+      (g) => g.score >= 70 && closedCourseIds.has(g.courseId)
+    )
+    expect(passingInClosed.length).toBeGreaterThan(0)
+    expect(world.certificates.length).toBe(passingInClosed.length)
 
-    const gradeByPair = new Map(passingGrades.map((g) => [`${g.studentId}:${g.courseId}`, g]))
+    const gradeByPair = new Map(passingInClosed.map((g) => [`${g.studentId}:${g.courseId}`, g]))
     world.certificates.forEach((cert) => {
       const grade = gradeByPair.get(`${cert.studentId}:${cert.courseId}`)
       expect(grade).toBeDefined()
       expect(cert.score).toBe(grade?.score)
+      // A Certificate exists iff its PDF is available — it carries an emit instant
+      // and no pending/approved status.
+      expect(cert.issuedAt).toBeTruthy()
     })
   })
 
-  it('leaves a small batch pending (admin has approvals waiting) and approves the rest', () => {
+  it('emits a Certificate only for closed Courses, never a still-published one', () => {
     const world = seedDemo(EPOCH)
-    const pending = world.certificates.filter((c) => c.status === 'pending')
-    const approved = world.certificates.filter((c) => c.status === 'approved')
-
-    // The recent batch (≤3) plus, when none of those land on the persona Teacher's
-    // courses, one forced persona-pending certificate (ADR-0019) — so at most 4.
-    expect(pending.length).toBeGreaterThanOrEqual(2)
-    expect(pending.length).toBeLessThanOrEqual(4)
-    expect(approved.length).toBeGreaterThan(0)
+    const closedCourseIds = new Set(
+      world.courses.filter((c) => c.status === 'closed').map((c) => c.id)
+    )
+    expect(world.certificates.every((c) => closedCourseIds.has(c.courseId))).toBe(true)
   })
 
-  it('leaves at least one pending Certificate on the persona Teacher’s courses (ADR-0019)', () => {
+  it('issues each Certificate on or after its Grade and never in the future', () => {
     const world = seedDemo(EPOCH)
-    const personaCourseIds = new Set(
-      world.courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id)
-    )
-    const personaPending = world.certificates.filter(
-      (c) => c.status === 'pending' && personaCourseIds.has(c.courseId)
-    )
-    expect(personaPending.length).toBeGreaterThanOrEqual(1)
-  })
-
-  it('spreads the persona Teacher’s certificates across more than one Course (ADR-0019)', () => {
-    const world = seedDemo(EPOCH)
-    const personaCourseIds = new Set(
-      world.courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id)
-    )
-    const certCourseIds = new Set(
-      world.certificates.filter((c) => personaCourseIds.has(c.courseId)).map((c) => c.courseId)
-    )
-    // Two+ cert-bearing courses so the worklist's by-course filter is demoable.
-    expect(certCourseIds.size).toBeGreaterThanOrEqual(2)
-  })
-
-  it('stamps approval metadata only on approved Certificates', () => {
-    const world = seedDemo(EPOCH)
+    const gradeByPair = new Map(world.grades.map((g) => [`${g.studentId}:${g.courseId}`, g]))
     world.certificates.forEach((cert) => {
-      if (cert.status === 'approved') {
-        expect(cert.approvedAt).toBeTruthy()
-        expect(cert.approvedBy).toBe('admin')
-      } else {
-        expect(cert.approvedAt).toBeUndefined()
-        expect(cert.approvedBy).toBeUndefined()
-      }
+      const grade = gradeByPair.get(`${cert.studentId}:${cert.courseId}`)
+      if (!grade) throw new Error(`certificate ${cert.id} has no backing grade`)
+      const issued = new Date(cert.issuedAt).getTime()
+      expect(issued).toBeGreaterThanOrEqual(new Date(grade.issuedAt).getTime())
+      expect(issued).toBeLessThanOrEqual(EPOCH.getTime())
     })
   })
 })
@@ -561,11 +542,13 @@ describe('seedDemo — Program catalog is a first-class entity (ADR-0015)', () =
 })
 
 describe('seedDemo — Course gains level, status, capacity (ADR-0016, ADR-0020)', () => {
-  it('gives every Course a single known level, a published status, and a positive capacity', () => {
+  it('gives every Course a single known level, a seeded status, and a positive capacity', () => {
     const world = seedDemo(EPOCH)
     world.courses.forEach((course) => {
       expect(['primaria', 'secundaria']).toContain(course.level)
-      expect(course.status).toBe('published')
+      // Completed cohorts seed as 'closed' (the close ceremony ran, ADR-0024);
+      // every other cohort seeds as 'published'. No draft in the seed.
+      expect(['published', 'closed']).toContain(course.status)
       expect(course.capacity).toBeGreaterThan(0)
     })
   })

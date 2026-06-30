@@ -152,25 +152,20 @@ export interface Grade {
   issuedAt: string
 }
 
-export type CertificateStatus = 'pending' | 'approved'
-
 /**
- * Recognition of a passing Grade (CONTEXT.md: Certificate). Created automatically
- * as `pending` when the passing Grade is saved; an admin approval flips it to
- * `approved`, which is what makes the PDF available.
+ * Recognition of a passing Grade (CONTEXT.md: Certificate). Emitted when the
+ * Course is closed (ADR-0024), one per enrolled Student with a passing Grade,
+ * with the Grade's `score` snapshotted. A Certificate exists iff its Course was
+ * closed iff the PDF is available — there is no undownloadable state to model,
+ * so there is no `status`.
  */
 export interface Certificate {
   id: string
   studentId: string
   courseId: string
   score: number
-  status: CertificateStatus
-  /** When the passing Grade that earned this Certificate was saved. */
-  createdAt: string
-  /** When an admin approved it — drives the PDF's issue date. Absent while pending. */
-  approvedAt?: string
-  /** The admin who approved it. Absent while pending. */
-  approvedBy?: string
+  /** When the Course was closed and this Certificate emitted — dates the PDF. */
+  issuedAt: string
 }
 
 export type TcuActivityStatus = 'pending' | 'approved' | 'rejected'

@@ -140,49 +140,28 @@
   },
   "certificates": {
     "empty": {
-      "body": "A certificate appears here once a passing grade is saved.",
+      "body": "A certificate appears here once a course is closed.",
       "cta": "View enrollments",
       "heading": "No certificates issued yet"
     },
     "list": {
-      "approve": "Approve",
-      "approveAria": "Approve certificate for {{student}}",
+      "allCourses": "All courses",
       "cardAria": "Open preview for {{student}} — {{course}}",
       "dialog": {
         "title": "Certificate preview"
       },
       "downloadPdf": "Download PDF",
+      "filterByCourse": "Filter by course",
       "noMatches": "No certificates match \"{{query}}\".",
       "search": {
         "ariaLabel": "Search certificates by student name",
         "placeholder": "Search by student name…"
       },
-      "subtitle": "A passing grade (score ≥ 70) earns a certificate. Approving it unlocks the PDF to preview and download.",
+      "subtitle": "Closing a course issues a certificate for every passing student — preview and download each here.",
       "title": "Certificates"
     },
     "status": {
-      "approved": "Approved",
-      "inReview": "In review",
-      "pending": "Pending"
-    },
-    "worklist": {
-      "allCourses": "All courses",
-      "approveAll": "Approve all",
-      "approveAllAria": "Approve all {{total}} pending certificates",
-      "columns": {
-        "actions": "Actions",
-        "course": "Course",
-        "grade": "Grade",
-        "issued": "Issued",
-        "student": "Student"
-      },
-      "emptyApproved": "No approved certificates yet.",
-      "emptyPending": "Nothing waiting — every certificate has been approved.",
-      "filterByCourse": "Filter by course",
-      "tabs": {
-        "approved": "Approved",
-        "pending": "Needs approval"
-      }
+      "issued": "Issued"
     }
   },
   "common": {
@@ -262,7 +241,7 @@
         "status": "Status"
       },
       "certificates": {
-        "empty": "Certificates appear here once passing grades are saved for this course."
+        "empty": "Certificates appear here once this course is closed."
       },
       "close": "Close course",
       "closeConfirm": {
@@ -858,8 +837,6 @@
   },
   "toasts": {
     "campaignSent": "Campaign sent successfully.",
-    "certificateApproved": "Certificate approved.",
-    "certificatesApproved": "Certificates approved.",
     "courseClosed": "Course closed.",
     "courseCreated": "Course created.",
     "courseDeleted": "Course deleted.",

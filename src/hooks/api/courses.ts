@@ -94,10 +94,10 @@ export const useSetGrade = makeEntityMutation('setGrade')<{
   score: number
 }>({
   toastKey: 'toasts.gradeSaved',
-  // ['grades'] so the Course detail roster (scoped grades query, ADR-0012)
-  // shows the saved score without a manual refresh; ['certificates'] because a
-  // passing score auto-creates a pending Certificate the approvals view reads.
-  invalidates: [COURSES_KEY, ['students'], ['grades'], ['certificates']],
+  // ['grades'] so the Course detail roster (scoped grades query, ADR-0012) shows
+  // the saved score without a manual refresh. Saving a Grade no longer touches
+  // Certificates — those are emitted when the Course is closed (ADR-0024).
+  invalidates: [COURSES_KEY, ['students'], ['grades']],
   args: ({ studentId, courseId, score }) => [studentId, courseId, score],
 })
 
@@ -129,8 +129,10 @@ export const usePublishCourse = makeEntityMutation('publishCourse')<{ courseId: 
 
 export const useCloseCourse = makeEntityMutation('closeCourse')<{ courseId: string }>({
   toastKey: 'toasts.courseClosed',
-  // Closing flips status to 'closed' (ADR-0024); invalidate the courses list and
-  // this course's detail so both reflect the new status without a reload.
-  invalidates: ({ courseId }) => [COURSES_KEY, courseKey(courseId)],
+  // Closing flips status to 'closed' AND emits the cohort's Certificates (ADR-0024),
+  // so invalidate the courses list + this course's detail (new status), ['certificates']
+  // (the new certs surface in the gallery and the in-course section), and ['students']
+  // (a Student's own-certificates view refetches).
+  invalidates: ({ courseId }) => [COURSES_KEY, courseKey(courseId), ['certificates'], ['students']],
   args: ({ courseId }) => [courseId],
 })

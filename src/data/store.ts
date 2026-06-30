@@ -16,7 +16,7 @@ import type {
   Role,
 } from '@/types'
 import { can, type Action, type Resource, type PermissionContext } from '@/permissions'
-import { PASSING_SCORE } from '@/lib/certificates'
+import { emitCertificatesForClose } from '@/lib/certificates'
 import { clock, setDemoEpoch } from '@/lib/clock'
 import { seedDemo } from './seed'
 import { debounce } from './debounce'
@@ -80,8 +80,6 @@ export interface StoreState {
   setGrade: (studentId: string, courseId: string, score: number) => Grade
   updateGradeScore: (gradeId: string, score: number) => void
   deleteGrade: (gradeId: string) => void
-  approveCertificate: (certificateId: string) => void
-  approveCertificates: (certificateIds: string[]) => void
   logTcuActivity: (
     input: Omit<TcuActivity, 'id' | 'status' | 'approvedBy' | 'approvedAt'>
   ) => TcuActivity
@@ -218,32 +216,6 @@ function initialState(): Pick<
     currentUserId,
     locale,
   }
-}
-
-/**
- * Saving a passing Grade earns a pending Certificate (CONTEXT.md, ADR-0012). A
- * failing score earns nothing, and a (student, course) pair never accrues a
- * second Certificate. Returns the certificates array, appended-to or unchanged.
- */
-function maybePendingCertificate(
-  certificates: Certificate[],
-  studentId: string,
-  courseId: string,
-  score: number
-): Certificate[] {
-  if (score < PASSING_SCORE) return certificates
-  if (certificates.some((c) => c.studentId === studentId && c.courseId === courseId)) {
-    return certificates
-  }
-  const certificate: Certificate = {
-    id: nextId('cert', certificates),
-    studentId,
-    courseId,
-    score,
-    status: 'pending',
-    createdAt: clock.now().toISOString(),
-  }
-  return [...certificates, certificate]
 }
 
 function nextId(prefix: string, existing: { id: string }[]): string {
@@ -505,26 +477,38 @@ export const useStore = create<StoreState>((set, get) => ({
       userId: existing.currentUserId ?? undefined,
     })
     // Closing is a deliberate ceremony on a live cohort: a draft is not yet open
-    // and a closed Course is terminal, so both reject (ADR-0024). Certificate
-    // emission on close lands in the next slice (#147).
+    // and a closed Course is terminal, so both reject (ADR-0024).
     if (course.status !== 'published') {
       throw new Error(
         `cannot close course ${courseId}: status is ${course.status}, expected published`
       )
     }
-    withAudit(set, (state) => ({
-      next: {
-        courses: state.courses.map((c) =>
-          c.id === courseId ? { ...c, status: 'closed' as const } : c
-        ),
-      },
-      audit: {
-        action: 'close',
-        entity: 'course',
-        entityId: courseId,
-        summary: `Closed course ${course.name}`,
-      },
-    }))
+    // Closing emits a downloadable Certificate for every enrolled Student with a
+    // passing Grade, all at once and in the same mutation as the status flip
+    // (ADR-0024). The pure seed carries (student, course, score); the store stamps
+    // each with a fresh id and the close instant as `issuedAt`.
+    const issuedAt = clock.now().toISOString()
+    withAudit(set, (state) => {
+      const seeds = emitCertificatesForClose(course, state.enrollments, state.grades)
+      const emitted: Certificate[] = []
+      seeds.forEach((seed) => {
+        emitted.push({ id: nextId('cert', [...state.certificates, ...emitted]), ...seed, issuedAt })
+      })
+      return {
+        next: {
+          courses: state.courses.map((c) =>
+            c.id === courseId ? { ...c, status: 'closed' as const } : c
+          ),
+          certificates: [...state.certificates, ...emitted],
+        },
+        audit: {
+          action: 'close',
+          entity: 'course',
+          entityId: courseId,
+          summary: `Closed course ${course.name}, emitted ${emitted.length} certificate(s)`,
+        },
+      }
+    })
   },
   createTeacher: (input) => {
     const existing = get()
@@ -873,7 +857,6 @@ export const useStore = create<StoreState>((set, get) => ({
       withAudit(set, (state) => ({
         next: {
           grades: state.grades.map((g) => (g.id === existing.id ? updated : g)),
-          certificates: maybePendingCertificate(state.certificates, studentId, courseId, score),
         },
         audit: {
           action: 'grade',
@@ -894,7 +877,6 @@ export const useStore = create<StoreState>((set, get) => ({
     withAudit(set, (state) => ({
       next: {
         grades: [...state.grades, grade],
-        certificates: maybePendingCertificate(state.certificates, studentId, courseId, score),
       },
       audit: {
         action: 'grade',
@@ -950,78 +932,6 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'grade',
         entityId: gradeId,
         summary: `Deleted grade ${gradeId}`,
-      },
-    }))
-  },
-  approveCertificate: (certificateId) => {
-    const state = get()
-    const certificate = state.certificates.find((c) => c.id === certificateId)
-    if (!certificate) {
-      throw new Error(`cannot approve: unknown certificate ${certificateId}`)
-    }
-    // Permission flows through the matrix seam (ADR-0009/0019): admin's
-    // certificates.approve is unconditional; the teacher predicate (courseOwned)
-    // allows it only for the certificate's own Course. assertCan throws otherwise.
-    const course = state.courses.find((c) => c.id === certificate.courseId)
-    assertCan(state, 'approve', 'certificates', {
-      userId: state.currentUserId ?? undefined,
-      course,
-    })
-    // Approving an already-approved Certificate is a no-op (idempotent).
-    if (certificate.status === 'approved') return
-    const approvedBy = state.currentUserId ?? 'system'
-    const approvedAt = clock.now().toISOString()
-    withAudit(set, (state) => ({
-      next: {
-        certificates: state.certificates.map((c) =>
-          c.id === certificateId ? { ...c, status: 'approved', approvedAt, approvedBy } : c
-        ),
-      },
-      audit: {
-        action: 'approve',
-        entity: 'certificate',
-        entityId: certificateId,
-        summary: `Approved certificate ${certificateId}`,
-      },
-    }))
-  },
-  approveCertificates: (certificateIds) => {
-    const state = get()
-    const approvedBy = state.currentUserId ?? 'system'
-    const approvedAt = clock.now().toISOString()
-    // Resolve and permission-check every certificate up front so a single
-    // violation throws before anything mutates (all-or-nothing). Each check runs
-    // through the matrix seam with the cert's Course in context (ADR-0009/0019),
-    // so a Teacher can bulk-approve only within their own Courses.
-    const targets = certificateIds.map((id) => {
-      const certificate = state.certificates.find((c) => c.id === id)
-      if (!certificate) {
-        throw new Error(`cannot approve: unknown certificate ${id}`)
-      }
-      const course = state.courses.find((c) => c.id === certificate.courseId)
-      assertCan(state, 'approve', 'certificates', {
-        userId: state.currentUserId ?? undefined,
-        course,
-      })
-      return certificate
-    })
-
-    // Approving an already-approved Certificate is a no-op; with nothing pending
-    // to flip, record no audit entry at all.
-    const pendingIds = new Set(targets.filter((c) => c.status === 'pending').map((c) => c.id))
-    if (pendingIds.size === 0) return
-
-    withAudit(set, (state) => ({
-      next: {
-        certificates: state.certificates.map((c) =>
-          pendingIds.has(c.id) ? { ...c, status: 'approved', approvedAt, approvedBy } : c
-        ),
-      },
-      audit: {
-        action: 'approve',
-        entity: 'certificate',
-        entityId: [...pendingIds].join(','),
-        summary: `Approved ${pendingIds.size} certificate(s)`,
       },
     }))
   },

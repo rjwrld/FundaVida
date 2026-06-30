@@ -1,13 +1,37 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { enterAs } from './helpers/auth'
+import { seedDemo } from '../src/data/seed'
 
-async function openCertificatePreview(page: import('@playwright/test').Page) {
+// Deterministic anchors from the seed (faker.seed(42), epoch-independent). The app
+// reseeds fresh at real wall-time, so the structural graph here matches what the
+// browser hydrates — only the floating dates differ (ADR-0002).
+const world = seedDemo(new Date())
+const PASSING_SCORE = 70
+const passingPair = new Set(
+  world.grades.filter((g) => g.score >= PASSING_SCORE).map((g) => `${g.studentId}:${g.courseId}`)
+)
+// A published Course owned by the teacher persona (tea-1) with at least one approved
+// Student who passed — so closing it emits at least one Certificate (ADR-0024).
+const closableCourse = world.courses.find(
+  (c) =>
+    c.status === 'published' &&
+    c.teacherId === 'tea-1' &&
+    world.enrollments.some(
+      (e) =>
+        e.courseId === c.id && e.status === 'approved' && passingPair.has(`${e.studentId}:${c.id}`)
+    )
+)
+if (!closableCourse) throw new Error('seed has no closable tea-1 course with a passing student')
+
+async function openCertificatePreview(page: Page) {
   await enterAs(page, 'admin')
   await page.getByRole('link', { name: 'Certificates' }).click()
-  // The approver worklist opens on "Needs approval"; approved certificates (the
-  // ones with a downloadable PDF) live behind the Approved tab (ADR-0019).
-  await page.getByRole('tab', { name: 'Approved' }).click()
-  await page.getByRole('button', { name: 'Preview' }).first().click()
+  // The gallery lists every emitted Certificate as a previewable card — there is no
+  // approval step or Approved tab (ADR-0024); each card is downloadable.
+  await page
+    .getByRole('button', { name: /open preview/i })
+    .first()
+    .click()
   await expect(page.getByRole('heading', { name: 'Certificate preview' })).toBeVisible()
 }
 
@@ -35,23 +59,25 @@ test('lets you scroll to the footer when the window is too short to scale it', a
   await expect(footer).toBeInViewport() // …and is reachable by scrolling
 })
 
-test('admin previews and downloads a certificate', async ({ page }) => {
-  // Seed data already contains passing grades — at least one certificate is eligible.
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Enter as admin' }).first().click()
+test('admin previews and downloads a certificate, with no approval anywhere', async ({ page }) => {
+  await enterAs(page, 'admin')
   await page.getByRole('link', { name: 'Certificates' }).click()
   await expect(page.getByRole('heading', { name: 'Certificates', exact: true })).toBeVisible()
 
-  await page.getByRole('tab', { name: 'Approved' }).click()
-  await page.getByRole('button', { name: 'Preview' }).first().click()
+  // Approval is gone: no Approve / Approve all controls, no worklist tabs.
+  await expect(page.getByRole('button', { name: /^approve/i })).toHaveCount(0)
+  await expect(page.getByRole('tab')).toHaveCount(0)
+
+  await page
+    .getByRole('button', { name: /open preview/i })
+    .first()
+    .click()
   await expect(page.getByRole('heading', { name: 'Certificate preview' })).toBeVisible()
 
-  // Wait for the async PDF blob to resolve before clicking
+  // Wait for the async PDF blob to resolve before clicking.
   const downloadBtn = page.getByRole('button', { name: 'Download PDF' })
   await expect(downloadBtn).not.toHaveAttribute('aria-disabled', 'true')
 
-  // Wait for the specific download the button produces, named from the anchor's
-  // `download` attribute.
   const downloadPromise = page.waitForEvent('download', (d) =>
     /^certificate-.*\.pdf$/.test(d.suggestedFilename())
   )
@@ -60,31 +86,29 @@ test('admin previews and downloads a certificate', async ({ page }) => {
   expect(download.suggestedFilename()).toMatch(/^certificate-.*\.pdf$/)
 })
 
-test('a teacher approves a pending certificate in their own course', async ({ page }) => {
-  await enterAs(page, 'teacher')
-  await page.getByRole('link', { name: 'Certificates' }).click()
-  await expect(page.getByRole('heading', { name: 'Certificates', exact: true })).toBeVisible()
+test('closing a course emits its certificates, downloadable in context', async ({ page }) => {
+  await enterAs(page, 'teacher') // currentUserId === 'tea-1'
+  await page.goto(`/app/courses/${closableCourse.id}`)
 
-  // The seed guarantees the persona teacher has a pending approval waiting (ADR-0019).
-  const approve = page.getByRole('button', { name: /Approve certificate for/ }).first()
-  await expect(approve).toBeVisible()
-  await approve.click()
+  // Before closing, the in-course Certificates section is empty and the Close action is offered.
+  await expect(page.getByText('Certificates appear here once this course is closed.')).toBeVisible()
+  await page.getByRole('button', { name: 'Close course' }).click()
 
-  // The row leaves the worklist in place (the role-scoped query invalidates),
-  // landing on the empty "Needs approval" state rather than a stale pending row.
-  await expect(
-    page.getByText('Nothing waiting — every certificate has been approved.')
-  ).toBeVisible()
-})
+  // Confirm in the dialog (its confirm button shares the label).
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Close course' }).click()
 
-test('an admin clears the queue with Approve all', async ({ page }) => {
-  await enterAs(page, 'admin')
-  await page.getByRole('link', { name: 'Certificates' }).click()
-  await page.getByRole('button', { name: 'Approve all' }).click()
+  // The freshly-emitted Certificate now appears in the in-course section and the
+  // Close action is gone — proving the close ran and emitted (ADR-0024).
+  const certCard = page.getByRole('button', { name: /open preview/i }).first()
+  await expect(certCard).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Close course' })).toHaveCount(0)
 
-  await expect(
-    page.getByText('Nothing waiting — every certificate has been approved.')
-  ).toBeVisible()
+  // …and it is immediately downloadable, no approval step.
+  await certCard.click()
+  await expect(page.getByRole('heading', { name: 'Certificate preview' })).toBeVisible()
+  const downloadBtn = page.getByRole('button', { name: 'Download PDF' })
+  await expect(downloadBtn).not.toHaveAttribute('aria-disabled', 'true')
 })
 
 test('renders in Spanish when locale is ES', async ({ page }) => {

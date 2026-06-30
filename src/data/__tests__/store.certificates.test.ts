@@ -3,17 +3,23 @@ import { useStore } from '../store'
 import { clearPersistedCurrentUser, clearPersistedRole, clearPersistedState } from '../persistence'
 import { PASSING_SCORE } from '@/lib/certificates'
 
-/** An enrolled (student, course) pair that has no Certificate yet. */
-function freshPair() {
-  const { enrollments, certificates } = useStore.getState()
-  const pair = enrollments.find(
-    (e) => !certificates.some((c) => c.studentId === e.studentId && c.courseId === e.courseId)
-  )
-  if (!pair) throw new Error('seed has no enrollment without a certificate')
-  return { studentId: pair.studentId, courseId: pair.courseId }
+/**
+ * A published Course with at least three approved enrollments and no Certificates
+ * yet — the runway for the close ceremony (one passing, one failing, one ungraded).
+ */
+function publishedCourseWithApprovedEnrollments() {
+  const { courses, enrollments, certificates, grades } = useStore.getState()
+  for (const course of courses.filter((c) => c.status === 'published')) {
+    if (certificates.some((c) => c.courseId === course.id)) continue
+    // No seeded grades, so the test controls exactly who passes / fails / is ungraded.
+    if (grades.some((g) => g.courseId === course.id)) continue
+    const approved = enrollments.filter((e) => e.courseId === course.id && e.status === 'approved')
+    if (approved.length >= 3) return { course, approved }
+  }
+  throw new Error('seed has no ungraded published course with three approved enrollments')
 }
 
-describe('certificates — passing grade creates a pending certificate', () => {
+describe('certificates — closing a Course emits certificates', () => {
   beforeEach(() => {
     clearPersistedState()
     clearPersistedRole()
@@ -22,137 +28,78 @@ describe('certificates — passing grade creates a pending certificate', () => {
     useStore.getState().setRole('admin')
   })
 
-  it('creates a pending certificate when a passing grade is saved', () => {
-    const { studentId, courseId } = freshPair()
-    useStore.getState().setGrade(studentId, courseId, PASSING_SCORE)
+  it('emits one downloadable certificate per passing enrolled student, none for failing or ungraded', () => {
+    const { course, approved } = publishedCourseWithApprovedEnrollments()
+    const [passing, failing, ungraded] = approved
+    if (!passing || !failing || !ungraded) throw new Error('expected three approved enrollments')
+    useStore.getState().setGrade(passing.studentId, course.id, PASSING_SCORE)
+    useStore.getState().setGrade(failing.studentId, course.id, PASSING_SCORE - 1)
 
-    const cert = useStore
-      .getState()
-      .certificates.find((c) => c.studentId === studentId && c.courseId === courseId)
-    expect(cert).toBeDefined()
-    expect(cert?.status).toBe('pending')
+    useStore.getState().closeCourse(course.id)
+
+    const certs = useStore.getState().certificates.filter((c) => c.courseId === course.id)
+    expect(certs).toHaveLength(1)
+    const cert = certs[0]
+    expect(cert?.studentId).toBe(passing.studentId)
     expect(cert?.score).toBe(PASSING_SCORE)
+    expect(cert?.issuedAt).toBeTruthy()
+    // No cert for the failing or the ungraded student.
+    expect(certs.some((c) => c.studentId === failing.studentId)).toBe(false)
+    expect(certs.some((c) => c.studentId === ungraded.studentId)).toBe(false)
   })
 
-  it('does not create a certificate for a failing grade', () => {
-    const { studentId, courseId } = freshPair()
-    useStore.getState().setGrade(studentId, courseId, PASSING_SCORE - 1)
+  it('flips the Course to closed and records a single close audit entry alongside the certs', () => {
+    const { course, approved } = publishedCourseWithApprovedEnrollments()
+    const [first] = approved
+    if (!first) throw new Error('expected an approved enrollment')
+    useStore.getState().setGrade(first.studentId, course.id, 95)
+    const auditBefore = useStore.getState().auditLog.length
+
+    useStore.getState().closeCourse(course.id)
+
+    expect(useStore.getState().courses.find((c) => c.id === course.id)?.status).toBe('closed')
+    // One mutation: the status flip and the cert emission share one audit cycle.
+    expect(useStore.getState().auditLog.length).toBe(auditBefore + 1)
+    const entry = useStore.getState().auditLog[0]
+    expect(entry?.action).toBe('close')
+    expect(entry?.entity).toBe('course')
+    expect(useStore.getState().certificates.some((c) => c.courseId === course.id)).toBe(true)
+  })
+
+  it('does not emit a certificate for a passing grade on a non-approved enrollment', () => {
+    const { courses, enrollments, certificates } = useStore.getState()
+    // A published, cert-free course whose roster includes a withdrawn enrollment.
+    let target: { courseId: string; studentId: string } | undefined
+    for (const course of courses.filter((c) => c.status === 'published')) {
+      if (certificates.some((c) => c.courseId === course.id)) continue
+      const withdrawn = enrollments.find(
+        (e) => e.courseId === course.id && e.status === 'withdrawn'
+      )
+      if (withdrawn) {
+        target = { courseId: course.id, studentId: withdrawn.studentId }
+        break
+      }
+    }
+    if (!target) throw new Error('seed lacks a published course with a withdrawn enrollment')
+    const { courseId, studentId } = target
+    useStore.getState().setGrade(studentId, courseId, 95)
+
+    useStore.getState().closeCourse(courseId)
 
     const cert = useStore
       .getState()
-      .certificates.find((c) => c.studentId === studentId && c.courseId === courseId)
+      .certificates.find((c) => c.courseId === courseId && c.studentId === studentId)
     expect(cert).toBeUndefined()
   })
 
-  it('does not create a second certificate when the passing grade is re-saved', () => {
-    const { studentId, courseId } = freshPair()
-    useStore.getState().setGrade(studentId, courseId, PASSING_SCORE)
-    useStore.getState().setGrade(studentId, courseId, 95)
-
-    const certs = useStore
-      .getState()
-      .certificates.filter((c) => c.studentId === studentId && c.courseId === courseId)
-    expect(certs).toHaveLength(1)
-  })
-})
-
-describe('certificates — admin approves a pending certificate', () => {
-  beforeEach(() => {
-    clearPersistedState()
-    clearPersistedRole()
-    clearPersistedCurrentUser()
-    useStore.getState().resetDemo()
-  })
-
-  function seedPendingCertificate(): string {
-    useStore.getState().setRole('admin')
-    const { studentId, courseId } = freshPair()
-    useStore.getState().setGrade(studentId, courseId, PASSING_SCORE)
-    const cert = useStore
-      .getState()
-      .certificates.find((c) => c.studentId === studentId && c.courseId === courseId)
-    if (!cert) throw new Error('expected a pending certificate to exist')
-    return cert.id
-  }
-
-  it('flips status to approved and stamps the approver, with an audit entry', () => {
-    const id = seedPendingCertificate()
-    const auditBefore = useStore.getState().auditLog.length
-
-    useStore.getState().approveCertificate(id)
-
-    const cert = useStore.getState().certificates.find((c) => c.id === id)
-    expect(cert?.status).toBe('approved')
-    expect(cert?.approvedAt).toBeTruthy()
-    expect(cert?.approvedBy).toBe('admin')
-    const entry = useStore.getState().auditLog[0]
-    expect(entry?.action).toBe('approve')
-    expect(entry?.entity).toBe('certificate')
-    expect(entry?.entityId).toBe(id)
-    expect(useStore.getState().auditLog.length).toBe(auditBefore + 1)
-  })
-
-  it('refuses approval for a student', () => {
-    const id = seedPendingCertificate()
+  it('refuses to close (and emit) for a student', () => {
+    const { course } = publishedCourseWithApprovedEnrollments()
     useStore.getState().setRole('student')
-    expect(() => useStore.getState().approveCertificate(id)).toThrow(/permission denied/i)
-    expect(useStore.getState().certificates.find((c) => c.id === id)?.status).toBe('pending')
+    expect(() => useStore.getState().closeCourse(course.id)).toThrow(/permission denied/i)
   })
 })
 
-describe('certificates — a teacher approves only their own courses', () => {
-  beforeEach(() => {
-    clearPersistedState()
-    clearPersistedRole()
-    clearPersistedCurrentUser()
-    useStore.getState().resetDemo()
-  })
-
-  /**
-   * Seed a pending certificate in a course matching `ownedByTea1`: as admin, find an
-   * un-certified enrollment in such a course and save a passing grade for it.
-   */
-  function seedPendingCertificate(ownedByTea1: boolean): string {
-    useStore.getState().setRole('admin')
-    const { enrollments, certificates, courses } = useStore.getState()
-    const courseIds = new Set(
-      courses.filter((c) => (c.teacherId === 'tea-1') === ownedByTea1).map((c) => c.id)
-    )
-    const pair = enrollments.find(
-      (e) =>
-        courseIds.has(e.courseId) &&
-        !certificates.some((c) => c.studentId === e.studentId && c.courseId === e.courseId)
-    )
-    if (!pair) throw new Error('seed has no un-certified enrollment matching the course filter')
-    useStore.getState().setGrade(pair.studentId, pair.courseId, PASSING_SCORE)
-    const cert = useStore
-      .getState()
-      .certificates.find((c) => c.studentId === pair.studentId && c.courseId === pair.courseId)
-    if (!cert) throw new Error('expected a pending certificate to exist')
-    return cert.id
-  }
-
-  it('approves a pending certificate in a course the teacher owns', () => {
-    const id = seedPendingCertificate(true)
-    useStore.getState().setRole('teacher') // currentUserId === 'tea-1'
-
-    useStore.getState().approveCertificate(id)
-
-    const cert = useStore.getState().certificates.find((c) => c.id === id)
-    expect(cert?.status).toBe('approved')
-    expect(cert?.approvedBy).toBe('tea-1')
-  })
-
-  it('refuses to approve a certificate in another teacher’s course', () => {
-    const id = seedPendingCertificate(false)
-    useStore.getState().setRole('teacher') // currentUserId === 'tea-1'
-
-    expect(() => useStore.getState().approveCertificate(id)).toThrow(/permission denied/i)
-    expect(useStore.getState().certificates.find((c) => c.id === id)?.status).toBe('pending')
-  })
-})
-
-describe('certificates — bulk approval', () => {
+describe('certificates — saving a grade no longer emits a certificate', () => {
   beforeEach(() => {
     clearPersistedState()
     clearPersistedRole()
@@ -161,57 +108,20 @@ describe('certificates — bulk approval', () => {
     useStore.getState().setRole('admin')
   })
 
-  /** Ids of every currently-pending certificate. */
-  function pendingIds(): string[] {
-    return useStore
-      .getState()
-      .certificates.filter((c) => c.status === 'pending')
-      .map((c) => c.id)
-  }
+  it('creates no certificate when a passing grade is saved (emission waits for close)', () => {
+    const { course, approved } = publishedCourseWithApprovedEnrollments()
+    const [first] = approved
+    if (!first) throw new Error('expected an approved enrollment')
+    const studentId = first.studentId
+    const before = useStore.getState().certificates.length
 
-  it('approves every pending certificate in one audit entry', () => {
-    const ids = pendingIds()
-    expect(ids.length).toBeGreaterThan(1)
-    const auditBefore = useStore.getState().auditLog.length
+    useStore.getState().setGrade(studentId, course.id, PASSING_SCORE)
 
-    useStore.getState().approveCertificates(ids)
-
-    const certs = useStore.getState().certificates
-    expect(ids.every((id) => certs.find((c) => c.id === id)?.status === 'approved')).toBe(true)
-    // One batch → exactly one audit entry, not one per certificate.
-    expect(useStore.getState().auditLog.length).toBe(auditBefore + 1)
-    expect(useStore.getState().auditLog[0]?.action).toBe('approve')
-    expect(useStore.getState().auditLog[0]?.entity).toBe('certificate')
-  })
-
-  it('skips already-approved ids (idempotent) and records nothing when none are pending', () => {
-    const ids = pendingIds()
-    useStore.getState().approveCertificates(ids)
-    const auditAfterFirst = useStore.getState().auditLog.length
-
-    // Re-approving the same ids is a no-op: no new audit entry.
-    useStore.getState().approveCertificates(ids)
-    expect(useStore.getState().auditLog.length).toBe(auditAfterFirst)
-  })
-
-  it('throws and approves nothing when any id is outside the teacher’s courses', () => {
-    // Pending ids split across owned and unowned courses for tea-1.
-    const { certificates, courses } = useStore.getState()
-    const ownCourseIds = new Set(courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id))
-    const owned = certificates.find((c) => c.status === 'pending' && ownCourseIds.has(c.courseId))
-    const foreign = certificates.find(
-      (c) => c.status === 'pending' && !ownCourseIds.has(c.courseId)
-    )
-    if (!owned || !foreign) throw new Error('seed lacks pending certs on both sides of ownership')
-
-    useStore.getState().setRole('teacher') // currentUserId === 'tea-1'
-
-    expect(() => useStore.getState().approveCertificates([owned.id, foreign.id])).toThrow(
-      /permission denied/i
-    )
-    // All-or-nothing: the owned one must NOT have flipped.
-    const after = useStore.getState().certificates
-    expect(after.find((c) => c.id === owned.id)?.status).toBe('pending')
-    expect(after.find((c) => c.id === foreign.id)?.status).toBe('pending')
+    expect(useStore.getState().certificates.length).toBe(before)
+    expect(
+      useStore
+        .getState()
+        .certificates.some((c) => c.studentId === studentId && c.courseId === course.id)
+    ).toBe(false)
   })
 })
