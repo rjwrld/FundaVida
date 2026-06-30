@@ -205,7 +205,20 @@
     "language": {
       "label": "Language"
     },
+    "pagination": {
+      "first": "First page",
+      "label": "Pagination",
+      "last": "Last page",
+      "next": "Next page",
+      "pageSize": "Rows per page",
+      "previous": "Previous page",
+      "range": "Showing {{from}}–{{to}} of {{total}}",
+      "status": "Page {{page}} of {{pageCount}}"
+    },
     "search": "Search",
+    "table": {
+      "empty": "No results"
+    },
     "theme": {
       "dark": "Dark",
       "light": "Light",
