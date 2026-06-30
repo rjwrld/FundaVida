@@ -76,7 +76,10 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
         sede: existing.sede,
         programId: existing.programId,
         level: existing.level,
-        status: existing.status,
+        // The authoring form only handles draft/published; a 'closed' cohort is
+        // terminal and its Edit entry points are gated off (ADR-0024), so this
+        // fallback is defensive — closed never actually reaches the form.
+        status: existing.status === 'closed' ? 'published' : existing.status,
         capacity: existing.capacity,
         teacherId: existing.teacherId,
         termStart: format(termStartDate, 'yyyy-MM-dd'),

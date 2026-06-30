@@ -57,6 +57,43 @@ test('teacher creates an own-Sede draft and publishes it (ADR-0016)', async ({ p
   await expect(row.getByTestId('course-status-published')).toContainText('Published')
 })
 
+test('teacher closes a published course from its detail page (ADR-0024)', async ({ page }) => {
+  await enterAs(page, 'teacher')
+  await page.goto('/app/courses')
+  await page.getByRole('button', { name: 'Add course' }).click()
+  await fillCourseForm(page, { name: 'Closeable Course', level: 'Primary', capacity: '15' })
+
+  // Publish it first — closing is a published-only ceremony (ADR-0024).
+  const row = page.getByRole('row').filter({ hasText: 'Closeable Course' })
+  await expect(row).toBeVisible()
+  await row.getByTestId('publish-button').click()
+  await expect(row.getByTestId('course-status-published')).toBeVisible()
+
+  // Open its detail page and close the cohort.
+  await row.getByRole('link', { name: 'Closeable Course' }).click()
+  await expect(page.getByRole('heading', { name: 'Closeable Course' })).toBeVisible()
+  await page.getByRole('button', { name: 'Close course' }).click()
+
+  // Confirm in the dialog (its confirm button shares the trigger's label).
+  await page.getByRole('dialog').getByRole('button', { name: 'Close course' }).click()
+
+  // The close persists to the store as a 'closed' status…
+  await expect
+    .poll(async () =>
+      page.evaluate((key) => {
+        const raw = window.localStorage.getItem(key)
+        if (!raw) return null
+        const state = JSON.parse(raw) as { courses: { name: string; status: string }[] }
+        return state.courses.find((c) => c.name === 'Closeable Course')?.status ?? null
+      }, STATE_KEY)
+    )
+    .toBe('closed')
+
+  // …the overview reflects it, and the close action is gone (closed is terminal).
+  await expect(page.getByText('Status: Closed')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Close course' })).toBeHidden()
+})
+
 test('the create form gives a teacher no way to pick another campus (ADR-0011/0016)', async ({
   page,
 }) => {

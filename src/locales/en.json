@@ -264,6 +264,11 @@
       "certificates": {
         "empty": "Certificates appear here once passing grades are saved for this course."
       },
+      "close": "Close course",
+      "closeConfirm": {
+        "description": "This records the course as complete. It can't be reopened.",
+        "title": "Close this course?"
+      },
       "deleteConfirm": "Delete this course?",
       "edit": "Edit",
       "enrollButton": "Enroll student",
@@ -341,6 +346,7 @@
       "title": "Courses"
     },
     "status": {
+      "closed": "Closed",
       "draft": "Draft",
       "published": "Published"
     }
@@ -854,6 +860,7 @@
     "campaignSent": "Campaign sent successfully.",
     "certificateApproved": "Certificate approved.",
     "certificatesApproved": "Certificates approved.",
+    "courseClosed": "Course closed.",
     "courseCreated": "Course created.",
     "courseDeleted": "Course deleted.",
     "coursePublished": "Course published.",

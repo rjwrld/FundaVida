@@ -7,6 +7,7 @@ export type Action =
   | 'edit'
   | 'delete'
   | 'approve'
+  | 'close'
   | 'mark'
   | 'log'
   | 'enter'
@@ -90,7 +91,7 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     programs: { view: true },
     students: { view: true, create: true, edit: true, delete: true },
     teachers: { view: true, create: true, edit: true, delete: true },
-    courses: { view: true, create: true, edit: true, delete: true },
+    courses: { view: true, create: true, edit: true, delete: true, close: true },
     enrollments: { view: true, create: true, edit: true, delete: true, approve: true },
     grades: { view: true, edit: true, enter: true, delete: true },
     certificates: { view: true, approve: true },
@@ -105,8 +106,9 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     students: { view: true },
     teachers: {},
     // A Teacher may create courses (ADR-0016) but the store enforces self-assignment
-    // at their own Sede. A Teacher may edit (and publish) courses they own.
-    courses: { view: true, create: true, edit: courseOwned },
+    // at their own Sede. A Teacher may edit (and publish) courses they own, and
+    // close their own cohort once it is over (ADR-0024).
+    courses: { view: true, create: true, edit: courseOwned, close: courseOwned },
     // A Teacher may view the enrollment roster of the Courses they own (ADR-0012):
     // the Course detail page gates the roster on this, while the no-context route/nav
     // checks stay denied (the predicate needs a course).

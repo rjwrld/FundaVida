@@ -38,6 +38,14 @@ const LEGACY_SNAPSHOT_KEYS = [
 
 export type PersistedState = SeedSnapshot
 
+// Valid persisted Course statuses: the authorable draft/published the form offers
+// (COURSE_STATUSES), plus the lifecycle-terminal 'closed' that only the
+// closeCourse ceremony sets (ADR-0024). 'closed' is accepted here so a stored
+// closed Course rehydrates rather than reseeding — old draft/published snapshots
+// stay valid, so STATE_KEY does not bump. It is deliberately kept out of
+// COURSE_STATUSES so the authoring form never offers it as a manual choice.
+const PERSISTED_COURSE_STATUSES = [...COURSE_STATUSES, 'closed'] as const
+
 function isBrowser() {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
 }
@@ -116,7 +124,8 @@ function isValidSnapshot(value: unknown): value is PersistedState {
     // rather than rendering a catalog that cannot resolve (ADR-0015/0016).
     if (typeof c.programId !== 'string') return false
     if (!COURSE_LEVELS.includes(c.level as (typeof COURSE_LEVELS)[number])) return false
-    if (!COURSE_STATUSES.includes(c.status as (typeof COURSE_STATUSES)[number])) return false
+    if (!PERSISTED_COURSE_STATUSES.includes(c.status as (typeof PERSISTED_COURSE_STATUSES)[number]))
+      return false
     if (typeof c.capacity !== 'number') return false
   }
 

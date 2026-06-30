@@ -26,10 +26,13 @@ export type GuardianRelationship = 'madre' | 'padre' | 'tutor' | 'otro'
 export type CourseLevel = 'primaria' | 'secundaria'
 
 /**
- * A Course's publication state (ADR-0016): a Teacher authors in `'draft'` and
- * publishes when ready; Students never see drafts. Bilingual via t().
+ * A Course's lifecycle state: a Teacher authors in `'draft'` and publishes when
+ * ready (ADR-0016; Students never see drafts), then deliberately `'closed'`s the
+ * cohort once it is over (ADR-0024) — a stored ceremony distinct from the
+ * derived "ended" (Term end-date passed). `'closed'` is reached only through the
+ * `closeCourse` action, never the authoring form. Bilingual via t().
  */
-export type CourseStatus = 'draft' | 'published'
+export type CourseStatus = 'draft' | 'published' | 'closed'
 
 /**
  * The enrollment approval lifecycle (ADR-0016): a Student self-enrolls into
@@ -206,6 +209,7 @@ export type AuditAction =
   | 'withdraw'
   | 'grade'
   | 'approve'
+  | 'close'
   | 'log'
 
 export type AuditEntity =
