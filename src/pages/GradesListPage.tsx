@@ -7,14 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { EditGradeDialog } from '@/components/grades/EditGradeDialog'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { RowActions } from '@/components/shared/RowActions'
@@ -23,6 +16,7 @@ import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useCourses, useDeleteGrade, useGrades, useStudents } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import type { GradeFilters } from '@/data/api/grades'
+import type { Grade } from '@/types'
 
 interface EditTarget {
   id: string
@@ -50,6 +44,64 @@ export function GradesListPage() {
 
   const hasFilters = Boolean(filters.studentId || filters.courseId)
   const count = data.length
+
+  const rowInfo = (g: Grade) => {
+    const s = students.find((x) => x.id === g.studentId)
+    const c = courses.find((x) => x.id === g.courseId)
+    const studentName = `${s?.firstName ?? ''} ${s?.lastName ?? ''}`.trim()
+    const courseName = c?.name ?? ''
+    const label = [studentName, courseName].filter(Boolean).join(' — ') || '—'
+    return { studentName, courseName, label }
+  }
+
+  const columns: DataTableColumn<Grade>[] = [
+    {
+      id: 'student',
+      header: t('grades.list.columns.student'),
+      sortable: true,
+      sortAccessor: (g) => rowInfo(g).studentName,
+      cell: (g) => rowInfo(g).studentName || '—',
+    },
+    {
+      id: 'course',
+      header: t('grades.list.columns.course'),
+      sortable: true,
+      sortAccessor: (g) => rowInfo(g).courseName,
+      cell: (g) => rowInfo(g).courseName || '—',
+    },
+    {
+      id: 'score',
+      header: t('grades.list.columns.score'),
+      sortable: true,
+      sortAccessor: (g) => g.score,
+      cell: (g) => formatGrade(g.score),
+    },
+    {
+      id: 'updatedAt',
+      header: t('grades.list.columns.updatedAt'),
+      sortable: true,
+      sortAccessor: (g) => g.issuedAt,
+      cell: (g) => formatDate(g.issuedAt),
+    },
+    {
+      id: 'actions',
+      header: t('grades.list.columns.actions'),
+      align: 'right',
+      cell: (g) => {
+        const { studentName, courseName, label } = rowInfo(g)
+        return (
+          <RowActions
+            editLabel={t('common.actions.editItem', { name: label })}
+            deleteLabel={t('common.actions.deleteItem', { name: label })}
+            onEdit={() =>
+              setEditTarget({ id: g.id, initialScore: g.score, studentName, courseName })
+            }
+            onDelete={() => setDeleteTarget({ id: g.id, studentName, courseName })}
+          />
+        )
+      },
+    },
+  ]
 
   return (
     <div className="space-y-6">
@@ -103,58 +155,7 @@ export function GradesListPage() {
           {hasFilters ? t('grades.list.emptyFiltered') : t('grades.list.empty')}
         </p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-          <div
-            className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground"
-            aria-hidden="true"
-          >
-            <span>{t('grades.list.title')}</span>
-            <span className="font-mono normal-case tabular-nums text-foreground">{count}</span>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead>{t('grades.list.columns.student')}</TableHead>
-                <TableHead>{t('grades.list.columns.course')}</TableHead>
-                <TableHead>{t('grades.list.columns.score')}</TableHead>
-                <TableHead>{t('grades.list.columns.updatedAt')}</TableHead>
-                <TableHead className="text-right">{t('grades.list.columns.actions')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((g) => {
-                const s = students.find((x) => x.id === g.studentId)
-                const c = courses.find((x) => x.id === g.courseId)
-                const studentName = `${s?.firstName ?? ''} ${s?.lastName ?? ''}`.trim()
-                const courseName = c?.name ?? ''
-                const label = [studentName, courseName].filter(Boolean).join(' — ') || '—'
-                return (
-                  <TableRow key={g.id} className="h-12 hover:bg-muted/40">
-                    <TableCell>{studentName || '—'}</TableCell>
-                    <TableCell>{courseName || '—'}</TableCell>
-                    <TableCell>{formatGrade(g.score)}</TableCell>
-                    <TableCell>{formatDate(g.issuedAt)}</TableCell>
-                    <TableCell className="text-right">
-                      <RowActions
-                        editLabel={t('common.actions.editItem', { name: label })}
-                        deleteLabel={t('common.actions.deleteItem', { name: label })}
-                        onEdit={() =>
-                          setEditTarget({
-                            id: g.id,
-                            initialScore: g.score,
-                            studentName,
-                            courseName,
-                          })
-                        }
-                        onDelete={() => setDeleteTarget({ id: g.id, studentName, courseName })}
-                      />
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable data={data} columns={columns} getRowKey={(g) => g.id} />
       )}
 
       <EditGradeDialog

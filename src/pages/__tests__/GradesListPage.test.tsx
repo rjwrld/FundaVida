@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -38,13 +38,18 @@ describe('<GradesListPage />', () => {
     useStore.getState().setLocale('en')
   })
 
+  // Count only the filter dropdowns, not the pager's "Rows per page" select
+  // (also a combobox, but it lives outside the filters region).
+  const filterComboboxes = () =>
+    within(screen.getByRole('region', { name: 'Filters' })).getAllByRole('combobox')
+
   it('shows scoped student and course filters for a teacher', async () => {
     useStore.getState().setRole('teacher')
     renderPage()
 
     // Teacher has students enrolled in own courses, so both filters render
     await waitFor(() => {
-      expect(screen.getAllByRole('combobox')).toHaveLength(2)
+      expect(filterComboboxes()).toHaveLength(2)
     })
   })
 
@@ -53,7 +58,7 @@ describe('<GradesListPage />', () => {
     renderPage()
 
     await waitFor(() => {
-      expect(screen.getAllByRole('combobox')).toHaveLength(1)
+      expect(filterComboboxes()).toHaveLength(1)
     })
   })
 
@@ -62,7 +67,19 @@ describe('<GradesListPage />', () => {
     renderPage()
 
     await waitFor(() => {
-      expect(screen.getAllByRole('combobox')).toHaveLength(2)
+      expect(filterComboboxes()).toHaveLength(2)
     })
+  })
+
+  it('windows the scoped grades to the default page size', async () => {
+    useStore.getState().setRole('admin')
+    const total = useStore.getState().grades.length
+    expect(total).toBeGreaterThan(10) // guard: the seed must exceed one page
+    renderPage()
+
+    const table = await screen.findByRole('table')
+    const bodyRows = within(table).getAllByRole('row').slice(1)
+    expect(bodyRows).toHaveLength(10)
+    expect(screen.getByText(`Page 1 of ${Math.ceil(total / 10)}`)).toBeInTheDocument()
   })
 })

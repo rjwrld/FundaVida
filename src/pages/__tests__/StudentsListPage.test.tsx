@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -64,5 +64,31 @@ describe('<StudentsListPage /> modal wiring', () => {
         ),
       { timeout: 3000 }
     )
+  })
+})
+
+describe('<StudentsListPage /> pagination', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
+    useStore.getState().setLocale('en')
+  })
+
+  it('windows the scoped list to the default page size instead of rendering every row', async () => {
+    const total = useStore.getState().students.length
+    expect(total).toBeGreaterThan(10) // guard: the seed must exceed one page
+
+    renderList()
+
+    // Wait for the table to render, then count body rows (excluding the header).
+    const table = await screen.findByRole('table')
+    const bodyRows = within(table).getAllByRole('row').slice(1)
+    expect(bodyRows).toHaveLength(10)
+
+    // The pager reports the full total across multiple pages.
+    expect(screen.getByText(`Page 1 of ${Math.ceil(total / 10)}`)).toBeInTheDocument()
   })
 })

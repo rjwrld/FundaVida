@@ -179,4 +179,19 @@ describe('<CertificatesListPage />', () => {
 
     expect(await screen.findByText(/no certificates issued yet/i)).toBeInTheDocument()
   })
+
+  it('windows the gallery to a bounded page size instead of rendering every card', async () => {
+    useStore.getState().setRole('admin')
+    const total = useStore.getState().certificates.length
+    expect(total).toBeGreaterThan(12) // guard: the seed must exceed one page
+
+    renderPage()
+
+    // Only the first page of cards renders, not all of them.
+    const cards = await screen.findAllByRole('button', { name: /open preview/i })
+    expect(cards).toHaveLength(12)
+
+    // The pager reports the full total across multiple pages.
+    expect(screen.getByText(`Page 1 of ${Math.ceil(total / 12)}`)).toBeInTheDocument()
+  })
 })
