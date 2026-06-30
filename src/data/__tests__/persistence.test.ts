@@ -292,6 +292,20 @@ describe('persistence', () => {
     expect(Array.isArray(loaded?.courses[0]?.meetingDays)).toBe(true)
   })
 
+  it('accepts a snapshot with a closed course and round-trips its status (ADR-0024, no key bump)', () => {
+    // closeCourse introduces a third CourseStatus, 'closed'. A snapshot carrying
+    // it is valid — old draft/published worlds stay valid too, so STATE_KEY does
+    // not bump and a stored closed Course rehydrates rather than reseeding.
+    const snapshot = seedDemo(new Date())
+    const course = snapshot.courses[0] as unknown as Record<string, unknown>
+    course.status = 'closed'
+    savePersistedState(snapshot)
+
+    const loaded = loadPersistedState()
+    expect(loaded).not.toBeNull()
+    expect(loaded?.courses[0]?.status).toBe('closed')
+  })
+
   it('persists and loads currentUserId independently', () => {
     savePersistedCurrentUser('tea-1')
     expect(loadPersistedCurrentUser()).toBe('tea-1')

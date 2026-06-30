@@ -67,6 +67,7 @@ export interface StoreState {
   updateCourse: (id: string, patch: Partial<Omit<Course, 'id'>>) => void
   deleteCourse: (id: string) => void
   publishCourse: (courseId: string) => void
+  closeCourse: (courseId: string) => void
   createTeacher: (input: Omit<Teacher, 'id' | 'createdAt' | 'courseIds'>) => Teacher
   updateTeacher: (id: string, patch: Partial<Omit<Teacher, 'id'>>) => void
   deleteTeacher: (id: string) => void
@@ -489,6 +490,39 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'course',
         entityId: courseId,
         summary: `Published course ${course.name}`,
+      },
+    }))
+  },
+  closeCourse: (courseId) => {
+    const existing = get()
+    const course = existing.courses.find((c) => c.id === courseId)
+    if (!course) {
+      throw new Error(`course ${courseId} not found`)
+    }
+    // Only the course's teacher (courseOwned) or admin may close a cohort (ADR-0024).
+    assertCan(existing, 'close', 'courses', {
+      course,
+      userId: existing.currentUserId ?? undefined,
+    })
+    // Closing is a deliberate ceremony on a live cohort: a draft is not yet open
+    // and a closed Course is terminal, so both reject (ADR-0024). Certificate
+    // emission on close lands in the next slice (#147).
+    if (course.status !== 'published') {
+      throw new Error(
+        `cannot close course ${courseId}: status is ${course.status}, expected published`
+      )
+    }
+    withAudit(set, (state) => ({
+      next: {
+        courses: state.courses.map((c) =>
+          c.id === courseId ? { ...c, status: 'closed' as const } : c
+        ),
+      },
+      audit: {
+        action: 'close',
+        entity: 'course',
+        entityId: courseId,
+        summary: `Closed course ${course.name}`,
       },
     }))
   },

@@ -16,6 +16,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import {
   useAttendance,
+  useCloseCourse,
   useCourse,
   useBrowseableCourse,
   useEnrollments,
@@ -203,6 +204,7 @@ export function CoursesDetailPage() {
   const markAttendance = useMarkAttendance()
   const requestEnrollment = useRequestEnrollment()
   const withdrawRequest = useWithdrawEnrollmentRequest()
+  const closeCourse = useCloseCourse()
 
   const [gradingTarget, setGradingTarget] = useState<GradingTarget | null>(null)
   const [enrollOpen, setEnrollOpen] = useState(false)
@@ -211,9 +213,11 @@ export function CoursesDetailPage() {
     studentName: string
   } | null>(null)
   const [selectedSessionDate, setSelectedSessionDate] = useState<string | null>(null)
+  const [confirmClose, setConfirmClose] = useState(false)
 
   const canViewRoster = useCan('view', 'enrollments', { course: course || undefined })
   const canEdit = useCan('edit', 'courses')
+  const canClose = useCan('close', 'courses', { course: course || undefined })
   const canCreate = useCan('create', 'enrollments')
   const canEnter = useCan('enter', 'grades', { course: course || undefined })
   const canEditGrade = useCan('edit', 'grades', { course: course || undefined })
@@ -282,9 +286,14 @@ export function CoursesDetailPage() {
             <Button variant="outline" onClick={() => navigate('/app/courses')}>
               {t('common.actions.backToHome')}
             </Button>
-            {canEdit && (
+            {canEdit && course.status !== 'closed' && (
               <Button onClick={() => navigate(`/app/courses?edit=${course.id}`)}>
                 {t('courses.detail.edit')}
+              </Button>
+            )}
+            {canClose && course.status === 'published' && (
+              <Button variant="outline" onClick={() => setConfirmClose(true)}>
+                {t('courses.detail.close')}
               </Button>
             )}
           </>
@@ -582,6 +591,17 @@ export function CoursesDetailPage() {
         />
       )}
       <EnrollStudentDialog open={enrollOpen} onOpenChange={setEnrollOpen} courseId={course.id} />
+
+      <ConfirmDialog
+        open={confirmClose}
+        title={t('courses.detail.closeConfirm.title')}
+        description={t('courses.detail.closeConfirm.description')}
+        confirmLabel={t('courses.detail.close')}
+        onConfirm={() => closeCourse.mutate({ courseId: course.id })}
+        onOpenChange={(o) => {
+          if (!o) setConfirmClose(false)
+        }}
+      />
 
       <ConfirmDialog
         open={pendingUnenroll !== null}

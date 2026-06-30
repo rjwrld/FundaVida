@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -281,5 +281,72 @@ describe('<CoursesDetailPage /> — in-course certificates module (ADR-0019)', (
       ).toBeInTheDocument()
     })
     expect(screen.queryByRole('heading', { name: 'Certificates' })).not.toBeInTheDocument()
+  })
+})
+
+describe('<CoursesDetailPage /> — close course action (ADR-0024)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  it('shows the owning Teacher a Close course button on a published course', async () => {
+    const { gradedCourse } = fixtures()
+    // cou-1 is published and owned by tea-1, the seeded teacher persona.
+    expect(gradedCourse.status).toBe('published')
+    expect(gradedCourse.teacherId).toBe('tea-1')
+    asRole('teacher')
+    renderPage(gradedCourse.id)
+
+    expect(await screen.findByRole('button', { name: 'Close course' })).toBeInTheDocument()
+  })
+
+  it('lets an admin close a published course through the confirm dialog', async () => {
+    const { gradedCourse } = fixtures()
+    asRole('admin')
+    renderPage(gradedCourse.id)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Close course' }))
+
+    // Confirm inside the dialog (its confirm button shares the label).
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close course' }))
+
+    await waitFor(() => {
+      const updated = useStore.getState().courses.find((c) => c.id === gradedCourse.id)
+      expect(updated?.status).toBe('closed')
+    })
+  })
+
+  it('never shows a Student the Close course button', async () => {
+    const { gradedCourse } = fixtures()
+    asRole('student')
+    renderPage(gradedCourse.id)
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: shortCourseName(gradedCourse) })
+      ).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('button', { name: 'Close course' })).not.toBeInTheDocument()
+  })
+
+  it('hides the Close course button once a course is closed and shows the Closed status', async () => {
+    const { gradedCourse } = fixtures()
+    // Close it first, then view it as admin.
+    asRole('admin')
+    useStore.getState().closeCourse(gradedCourse.id)
+    renderPage(gradedCourse.id)
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: shortCourseName(gradedCourse) })
+      ).toBeInTheDocument()
+    })
+    expect(screen.getByText('Closed')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Close course' })).not.toBeInTheDocument()
   })
 })

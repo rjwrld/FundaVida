@@ -126,3 +126,11 @@ export const usePublishCourse = makeEntityMutation('publishCourse')<{ courseId: 
   invalidates: ({ courseId }) => [COURSES_KEY, courseKey(courseId)],
   args: ({ courseId }) => [courseId],
 })
+
+export const useCloseCourse = makeEntityMutation('closeCourse')<{ courseId: string }>({
+  toastKey: 'toasts.courseClosed',
+  // Closing flips status to 'closed' (ADR-0024); invalidate the courses list and
+  // this course's detail so both reflect the new status without a reload.
+  invalidates: ({ courseId }) => [COURSES_KEY, courseKey(courseId)],
+  args: ({ courseId }) => [courseId],
+})

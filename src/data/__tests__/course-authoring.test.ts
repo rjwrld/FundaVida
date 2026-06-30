@@ -221,6 +221,146 @@ describe('Course authoring (ADR-0016)', () => {
     })
   })
 
+  describe('closeCourse (ADR-0024)', () => {
+    function publishedDraft() {
+      const state = useStore.getState()
+      const teacher = state.teachers.find((t) => t.id === state.currentUserId)
+      if (!teacher) throw new Error('expected teacher in demo')
+      const program = state.programs[0]
+      if (!program) throw new Error('expected a program in demo')
+      const draft = state.createCourse({
+        name: 'Closeable Course',
+        description: 'A course to close',
+        sede: teacher.sede,
+        programId: program.id,
+        level: 'primaria',
+        status: 'draft',
+        capacity: 20,
+        teacherId: teacher.id,
+        term: { start: '2026-07-01T00:00:00Z', end: '2026-08-31T23:59:59Z' },
+        meetingDays: ['mon', 'wed'],
+      })
+      state.publishCourse(draft.id)
+      return draft
+    }
+
+    it('teacher can close their own published course', () => {
+      useStore.getState().setRole('teacher')
+      const course = publishedDraft()
+
+      useStore.getState().closeCourse(course.id)
+
+      const updated = useStore.getState().courses.find((c) => c.id === course.id)
+      expect(updated?.status).toBe('closed')
+    })
+
+    it('throws when closing a draft course (close is published-only)', () => {
+      useStore.getState().setRole('teacher')
+      const state = useStore.getState()
+      const teacher = state.teachers.find((t) => t.id === state.currentUserId)
+      if (!teacher) throw new Error('expected teacher in demo')
+      const program = state.programs[0]
+      if (!program) throw new Error('expected a program in demo')
+      const draft = state.createCourse({
+        name: 'Still A Draft',
+        description: 'Never published',
+        sede: teacher.sede,
+        programId: program.id,
+        level: 'primaria',
+        status: 'draft',
+        capacity: 20,
+        teacherId: teacher.id,
+        term: { start: '2026-07-01T00:00:00Z', end: '2026-08-31T23:59:59Z' },
+        meetingDays: ['mon', 'wed'],
+      })
+
+      expect(() => useStore.getState().closeCourse(draft.id)).toThrow()
+      expect(useStore.getState().courses.find((c) => c.id === draft.id)?.status).toBe('draft')
+    })
+
+    it('throws when closing an already-closed course (close is idempotent-rejecting)', () => {
+      useStore.getState().setRole('teacher')
+      const course = publishedDraft()
+      useStore.getState().closeCourse(course.id)
+
+      expect(() => useStore.getState().closeCourse(course.id)).toThrow()
+    })
+
+    it('admin can close any published course', () => {
+      useStore.getState().setRole('admin')
+      const state = useStore.getState()
+      const teacher = state.teachers[0]
+      if (!teacher) throw new Error('expected a teacher in demo')
+      const program = state.programs[0]
+      if (!program) throw new Error('expected a program in demo')
+      const draft = state.createCourse({
+        name: 'Admin Closeable',
+        description: 'Closed by admin',
+        sede: teacher.sede,
+        programId: program.id,
+        level: 'primaria',
+        status: 'draft',
+        capacity: 20,
+        teacherId: teacher.id,
+        term: { start: '2026-07-01T00:00:00Z', end: '2026-08-31T23:59:59Z' },
+        meetingDays: ['mon', 'wed'],
+      })
+      state.publishCourse(draft.id)
+
+      state.closeCourse(draft.id)
+
+      expect(useStore.getState().courses.find((c) => c.id === draft.id)?.status).toBe('closed')
+    })
+
+    it("denies a teacher closing another teacher's course (assertCan throws)", () => {
+      // Admin creates + publishes a course owned by teacher1.
+      useStore.getState().setRole('admin')
+      const state = useStore.getState()
+      const teacher1 = state.teachers[0]
+      if (!teacher1) throw new Error('expected a teacher in demo')
+      const teacher2 = state.teachers.find((t) => t.sede === teacher1.sede && t.id !== teacher1.id)
+      if (!teacher2) throw new Error('expected two teachers in the same sede')
+      const program = state.programs[0]
+      if (!program) throw new Error('expected a program in demo')
+      const draft = state.createCourse({
+        name: "Teacher1's Course",
+        description: 'Owned by teacher1',
+        sede: teacher1.sede,
+        programId: program.id,
+        level: 'primaria',
+        status: 'draft',
+        capacity: 20,
+        teacherId: teacher1.id,
+        term: { start: '2026-07-01T00:00:00Z', end: '2026-08-31T23:59:59Z' },
+        meetingDays: ['mon', 'wed'],
+      })
+      state.publishCourse(draft.id)
+
+      // Switch to teacher2 and try to close teacher1's course.
+      useStore.getState().setRole('teacher')
+      const stateAsTeacher2 = useStore.getState()
+      stateAsTeacher2.currentUserId = teacher2.id
+
+      expect(() => stateAsTeacher2.closeCourse(draft.id)).toThrow('permission denied')
+      expect(useStore.getState().courses.find((c) => c.id === draft.id)?.status).toBe('published')
+    })
+
+    it('records exactly one audit entry with action "close" for the closed course', () => {
+      useStore.getState().setRole('teacher')
+      const course = publishedDraft()
+      const auditBefore = useStore.getState().auditLog.length
+
+      useStore.getState().closeCourse(course.id)
+
+      const auditLog = useStore.getState().auditLog
+      expect(auditLog.length).toBe(auditBefore + 1)
+      const entry = auditLog[0]
+      expect(entry?.action).toBe('close')
+      expect(entry?.entity).toBe('course')
+      expect(entry?.entityId).toBe(course.id)
+    })
+  })
+
   describe('draft courses invisible to students', () => {
     it('student does not see a draft course in browse (openForEnrollment scope)', async () => {
       useStore.getState().setRole('admin')

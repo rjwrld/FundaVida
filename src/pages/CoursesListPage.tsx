@@ -194,7 +194,9 @@ export function CoursesListPage() {
                           editLabel={t('common.actions.editItem', { name: c.name })}
                           deleteLabel={t('common.actions.deleteItem', { name: c.name })}
                           publishLabel={t('courses.list.publishButton', { name: c.name })}
-                          onEdit={canEdit ? () => openEdit(c.id) : undefined}
+                          onEdit={
+                            canEdit && c.status !== 'closed' ? () => openEdit(c.id) : undefined
+                          }
                           onDelete={canDelete ? () => setPendingDelete(c) : undefined}
                           onPublish={
                             canPublish
