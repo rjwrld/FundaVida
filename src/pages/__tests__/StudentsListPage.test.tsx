@@ -55,8 +55,14 @@ describe('<StudentsListPage /> modal wiring', () => {
     renderList(`/app/students?edit=${first.id}`)
     const dialog = await screen.findByRole('dialog')
     expect(dialog).toHaveTextContent('Edit student')
-    await waitFor(() =>
-      expect((screen.getByLabelText('First name') as HTMLInputElement).value).toBe(first.firstName)
+    // The edit modal prefills asynchronously (load student, then react-hook-form reset()),
+    // so allow a generous timeout — the default 1000ms is too tight for slow CI runners.
+    await waitFor(
+      () =>
+        expect((screen.getByLabelText('First name') as HTMLInputElement).value).toBe(
+          first.firstName
+        ),
+      { timeout: 3000 }
     )
   })
 })
