@@ -47,11 +47,6 @@ describe('useDashboardStats — certificate-backed counts (ADR-0024)', () => {
     useStore.getState().setRole('admin')
   })
 
-  it('reports no pending approvals (approval retired; surfaces removed in #149)', () => {
-    const { result } = renderHook(() => useDashboardStats())
-    expect(result.current.pendingApprovals).toBe(0)
-  })
-
   it('counts every Certificate as issued', () => {
     const { result } = renderHook(() => useDashboardStats())
     const total = useStore.getState().certificates.length
