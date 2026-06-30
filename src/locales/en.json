@@ -598,7 +598,6 @@
     "enrollments": "Enrollments",
     "grades": "Grades",
     "programs": "Programs",
-    "reports": "Reports",
     "sections": {
       "people": "People",
       "programs": "Programs",
@@ -625,47 +624,6 @@
       "empty": "No programs in the catalog yet.",
       "subtitle": "The foundation's catalog of educational programs.",
       "title": "Programs"
-    }
-  },
-  "reports": {
-    "attendanceHeatmap": {
-      "legend": {
-        "high": "75–100%",
-        "low": "0–25%",
-        "midHigh": "50–75%",
-        "midLow": "25–50%"
-      },
-      "title": "Attendance heatmap"
-    },
-    "averageGrade": {
-      "caption": "average",
-      "title": "Average grade"
-    },
-    "certsThisMonth": {
-      "delta": "vs last month",
-      "title": "Certificates this month"
-    },
-    "empty": {
-      "body": "Generate your first report once you have enough data to summarize.",
-      "heading": "No reports yet"
-    },
-    "enrollmentTrend": {
-      "currentYear": "Current year",
-      "priorYear": "Prior year",
-      "title": "Enrollment trend"
-    },
-    "noRecords": "No records",
-    "subtitle": "Cross-cutting totals across the program.",
-    "tcuProgress": {
-      "aria": "{{completed}} of {{target}} TCU hours",
-      "title": "TCU progress"
-    },
-    "title": "Reports",
-    "topCourses": {
-      "title": "Top courses"
-    },
-    "upcoming": {
-      "title": "Upcoming milestones"
     }
   },
   "roles": {
