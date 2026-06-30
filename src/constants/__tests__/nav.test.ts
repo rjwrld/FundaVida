@@ -11,4 +11,11 @@ describe('navItemsForRole', () => {
       expect(items.some((item) => item.to === '/app/calendar')).toBe(true)
     }
   })
+
+  it('exposes no Reports entry to any role (module removed)', () => {
+    for (const role of ROLES) {
+      const items = navItemsForRole(role)
+      expect(items.some((item) => item.to === '/app/reports')).toBe(false)
+    }
+  })
 })
