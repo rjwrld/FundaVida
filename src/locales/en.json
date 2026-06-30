@@ -691,9 +691,21 @@
   },
   "students": {
     "detail": {
+      "certificates": {
+        "empty": "No certificates yet. A certificate is issued when a course is closed."
+      },
       "deleteConfirm": "Delete this student? This cannot be undone.",
       "edit": "Edit",
+      "enrollments": {
+        "attendance": "Attendance",
+        "certificate": "Certificate",
+        "course": "Course",
+        "grade": "Grade",
+        "notGraded": "Not graded",
+        "passing": "Passing"
+      },
       "sections": {
+        "certificates": "Certificates",
         "enrollments": "Enrollments",
         "guardian": "Guardian",
         "identity": "Identity",
