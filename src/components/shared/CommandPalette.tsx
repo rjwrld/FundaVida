@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import {
   Award,
   BookOpen,
-  ClipboardList,
   LayoutDashboard,
   Mail,
   Monitor,
@@ -37,7 +36,6 @@ const NAV_ACTIONS: NavAction[] = [
   { to: '/app/students', labelKey: 'nav.students', icon: Users },
   { to: '/app/courses', labelKey: 'nav.courses', icon: BookOpen },
   { to: '/app/certificates', labelKey: 'nav.certificates', icon: Award },
-  { to: '/app/reports', labelKey: 'nav.reports', icon: ClipboardList },
   { to: '/app/bulk-email', labelKey: 'nav.bulkEmail', icon: Mail },
 ]
 

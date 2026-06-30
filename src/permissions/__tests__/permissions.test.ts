@@ -98,16 +98,6 @@ describe('Permissions Matrix', () => {
           log: true,
           enter: false,
         },
-        reports: {
-          view: true,
-          create: false,
-          edit: false,
-          delete: false,
-          approve: false,
-          mark: false,
-          log: false,
-          enter: false,
-        },
         bulkEmail: {
           view: true,
           create: true,
@@ -220,16 +210,6 @@ describe('Permissions Matrix', () => {
           log: false,
           enter: false,
         },
-        reports: {
-          view: false,
-          create: false,
-          edit: false,
-          delete: false,
-          approve: false,
-          mark: false,
-          log: false,
-          enter: false,
-        },
         bulkEmail: {
           view: false,
           create: false,
@@ -335,16 +315,6 @@ describe('Permissions Matrix', () => {
           enter: false,
         },
         tcu: {
-          view: false,
-          create: false,
-          edit: false,
-          delete: false,
-          approve: false,
-          mark: false,
-          log: false,
-          enter: false,
-        },
-        reports: {
           view: false,
           create: false,
           edit: false,
@@ -466,16 +436,6 @@ describe('Permissions Matrix', () => {
           log: 'activityIsOwn',
           enter: false,
         },
-        reports: {
-          view: false,
-          create: false,
-          edit: false,
-          delete: false,
-          approve: false,
-          mark: false,
-          log: false,
-          enter: false,
-        },
         bulkEmail: {
           view: false,
           create: false,
@@ -511,7 +471,6 @@ describe('Permissions Matrix', () => {
       'certificates',
       'attendance',
       'tcu',
-      'reports',
       'bulkEmail',
       'auditLog',
     ]
@@ -856,7 +815,6 @@ describe('Permissions Matrix', () => {
         certificates: 'all',
         attendance: 'all',
         tcu: 'all',
-        reports: 'all',
         bulkEmail: 'all',
         auditLog: 'all',
       })
@@ -874,7 +832,6 @@ describe('Permissions Matrix', () => {
         certificates: 'ownCourses',
         attendance: 'ownCourses',
         tcu: 'assignedTrainees',
-        reports: 'none',
         bulkEmail: 'none',
         auditLog: 'none',
       })
@@ -884,18 +841,30 @@ describe('Permissions Matrix', () => {
       const scopes = scopeFor('student')
       expect(scopes).toEqual({
         programs: 'all',
-        students: 'none',
+        // A Student reads their own record ('self') and own enrollments ('own')
+        // through the scope seam — without a context-free can('view') cell, so the
+        // admin /app/students routes/nav stay gated (issue #166, ADR-0012).
+        students: 'self',
         teachers: 'none',
         courses: 'enrolled',
-        enrollments: 'none',
+        enrollments: 'own',
         grades: 'own',
         certificates: 'own',
         attendance: 'own',
         tcu: 'none',
-        reports: 'none',
         bulkEmail: 'none',
         auditLog: 'none',
       })
+    })
+
+    it('student self/own scopes do not open the admin students/enrollments routes (#166)', () => {
+      // The scope tokens grant data visibility; the route/nav gates use can()
+      // with no context, which must stay false so a Student never reaches the
+      // admin /app/students or /app/enrollments surfaces (ADR-0008/0012).
+      expect(scopeFor('student').students).toBe('self')
+      expect(scopeFor('student').enrollments).toBe('own')
+      expect(can('student', 'view', 'students')).toBe(false)
+      expect(can('student', 'view', 'enrollments')).toBe(false)
     })
 
     it('tcu has self scope for tcu and none for everything else', () => {
@@ -910,7 +879,6 @@ describe('Permissions Matrix', () => {
         certificates: 'none',
         attendance: 'none',
         tcu: 'self',
-        reports: 'none',
         bulkEmail: 'none',
         auditLog: 'none',
       })

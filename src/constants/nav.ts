@@ -3,7 +3,6 @@ import {
   BookOpen,
   CalendarCheck2,
   CalendarDays,
-  ClipboardList,
   FileText,
   GraduationCap,
   HandHeart,
@@ -87,13 +86,6 @@ export const NAV_ITEMS: NavItem[] = [
     resource: 'enrollments',
     section: 'people',
     icon: Users,
-  },
-  {
-    to: '/app/reports',
-    labelKey: 'nav.reports',
-    resource: 'reports',
-    section: 'reports',
-    icon: ClipboardList,
   },
   {
     to: '/app/grades',

@@ -19,6 +19,7 @@ import {
   useCloseCourse,
   useCourse,
   useBrowseableCourse,
+  useCourseSeats,
   useEnrollments,
   useGrades,
   useMarkAttendance,
@@ -188,29 +189,42 @@ export function CoursesDetailPage() {
   const { data: enrolledCourse, isLoading: enrolledLoading } = useCourse(id ?? '')
   const currentRole = useStore((s) => s.role)
   const currentUserId = useStore((s) => s.currentUserId)
-  const enrollments = useStore((s) => s.enrollments)
 
-  // The student's enrollment in this course (by URL id), available before the
-  // course queries resolve. "Active" = approved or pending; withdrawn/rejected
-  // are treated as not-enrolled for the browse-vs-records decision (ADR-0016).
-  const enrollment =
-    currentUserId && id
-      ? enrollments.find((e) => e.studentId === currentUserId && e.courseId === id)
-      : undefined
+  // The roster reads through the API/scope seam, never raw store collections
+  // (ADR-0012, issue #166): admin sees all, the Course's Teacher sees their own
+  // Course's records, and a Student's 'own' scope collapses this to self — their
+  // single enrollment in this Course, or empty.
+  const { data: courseEnrollments = [], isLoading: enrollmentsLoading } = useEnrollments({
+    courseId: id ?? '',
+  })
+
+  // The current Student's own enrollment in this Course, derived from the scoped
+  // read above rather than a raw store filter (issue #166). "Active" = approved or
+  // pending; withdrawn/rejected are treated as not-enrolled for the
+  // browse-vs-records decision (ADR-0016).
+  const enrollment = currentUserId
+    ? courseEnrollments.find((e) => e.studentId === currentUserId)
+    : undefined
   const isActiveEnrollment = enrollment?.status === 'approved' || enrollment?.status === 'pending'
 
   const { data: browseableCourse, isLoading: browseLoading } = useBrowseableCourse(
     id ?? '',
     currentRole === 'student' && !isActiveEnrollment
   )
+  // Seats remaining for the browse path, read through the data-layer aggregate
+  // seam (issue #166): a Student's 'own' enrollment scope can't count others', so
+  // the count is computed server-side and never exposes who is enrolled.
+  const { data: seatsRemaining } = useCourseSeats(
+    id ?? '',
+    currentRole === 'student' && !isActiveEnrollment
+  )
   const teachers = useStore((s) => s.teachers)
   const programs = useStore((s) => s.programs)
   const course = enrolledCourse ?? browseableCourse ?? null
-  const isLoading = enrolledLoading || browseLoading
-  // The roster reads through the API/scope seam, never raw store collections
-  // (ADR-0012): admin sees all, the Course's Teacher sees their own Course's
-  // records, and a Student's scope collapses these to self (or empty).
-  const { data: courseEnrollments = [] } = useEnrollments({ courseId: id ?? '' })
+  // Wait on the scoped enrollment query too: the browse-vs-records-vs-deny
+  // decision below reads `enrollment`, so rendering before it resolves would
+  // briefly mis-route an enrolled Student into the deny fallback (issue #166).
+  const isLoading = enrolledLoading || browseLoading || enrollmentsLoading
   const { data: scopedStudents = [] } = useStudents()
   const { data: scopedTrainees = [] } = useTcuTrainees()
   const { data: scopedGrades = [] } = useGrades({ courseId: id ?? '' })
@@ -252,14 +266,9 @@ export function CoursesDetailPage() {
   // isBrowseable: an open course the student is not actively enrolled in (ADR-0016).
   const isBrowseable = !!browseableCourse && !isActiveEnrollment
 
-  // Get seats remaining
-  const getSeatsRemaining = (): number => {
-    if (!course) return 0
-    const approvedCount = enrollments.filter(
-      (e) => e.courseId === course.id && e.status === 'approved'
-    ).length
-    return Math.max(0, course.capacity - approvedCount)
-  }
+  // Seats left in the browseable Course, from the scoped seam. While the count
+  // loads we show the full capacity so a transient "course full" never flashes.
+  const seats = seatsRemaining ?? course?.capacity ?? 0
 
   if (!course) {
     return (
@@ -598,10 +607,10 @@ export function CoursesDetailPage() {
                 <p>
                   <span className="text-muted-foreground">{t('courses.browse.seatsLabel')}:</span>{' '}
                   <span className="font-medium">
-                    {getSeatsRemaining()}/{course.capacity}
+                    {seats}/{course.capacity}
                   </span>
                 </p>
-                {getSeatsRemaining() === 0 && (
+                {seats === 0 && (
                   <p className="text-sm text-destructive">
                     {t('courses.browse.courseFullWarning')}
                   </p>
