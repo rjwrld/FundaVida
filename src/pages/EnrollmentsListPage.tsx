@@ -14,6 +14,8 @@ import {
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
+import { Pager } from '@/components/ui/pager'
+import { usePagination } from '@/hooks/usePagination'
 import {
   useApproveEnrollment,
   useDeleteEnrollment,
@@ -25,7 +27,7 @@ import { useFormat } from '@/hooks/useFormat'
 import { can } from '@/permissions'
 import { shortCourseName } from '@/lib/courseName'
 import { SEDES } from '@/constants/sede'
-import type { EnrollmentStatus } from '@/types'
+import type { Course, Enrollment, EnrollmentStatus, Student, Teacher } from '@/types'
 
 const ANY_SEDE = '__all__'
 // Status filter values: 'active' (the default) hides rejected enrollments; the
@@ -43,7 +45,6 @@ function statusVariant(
 
 export function EnrollmentsListPage() {
   const { t } = useTranslation()
-  const { formatDate } = useFormat()
   const role = useStore((s) => s.role)
   const currentUserId = useStore((s) => s.currentUserId)
   const students = useStore((s) => s.students)
@@ -232,89 +233,22 @@ export function EnrollmentsListPage() {
                 )}
               </div>
 
-              {courseGroups.map(({ course, rows }) => {
-                const teacher = teacherById.get(course.teacherId)
-                const coursePending = rows.filter((e) => e.status === 'pending').length
-                const canApprove = canApproveCourse(course.id)
-                return (
-                  <div
-                    key={course.id}
-                    className="overflow-hidden rounded-xl border border-border bg-card shadow-card"
-                  >
-                    <div className="flex items-center justify-between gap-3 border-b border-border/60 bg-muted/40 px-4 py-2.5">
-                      <div className="min-w-0">
-                        <span className="text-sm font-medium">{shortCourseName(course)}</span>
-                        {teacher && (
-                          <span className="ml-2 text-xs text-muted-foreground">
-                            {teacher.firstName} {teacher.lastName}
-                          </span>
-                        )}
-                      </div>
-                      {coursePending > 0 && (
-                        <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
-                          {t('enrollments.list.pendingCount', { count: coursePending })}
-                        </span>
-                      )}
-                    </div>
-                    <ul className="divide-y divide-border/60">
-                      {rows.map((e) => {
-                        const student = studentById.get(e.studentId)
-                        if (!student) return null
-                        const name = `${student.firstName} ${student.lastName}`
-                        return (
-                          <li
-                            key={e.id}
-                            className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5"
-                          >
-                            <span className="min-w-0 flex-1 truncate text-sm">{name}</span>
-                            <span className="font-mono text-xs text-muted-foreground tabular-nums">
-                              {formatDate(e.enrolledAt)}
-                            </span>
-                            <Badge variant={statusVariant(e.status)} dot>
-                              {t(`enrollments.status.${e.status}`)}
-                            </Badge>
-                            <div className="flex gap-1">
-                              {e.status === 'pending' && canApprove && (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => approve.mutate(e.id)}
-                                    disabled={approve.isPending}
-                                    aria-label={t('enrollments.list.approveAria', {
-                                      student: name,
-                                    })}
-                                  >
-                                    {t('common.actions.approve')}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => reject.mutate(e.id)}
-                                    disabled={reject.isPending}
-                                    aria-label={t('enrollments.list.rejectAria', { student: name })}
-                                  >
-                                    {t('common.actions.reject')}
-                                  </Button>
-                                </>
-                              )}
-                              {e.status === 'approved' && canDelete && (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => setPendingDelete({ id: e.id, name })}
-                                  aria-label={t('common.actions.deleteItem', { name })}
-                                >
-                                  {t('enrollments.list.unenroll')}
-                                </Button>
-                              )}
-                            </div>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </div>
-                )
-              })}
+              {courseGroups.map(({ course, rows }) => (
+                <CourseEnrollmentGroup
+                  key={course.id}
+                  course={course}
+                  rows={rows}
+                  teacher={teacherById.get(course.teacherId)}
+                  studentById={studentById}
+                  canApprove={canApproveCourse(course.id)}
+                  canDelete={canDelete}
+                  approveDisabled={approve.isPending}
+                  rejectDisabled={reject.isPending}
+                  onApprove={(id) => approve.mutate(id)}
+                  onReject={(id) => reject.mutate(id)}
+                  onUnenroll={(payload) => setPendingDelete(payload)}
+                />
+              ))}
             </section>
           ))}
         </div>
@@ -333,6 +267,121 @@ export function EnrollmentsListPage() {
           if (!o) setPendingDelete(null)
         }}
       />
+    </div>
+  )
+}
+
+interface CourseEnrollmentGroupProps {
+  course: Course
+  rows: Enrollment[]
+  teacher: Teacher | undefined
+  studentById: Map<string, Student>
+  canApprove: boolean
+  canDelete: boolean
+  approveDisabled: boolean
+  rejectDisabled: boolean
+  onApprove: (enrollmentId: string) => void
+  onReject: (enrollmentId: string) => void
+  onUnenroll: (payload: { id: string; name: string }) => void
+}
+
+/**
+ * One Sede→Course card (ADR-0023). Its roster is windowed client-side (ADR-0026)
+ * so a full cohort never dumps ~100 rows at once; the pager appears only once a
+ * cohort exceeds a page. Pagination is presentation only — the rows arrive
+ * already role-scoped and filtered.
+ */
+function CourseEnrollmentGroup({
+  course,
+  rows,
+  teacher,
+  studentById,
+  canApprove,
+  canDelete,
+  approveDisabled,
+  rejectDisabled,
+  onApprove,
+  onReject,
+  onUnenroll,
+}: CourseEnrollmentGroupProps) {
+  const { t } = useTranslation()
+  const { formatDate } = useFormat()
+  const pagination = usePagination(rows, { pageSize: 10 })
+  const coursePending = rows.filter((e) => e.status === 'pending').length
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+      <div className="flex items-center justify-between gap-3 border-b border-border/60 bg-muted/40 px-4 py-2.5">
+        <div className="min-w-0">
+          <span className="text-sm font-medium">{shortCourseName(course)}</span>
+          {teacher && (
+            <span className="ml-2 text-xs text-muted-foreground">
+              {teacher.firstName} {teacher.lastName}
+            </span>
+          )}
+        </div>
+        {coursePending > 0 && (
+          <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
+            {t('enrollments.list.pendingCount', { count: coursePending })}
+          </span>
+        )}
+      </div>
+      <ul className="divide-y divide-border/60">
+        {pagination.pageItems.map((e) => {
+          const student = studentById.get(e.studentId)
+          if (!student) return null
+          const name = `${student.firstName} ${student.lastName}`
+          return (
+            <li key={e.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5">
+              <span className="min-w-0 flex-1 truncate text-sm">{name}</span>
+              <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                {formatDate(e.enrolledAt)}
+              </span>
+              <Badge variant={statusVariant(e.status)} dot>
+                {t(`enrollments.status.${e.status}`)}
+              </Badge>
+              <div className="flex gap-1">
+                {e.status === 'pending' && canApprove && (
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={() => onApprove(e.id)}
+                      disabled={approveDisabled}
+                      aria-label={t('enrollments.list.approveAria', { student: name })}
+                    >
+                      {t('common.actions.approve')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onReject(e.id)}
+                      disabled={rejectDisabled}
+                      aria-label={t('enrollments.list.rejectAria', { student: name })}
+                    >
+                      {t('common.actions.reject')}
+                    </Button>
+                  </>
+                )}
+                {e.status === 'approved' && canDelete && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onUnenroll({ id: e.id, name })}
+                    aria-label={t('common.actions.deleteItem', { name })}
+                  >
+                    {t('enrollments.list.unenroll')}
+                  </Button>
+                )}
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+      {pagination.pageCount > 1 && (
+        <div className="border-t border-border/60 px-4 py-3">
+          <Pager pagination={pagination} />
+        </div>
+      )}
     </div>
   )
 }

@@ -11,14 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
@@ -67,6 +60,75 @@ export function CoursesListPage() {
   }
   const programName = (programId: string) =>
     programs.find((p) => p.id === programId)?.name ?? programId
+
+  const columns: DataTableColumn<Course>[] = [
+    {
+      id: 'name',
+      header: t('courses.list.columns.name'),
+      sortable: true,
+      sortAccessor: (c) => c.name,
+      cell: (c) => (
+        <Link to={`/app/courses/${c.id}`} className="hover:underline">
+          {shortCourseName(c)}
+        </Link>
+      ),
+    },
+    {
+      id: 'program',
+      header: t('courses.list.columns.program'),
+      sortable: true,
+      sortAccessor: (c) => programName(c.programId),
+      cell: (c) => programName(c.programId),
+    },
+    {
+      id: 'sede',
+      header: t('courses.form.fields.sede'),
+      sortable: true,
+      sortAccessor: (c) => c.sede,
+      cell: (c) => c.sede,
+    },
+    {
+      id: 'teacher',
+      header: t('courses.list.columns.teacher'),
+      cell: (c) => teacherName(c.teacherId),
+    },
+    {
+      id: 'status',
+      header: t('courses.list.columns.status'),
+      cell: (c) => (
+        <span
+          className={`text-xs font-medium px-2 py-1 rounded ${
+            c.status === 'published'
+              ? 'bg-green-100 text-green-800'
+              : 'bg-yellow-100 text-yellow-800'
+          }`}
+          data-testid={`course-status-${c.status}`}
+        >
+          {t(`courses.status.${c.status}`)}
+        </span>
+      ),
+    },
+  ]
+  if (canActOnRows) {
+    columns.push({
+      id: 'actions',
+      header: t('courses.list.columns.actions'),
+      align: 'right',
+      cell: (c) => {
+        const canPublish = canEditCourse(c) && c.status === 'draft'
+        return (
+          <RowActions
+            editLabel={t('common.actions.editItem', { name: c.name })}
+            deleteLabel={t('common.actions.deleteItem', { name: c.name })}
+            publishLabel={t('courses.list.publishButton', { name: c.name })}
+            onEdit={canEdit && c.status !== 'closed' ? () => openEdit(c.id) : undefined}
+            onDelete={canDelete ? () => setPendingDelete(c) : undefined}
+            onPublish={canPublish ? () => publishCourse.mutate({ courseId: c.id }) : undefined}
+          />
+        )
+      },
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -142,78 +204,7 @@ export function CoursesListPage() {
           {t('courses.list.emptyFiltered')}
         </p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-          <div
-            className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground"
-            aria-hidden="true"
-          >
-            <span>{t('courses.list.title')}</span>
-            <span className="font-mono normal-case tabular-nums text-foreground">{count}</span>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead>{t('courses.list.columns.name')}</TableHead>
-                <TableHead>{t('courses.list.columns.program')}</TableHead>
-                <TableHead>{t('courses.form.fields.sede')}</TableHead>
-                <TableHead>{t('courses.list.columns.teacher')}</TableHead>
-                <TableHead>{t('courses.list.columns.status')}</TableHead>
-                {canActOnRows && (
-                  <TableHead className="text-right">{t('courses.list.columns.actions')}</TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((c) => {
-                const canPublish = canEditCourse(c) && c.status === 'draft'
-                return (
-                  <TableRow key={c.id} className="h-12 hover:bg-muted/40">
-                    <TableCell>
-                      <Link to={`/app/courses/${c.id}`} className="hover:underline">
-                        {shortCourseName(c)}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{programName(c.programId)}</TableCell>
-                    <TableCell>{c.sede}</TableCell>
-                    <TableCell>{teacherName(c.teacherId)}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`text-xs font-medium px-2 py-1 rounded ${
-                          c.status === 'published'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
-                        data-testid={`course-status-${c.status}`}
-                      >
-                        {t(`courses.status.${c.status}`)}
-                      </span>
-                    </TableCell>
-                    {canActOnRows && (
-                      <TableCell className="text-right">
-                        <RowActions
-                          editLabel={t('common.actions.editItem', { name: c.name })}
-                          deleteLabel={t('common.actions.deleteItem', { name: c.name })}
-                          publishLabel={t('courses.list.publishButton', { name: c.name })}
-                          onEdit={
-                            canEdit && c.status !== 'closed' ? () => openEdit(c.id) : undefined
-                          }
-                          onDelete={canDelete ? () => setPendingDelete(c) : undefined}
-                          onPublish={
-                            canPublish
-                              ? () => {
-                                  publishCourse.mutate({ courseId: c.id })
-                                }
-                              : undefined
-                          }
-                        />
-                      </TableCell>
-                    )}
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable data={data} columns={columns} getRowKey={(c) => c.id} />
       )}
 
       <CourseFormDialog

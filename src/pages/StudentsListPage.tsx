@@ -11,14 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
@@ -47,6 +40,55 @@ export function StudentsListPage() {
 
   const hasFilters = Boolean(filters.search || filters.sede || filters.educationalLevel)
   const count = data.length
+
+  const columns: DataTableColumn<Student>[] = [
+    {
+      id: 'name',
+      header: t('students.list.columns.name'),
+      sortable: true,
+      sortAccessor: (s) => `${s.firstName} ${s.lastName}`,
+      cell: (s) => (
+        <Link to={`/app/students/${s.id}`} className="hover:underline">
+          {`${s.firstName} ${s.lastName}`}
+        </Link>
+      ),
+    },
+    {
+      id: 'email',
+      header: t('students.list.columns.email'),
+      cell: (s) => <span className="text-sm text-muted-foreground">{s.email}</span>,
+    },
+    {
+      id: 'sede',
+      header: t('students.list.columns.sede'),
+      sortable: true,
+      sortAccessor: (s) => s.sede,
+      cell: (s) => s.sede,
+    },
+    {
+      id: 'level',
+      header: t('students.list.columns.level'),
+      sortable: true,
+      sortAccessor: (s) => t(`students.form.level.${s.educationalLevel}`),
+      cell: (s) => t(`students.form.level.${s.educationalLevel}`),
+    },
+    {
+      id: 'actions',
+      header: t('students.list.columns.actions'),
+      align: 'right',
+      cell: (s) => {
+        const name = `${s.firstName} ${s.lastName}`
+        return (
+          <RowActions
+            editLabel={t('common.actions.editItem', { name })}
+            deleteLabel={t('common.actions.deleteItem', { name })}
+            onEdit={canEdit ? () => openEdit(s.id) : undefined}
+            onDelete={canDelete ? () => setPendingDelete(s) : undefined}
+          />
+        )
+      },
+    },
+  ]
 
   return (
     <div className="space-y-6">
@@ -122,51 +164,7 @@ export function StudentsListPage() {
           {t('students.list.emptyFiltered')}
         </p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-          <div
-            className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground"
-            aria-hidden="true"
-          >
-            <span>{t('students.list.title')}</span>
-            <span className="font-mono normal-case tabular-nums text-foreground">{count}</span>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead>{t('students.list.columns.name')}</TableHead>
-                <TableHead>{t('students.list.columns.email')}</TableHead>
-                <TableHead>{t('students.list.columns.sede')}</TableHead>
-                <TableHead>{t('students.list.columns.level')}</TableHead>
-                <TableHead className="text-right">{t('students.list.columns.actions')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((s) => {
-                const name = `${s.firstName} ${s.lastName}`
-                return (
-                  <TableRow key={s.id} className="h-12 hover:bg-muted/40">
-                    <TableCell>
-                      <Link to={`/app/students/${s.id}`} className="hover:underline">
-                        {name}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{s.email}</TableCell>
-                    <TableCell>{s.sede}</TableCell>
-                    <TableCell>{t(`students.form.level.${s.educationalLevel}`)}</TableCell>
-                    <TableCell className="text-right">
-                      <RowActions
-                        editLabel={t('common.actions.editItem', { name })}
-                        deleteLabel={t('common.actions.deleteItem', { name })}
-                        onEdit={canEdit ? () => openEdit(s.id) : undefined}
-                        onDelete={canDelete ? () => setPendingDelete(s) : undefined}
-                      />
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable data={data} columns={columns} getRowKey={(s) => s.id} />
       )}
 
       <StudentFormDialog

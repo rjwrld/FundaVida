@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -112,7 +112,7 @@ describe('<AttendanceListPage />', () => {
     })
   })
 
-  it('pre-filters attendance to the ?courseId= query param', async () => {
+  it('pre-filters attendance to the ?courseId= query param, then windows it (ADR-0026)', async () => {
     const { attendance } = useStore.getState()
     const sample = attendance[0]
     if (!sample) throw new Error('demo seed produced no attendance')
@@ -120,12 +120,29 @@ describe('<AttendanceListPage />', () => {
     const expected = attendance.filter((a) => a.courseId === courseId)
     // Guard: the demo must hold other courses' attendance, else the filter is untested.
     expect(expected.length).toBeLessThan(attendance.length)
+    // Guard: this course must exceed one page, so windowing is actually exercised.
+    expect(expected.length).toBeGreaterThan(10)
 
     renderPage(`/app/attendance?courseId=${courseId}`)
 
+    // The filter narrows the scoped set first; pagination windows the result.
+    // Only the first page renders, but the pager total reflects the full filtered
+    // count — proving the filter ran before the window, not the other way around.
+    const pageCount = Math.ceil(expected.length / 10)
     await waitFor(() => {
-      const rows = screen.getAllByRole('row').slice(1) // skip header row
-      expect(rows.length).toBe(expected.length)
+      expect(screen.getByText(`Page 1 of ${pageCount}`)).toBeInTheDocument()
     })
+    const table = screen.getByRole('table')
+    expect(within(table).getAllByRole('row').slice(1)).toHaveLength(10)
+  })
+
+  it('windows the scoped attendance to the default page size', async () => {
+    const total = useStore.getState().attendance.length
+    expect(total).toBeGreaterThan(10) // guard: the seed must exceed one page
+    renderPage()
+
+    const table = await screen.findByRole('table')
+    expect(within(table).getAllByRole('row').slice(1)).toHaveLength(10)
+    expect(screen.getByText(`Page 1 of ${Math.ceil(total / 10)}`)).toBeInTheDocument()
   })
 })

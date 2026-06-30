@@ -1,15 +1,6 @@
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -18,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Pager } from '@/components/ui/pager'
 import { usePagination } from '@/hooks/usePagination'
 import { cn } from '@/lib/utils'
 
@@ -86,21 +78,8 @@ export function DataTable<T>({
     return [...data].sort((a, b) => factor * compareValues(accessor(a), accessor(b)))
   }, [data, columns, sort])
 
-  const {
-    page,
-    pageSize: currentPageSize,
-    pageCount,
-    pageItems,
-    range,
-    total,
-    canPrev,
-    canNext,
-    setPageSize,
-    first,
-    prev,
-    next,
-    last,
-  } = usePagination(sortedData, { pageSize })
+  const pagination = usePagination(sortedData, { pageSize })
+  const { pageItems } = pagination
 
   // Cycle a sortable column: unsorted → asc → desc → unsorted.
   const toggleSort = (columnId: string) =>
@@ -198,82 +177,7 @@ export function DataTable<T>({
         </ul>
       )}
 
-      <nav
-        aria-label={t('common.pagination.label')}
-        className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground"
-      >
-        <div className="flex items-center gap-4">
-          <p role="status" aria-live="polite">
-            {t('common.pagination.status', { page, pageCount })}
-          </p>
-          <span className="hidden tabular-nums sm:inline">
-            {t('common.pagination.range', { from: range.from, to: range.to, total })}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2">
-            <span>{t('common.pagination.pageSize')}</span>
-            <select
-              value={currentPageSize}
-              onChange={(e) => setPageSize(Number(e.target.value))}
-              className="h-9 rounded-lg border border-input bg-background px-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              {pageSizeOptions.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="flex items-center gap-1">
-            {(
-              [
-                {
-                  key: 'first',
-                  label: t('common.pagination.first'),
-                  Icon: ChevronsLeft,
-                  disabled: !canPrev,
-                  onClick: first,
-                },
-                {
-                  key: 'previous',
-                  label: t('common.pagination.previous'),
-                  Icon: ChevronLeft,
-                  disabled: !canPrev,
-                  onClick: prev,
-                },
-                {
-                  key: 'next',
-                  label: t('common.pagination.next'),
-                  Icon: ChevronRight,
-                  disabled: !canNext,
-                  onClick: next,
-                },
-                {
-                  key: 'last',
-                  label: t('common.pagination.last'),
-                  Icon: ChevronsRight,
-                  disabled: !canNext,
-                  onClick: last,
-                },
-              ] as const
-            ).map(({ key, label, Icon, disabled, onClick }) => (
-              <Button
-                key={key}
-                type="button"
-                variant="outline"
-                size="icon"
-                className="h-9 w-9"
-                aria-label={label}
-                disabled={disabled}
-                onClick={onClick}
-              >
-                <Icon aria-hidden="true" />
-              </Button>
-            ))}
-          </div>
-        </div>
-      </nav>
+      <Pager pagination={pagination} pageSizeOptions={pageSizeOptions} />
     </div>
   )
 }

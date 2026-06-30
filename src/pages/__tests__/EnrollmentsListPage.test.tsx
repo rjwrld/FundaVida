@@ -70,6 +70,33 @@ describe('<EnrollmentsListPage /> — admin oversight by Sede → Course (ADR-00
     })
   })
 
+  it('windows each Sede→Course group so a large cohort never dumps every row (ADR-0026)', async () => {
+    useStore.getState().setRole('admin')
+    const { enrollments, students, courses } = useStore.getState()
+    const studentIds = new Set(students.map((s) => s.id))
+    const courseIds = new Set(courses.map((c) => c.id))
+    // The default view shows every non-rejected enrollment whose student+course resolve.
+    const active = enrollments.filter(
+      (e) => e.status !== 'rejected' && studentIds.has(e.studentId) && courseIds.has(e.courseId)
+    )
+    const sizeByCourse = new Map<string, number>()
+    for (const e of active) sizeByCourse.set(e.courseId, (sizeByCourse.get(e.courseId) ?? 0) + 1)
+    const groupSizes = [...sizeByCourse.values()]
+    // Guard: the seed must contain at least one cohort larger than a page.
+    expect(groupSizes.some((n) => n > 10)).toBe(true)
+    // Each group renders at most its page size; a row is a single <li>.
+    const expectedRendered = groupSizes.reduce((sum, n) => sum + Math.min(n, 10), 0)
+    expect(expectedRendered).toBeLessThan(active.length) // windowing actually drops rows
+
+    renderPage()
+
+    // Wait for the grouped list to render (action buttons present).
+    await screen.findAllByRole('button', { name: /enrollment$/i })
+    expect(screen.getAllByRole('listitem')).toHaveLength(expectedRendered)
+    // At least one group needs a second page, so a pager is shown.
+    expect(screen.getAllByText(/^Page 1 of [2-9]/).length).toBeGreaterThan(0)
+  })
+
   it('hides rejected enrollments from the default view', async () => {
     useStore.getState().setRole('admin')
     const pending = req(

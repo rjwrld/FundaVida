@@ -12,6 +12,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { Pager } from '@/components/ui/pager'
+import { usePagination } from '@/hooks/usePagination'
 import { CertificatesEmpty } from '@/components/empty-states/CertificatesEmpty'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { CertificateCard } from '@/components/certificates/CertificateCard'
@@ -103,6 +105,12 @@ export function CertificatesListPage() {
       return true
     })
   }, [items, query, courseId])
+
+  // Window the already-filtered gallery (ADR-0026). A page size of 12 fills the
+  // 4-column grid (3 rows) cleanly; the pager only appears once there is more
+  // than one page. Filtering shrinks `visible`, and the hook clamps the page so
+  // a narrowed result never points past the end.
+  const pagination = usePagination(visible, { pageSize: 12 })
 
   const selected = useMemo(
     () => items.find((c) => c.id === selectedId) ?? null,
@@ -207,27 +215,32 @@ export function CertificatesListPage() {
               {t('certificates.list.noMatches', { query })}
             </p>
           ) : (
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              transition={transitionDefaults}
-              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-            >
-              {visible.map((c) => (
-                <CertificateCard
-                  key={c.id}
-                  cert={{
-                    id: c.id,
-                    studentName: c.studentName,
-                    courseName: c.courseName,
-                    issuedAt: c.issuedAt,
-                    grade: c.grade,
-                  }}
-                  onOpen={() => setSelectedId(c.id)}
-                />
-              ))}
-            </motion.div>
+            <>
+              <motion.div
+                variants={fadeUp}
+                initial="hidden"
+                animate="visible"
+                transition={transitionDefaults}
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              >
+                {pagination.pageItems.map((c) => (
+                  <CertificateCard
+                    key={c.id}
+                    cert={{
+                      id: c.id,
+                      studentName: c.studentName,
+                      courseName: c.courseName,
+                      issuedAt: c.issuedAt,
+                      grade: c.grade,
+                    }}
+                    onOpen={() => setSelectedId(c.id)}
+                  />
+                ))}
+              </motion.div>
+              {pagination.pageCount > 1 && (
+                <Pager pagination={pagination} pageSizeOptions={[12, 24, 48]} />
+              )}
+            </>
           )}
         </div>
       )}

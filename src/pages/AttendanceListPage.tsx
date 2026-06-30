@@ -11,20 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { useAttendance, useCourses, useStudents } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { findSession } from '@/lib/sessions'
 import type { AttendanceFilters } from '@/data/api/attendance'
-import type { AttendanceStatus } from '@/types'
+import type { AttendanceRecord, AttendanceStatus } from '@/types'
 
 const STATUS_OPTIONS: AttendanceStatus[] = ['present', 'absent', 'excused']
 
@@ -60,6 +53,48 @@ export function AttendanceListPage() {
   const showStudentFilter = role === 'admin' && students.length > 0
   const hasFilters = Boolean(filters.studentId || filters.courseId || filters.status)
   const count = data.length
+
+  const sessionLabelFor = (r: AttendanceRecord) => {
+    const c = courses.find((x) => x.id === r.courseId)
+    const session = c ? findSession(c, r.sessionDate) : null
+    return session
+      ? `${t('attendance.list.session', { ordinal: String(session.ordinal) } as Record<string, string>)} · ${formatDate(r.sessionDate)}`
+      : formatDate(r.sessionDate)
+  }
+
+  const columns: DataTableColumn<AttendanceRecord>[] = [
+    ...(showStudentColumn
+      ? [
+          {
+            id: 'student',
+            header: t('attendance.list.columns.student'),
+            cell: (r: AttendanceRecord) => {
+              const s = students.find((x) => x.id === r.studentId)
+              return `${s?.firstName ?? ''} ${s?.lastName ?? ''}`.trim()
+            },
+          },
+        ]
+      : []),
+    {
+      id: 'course',
+      header: t('attendance.list.columns.course'),
+      cell: (r) => courses.find((x) => x.id === r.courseId)?.name ?? '',
+    },
+    {
+      id: 'session',
+      header: t('attendance.list.columns.session'),
+      cell: (r) => sessionLabelFor(r),
+    },
+    {
+      id: 'status',
+      header: t('attendance.list.columns.status'),
+      cell: (r) => (
+        <Badge variant={statusVariant(r.status)} dot>
+          {t(`attendance.list.status.${r.status}`)}
+        </Badge>
+      ),
+    },
+  ]
 
   return (
     <div className="space-y-6">
@@ -131,52 +166,7 @@ export function AttendanceListPage() {
           {hasFilters ? t('attendance.list.emptyFiltered') : t('attendance.list.empty')}
         </p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-          <div
-            className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground"
-            aria-hidden="true"
-          >
-            <span>{t('attendance.list.title')}</span>
-            <span className="font-mono normal-case tabular-nums text-foreground">{count}</span>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                {showStudentColumn && <TableHead>{t('attendance.list.columns.student')}</TableHead>}
-                <TableHead>{t('attendance.list.columns.course')}</TableHead>
-                <TableHead>{t('attendance.list.columns.session')}</TableHead>
-                <TableHead>{t('attendance.list.columns.status')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((r) => {
-                const s = students.find((x) => x.id === r.studentId)
-                const c = courses.find((x) => x.id === r.courseId)
-                const session = c ? findSession(c, r.sessionDate) : null
-                const sessionLabel = session
-                  ? `${t('attendance.list.session', { ordinal: String(session.ordinal) } as Record<string, string>)} · ${formatDate(r.sessionDate)}`
-                  : formatDate(r.sessionDate)
-
-                return (
-                  <TableRow key={r.id} className="h-12 hover:bg-muted/40">
-                    {showStudentColumn && (
-                      <TableCell>
-                        {s?.firstName} {s?.lastName}
-                      </TableCell>
-                    )}
-                    <TableCell>{c?.name}</TableCell>
-                    <TableCell>{sessionLabel}</TableCell>
-                    <TableCell>
-                      <Badge variant={statusVariant(r.status)} dot>
-                        {t(`attendance.list.status.${r.status}`)}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable data={data} columns={columns} getRowKey={(r) => r.id} />
       )}
     </div>
   )

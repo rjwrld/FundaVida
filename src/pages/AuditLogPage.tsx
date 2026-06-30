@@ -8,21 +8,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { AuditLogsEmpty } from '@/components/empty-states/AuditLogsEmpty'
 import { useAuditLog } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import type { AuditLogFilters } from '@/data/api/auditLog'
-import type { AuditAction, AuditEntity } from '@/types'
+import type { AuditAction, AuditEntity, AuditLogEntry } from '@/types'
 
 const ACTIONS: AuditAction[] = [
   'create',
@@ -61,6 +54,40 @@ export function AuditLogPage() {
 
   const hasFilters = Boolean(filters.action || filters.entity)
   const count = data.length
+
+  const columns: DataTableColumn<AuditLogEntry>[] = [
+    {
+      id: 'timestamp',
+      header: t('auditLog.columns.timestamp'),
+      sortable: true,
+      sortAccessor: (e) => e.timestamp,
+      cell: (e) => formatDateTime(e.timestamp),
+    },
+    {
+      id: 'actor',
+      header: t('auditLog.columns.actor'),
+      cell: (e) => e.actorId,
+    },
+    {
+      id: 'action',
+      header: t('auditLog.columns.action'),
+      cell: (e) => (
+        <Badge variant={actionVariant(e.action)} dot>
+          {t(`auditLog.actions.${e.action}`)}
+        </Badge>
+      ),
+    },
+    {
+      id: 'entity',
+      header: t('auditLog.columns.entity'),
+      cell: (e) => <Badge variant="neutral">{t(`auditLog.entities.${e.entity}`)}</Badge>,
+    },
+    {
+      id: 'summary',
+      header: t('auditLog.columns.summary'),
+      cell: (e) => e.summary,
+    },
+  ]
 
   return (
     <div className="space-y-6">
@@ -114,43 +141,7 @@ export function AuditLogPage() {
           {t('auditLog.emptyFiltered')}
         </p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-          <div
-            className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground"
-            aria-hidden="true"
-          >
-            <span>{t('auditLog.title')}</span>
-            <span className="font-mono normal-case tabular-nums text-foreground">{count}</span>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead>{t('auditLog.columns.timestamp')}</TableHead>
-                <TableHead>{t('auditLog.columns.actor')}</TableHead>
-                <TableHead>{t('auditLog.columns.action')}</TableHead>
-                <TableHead>{t('auditLog.columns.entity')}</TableHead>
-                <TableHead>{t('auditLog.columns.summary')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((e) => (
-                <TableRow key={e.id} className="h-12 hover:bg-muted/40">
-                  <TableCell>{formatDateTime(e.timestamp)}</TableCell>
-                  <TableCell>{e.actorId}</TableCell>
-                  <TableCell>
-                    <Badge variant={actionVariant(e.action)} dot>
-                      {t(`auditLog.actions.${e.action}`)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="neutral">{t(`auditLog.entities.${e.entity}`)}</Badge>
-                  </TableCell>
-                  <TableCell>{e.summary}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable data={data} columns={columns} getRowKey={(e) => e.id} />
       )}
     </div>
   )
