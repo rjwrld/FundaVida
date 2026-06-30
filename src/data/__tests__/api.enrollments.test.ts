@@ -28,9 +28,12 @@ describe('enrollmentsApi', () => {
     expect(result.every((e) => ownCourseIds.has(e.courseId))).toBe(true)
   })
 
-  it('returns empty for a student', async () => {
+  it('returns only the student’s own enrollments (#166)', async () => {
     useStore.getState().setRole('student')
-    expect(await enrollmentsApi.list()).toEqual([])
+    const { currentUserId } = useStore.getState()
+    const result = await enrollmentsApi.list()
+    expect(result.length).toBeGreaterThan(0)
+    expect(result.every((e) => e.studentId === currentUserId)).toBe(true)
   })
 
   it('filters by studentId', async () => {

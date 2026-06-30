@@ -190,10 +190,15 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
   },
   student: {
     programs: 'all',
-    students: 'none',
+    // A Student may read their own record ('self') and own enrollments ('own')
+    // through the scope seam. There is deliberately no context-free can('view')
+    // cell for either — the admin /app/students and /app/enrollments routes/nav
+    // stay denied, so self-only is structural, not an accident of scope (issue
+    // #166, ADR-0008/0012).
+    students: 'self',
     teachers: 'none',
     courses: 'enrolled',
-    enrollments: 'none',
+    enrollments: 'own',
     grades: 'own',
     certificates: 'own',
     attendance: 'own',

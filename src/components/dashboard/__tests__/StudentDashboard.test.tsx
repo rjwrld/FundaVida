@@ -46,6 +46,20 @@ describe('StudentDashboard — hero + supporting layout', () => {
     expect(screen.getByText(/browse/i)).toBeInTheDocument()
   })
 
+  it('renders a My profile link to /app/me (#166)', () => {
+    render(
+      <I18nProvider>
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <StudentDashboard />
+          </MemoryRouter>
+        </QueryClientProvider>
+      </I18nProvider>
+    )
+    const link = screen.getByRole('link', { name: /my profile/i })
+    expect(link).toHaveAttribute('href', '/app/me')
+  })
+
   it('renders my courses and attendance rate as supporting stats', () => {
     render(
       <I18nProvider>

@@ -381,6 +381,8 @@
       "browseDescription": "Explore and request a spot in open courses at your campus.",
       "browseOpenCourses": "Browse open courses",
       "myCourses": "My courses",
+      "myProfile": "My profile",
+      "myProfileDescription": "See your enrollments, attendance, grades, and certificates in one place.",
       "nextClass": "Next class"
     },
     "tcu": {
@@ -581,6 +583,9 @@
         "tests": "Tests"
       }
     }
+  },
+  "me": {
+    "title": "My profile"
   },
   "nav": {
     "attendance": "Attendance",

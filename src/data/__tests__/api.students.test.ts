@@ -17,10 +17,12 @@ describe('api.students', () => {
     expect(list.length).toBe(useStore.getState().students.length)
   })
 
-  it('student sees empty list in the generic list endpoint', async () => {
+  it('student sees only their own record via the self scope (#166)', async () => {
     useStore.getState().setRole('student')
+    const { currentUserId } = useStore.getState()
     const list = await api.students.list()
-    expect(list.length).toBe(0)
+    expect(list).toHaveLength(1)
+    expect(list[0]?.id).toBe(currentUserId)
   })
 
   it('get returns the matching student by id', async () => {

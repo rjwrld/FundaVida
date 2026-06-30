@@ -2,7 +2,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactNode } from 'react'
-import { useCreateStudent, useUpdateStudent, useDeleteStudent } from '../students'
+import {
+  useCreateStudent,
+  useUpdateStudent,
+  useDeleteStudent,
+  useCurrentStudent,
+} from '../students'
 import { useStore } from '@/data/store'
 
 vi.mock('sonner', () => ({
@@ -112,6 +117,35 @@ describe('useCreateStudent', () => {
     })
 
     expect(toast.error).toHaveBeenCalledWith('toasts.error: Database error')
+  })
+})
+
+describe('useCurrentStudent (#166)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    useStore.getState().resetDemo()
+  })
+
+  afterEach(() => {
+    useStore.getState().resetDemo()
+    vi.restoreAllMocks()
+  })
+
+  it('returns the logged-in Student through the self-scoped seam', async () => {
+    useStore.getState().setRole('student')
+    const { currentUserId } = useStore.getState()
+    const { result } = renderHook(() => useCurrentStudent(), { wrapper: createWrapper() })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.data?.id).toBe(currentUserId)
+  })
+
+  it('returns null for a non-Student role (no own student record)', async () => {
+    useStore.getState().setRole('admin')
+    const { result } = renderHook(() => useCurrentStudent(), { wrapper: createWrapper() })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.data).toBeNull()
   })
 })
 
