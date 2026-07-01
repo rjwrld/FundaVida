@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { NoResults } from '@/components/shared/NoResults'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -220,9 +221,7 @@ export function EnrollmentsListPage() {
       ) : grouped.length === 0 && !hasFilters ? (
         <EnrollmentsEmpty />
       ) : grouped.length === 0 ? (
-        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {t('enrollments.list.emptyFiltered')}
-        </p>
+        <NoResults message={t('enrollments.list.emptyFiltered')} />
       ) : (
         <div className="space-y-6">
           {grouped.map(({ sede, courseGroups, pendingCount }) => (

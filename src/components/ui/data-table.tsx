@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { NoResults } from '@/components/shared/NoResults'
 import { Pager } from '@/components/ui/pager'
 import { usePagination } from '@/hooks/usePagination'
 import { fadeUp, staggerContainer, transitionFast } from '@/lib/motion'
@@ -151,15 +152,7 @@ export function DataTable<T>({
   }
 
   if (data.length === 0) {
-    return (
-      <>
-        {emptyState ?? (
-          <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-            {t('common.table.empty')}
-          </p>
-        )}
-      </>
-    )
+    return <>{emptyState ?? <NoResults message={t('common.table.empty')} />}</>
   }
 
   return (

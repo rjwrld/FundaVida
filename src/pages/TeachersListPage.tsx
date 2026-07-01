@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { NoResults } from '@/components/shared/NoResults'
 import { Input } from '@/components/ui/input'
 import {
   Table,
@@ -84,9 +85,7 @@ export function TeachersListPage() {
       ) : count === 0 && !hasFilters ? (
         <TeachersEmpty onAdd={canCreate ? openCreate : undefined} />
       ) : count === 0 ? (
-        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {t('teachers.list.emptyFiltered')}
-        </p>
+        <NoResults message={t('teachers.list.emptyFiltered')} />
       ) : (
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
           <div

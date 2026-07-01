@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { NoResults } from '@/components/shared/NoResults'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -200,9 +201,7 @@ export function CoursesListPage() {
       ) : count === 0 && !hasFilters ? (
         <CoursesEmpty onAdd={canCreate ? openCreate : undefined} />
       ) : count === 0 ? (
-        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {t('courses.list.emptyFiltered')}
-        </p>
+        <NoResults message={t('courses.list.emptyFiltered')} />
       ) : (
         <DataTable
           data={data}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { pdf } from '@react-pdf/renderer'
 import { useTranslation } from 'react-i18next'
 import { CertificateCard } from '@/components/certificates/CertificateCard'
+import { NoResults } from '@/components/shared/NoResults'
 import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog'
 import { useStore } from '@/data/store'
 import { useCertificates } from '@/hooks/api'
@@ -99,9 +100,7 @@ export function StudentCertificatesSection({ student }: { student: Student }) {
         {t('students.detail.sections.certificates')}
       </h2>
       {items.length === 0 ? (
-        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {t('students.detail.certificates.empty')}
-        </p>
+        <NoResults message={t('students.detail.certificates.empty')} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (

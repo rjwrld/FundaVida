@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { NoResults } from '@/components/shared/NoResults'
 import { Badge } from '@/components/ui/badge'
 import {
   Table,
@@ -56,9 +57,7 @@ export function ProgramsDetailPage() {
           {t('programs.detail.coursesTitle')}
         </h2>
         {courses.length === 0 ? (
-          <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-            {t('programs.detail.noCourses')}
-          </p>
+          <NoResults message={t('programs.detail.noCourses')} />
         ) : (
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
             <Table>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
+import { NoResults } from '@/components/shared/NoResults'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { AttendanceEmpty } from '@/components/empty-states/AttendanceEmpty'
@@ -165,9 +166,7 @@ export function AttendanceListPage() {
       ) : count === 0 && !hasFilters ? (
         <AttendanceEmpty />
       ) : count === 0 ? (
-        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {t('attendance.list.emptyFiltered')}
-        </p>
+        <NoResults message={t('attendance.list.emptyFiltered')} />
       ) : (
         <DataTable
           data={data}

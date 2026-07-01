@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { NoResults } from '@/components/shared/NoResults'
 import {
   Select,
   SelectContent,
@@ -211,9 +212,7 @@ export function CertificatesListPage() {
           </div>
 
           {visible.length === 0 ? (
-            <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-              {t('certificates.list.noMatches', { query })}
-            </p>
+            <NoResults message={t('certificates.list.emptyFiltered', { query })} />
           ) : (
             <>
               <motion.div

@@ -1,6 +1,7 @@
 import { Link, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { NoResults } from '@/components/shared/NoResults'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -129,9 +130,7 @@ export function MeProfilePage() {
           {t('students.detail.sections.enrollments')}
         </h2>
         {enrollmentRows.length === 0 ? (
-          <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-            {t('students.detail.sections.noEnrollments')}
-          </p>
+          <NoResults message={t('students.detail.sections.noEnrollments')} />
         ) : (
           <Table>
             <TableHeader>

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { NoResults } from '@/components/shared/NoResults'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { usePrograms } from '@/hooks/api'
@@ -20,9 +21,7 @@ export function ProgramsListPage() {
       {isLoading ? (
         <SkeletonTable rows={6} columns={1} />
       ) : programs.length === 0 ? (
-        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {t('programs.list.empty')}
-        </p>
+        <NoResults message={t('programs.list.empty')} />
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {programs.map((program) => (
