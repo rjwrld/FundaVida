@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
+import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { EnrollmentsEmpty } from '@/components/empty-states/EnrollmentsEmpty'
 import { Pager } from '@/components/ui/pager'
 import { usePagination } from '@/hooks/usePagination'
@@ -217,7 +217,11 @@ export function EnrollmentsListPage() {
       </section>
 
       {isLoading ? (
-        <SkeletonTable rows={8} columns={3} />
+        <div className="space-y-4" aria-busy="true">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
       ) : grouped.length === 0 && !hasFilters ? (
         <EnrollmentsEmpty />
       ) : grouped.length === 0 ? (
