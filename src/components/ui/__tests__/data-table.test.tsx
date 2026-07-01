@@ -3,7 +3,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MotionConfig } from 'framer-motion'
 import { I18nProvider } from '@/lib/i18n'
-import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
+import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 
 interface Row {
   id: string
@@ -246,5 +246,46 @@ describe('<DataTable />', () => {
     const plain = renderTable()
     expect(plain.container.querySelector('.rounded-xl.border')).not.toHaveClass('hidden')
     expect(plain.container.querySelector('ul')).toBeNull()
+  })
+})
+
+describe('<DataTableCard />', () => {
+  const withActions: DataTableColumn<Row>[] = [
+    ...columns,
+    { id: 'actions', header: 'Actions', cell: () => <button type="button">Edit</button> },
+  ]
+
+  it('renders the title cell prominently and every other column as a labeled value', () => {
+    const row: Row = { id: 'r1', name: 'Name 1', score: 1 }
+    render(
+      <I18nProvider>
+        <DataTableCard row={row} columns={columns} titleColumnId="name" />
+      </I18nProvider>
+    )
+    // Title column: just the value, no label.
+    expect(screen.getByText('Name 1')).toBeInTheDocument()
+    // Non-title column: header rendered as the label, cell as the value.
+    const scoreLabel = screen.getByText('Score')
+    expect(scoreLabel.tagName).toBe('DT')
+    expect(screen.getByText('1')).toBeInTheDocument()
+    // Title is not repeated as a label row.
+    expect(screen.queryByText('Name')).not.toBeInTheDocument()
+  })
+
+  it('renders the actions column in its own slot, not as a labeled row', () => {
+    const row: Row = { id: 'r1', name: 'Name 1', score: 1 }
+    render(
+      <I18nProvider>
+        <DataTableCard
+          row={row}
+          columns={withActions}
+          titleColumnId="name"
+          actionsColumnId="actions"
+        />
+      </I18nProvider>
+    )
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
+    // The actions header is not rendered as a detail label.
+    expect(screen.queryByText('Actions')).not.toBeInTheDocument()
   })
 })

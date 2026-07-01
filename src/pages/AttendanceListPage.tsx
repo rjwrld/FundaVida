@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
+import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { useAttendance, useCourses, useStudents } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
@@ -169,7 +169,12 @@ export function AttendanceListPage() {
           {t('attendance.list.emptyFiltered')}
         </p>
       ) : (
-        <DataTable data={data} columns={columns} getRowKey={(r) => r.id} />
+        <DataTable
+          data={data}
+          columns={columns}
+          getRowKey={(r) => r.id}
+          renderCard={(r) => <DataTableCard row={r} columns={columns} titleColumnId="student" />}
+        />
       )}
     </div>
   )

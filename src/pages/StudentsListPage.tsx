@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
+import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
@@ -164,7 +164,19 @@ export function StudentsListPage() {
           {t('students.list.emptyFiltered')}
         </p>
       ) : (
-        <DataTable data={data} columns={columns} getRowKey={(s) => s.id} />
+        <DataTable
+          data={data}
+          columns={columns}
+          getRowKey={(s) => s.id}
+          renderCard={(s) => (
+            <DataTableCard
+              row={s}
+              columns={columns}
+              titleColumnId="name"
+              actionsColumnId="actions"
+            />
+          )}
+        />
       )}
 
       <StudentFormDialog

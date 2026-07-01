@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
+import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { AuditLogsEmpty } from '@/components/empty-states/AuditLogsEmpty'
@@ -141,7 +141,12 @@ export function AuditLogPage() {
           {t('auditLog.emptyFiltered')}
         </p>
       ) : (
-        <DataTable data={data} columns={columns} getRowKey={(e) => e.id} />
+        <DataTable
+          data={data}
+          columns={columns}
+          getRowKey={(e) => e.id}
+          renderCard={(e) => <DataTableCard row={e} columns={columns} titleColumnId="summary" />}
+        />
       )}
     </div>
   )
