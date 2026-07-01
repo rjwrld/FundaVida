@@ -129,7 +129,9 @@ test.describe('enrollment approval workflow', () => {
     // courses table shows the Sede-stripped display name).
     await switchTo(page, 'student', STUDENT_ID)
     await page.getByRole('link', { name: 'Courses', exact: true }).click()
-    await expect(page.getByText(COURSE_SHORT)).toBeVisible()
+    // The course name is a link in both the desktop table and the display:none
+    // mobile card; the link role resolves to just the visible (table) one.
+    await expect(page.getByRole('link', { name: COURSE_SHORT })).toBeVisible()
   })
 
   test('teacher rejects a pending request', async ({ page }) => {

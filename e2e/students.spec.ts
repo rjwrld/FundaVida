@@ -52,7 +52,9 @@ test('admin creates a student and sees them in the list', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'New student' })).toBeHidden()
   await page.getByPlaceholder('Search by name or email').fill('Ada')
   await expect(page.getByRole('link', { name: 'Ada Lovelace' })).toBeVisible()
-  await expect(page.getByText('ada+e2e@example.com')).toBeVisible()
+  // The email shows in the desktop table cell and (display:none) mobile card, so
+  // target the cell role — the hidden card is out of the accessibility tree.
+  await expect(page.getByRole('cell', { name: 'ada+e2e@example.com' })).toBeVisible()
 })
 
 test('admin sees a real profile: enrollments with progress and a certificates section', async ({
