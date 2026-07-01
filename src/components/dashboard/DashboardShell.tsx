@@ -52,7 +52,10 @@ export function DashboardShell({ children, courses, upcoming }: DashboardShellPr
         {upcoming ? (
           <section className="rounded-lg border border-border bg-card p-5">
             <header className="mb-3 flex items-center gap-2">
-              <CalendarDays className="size-4 text-brand-green-700" aria-hidden="true" />
+              <CalendarDays
+                className="size-4 text-brand-green-700 dark:text-brand-green-300"
+                aria-hidden="true"
+              />
               <h3 className="font-display text-base text-foreground">
                 {t('dashboard.rightPanel.upcomingTitle')}
               </h3>

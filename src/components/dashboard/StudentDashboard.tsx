@@ -70,7 +70,10 @@ export function StudentDashboard() {
         <motion.div variants={fadeUp} transition={transitionDefaults}>
           <article className="flex h-full flex-col rounded-lg border border-border bg-card p-5">
             <header className="mb-4 flex items-center gap-2">
-              <Clock className="size-4 text-brand-green-700" aria-hidden="true" />
+              <Clock
+                className="size-4 text-brand-green-700 dark:text-brand-green-300"
+                aria-hidden="true"
+              />
               <h3 className="font-display text-lg text-foreground">
                 {t('dashboard.student.nextClass')}
               </h3>
@@ -95,7 +98,10 @@ export function StudentDashboard() {
           className="flex h-full flex-col rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/30"
         >
           <header className="mb-4 flex items-center gap-2">
-            <Search className="size-4 text-brand-green-700" aria-hidden="true" />
+            <Search
+              className="size-4 text-brand-green-700 dark:text-brand-green-300"
+              aria-hidden="true"
+            />
             <h3 className="font-display text-lg text-foreground">
               {t('dashboard.student.browseOpenCourses')}
             </h3>
@@ -113,7 +119,10 @@ export function StudentDashboard() {
           className="flex h-full flex-col rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/30"
         >
           <header className="mb-4 flex items-center gap-2">
-            <UserCircle className="size-4 text-brand-green-700" aria-hidden="true" />
+            <UserCircle
+              className="size-4 text-brand-green-700 dark:text-brand-green-300"
+              aria-hidden="true"
+            />
             <h3 className="font-display text-lg text-foreground">
               {t('dashboard.student.myProfile')}
             </h3>

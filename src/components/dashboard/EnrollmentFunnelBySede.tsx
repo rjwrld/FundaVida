@@ -25,7 +25,10 @@ export function EnrollmentFunnelBySede() {
         <h3 className="font-display text-lg text-foreground">
           {t('dashboard.enrollmentFunnel.title')}
         </h3>
-        <Filter className="size-4 shrink-0 text-brand-green-700" aria-hidden="true" />
+        <Filter
+          className="size-4 shrink-0 text-brand-green-700 dark:text-brand-green-300"
+          aria-hidden="true"
+        />
       </header>
       {funnel.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('dashboard.enrollmentFunnel.empty')}</p>
@@ -61,7 +64,7 @@ export function EnrollmentFunnelBySede() {
       )}
       <Link
         to="/app/enrollments"
-        className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-green-700 hover:underline"
+        className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-green-700 dark:text-brand-green-300 hover:underline"
       >
         {t('dashboard.enrollmentFunnel.viewAll')}
         <ArrowRight className="size-4" aria-hidden="true" />
