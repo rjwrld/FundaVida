@@ -45,6 +45,25 @@ describe('<StudentForm />', () => {
     expect(screen.getAllByText('Enter a valid email').length).toBeGreaterThan(0)
   })
 
+  it('associates each invalid field with its error for assistive tech', async () => {
+    const user = userEvent.setup()
+    renderForm()
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    // A representative text input: flagged invalid and described by its error.
+    const firstName = await screen.findByLabelText('First name')
+    expect(firstName).toHaveAttribute('aria-invalid', 'true')
+    expect(firstName).toHaveAccessibleDescription('First name is required')
+
+    // A representative Select (combobox): same wiring through the trigger.
+    const province = screen.getByRole('combobox', { name: /province/i })
+    expect(province).toHaveAttribute('aria-invalid', 'true')
+    expect(province).toHaveAccessibleDescription('Province is required')
+
+    // The error messages are announced.
+    expect(screen.getByText('First name is required')).toHaveAttribute('role', 'alert')
+  })
+
   it('creates a student and calls onSuccess', async () => {
     const user = userEvent.setup()
     const { onSuccess } = renderForm()

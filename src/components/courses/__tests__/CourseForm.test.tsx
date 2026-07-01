@@ -48,6 +48,22 @@ describe('<CourseForm />', () => {
     expect(onSuccess).not.toHaveBeenCalled()
   })
 
+  it('associates each invalid field with its error for assistive tech', async () => {
+    const user = userEvent.setup()
+    renderForm()
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    const name = await screen.findByLabelText('Course name')
+    expect(name).toHaveAttribute('aria-invalid', 'true')
+    expect(name).toHaveAccessibleDescription('Course name is required')
+
+    const level = screen.getByRole('combobox', { name: /level/i })
+    expect(level).toHaveAttribute('aria-invalid', 'true')
+    expect(level).toHaveAccessibleDescription('Level is required')
+
+    expect(screen.getByText('Course name is required')).toHaveAttribute('role', 'alert')
+  })
+
   it('calls onCancel when cancel is clicked', async () => {
     const user = userEvent.setup()
     const { onCancel } = renderForm()

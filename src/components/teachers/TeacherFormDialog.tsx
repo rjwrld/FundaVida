@@ -84,20 +84,46 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="firstName">{t('teachers.form.fields.firstName')}</Label>
-          <Input id="firstName" {...register('firstName')} />
+          <Input
+            id="firstName"
+            aria-invalid={errors.firstName !== undefined}
+            aria-describedby={errors.firstName ? 'firstName-error' : undefined}
+            {...register('firstName')}
+          />
           {errors.firstName && (
-            <p className="text-sm text-destructive">{errors.firstName.message}</p>
+            <p id="firstName-error" role="alert" className="text-sm text-destructive">
+              {errors.firstName.message}
+            </p>
           )}
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="lastName">{t('teachers.form.fields.lastName')}</Label>
-          <Input id="lastName" {...register('lastName')} />
-          {errors.lastName && <p className="text-sm text-destructive">{errors.lastName.message}</p>}
+          <Input
+            id="lastName"
+            aria-invalid={errors.lastName !== undefined}
+            aria-describedby={errors.lastName ? 'lastName-error' : undefined}
+            {...register('lastName')}
+          />
+          {errors.lastName && (
+            <p id="lastName-error" role="alert" className="text-sm text-destructive">
+              {errors.lastName.message}
+            </p>
+          )}
         </div>
         <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="email">{t('teachers.form.fields.email')}</Label>
-          <Input id="email" type="email" {...register('email')} />
-          {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+          <Input
+            id="email"
+            type="email"
+            aria-invalid={errors.email !== undefined}
+            aria-describedby={errors.email ? 'email-error' : undefined}
+            {...register('email')}
+          />
+          {errors.email && (
+            <p id="email-error" role="alert" className="text-sm text-destructive">
+              {errors.email.message}
+            </p>
+          )}
         </div>
         <div className="space-y-1.5 sm:col-span-2">
           <Label>{t('teachers.form.fields.sede')}</Label>
@@ -107,7 +133,11 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
               setValue('sede', v as TeacherFormValues['sede'], { shouldValidate: true })
             }
           >
-            <SelectTrigger aria-label={t('teachers.form.fields.sede')}>
+            <SelectTrigger
+              aria-label={t('teachers.form.fields.sede')}
+              aria-invalid={errors.sede !== undefined}
+              aria-describedby={errors.sede ? 'sede-error' : undefined}
+            >
               <SelectValue placeholder={t('teachers.form.fields.sede')} />
             </SelectTrigger>
             <SelectContent>
@@ -118,7 +148,11 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
               ))}
             </SelectContent>
           </Select>
-          {errors.sede && <p className="text-sm text-destructive">{errors.sede.message}</p>}
+          {errors.sede && (
+            <p id="sede-error" role="alert" className="text-sm text-destructive">
+              {errors.sede.message}
+            </p>
+          )}
         </div>
         <div className="space-y-1.5">
           <Label>{t('teachers.form.fields.province')}</Label>
@@ -130,7 +164,11 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
               setValue('canton', '', { shouldValidate: false })
             }}
           >
-            <SelectTrigger aria-label={t('teachers.form.fields.province')}>
+            <SelectTrigger
+              aria-label={t('teachers.form.fields.province')}
+              aria-invalid={errors.province !== undefined}
+              aria-describedby={errors.province ? 'province-error' : undefined}
+            >
               <SelectValue placeholder={t('teachers.form.fields.province')} />
             </SelectTrigger>
             <SelectContent>
@@ -141,7 +179,11 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
               ))}
             </SelectContent>
           </Select>
-          {errors.province && <p className="text-sm text-destructive">{errors.province.message}</p>}
+          {errors.province && (
+            <p id="province-error" role="alert" className="text-sm text-destructive">
+              {errors.province.message}
+            </p>
+          )}
         </div>
         <div className="space-y-1.5">
           <Label>{t('teachers.form.fields.canton')}</Label>
@@ -150,7 +192,11 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
             onValueChange={(v) => v && setValue('canton', v, { shouldValidate: true })}
             disabled={!selectedProvince}
           >
-            <SelectTrigger aria-label={t('teachers.form.fields.canton')}>
+            <SelectTrigger
+              aria-label={t('teachers.form.fields.canton')}
+              aria-invalid={errors.canton !== undefined}
+              aria-describedby={errors.canton ? 'canton-error' : undefined}
+            >
               <SelectValue placeholder={t('teachers.form.fields.canton')} />
             </SelectTrigger>
             <SelectContent>
@@ -161,7 +207,11 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
               ))}
             </SelectContent>
           </Select>
-          {errors.canton && <p className="text-sm text-destructive">{errors.canton.message}</p>}
+          {errors.canton && (
+            <p id="canton-error" role="alert" className="text-sm text-destructive">
+              {errors.canton.message}
+            </p>
+          )}
         </div>
       </div>
       <div className="flex justify-end gap-2">

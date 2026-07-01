@@ -96,21 +96,47 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="firstName">{t('students.form.fields.firstName')}</Label>
-          <Input id="firstName" {...register('firstName')} />
+          <Input
+            id="firstName"
+            aria-invalid={errors.firstName !== undefined}
+            aria-describedby={errors.firstName ? 'firstName-error' : undefined}
+            {...register('firstName')}
+          />
           {errors.firstName && (
-            <p className="text-xs text-destructive">{errors.firstName.message}</p>
+            <p id="firstName-error" role="alert" className="text-xs text-destructive">
+              {errors.firstName.message}
+            </p>
           )}
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="lastName">{t('students.form.fields.lastName')}</Label>
-          <Input id="lastName" {...register('lastName')} />
-          {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
+          <Input
+            id="lastName"
+            aria-invalid={errors.lastName !== undefined}
+            aria-describedby={errors.lastName ? 'lastName-error' : undefined}
+            {...register('lastName')}
+          />
+          {errors.lastName && (
+            <p id="lastName-error" role="alert" className="text-xs text-destructive">
+              {errors.lastName.message}
+            </p>
+          )}
         </div>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="email">{t('students.form.fields.email')}</Label>
-        <Input id="email" type="email" {...register('email')} />
-        {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+        <Input
+          id="email"
+          type="email"
+          aria-invalid={errors.email !== undefined}
+          aria-describedby={errors.email ? 'email-error' : undefined}
+          {...register('email')}
+        />
+        {errors.email && (
+          <p id="email-error" role="alert" className="text-xs text-destructive">
+            {errors.email.message}
+          </p>
+        )}
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
@@ -145,7 +171,11 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
               setValue('canton', '', { shouldValidate: false })
             }}
           >
-            <SelectTrigger aria-label={t('students.form.fields.province')}>
+            <SelectTrigger
+              aria-label={t('students.form.fields.province')}
+              aria-invalid={errors.province !== undefined}
+              aria-describedby={errors.province ? 'province-error' : undefined}
+            >
               <SelectValue placeholder={t('students.form.fields.province')} />
             </SelectTrigger>
             <SelectContent>
@@ -156,7 +186,11 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
               ))}
             </SelectContent>
           </Select>
-          {errors.province && <p className="text-xs text-destructive">{errors.province.message}</p>}
+          {errors.province && (
+            <p id="province-error" role="alert" className="text-xs text-destructive">
+              {errors.province.message}
+            </p>
+          )}
         </div>
         <div className="space-y-1.5">
           <Label>{t('students.form.fields.canton')}</Label>
@@ -168,7 +202,11 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
             onValueChange={(v) => v && setValue('canton', v, { shouldValidate: true })}
             disabled={!selectedProvince}
           >
-            <SelectTrigger aria-label={t('students.form.fields.canton')}>
+            <SelectTrigger
+              aria-label={t('students.form.fields.canton')}
+              aria-invalid={errors.canton !== undefined}
+              aria-describedby={errors.canton ? 'canton-error' : undefined}
+            >
               <SelectValue placeholder={t('students.form.fields.canton')} />
             </SelectTrigger>
             <SelectContent>
@@ -179,7 +217,11 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
               ))}
             </SelectContent>
           </Select>
-          {errors.canton && <p className="text-xs text-destructive">{errors.canton.message}</p>}
+          {errors.canton && (
+            <p id="canton-error" role="alert" className="text-xs text-destructive">
+              {errors.canton.message}
+            </p>
+          )}
         </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -191,7 +233,11 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
               setValue('sede', v as StudentFormValues['sede'], { shouldValidate: true })
             }
           >
-            <SelectTrigger aria-label={t('students.form.fields.sede')}>
+            <SelectTrigger
+              aria-label={t('students.form.fields.sede')}
+              aria-invalid={errors.sede !== undefined}
+              aria-describedby={errors.sede ? 'sede-error' : undefined}
+            >
               <SelectValue placeholder={t('students.form.fields.sede')} />
             </SelectTrigger>
             <SelectContent>
@@ -202,7 +248,11 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
               ))}
             </SelectContent>
           </Select>
-          {errors.sede && <p className="text-xs text-destructive">{errors.sede.message}</p>}
+          {errors.sede && (
+            <p id="sede-error" role="alert" className="text-xs text-destructive">
+              {errors.sede.message}
+            </p>
+          )}
         </div>
         <div className="space-y-1.5">
           <Label>{t('students.form.fields.educationalLevel')}</Label>
@@ -233,9 +283,16 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="guardianName">{t('students.form.fields.guardianName')}</Label>
-            <Input id="guardianName" {...register('guardian.name')} />
+            <Input
+              id="guardianName"
+              aria-invalid={errors.guardian?.name !== undefined}
+              aria-describedby={errors.guardian?.name ? 'guardianName-error' : undefined}
+              {...register('guardian.name')}
+            />
             {errors.guardian?.name && (
-              <p className="text-xs text-destructive">{errors.guardian.name.message}</p>
+              <p id="guardianName-error" role="alert" className="text-xs text-destructive">
+                {errors.guardian.name.message}
+              </p>
             )}
           </div>
           <div className="space-y-1.5">
@@ -266,16 +323,32 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="guardianPhone">{t('students.form.fields.guardianPhone')}</Label>
-            <Input id="guardianPhone" placeholder="8888-8888" {...register('guardian.phone')} />
+            <Input
+              id="guardianPhone"
+              placeholder="8888-8888"
+              aria-invalid={errors.guardian?.phone !== undefined}
+              aria-describedby={errors.guardian?.phone ? 'guardianPhone-error' : undefined}
+              {...register('guardian.phone')}
+            />
             {errors.guardian?.phone && (
-              <p className="text-xs text-destructive">{errors.guardian.phone.message}</p>
+              <p id="guardianPhone-error" role="alert" className="text-xs text-destructive">
+                {errors.guardian.phone.message}
+              </p>
             )}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="guardianEmail">{t('students.form.fields.guardianEmail')}</Label>
-            <Input id="guardianEmail" type="email" {...register('guardian.email')} />
+            <Input
+              id="guardianEmail"
+              type="email"
+              aria-invalid={errors.guardian?.email !== undefined}
+              aria-describedby={errors.guardian?.email ? 'guardianEmail-error' : undefined}
+              {...register('guardian.email')}
+            />
             {errors.guardian?.email && (
-              <p className="text-xs text-destructive">{errors.guardian.email.message}</p>
+              <p id="guardianEmail-error" role="alert" className="text-xs text-destructive">
+                {errors.guardian.email.message}
+              </p>
             )}
           </div>
         </div>
