@@ -129,14 +129,31 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="name">{t('courses.form.fields.name')}</Label>
-        <Input id="name" {...register('name')} />
-        {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+        <Input
+          id="name"
+          aria-invalid={errors.name !== undefined}
+          aria-describedby={errors.name ? 'name-error' : undefined}
+          {...register('name')}
+        />
+        {errors.name && (
+          <p id="name-error" role="alert" className="text-xs text-destructive">
+            {errors.name.message}
+          </p>
+        )}
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="description">{t('courses.form.fields.description')}</Label>
-        <Textarea id="description" rows={3} {...register('description')} />
+        <Textarea
+          id="description"
+          rows={3}
+          aria-invalid={errors.description !== undefined}
+          aria-describedby={errors.description ? 'description-error' : undefined}
+          {...register('description')}
+        />
         {errors.description && (
-          <p className="text-xs text-destructive">{errors.description.message}</p>
+          <p id="description-error" role="alert" className="text-xs text-destructive">
+            {errors.description.message}
+          </p>
         )}
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -159,7 +176,11 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
                 setValue('teacherId', '', { shouldValidate: false })
               }}
             >
-              <SelectTrigger aria-label={t('courses.form.fields.sede')}>
+              <SelectTrigger
+                aria-label={t('courses.form.fields.sede')}
+                aria-invalid={errors.sede !== undefined}
+                aria-describedby={errors.sede ? 'sede-error' : undefined}
+              >
                 <SelectValue placeholder={t('courses.form.fields.sede')} />
               </SelectTrigger>
               <SelectContent>
@@ -171,7 +192,11 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
               </SelectContent>
             </Select>
           )}
-          {errors.sede && <p className="text-xs text-destructive">{errors.sede.message}</p>}
+          {errors.sede && (
+            <p id="sede-error" role="alert" className="text-xs text-destructive">
+              {errors.sede.message}
+            </p>
+          )}
         </div>
         <div className="space-y-1.5">
           <Label>{t('courses.form.fields.programId')}</Label>
@@ -179,7 +204,11 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
             value={watch('programId')}
             onValueChange={(v) => setValue('programId', v, { shouldValidate: true })}
           >
-            <SelectTrigger aria-label={t('courses.form.fields.programId')}>
+            <SelectTrigger
+              aria-label={t('courses.form.fields.programId')}
+              aria-invalid={errors.programId !== undefined}
+              aria-describedby={errors.programId ? 'programId-error' : undefined}
+            >
               <SelectValue placeholder={t('courses.form.fields.programId')} />
             </SelectTrigger>
             <SelectContent>
@@ -191,7 +220,9 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
             </SelectContent>
           </Select>
           {errors.programId && (
-            <p className="text-xs text-destructive">{errors.programId.message}</p>
+            <p id="programId-error" role="alert" className="text-xs text-destructive">
+              {errors.programId.message}
+            </p>
           )}
         </div>
       </div>
@@ -204,7 +235,11 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
               setValue('level', v as CourseFormValues['level'], { shouldValidate: true })
             }
           >
-            <SelectTrigger aria-label={t('courses.form.fields.level')}>
+            <SelectTrigger
+              aria-label={t('courses.form.fields.level')}
+              aria-invalid={errors.level !== undefined}
+              aria-describedby={errors.level ? 'level-error' : undefined}
+            >
               <SelectValue placeholder={t('courses.form.fields.level')} />
             </SelectTrigger>
             <SelectContent>
@@ -215,7 +250,11 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
               ))}
             </SelectContent>
           </Select>
-          {errors.level && <p className="text-xs text-destructive">{errors.level.message}</p>}
+          {errors.level && (
+            <p id="level-error" role="alert" className="text-xs text-destructive">
+              {errors.level.message}
+            </p>
+          )}
         </div>
         {!isTeacher || isEdit ? (
           <div className="space-y-1.5">
@@ -226,7 +265,11 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
                 setValue('status', v as CourseFormValues['status'], { shouldValidate: true })
               }
             >
-              <SelectTrigger aria-label={t('courses.form.fields.status')}>
+              <SelectTrigger
+                aria-label={t('courses.form.fields.status')}
+                aria-invalid={errors.status !== undefined}
+                aria-describedby={errors.status ? 'status-error' : undefined}
+              >
                 <SelectValue placeholder={t('courses.form.fields.status')} />
               </SelectTrigger>
               <SelectContent>
@@ -237,13 +280,28 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
                 ))}
               </SelectContent>
             </Select>
-            {errors.status && <p className="text-xs text-destructive">{errors.status.message}</p>}
+            {errors.status && (
+              <p id="status-error" role="alert" className="text-xs text-destructive">
+                {errors.status.message}
+              </p>
+            )}
           </div>
         ) : null}
         <div className="space-y-1.5">
           <Label htmlFor="capacity">{t('courses.form.fields.capacity')}</Label>
-          <Input id="capacity" type="number" min={1} {...register('capacity')} />
-          {errors.capacity && <p className="text-xs text-destructive">{errors.capacity.message}</p>}
+          <Input
+            id="capacity"
+            type="number"
+            min={1}
+            aria-invalid={errors.capacity !== undefined}
+            aria-describedby={errors.capacity ? 'capacity-error' : undefined}
+            {...register('capacity')}
+          />
+          {errors.capacity && (
+            <p id="capacity-error" role="alert" className="text-xs text-destructive">
+              {errors.capacity.message}
+            </p>
+          )}
         </div>
       </div>
       <div className="space-y-1.5">
@@ -266,7 +324,11 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
             value={watch('teacherId')}
             onValueChange={(v) => setValue('teacherId', v, { shouldValidate: true })}
           >
-            <SelectTrigger aria-label={t('courses.form.fields.teacherId')}>
+            <SelectTrigger
+              aria-label={t('courses.form.fields.teacherId')}
+              aria-invalid={errors.teacherId !== undefined}
+              aria-describedby={errors.teacherId ? 'teacherId-error' : undefined}
+            >
               <SelectValue placeholder={t('courses.form.teacherPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
@@ -280,25 +342,53 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
             </SelectContent>
           </Select>
         )}
-        {errors.teacherId && <p className="text-xs text-destructive">{errors.teacherId.message}</p>}
+        {errors.teacherId && (
+          <p id="teacherId-error" role="alert" className="text-xs text-destructive">
+            {errors.teacherId.message}
+          </p>
+        )}
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="termStart">{t('courses.form.fields.termStart')}</Label>
-          <Input id="termStart" type="date" {...register('termStart')} />
+          <Input
+            id="termStart"
+            type="date"
+            aria-invalid={errors.termStart !== undefined}
+            aria-describedby={errors.termStart ? 'termStart-error' : undefined}
+            {...register('termStart')}
+          />
           {errors.termStart && (
-            <p className="text-xs text-destructive">{errors.termStart.message}</p>
+            <p id="termStart-error" role="alert" className="text-xs text-destructive">
+              {errors.termStart.message}
+            </p>
           )}
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="termEnd">{t('courses.form.fields.termEnd')}</Label>
-          <Input id="termEnd" type="date" {...register('termEnd')} />
-          {errors.termEnd && <p className="text-xs text-destructive">{errors.termEnd.message}</p>}
+          <Input
+            id="termEnd"
+            type="date"
+            aria-invalid={errors.termEnd !== undefined}
+            aria-describedby={errors.termEnd ? 'termEnd-error' : undefined}
+            {...register('termEnd')}
+          />
+          {errors.termEnd && (
+            <p id="termEnd-error" role="alert" className="text-xs text-destructive">
+              {errors.termEnd.message}
+            </p>
+          )}
         </div>
       </div>
       <div className="space-y-1.5">
         <Label>{t('courses.form.fields.meetingDays')}</Label>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div
+          role="group"
+          aria-label={t('courses.form.fields.meetingDays')}
+          aria-invalid={errors.meetingDays !== undefined}
+          aria-describedby={errors.meetingDays ? 'meetingDays-error' : undefined}
+          className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+        >
           {WEEKDAYS.map((day) => {
             const dayLabels: Record<Weekday, string> = {
               mon: t('courses.form.weekdays.mon'),
@@ -333,7 +423,9 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
           })}
         </div>
         {errors.meetingDays && (
-          <p className="text-xs text-destructive">{errors.meetingDays.message}</p>
+          <p id="meetingDays-error" role="alert" className="text-xs text-destructive">
+            {errors.meetingDays.message}
+          </p>
         )}
       </div>
       <div className="flex justify-end gap-2">

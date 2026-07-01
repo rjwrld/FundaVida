@@ -35,6 +35,22 @@ describe('<TeacherForm />', () => {
     useStore.getState().setLocale('en')
   })
 
+  it('associates each invalid field with its error for assistive tech', async () => {
+    const user = userEvent.setup()
+    renderForm()
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    const firstName = await screen.findByLabelText('First name')
+    expect(firstName).toHaveAttribute('aria-invalid', 'true')
+    expect(firstName).toHaveAccessibleDescription('First name is required')
+
+    const province = screen.getByRole('combobox', { name: /province/i })
+    expect(province).toHaveAttribute('aria-invalid', 'true')
+    expect(province).toHaveAccessibleDescription('Province is required')
+
+    expect(screen.getByText('First name is required')).toHaveAttribute('role', 'alert')
+  })
+
   it('creates a teacher and calls onSuccess', async () => {
     const user = userEvent.setup()
     const { onSuccess } = renderForm()
