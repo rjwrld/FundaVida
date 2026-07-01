@@ -7,7 +7,7 @@ test('admin sees audit log and a new create entry after making one', async ({ pa
   await page.goto('/')
   await page.getByRole('button', { name: 'Enter as admin' }).first().click()
 
-  await page.getByRole('link', { name: 'Students' }).click()
+  await page.getByRole('link', { name: 'Students', exact: true }).click()
   await page.getByRole('button', { name: 'Add student' }).click()
   await page.getByLabel('First name').fill(firstName)
   await page.getByLabel('Last name').fill('Log')

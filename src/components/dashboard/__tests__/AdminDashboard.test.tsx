@@ -4,21 +4,23 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
 import { setDemoEpoch } from '@/lib/clock'
+import { useStore } from '@/data/store'
 import { AdminDashboard } from '../AdminDashboard'
 
 describe('AdminDashboard — hero + supporting layout', () => {
-  const EPOCH = new Date('2026-06-23T15:30:00.000Z')
+  const EPOCH = new Date('2026-06-15T12:00:00.000Z')
   let queryClient: QueryClient
 
   beforeEach(() => {
     setDemoEpoch(EPOCH)
+    useStore.getState().setRole('admin')
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     })
   })
 
-  it('surfaces no certificate-approval widget (approval removed, ADR-0024)', () => {
-    render(
+  function renderDashboard() {
+    return render(
       <I18nProvider>
         <QueryClientProvider client={queryClient}>
           <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -27,35 +29,26 @@ describe('AdminDashboard — hero + supporting layout', () => {
         </QueryClientProvider>
       </I18nProvider>
     )
+  }
+
+  it('surfaces no certificate-approval widget (approval removed, ADR-0024)', () => {
+    renderDashboard()
     // Certificates emit on course close — there is no pending queue to review.
     expect(screen.queryByText(/pending approvals/i)).not.toBeInTheDocument()
   })
 
   it('renders org health stats (active courses, students, etc.)', () => {
-    render(
-      <I18nProvider>
-        <QueryClientProvider client={queryClient}>
-          <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <AdminDashboard />
-          </MemoryRouter>
-        </QueryClientProvider>
-      </I18nProvider>
-    )
+    renderDashboard()
     // AdminDashboard shows: total students, active courses, certs issued, tcu hours.
     expect(screen.getByText(/total students/i)).toBeInTheDocument()
     expect(screen.getByText(/active courses/i)).toBeInTheDocument()
   })
 
-  it('renders recent activity as supporting widget', () => {
-    render(
-      <I18nProvider>
-        <QueryClientProvider client={queryClient}>
-          <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <AdminDashboard />
-          </MemoryRouter>
-        </QueryClientProvider>
-      </I18nProvider>
-    )
-    expect(screen.getByText(/recent activity/i)).toBeInTheDocument()
+  it('renders the actionable supporting cards (courses to close, certs, at-risk, funnel)', () => {
+    renderDashboard()
+    expect(screen.getByText(/courses to close/i)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /certificates this epoch/i })).toBeInTheDocument()
+    expect(screen.getByText(/students at risk/i)).toBeInTheDocument()
+    expect(screen.getByText(/enrollment funnel by campus/i)).toBeInTheDocument()
   })
 })

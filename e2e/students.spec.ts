@@ -20,7 +20,7 @@ if (!otherStudent) throw new Error('seed has no non-persona student')
 test('admin creates a student and sees them in the list', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Enter as admin' }).first().click()
-  await page.getByRole('link', { name: 'Students' }).click()
+  await page.getByRole('link', { name: 'Students', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Add student' }).click()
@@ -92,7 +92,7 @@ test('list renders in Spanish when locale is ES', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'es' }).click()
   await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
-  await page.getByRole('link', { name: 'Estudiantes' }).click()
+  await page.getByRole('link', { name: 'Estudiantes', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Estudiantes' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Agregar estudiante' })).toBeVisible()
 })
