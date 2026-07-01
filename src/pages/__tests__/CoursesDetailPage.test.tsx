@@ -413,8 +413,10 @@ describe('<CoursesDetailPage /> — schedule & roster (issue 153, ADR-0001/0011)
       heading.closest('section') ?? undefined,
       'Volunteers heading has no <section>'
     )
+    // findBy: the roster loads via a separate useTcuTrainees() query that isn't in
+    // the page's loading gate, so it populates after the heading (raced getByText → #182).
     expect(
-      within(section).getByText(`${trainee.firstName} ${trainee.lastName}`)
+      await within(section).findByText(`${trainee.firstName} ${trainee.lastName}`)
     ).toBeInTheDocument()
   })
 
@@ -445,8 +447,10 @@ describe('<CoursesDetailPage /> — schedule & roster (issue 153, ADR-0001/0011)
       'Volunteers heading has no <section>'
     )
     // The legitimate same-Sede volunteer is shown…
+    // findBy: the roster loads via a separate useTcuTrainees() query that isn't in
+    // the page's loading gate, so it populates after the heading (raced getByText → #182).
     expect(
-      within(section).getByText(`${trainee.firstName} ${trainee.lastName}`)
+      await within(section).findByText(`${trainee.firstName} ${trainee.lastName}`)
     ).toBeInTheDocument()
     // …but the Sede-mismatched one never appears.
     expect(within(section).queryByText('Rogue Volunteer')).not.toBeInTheDocument()
@@ -471,8 +475,10 @@ describe('<CoursesDetailPage /> — schedule & roster (issue 153, ADR-0001/0011)
       heading.closest('section') ?? undefined,
       'Volunteers heading has no <section>'
     )
+    // findBy: the roster loads via a separate useTcuTrainees() query that isn't in
+    // the page's loading gate, so it populates after the heading (raced getByText → #182).
     expect(
-      within(section).getByText(`${trainee.firstName} ${trainee.lastName}`)
+      await within(section).findByText(`${trainee.firstName} ${trainee.lastName}`)
     ).toBeInTheDocument()
   })
 
