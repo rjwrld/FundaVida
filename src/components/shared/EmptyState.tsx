@@ -27,6 +27,7 @@ export function EmptyState({
       className={cn(
         'relative flex flex-col items-center justify-center rounded-xl border-[1.5px] border-dashed border-border/60',
         'bg-[radial-gradient(ellipse_at_top,oklch(var(--brand-green-50)/0.4)_0%,transparent_60%)]',
+        'dark:bg-[radial-gradient(ellipse_at_top,oklch(var(--brand-green-900)/0.5)_0%,transparent_60%)]',
         'px-6 pb-12 pt-14 text-center',
         className
       )}

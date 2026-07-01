@@ -49,7 +49,7 @@ export function EnrollmentFunnelBySede() {
                     aria-label={t('dashboard.enrollmentFunnel.approved')}
                   />
                   <div
-                    className="bg-flame-yellow-400"
+                    className="bg-flame-yellow-400 dark:bg-flame-yellow-600"
                     style={{ width: `${100 - approvedPct}%` }}
                     aria-label={t('dashboard.enrollmentFunnel.pending')}
                   />

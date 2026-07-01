@@ -193,7 +193,7 @@ export function MarkSessionAttendancePage() {
     return (
       <div className="space-y-6">
         <PageHeader title={t('attendance.mark.title')} />
-        <div className="text-center text-red-600">{error}</div>
+        <div className="text-center text-destructive">{error}</div>
       </div>
     )
   }
@@ -211,7 +211,7 @@ export function MarkSessionAttendancePage() {
             } as Record<string, string>)}
           </p>
         </div>
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800 dark:border-yellow-900 dark:bg-yellow-950/40 dark:text-yellow-200">
           {t('attendance.mark.future')}
         </div>
       </div>

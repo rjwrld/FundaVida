@@ -99,8 +99,8 @@ export function CoursesListPage() {
         <span
           className={`text-xs font-medium px-2 py-1 rounded ${
             c.status === 'published'
-              ? 'bg-green-100 text-green-800'
-              : 'bg-yellow-100 text-yellow-800'
+              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
           }`}
           data-testid={`course-status-${c.status}`}
         >
