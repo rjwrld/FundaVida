@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
+import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { EditGradeDialog } from '@/components/grades/EditGradeDialog'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { RowActions } from '@/components/shared/RowActions'
@@ -158,7 +158,19 @@ export function GradesListPage() {
           {t('grades.list.emptyFiltered')}
         </p>
       ) : (
-        <DataTable data={data} columns={columns} getRowKey={(g) => g.id} />
+        <DataTable
+          data={data}
+          columns={columns}
+          getRowKey={(g) => g.id}
+          renderCard={(g) => (
+            <DataTableCard
+              row={g}
+              columns={columns}
+              titleColumnId="student"
+              actionsColumnId="actions"
+            />
+          )}
+        />
       )}
 
       <EditGradeDialog

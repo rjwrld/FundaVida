@@ -51,7 +51,9 @@ test('admin runs the full chain: create student, enroll, grade, close, certifica
   // in-memory store — a full reload could race the debounced localStorage flush.
   await page.getByRole('link', { name: 'Courses' }).click()
   await expect(page.getByRole('heading', { name: 'Courses' })).toBeVisible()
-  await page.locator(`a[href$="/courses/${chainCourse.id}"]`).click()
+  // The course link renders in both the desktop table and the display:none mobile
+  // card; :visible picks the table one so strict mode sees a single match.
+  await page.locator(`a[href$="/courses/${chainCourse.id}"]:visible`).click()
 
   await page.getByRole('button', { name: 'Enroll student' }).click()
   await expect(page.getByRole('heading', { name: 'Enroll student' })).toBeVisible()

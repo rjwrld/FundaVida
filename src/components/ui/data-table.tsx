@@ -59,6 +59,52 @@ export interface DataTableProps<T> {
   renderCard?: (row: T) => React.ReactNode
 }
 
+export interface DataTableCardProps<T> {
+  row: T
+  columns: DataTableColumn<T>[]
+  /** Column whose cell is the card's prominent title (rendered without a label). */
+  titleColumnId: string
+  /** Optional column rendered top-right (e.g. row actions), not as a labeled row. */
+  actionsColumnId?: string
+}
+
+/**
+ * The mobile counterpart of a {@link DataTable} row: the same column cells laid
+ * out as a card. Pass this from a page's `renderCard` so the card and the table
+ * always show identical data. The title column reads as the heading, the actions
+ * column (if any) sits top-right, and every remaining column becomes a
+ * `header: cell` label/value pair.
+ */
+export function DataTableCard<T>({
+  row,
+  columns,
+  titleColumnId,
+  actionsColumnId,
+}: DataTableCardProps<T>) {
+  const titleColumn = columns.find((c) => c.id === titleColumnId)
+  const actionsColumn = actionsColumnId ? columns.find((c) => c.id === actionsColumnId) : undefined
+  const detailColumns = columns.filter((c) => c.id !== titleColumnId && c.id !== actionsColumnId)
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 shadow-card">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 font-medium text-foreground">{titleColumn?.cell(row)}</div>
+        {actionsColumn ? <div className="shrink-0">{actionsColumn.cell(row)}</div> : null}
+      </div>
+      {detailColumns.length > 0 && (
+        <dl className="mt-3 space-y-1.5">
+          {detailColumns.map((col) => (
+            <div key={col.id} className="flex items-baseline justify-between gap-3 text-sm">
+              <dt className="shrink-0 text-muted-foreground">{col.header}</dt>
+              <dd className="min-w-0 text-right text-foreground">{col.cell(row)}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </div>
+  )
+}
+
 function compareValues(a: string | number, b: string | number): number {
   if (typeof a === 'number' && typeof b === 'number') return a - b
   return String(a).localeCompare(String(b))

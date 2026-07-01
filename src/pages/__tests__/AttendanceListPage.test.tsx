@@ -49,7 +49,7 @@ describe('<AttendanceListPage />', () => {
   it('renders session column header', async () => {
     renderPage()
     await waitFor(() => {
-      expect(screen.getByText('Session')).toBeInTheDocument()
+      expect(screen.getByRole('columnheader', { name: 'Session' })).toBeInTheDocument()
     })
   })
 
@@ -87,7 +87,7 @@ describe('<AttendanceListPage />', () => {
 
     // Wait for the data to load
     await waitFor(() => {
-      expect(screen.getByText('Session')).toBeInTheDocument()
+      expect(screen.getByRole('columnheader', { name: 'Session' })).toBeInTheDocument()
     })
 
     const rows = screen.getAllByRole('row').slice(1)
