@@ -90,13 +90,15 @@ describe('<DashboardPage /> (admin)', () => {
     }
   })
 
-  it('renders at least one recent-activity row', () => {
+  it('renders the actionable supporting cards (courses to close, at-risk, funnel)', () => {
     renderDashboard()
-    const heading = screen.getByRole('heading', { name: /recent activity/i })
-    expect(heading).toBeInTheDocument()
-    const list = heading.parentElement?.parentElement?.querySelector('ul')
-    expect(list).not.toBeNull()
-    expect(list?.querySelectorAll('li').length ?? 0).toBeGreaterThan(0)
+    // The filler TopCourses/RecentActivity cards are replaced by role-scoped,
+    // actionable cards (issue #155).
+    expect(screen.getByRole('heading', { name: /courses to close/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /students at risk/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /enrollment funnel by campus/i })
+    ).toBeInTheDocument()
   })
 
   it('renders the right-panel calendar and upcoming list', () => {
@@ -179,7 +181,7 @@ describe('<DashboardPage /> (teacher)', () => {
   it('renders at least three meaningful role-scoped widgets', () => {
     renderDashboard()
     // Teacher dashboard now shows: enrollment requests (hero), next sessions to mark (hero),
-    // my courses (supporting), and ended courses awaiting grades (supporting)
+    // my courses (supporting), and courses to close (supporting)
     expect(screen.getByText(/my courses/i)).toBeInTheDocument()
     expect(screen.getByText(/next sessions to mark/i)).toBeInTheDocument()
   })

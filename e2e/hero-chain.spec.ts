@@ -21,7 +21,7 @@ test('admin runs the full chain: create student, enroll, grade, close, certifica
   await page.goto('/')
   await page.getByRole('button', { name: 'Enter as admin' }).first().click()
 
-  await page.getByRole('link', { name: 'Students' }).click()
+  await page.getByRole('link', { name: 'Students', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible()
   await page.getByRole('button', { name: 'Add student' }).click()
   await expect(page.getByRole('heading', { name: 'New student' })).toBeVisible()

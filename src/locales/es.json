@@ -349,18 +349,40 @@
     }
   },
   "dashboard": {
-    "attendance": {
-      "rateLabel": "Asistencia este mes",
-      "title": "Asistencia este mes",
-      "trendLabel": "Últimas 7 sesiones"
+    "atRisk": {
+      "empty": "Ningún estudiante necesita atención ahora.",
+      "more_one": "+{{count}} más",
+      "more_many": "",
+      "more_other": "+{{count}} más",
+      "reasonFailing": "Nota reprobatoria",
+      "reasonLowAttendance": "Baja asistencia",
+      "title": "Estudiantes en riesgo",
+      "viewAll": "Ver todos los estudiantes"
     },
-    "recentActivity": {
-      "actor": {
-        "admin": "Admin",
-        "system": "Sistema"
-      },
-      "empty": "Aún no hay actividad.",
-      "title": "Actividad reciente"
+    "attendanceHeatmap": {
+      "empty": "Aún no hay asistencia registrada.",
+      "legendLess": "Menos",
+      "legendMore": "Más",
+      "subtitle": "Asistencia diaria, últimas 12 semanas",
+      "title": "Mapa de asistencia"
+    },
+    "certsThisEpoch": {
+      "subtitle": "Emitidos al cerrar cada curso, sin aprobación",
+      "title": "Certificados de esta época",
+      "viewAll": "Ver todos los certificados"
+    },
+    "coursesToClose": {
+      "empty": "No hay cursos listos para cerrar.",
+      "ended": "El período terminó el {{date}}",
+      "title": "Cursos por cerrar"
+    },
+    "enrollmentFunnel": {
+      "approved": "Aprobadas",
+      "empty": "Sin actividad de matrículas.",
+      "pending": "Pendientes",
+      "summary": "{{approved}} aprobadas · {{pending}} pendientes",
+      "title": "Embudo de matrículas por sede",
+      "viewAll": "Revisar matrículas"
     },
     "rightPanel": {
       "calendarTitle": "Calendario",
@@ -397,7 +419,6 @@
       "createCourseButton": "Crear un curso",
       "createCourseDescription": "Ofrece un nuevo curso a los estudiantes de tu sede.",
       "createCourseTitle": "Crear un curso",
-      "endedCoursesAwaitingGrades": "Cursos finalizados en espera de calificaciones",
       "markAttendance": "Marcar",
       "myCourses": "Mis cursos",
       "nextSession": "Próxima sesión programada",
@@ -405,12 +426,6 @@
       "noUpcomingSessions": "No hay próximas sesiones para marcar."
     },
     "title": "Sesión como {{role}}",
-    "topCourses": {
-      "capacityLabel": "{{name}} — {{pct}}% de capacidad",
-      "empty": "Aún no hay cursos.",
-      "enrollmentCapacity": "{{enrolled}}/{{capacity}}",
-      "title": "Cursos destacados"
-    },
     "upcoming": {
       "gradePending": "Calificación pendiente: {{course}}",
       "tcuLogged": "TCU registrado: {{title}}"

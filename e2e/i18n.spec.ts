@@ -44,18 +44,18 @@ test.describe('i18n', () => {
       .click()
 
     await expect(page).toHaveURL(/\/app$/)
-    await expect(page.getByRole('link', { name: 'Estudiantes' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Estudiantes', exact: true })).toBeVisible()
   })
 
   test('header toggle switches locale inside the app and survives reload', async ({ page }) => {
     await page.getByRole('button', { name: 'Enter as admin' }).first().click()
     await expect(page).toHaveURL(/\/app$/)
-    await expect(page.getByRole('link', { name: 'Students' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Students', exact: true })).toBeVisible()
 
     await page.getByRole('button', { name: 'es', exact: true }).click()
-    await expect(page.getByRole('link', { name: 'Estudiantes' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Estudiantes', exact: true })).toBeVisible()
 
     await page.reload()
-    await expect(page.getByRole('link', { name: 'Estudiantes' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Estudiantes', exact: true })).toBeVisible()
   })
 })

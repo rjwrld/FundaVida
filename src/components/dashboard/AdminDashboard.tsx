@@ -8,9 +8,11 @@ import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useDashboardStats } from '@/hooks/api/useDashboardStats'
 import { useStore } from '@/data/store'
 import { StatRow } from './StatRow'
-import { RecentActivity } from './RecentActivity'
-import { TopCourses } from './TopCourses'
-import { AttendanceSnapshot } from './AttendanceSnapshot'
+import { CoursesToClose } from './CoursesToClose'
+import { CertsThisEpoch } from './CertsThisEpoch'
+import { AtRiskStudents } from './AtRiskStudents'
+import { EnrollmentFunnelBySede } from './EnrollmentFunnelBySede'
+import { AttendanceHeatmapCard } from './AttendanceHeatmapCard'
 import { DashboardShell } from './DashboardShell'
 
 export function AdminDashboard() {
@@ -20,15 +22,6 @@ export function AdminDashboard() {
   const grades = useStore((s) => s.grades)
   const courses = useStore((s) => s.courses)
   const programs = useStore((s) => s.programs)
-
-  // Build courseCapacities map for TopCourses (enrollment vs capacity).
-  const courseCapacities = useMemo(() => {
-    const capacities: Record<string, number> = {}
-    courses.forEach((c) => {
-      capacities[c.id] = c.capacity
-    })
-    return capacities
-  }, [courses])
 
   const upcoming = useMemo<UpcomingItem[]>(() => {
     const items: UpcomingItem[] = []
@@ -61,11 +54,12 @@ export function AdminDashboard() {
     return items.slice(0, 4)
   }, [enrollments, grades, courses, programs, stats.recentTcu, t])
 
-  const greetingName = t('dashboard.recentActivity.actor.admin')
+  const greetingName = t('roles.admin.label')
 
   // Admin sees every Sede's Courses; the sidebar calendar marks their Session days.
   // Hero: Org Health Stats (total students, active courses, certs, tcu hours)
-  // Supporting: Recent Activity, Top Courses (with capacity), Attendance Snapshot
+  // Supporting: role-scoped, actionable cards — each reads a scoped hook, never
+  // the raw store (issue #155), and links to where the work gets done.
   return (
     <DashboardShell courses={courses} upcoming={upcoming}>
       <motion.div variants={fadeUp} transition={transitionDefaults}>
@@ -87,15 +81,17 @@ export function AdminDashboard() {
         />
       </motion.div>
 
-      {/* Supporting: Recent Activity, Top Courses, Attendance */}
+      {/* Supporting: actionable, role-scoped cards */}
       <motion.div
         variants={fadeUp}
         transition={transitionDefaults}
         className="grid gap-4 lg:grid-cols-2"
       >
-        <RecentActivity entries={stats.recentActivity} />
-        <TopCourses courses={stats.topCourses} courseCapacities={courseCapacities} />
-        <AttendanceSnapshot ratePct={stats.attendanceRate} trend={stats.attendanceTrend} />
+        <CoursesToClose />
+        <CertsThisEpoch />
+        <AtRiskStudents />
+        <EnrollmentFunnelBySede />
+        <AttendanceHeatmapCard />
       </motion.div>
     </DashboardShell>
   )

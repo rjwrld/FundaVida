@@ -54,7 +54,7 @@ const revokedStudentName = `${revokedStudent.firstName} ${revokedStudent.lastNam
 
 async function openCertificatePreview(page: Page) {
   await enterAs(page, 'admin')
-  await page.getByRole('link', { name: 'Certificates' }).click()
+  await page.getByRole('link', { name: 'Certificates', exact: true }).click()
   // The gallery lists every emitted Certificate as a previewable card — there is no
   // approval step or Approved tab (ADR-0024); each card is downloadable.
   await page
@@ -90,7 +90,7 @@ test('lets you scroll to the footer when the window is too short to scale it', a
 
 test('admin previews and downloads a certificate, with no approval anywhere', async ({ page }) => {
   await enterAs(page, 'admin')
-  await page.getByRole('link', { name: 'Certificates' }).click()
+  await page.getByRole('link', { name: 'Certificates', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Certificates', exact: true })).toBeVisible()
 
   // Approval is gone: no Approve / Approve all controls, no worklist tabs.
@@ -155,7 +155,7 @@ test('lowering a passing grade below 70 after close revokes the certificate (ADR
 
   // 2. The global gallery (now cached) lists this course's Certificates, including
   //    the target Student's.
-  await page.getByRole('link', { name: 'Certificates' }).click()
+  await page.getByRole('link', { name: 'Certificates', exact: true }).click()
   await page.getByRole('combobox', { name: 'Filter by course' }).click()
   await page.getByRole('option', { name: revocableCourse.name }).click()
   await expect(page.getByText(revokedStudentName)).toBeVisible()
@@ -184,7 +184,7 @@ test('lowering a passing grade below 70 after close revokes the certificate (ADR
   // 4. Back on the gallery the certificate is gone: updateGradeScore invalidated
   //    ['certificates'], so the 5-minute-stale cache refetches and drops the revoked
   //    credential rather than serving it. (Without the invalidation it would persist.)
-  await page.getByRole('link', { name: 'Certificates' }).click()
+  await page.getByRole('link', { name: 'Certificates', exact: true }).click()
   await page.getByRole('combobox', { name: 'Filter by course' }).click()
   await page.getByRole('option', { name: revocableCourse.name }).click()
   await expect(page.getByText(revokedStudentName)).toHaveCount(0)
@@ -197,6 +197,6 @@ test('renders in Spanish when locale is ES', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'es' }).click()
   await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
-  await page.getByRole('link', { name: 'Certificados' }).click()
+  await page.getByRole('link', { name: 'Certificados', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Certificados', exact: true })).toBeVisible()
 })
