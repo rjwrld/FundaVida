@@ -39,6 +39,14 @@ describe('<EnrollmentsListPage /> — admin oversight by Sede → Course (ADR-00
     useStore.getState().setLocale('en')
   })
 
+  it('shows the illustrated empty state when there are no enrollments', async () => {
+    useStore.getState().setRole('admin')
+    useStore.setState({ enrollments: [] })
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: /no enrollments yet/i })).toBeInTheDocument()
+  })
+
   it('groups by Course and lets an admin approve a pending enrollment in place', async () => {
     useStore.getState().setRole('admin')
     const s = useStore.getState()

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 330">
+  <ellipse cx="220" cy="298" rx="150" ry="28" fill="#C66A3A"></ellipse>
+  <path d="M70 298a150 28 0 0 0 300 0Z" fill="#9E4E22"></path>
+  <g transform="translate(212,160) rotate(4)">
+    <rect x="-70" y="-92" width="140" height="184" rx="12" fill="#3C8D0F"></rect>
+    <rect x="-58" y="-80" width="116" height="160" rx="6" fill="#EBD9C0"></rect>
+    <rect x="-22" y="-100" width="44" height="20" rx="6" fill="#1C5D00"></rect>
+    <g>
+      <rect x="-44" y="-58" width="20" height="20" rx="4" fill="#155ED0"></rect>
+      <path d="M-40 -48 -35 -42 -25 -55" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+      <line x1="-16" y1="-48" x2="42" y2="-48" stroke="#c9b894" stroke-width="4" stroke-linecap="round"></line>
+    </g>
+    <g>
+      <rect x="-44" y="-22" width="20" height="20" rx="4" fill="#155ED0"></rect>
+      <path d="M-40 -12 -35 -6 -25 -19" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+      <line x1="-16" y1="-12" x2="30" y2="-12" stroke="#c9b894" stroke-width="4" stroke-linecap="round"></line>
+    </g>
+    <g>
+      <rect x="-44" y="14" width="20" height="20" rx="4" fill="#155ED0"></rect>
+      <path d="M-40 24 -35 30 -25 17" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+      <line x1="-16" y1="24" x2="42" y2="24" stroke="#c9b894" stroke-width="4" stroke-linecap="round"></line>
+    </g>
+    <g>
+      <rect x="-44" y="50" width="20" height="20" rx="4" fill="#EBD9C0" stroke="#c9b894" stroke-width="2"></rect>
+      <line x1="-16" y1="60" x2="26" y2="60" stroke="#c9b894" stroke-width="4" stroke-linecap="round"></line>
+    </g>
+  </g>
+  <g transform="translate(324,118)" fill="#F9C718">
+    <path d="M0 -18 5 -5 18 0 5 5 0 18 -5 5 -18 0 -5 -5Z"></path>
+  </g>
+</svg>

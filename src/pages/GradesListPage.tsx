@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
+import { GradesEmpty } from '@/components/empty-states/GradesEmpty'
 import { useCourses, useDeleteGrade, useGrades, useStudents } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import type { GradeFilters } from '@/data/api/grades'
@@ -150,9 +151,11 @@ export function GradesListPage() {
 
       {isLoading ? (
         <SkeletonTable rows={8} columns={5} />
+      ) : count === 0 && !hasFilters ? (
+        <GradesEmpty />
       ) : count === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {hasFilters ? t('grades.list.emptyFiltered') : t('grades.list.empty')}
+          {t('grades.list.emptyFiltered')}
         </p>
       ) : (
         <DataTable data={data} columns={columns} getRowKey={(g) => g.id} />

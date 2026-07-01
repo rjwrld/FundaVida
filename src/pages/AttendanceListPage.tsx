@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
+import { AttendanceEmpty } from '@/components/empty-states/AttendanceEmpty'
 import {
   Select,
   SelectContent,
@@ -161,9 +162,11 @@ export function AttendanceListPage() {
 
       {isLoading ? (
         <SkeletonTable rows={8} columns={4} />
+      ) : count === 0 && !hasFilters ? (
+        <AttendanceEmpty />
       ) : count === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {hasFilters ? t('attendance.list.emptyFiltered') : t('attendance.list.empty')}
+          {t('attendance.list.emptyFiltered')}
         </p>
       ) : (
         <DataTable data={data} columns={columns} getRowKey={(r) => r.id} />
