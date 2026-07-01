@@ -5,6 +5,10 @@
     }
   },
   "attendance": {
+    "empty": {
+      "body": "Attendance appears here once sessions are marked for enrolled students.",
+      "heading": "No attendance yet"
+    },
     "list": {
       "columns": {
         "course": "Course",
@@ -453,6 +457,10 @@
       "submit": "Enroll",
       "title": "Enroll student"
     },
+    "empty": {
+      "body": "Enrollments appear here once students join a course.",
+      "heading": "No enrollments yet"
+    },
     "list": {
       "approveAria": "Approve {{student}}'s enrollment",
       "columns": {
@@ -460,7 +468,6 @@
         "enrolledAt": "Enrolled",
         "student": "Student"
       },
-      "empty": "No enrollments yet.",
       "emptyFiltered": "No enrollments match your filters.",
       "filterAnySede": "All campuses",
       "filterSede": "Filter by campus",
@@ -502,6 +509,10 @@
       "setTitle": "Grade {{student}}",
       "submit": "Save grade"
     },
+    "empty": {
+      "body": "Grades will appear here as teachers record them for enrolled students.",
+      "heading": "No grades yet"
+    },
     "list": {
       "columns": {
         "actions": "Actions",
@@ -511,7 +522,6 @@
         "updatedAt": "Updated"
       },
       "deleteConfirmWithNames": "Delete grade for {{student}} in {{course}}?",
-      "empty": "No grades recorded yet.",
       "emptyFiltered": "No grades match the current filters.",
       "filters": {
         "anyCourse": "Any course",

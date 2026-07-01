@@ -14,6 +14,7 @@ import {
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
+import { EnrollmentsEmpty } from '@/components/empty-states/EnrollmentsEmpty'
 import { Pager } from '@/components/ui/pager'
 import { usePagination } from '@/hooks/usePagination'
 import {
@@ -216,9 +217,11 @@ export function EnrollmentsListPage() {
 
       {isLoading ? (
         <SkeletonTable rows={8} columns={3} />
+      ) : grouped.length === 0 && !hasFilters ? (
+        <EnrollmentsEmpty />
       ) : grouped.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {hasFilters ? t('enrollments.list.emptyFiltered') : t('enrollments.list.empty')}
+          {t('enrollments.list.emptyFiltered')}
         </p>
       ) : (
         <div className="space-y-6">

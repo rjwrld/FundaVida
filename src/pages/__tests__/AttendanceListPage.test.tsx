@@ -39,6 +39,13 @@ describe('<AttendanceListPage />', () => {
     useStore.getState().setLocale('en')
   })
 
+  it('shows the illustrated empty state when there is no attendance', async () => {
+    useStore.setState({ attendance: [] })
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: /no attendance yet/i })).toBeInTheDocument()
+  })
+
   it('renders session column header', async () => {
     renderPage()
     await waitFor(() => {

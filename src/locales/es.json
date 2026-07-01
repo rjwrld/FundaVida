@@ -5,6 +5,10 @@
     }
   },
   "attendance": {
+    "empty": {
+      "body": "La asistencia aparece aquí cuando se registran las sesiones de los estudiantes matriculados.",
+      "heading": "Aún no hay asistencia"
+    },
     "list": {
       "columns": {
         "course": "Curso",
@@ -455,6 +459,10 @@
       "submit": "Matricular",
       "title": "Matricular estudiante"
     },
+    "empty": {
+      "body": "Las matrículas aparecen aquí cuando los estudiantes se inscriben en un curso.",
+      "heading": "Aún no hay matrículas"
+    },
     "list": {
       "approveAria": "Aprobar la matrícula de {{student}}",
       "columns": {
@@ -462,7 +470,6 @@
         "enrolledAt": "Matriculado",
         "student": "Estudiante"
       },
-      "empty": "Aún no hay matrículas.",
       "emptyFiltered": "Ninguna matrícula coincide con los filtros.",
       "filterAnySede": "Todas las sedes",
       "filterSede": "Filtrar por sede",
@@ -505,6 +512,10 @@
       "setTitle": "Calificar a {{student}}",
       "submit": "Guardar calificación"
     },
+    "empty": {
+      "body": "Las calificaciones aparecerán aquí a medida que los docentes las registren para los estudiantes matriculados.",
+      "heading": "Aún no hay calificaciones"
+    },
     "list": {
       "columns": {
         "actions": "Acciones",
@@ -514,7 +525,6 @@
         "updatedAt": "Actualizado"
       },
       "deleteConfirmWithNames": "¿Eliminar la calificación de {{student}} en {{course}}?",
-      "empty": "Aún no hay calificaciones.",
       "emptyFiltered": "Ninguna calificación coincide con los filtros.",
       "filters": {
         "anyCourse": "Cualquier curso",

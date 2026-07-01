@@ -71,6 +71,14 @@ describe('<GradesListPage />', () => {
     })
   })
 
+  it('shows the illustrated empty state when there are no grades', async () => {
+    useStore.getState().setRole('admin')
+    useStore.setState({ grades: [] })
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: /no grades yet/i })).toBeInTheDocument()
+  })
+
   it('windows the scoped grades to the default page size', async () => {
     useStore.getState().setRole('admin')
     const total = useStore.getState().grades.length

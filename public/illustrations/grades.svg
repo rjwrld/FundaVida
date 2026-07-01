@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 330">
+  <ellipse cx="220" cy="298" rx="150" ry="28" fill="#C66A3A"></ellipse>
+  <path d="M70 298a150 28 0 0 0 300 0Z" fill="#9E4E22"></path>
+  <g transform="translate(210,166) rotate(-6)">
+    <rect x="-66" y="-88" width="132" height="176" rx="10" fill="#EBD9C0"></rect>
+    <rect x="-66" y="-88" width="132" height="30" rx="10" fill="#3C8D0F"></rect>
+    <rect x="-66" y="-68" width="132" height="10" fill="#3C8D0F"></rect>
+    <line x1="-46" y1="-32" x2="46" y2="-32" stroke="#c9b894" stroke-width="4" stroke-linecap="round"></line>
+    <line x1="-46" y1="-10" x2="30" y2="-10" stroke="#c9b894" stroke-width="4" stroke-linecap="round"></line>
+    <line x1="-46" y1="12" x2="46" y2="12" stroke="#c9b894" stroke-width="4" stroke-linecap="round"></line>
+    <line x1="-46" y1="34" x2="18" y2="34" stroke="#c9b894" stroke-width="4" stroke-linecap="round"></line>
+    <circle cx="34" cy="52" r="24" fill="#155ED0"></circle>
+    <path d="M22 52 30 61 46 43" stroke="#fff" stroke-width="5.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+  </g>
+  <g transform="translate(322,120)" fill="#F9C718">
+    <path d="M0 -20 6 -6 20 0 6 6 0 20 -6 6 -20 0 -6 -6Z"></path>
+  </g>
+  <g transform="translate(104,196)" fill="#F9C718">
+    <path d="M0 -12 3 -3 12 0 3 3 0 12 -3 3 -12 0 -3 -3Z"></path>
+  </g>
+</svg>
