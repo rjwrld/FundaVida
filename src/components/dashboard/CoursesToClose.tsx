@@ -28,7 +28,7 @@ export function CoursesToClose() {
           {t('dashboard.coursesToClose.title')}
         </h3>
         {closeable.length > 0 && (
-          <span className="shrink-0 rounded-full bg-brand-green-100 px-2 py-0.5 text-xs font-medium tabular-nums text-brand-green-800">
+          <span className="shrink-0 rounded-full bg-brand-green-100 px-2 py-0.5 text-xs font-medium tabular-nums text-brand-green-800 dark:bg-brand-green-500/20 dark:text-brand-green-100">
             {closeable.length}
           </span>
         )}

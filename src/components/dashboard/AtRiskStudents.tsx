@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ArrowRight } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { atRiskStudents, type AtRiskReason } from '@/lib/dashboard'
 import { useStudents } from '@/hooks/api/students'
 import { useGrades } from '@/hooks/api/grades'
@@ -53,16 +54,13 @@ export function AtRiskStudents() {
                   <span className="min-w-0 truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 group-hover:underline">
                     {student.firstName} {student.lastName}
                   </span>
-                  <span className="flex shrink-0 flex-wrap justify-end gap-1">
+                  <div className="flex shrink-0 flex-wrap justify-end gap-1">
                     {reasons.map((reason) => (
-                      <span
-                        key={reason}
-                        className="rounded-full bg-flame-red-50 px-2 py-0.5 text-[11px] font-medium text-flame-red-700"
-                      >
+                      <Badge key={reason} variant="destructive">
                         {t(REASON_KEY[reason])}
-                      </span>
+                      </Badge>
                     ))}
-                  </span>
+                  </div>
                 </Link>
               </li>
             ))}
