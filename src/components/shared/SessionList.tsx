@@ -33,7 +33,7 @@ export function SessionList({ sessions, linkSessions }: SessionListProps) {
             {linkSessions ? (
               <Link
                 to={`/app/courses/${s.courseId}/sessions/${s.date}/mark`}
-                className="text-foreground hover:text-brand-green-700 hover:underline"
+                className="text-foreground hover:text-brand-green-700 dark:hover:text-brand-green-300 hover:underline"
               >
                 {label}
               </Link>

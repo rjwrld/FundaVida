@@ -32,7 +32,7 @@ export function WelcomeBanner({
       />
       <div className="relative z-10 flex max-w-xl flex-col gap-2">
         {eyebrow ? (
-          <span className="text-[12px] font-medium uppercase tracking-wider text-brand-green-700">
+          <span className="text-[12px] font-medium uppercase tracking-wider text-brand-green-700 dark:text-brand-green-300">
             {eyebrow}
           </span>
         ) : null}

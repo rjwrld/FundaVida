@@ -51,7 +51,7 @@ export function AtRiskStudents() {
                   to={`/app/students/${student.id}`}
                   className="group flex items-center justify-between gap-3 rounded-md py-1"
                 >
-                  <span className="min-w-0 truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 group-hover:underline">
+                  <span className="min-w-0 truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
                     {student.firstName} {student.lastName}
                   </span>
                   <div className="flex shrink-0 flex-wrap justify-end gap-1">
@@ -74,7 +74,7 @@ export function AtRiskStudents() {
       )}
       <Link
         to="/app/students"
-        className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-green-700 hover:underline"
+        className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-green-700 dark:text-brand-green-300 hover:underline"
       >
         {t('dashboard.atRisk.viewAll')}
         <ArrowRight className="size-4" aria-hidden="true" />

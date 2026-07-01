@@ -20,7 +20,10 @@ export function CertsThisEpoch() {
         <h3 className="font-display text-lg text-foreground">
           {t('dashboard.certsThisEpoch.title')}
         </h3>
-        <Award className="size-4 shrink-0 text-brand-green-700" aria-hidden="true" />
+        <Award
+          className="size-4 shrink-0 text-brand-green-700 dark:text-brand-green-300"
+          aria-hidden="true"
+        />
       </header>
       <div className="flex flex-1 flex-col justify-center">
         <AnimatedNumber
@@ -33,7 +36,7 @@ export function CertsThisEpoch() {
       </div>
       <Link
         to="/app/certificates"
-        className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-green-700 hover:underline"
+        className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-green-700 dark:text-brand-green-300 hover:underline"
       >
         {t('dashboard.certsThisEpoch.viewAll')}
         <ArrowRight className="size-4" aria-hidden="true" />

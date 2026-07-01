@@ -28,7 +28,10 @@ export function AttendanceHeatmapCard() {
             {t('dashboard.attendanceHeatmap.subtitle')}
           </p>
         </div>
-        <CalendarDays className="size-4 shrink-0 text-brand-green-700" aria-hidden="true" />
+        <CalendarDays
+          className="size-4 shrink-0 text-brand-green-700 dark:text-brand-green-300"
+          aria-hidden="true"
+        />
       </header>
       {attendance.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('dashboard.attendanceHeatmap.empty')}</p>

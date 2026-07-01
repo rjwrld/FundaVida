@@ -44,11 +44,11 @@ export function CoursesToClose() {
                 className="group flex items-center gap-3 rounded-md py-1"
               >
                 <GraduationCap
-                  className="size-4 shrink-0 text-brand-green-700"
+                  className="size-4 shrink-0 text-brand-green-700 dark:text-brand-green-300"
                   aria-hidden="true"
                 />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 group-hover:underline">
+                  <span className="block truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
                     {course.name}
                   </span>
                   <span className="block truncate text-xs text-muted-foreground">
