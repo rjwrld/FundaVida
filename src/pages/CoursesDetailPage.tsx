@@ -2,6 +2,7 @@ import { useState, Fragment } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { NoResults } from '@/components/shared/NoResults'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -93,11 +94,7 @@ function AttendanceMarkingSection({
   const markableSessions = allSessions.filter((s) => parseISO(s.date) <= now)
 
   if (markableSessions.length === 0) {
-    return (
-      <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-        {t('courses.detail.attendance.noMarkableSessions')}
-      </p>
-    )
+    return <NoResults message={t('courses.detail.attendance.noMarkableSessions')} />
   }
 
   const selected = selectedSessionDate
@@ -381,9 +378,7 @@ export function CoursesDetailPage() {
           {t('courses.detail.sections.schedule')}
         </h2>
         {sessions.length === 0 ? (
-          <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-            {t('courses.detail.sections.noSchedule')}
-          </p>
+          <NoResults message={t('courses.detail.sections.noSchedule')} />
         ) : (
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {sessions.map((session) => (
@@ -415,9 +410,7 @@ export function CoursesDetailPage() {
               )}
             </div>
             {courseEnrollments.length === 0 ? (
-              <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-                {t('courses.detail.sections.noStudents')}
-              </p>
+              <NoResults message={t('courses.detail.sections.noStudents')} />
             ) : (
               <Table>
                 <TableHeader>
@@ -496,9 +489,7 @@ export function CoursesDetailPage() {
               {t('courses.detail.sections.volunteers')}
             </h2>
             {volunteers.length === 0 ? (
-              <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-                {t('courses.detail.sections.noVolunteers')}
-              </p>
+              <NoResults message={t('courses.detail.sections.noVolunteers')} />
             ) : (
               <ul className="grid gap-2 sm:grid-cols-2">
                 {volunteers.map((volunteer) => (
@@ -561,9 +552,7 @@ export function CoursesDetailPage() {
               {t('courses.detail.sections.yourAttendance')}
             </h3>
             {ownAttendance.length === 0 ? (
-              <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-                {t('attendance.list.empty')}
-              </p>
+              <NoResults message={t('attendance.list.empty')} />
             ) : (
               <Table>
                 <TableHeader>

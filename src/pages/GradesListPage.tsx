@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { NoResults } from '@/components/shared/NoResults'
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { EditGradeDialog } from '@/components/grades/EditGradeDialog'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -154,9 +155,7 @@ export function GradesListPage() {
       ) : count === 0 && !hasFilters ? (
         <GradesEmpty />
       ) : count === 0 ? (
-        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {t('grades.list.emptyFiltered')}
-        </p>
+        <NoResults message={t('grades.list.emptyFiltered')} />
       ) : (
         <DataTable
           data={data}

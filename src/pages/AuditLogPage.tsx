@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
+import { NoResults } from '@/components/shared/NoResults'
 import {
   Select,
   SelectContent,
@@ -137,9 +138,7 @@ export function AuditLogPage() {
       ) : count === 0 && !hasFilters ? (
         <AuditLogsEmpty />
       ) : count === 0 ? (
-        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {t('auditLog.emptyFiltered')}
-        </p>
+        <NoResults message={t('auditLog.list.emptyFiltered')} />
       ) : (
         <DataTable
           data={data}

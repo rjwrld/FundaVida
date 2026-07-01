@@ -72,7 +72,6 @@
       "body": "Administrative actions will appear here as they happen.",
       "heading": "No audit entries yet"
     },
-    "emptyFiltered": "No audit entries match your filter.",
     "entities": {
       "attendance": "Attendance",
       "certificate": "Certificate",
@@ -93,6 +92,9 @@
       "grade": "Grades",
       "unenroll": "Unenrollments",
       "update": "Updates"
+    },
+    "list": {
+      "emptyFiltered": "No audit entries match your filter."
     },
     "subtitle": "Chronological record of every create, update, and delete.",
     "title": "Audit logs"
@@ -155,8 +157,8 @@
         "title": "Certificate preview"
       },
       "downloadPdf": "Download PDF",
+      "emptyFiltered": "No certificates match \"{{query}}\".",
       "filterByCourse": "Filter by course",
-      "noMatches": "No certificates match \"{{query}}\".",
       "search": {
         "ariaLabel": "Search certificates by student name",
         "placeholder": "Search by student name…"

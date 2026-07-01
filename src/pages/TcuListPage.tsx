@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { NoResults } from '@/components/shared/NoResults'
 import {
   Table,
   TableBody,
@@ -198,9 +199,7 @@ export function TcuListPage() {
       {isLoading ? (
         <SkeletonTable rows={8} columns={4} />
       ) : count === 0 ? (
-        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {hasFilters ? t('tcu.list.emptyFiltered') : t('tcu.list.empty')}
-        </p>
+        <NoResults message={hasFilters ? t('tcu.list.emptyFiltered') : t('tcu.list.empty')} />
       ) : (
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
           <div

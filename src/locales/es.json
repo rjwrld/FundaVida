@@ -72,7 +72,6 @@
       "body": "Las acciones administrativas aparecerán aquí a medida que ocurran.",
       "heading": "Aún no hay registros de auditoría"
     },
-    "emptyFiltered": "Ningún registro coincide con el filtro.",
     "entities": {
       "attendance": "Asistencia",
       "certificate": "Certificado",
@@ -93,6 +92,9 @@
       "grade": "Calificaciones",
       "unenroll": "Desmatrículas",
       "update": "Actualizaciones"
+    },
+    "list": {
+      "emptyFiltered": "Ningún registro coincide con el filtro."
     },
     "subtitle": "Registro cronológico de cada creación, actualización y eliminación.",
     "title": "Bitácora"
@@ -156,8 +158,8 @@
         "title": "Vista previa del certificado"
       },
       "downloadPdf": "Descargar PDF",
+      "emptyFiltered": "Ningún certificado coincide con \"{{query}}\".",
       "filterByCourse": "Filtrar por curso",
-      "noMatches": "Ningún certificado coincide con \"{{query}}\".",
       "search": {
         "ariaLabel": "Buscar certificados por nombre del estudiante",
         "placeholder": "Buscar por nombre del estudiante…"
