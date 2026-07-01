@@ -39,6 +39,21 @@ describe('<EnrollmentsListPage /> — admin oversight by Sede → Course (ADR-00
     useStore.getState().setLocale('en')
   })
 
+  it('previews the grouped-card layout with a card skeleton while loading (#183)', async () => {
+    useStore.getState().setRole('admin')
+    renderPage()
+
+    // The loaded view is a stack of Sede→Course cards, so the loading placeholder
+    // should be card-shaped, not the old flat table skeleton.
+    expect(screen.queryByRole('status', { name: 'Loading table' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('status', { name: 'Loading' }).length).toBeGreaterThan(0)
+
+    // Let the query resolve so its async state update is flushed inside act().
+    await waitFor(() =>
+      expect(screen.queryByRole('status', { name: 'Loading' })).not.toBeInTheDocument()
+    )
+  })
+
   it('shows the illustrated empty state when there are no enrollments', async () => {
     useStore.getState().setRole('admin')
     useStore.setState({ enrollments: [] })
