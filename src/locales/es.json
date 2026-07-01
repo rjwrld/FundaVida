@@ -153,6 +153,7 @@
       "allCourses": "Todos los cursos",
       "cardAria": "Abrir vista previa de {{student}} — {{course}}",
       "dialog": {
+        "description": "Vista previa del certificado. Usa el botón de descarga para guardarlo como PDF.",
         "title": "Vista previa del certificado"
       },
       "downloadPdf": "Descargar PDF",

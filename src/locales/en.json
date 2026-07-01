@@ -152,6 +152,7 @@
       "allCourses": "All courses",
       "cardAria": "Open preview for {{student}} — {{course}}",
       "dialog": {
+        "description": "Preview of the certificate. Use the download button to save it as a PDF.",
         "title": "Certificate preview"
       },
       "downloadPdf": "Download PDF",

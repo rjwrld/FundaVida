@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button'
 import { CertificatePreview } from '@/components/certificates/CertificatePreview'
 import { transitionDefaults } from '@/lib/motion'
 
+// This dialog deliberately hand-rolls the Radix primitives instead of reusing
+// the shared `ui/dialog.tsx` wrapper: it needs framer-motion (AnimatePresence +
+// `asChild` motion.div) to drive a spring enter/exit, whereas the shared Dialog
+// animates via Radix's CSS `data-[state]` classes. It still inherits the same
+// focus-trap/Escape/return-focus behaviour from the underlying primitive, and
+// wires an explicit `Description` below to satisfy Radix's aria-describedby (see #186).
+//
 // motion controls the full `transform` style, so the centering translate must
 // live in the variants — Tailwind's -translate-x/y classes get overridden.
 const dialogVariants: Variants = {
@@ -68,6 +75,9 @@ export function CertificatePreviewDialog({ open, payload, dataUrl, downloadName,
                   <DialogPrimitive.Title className="text-lg font-semibold leading-none tracking-tight">
                     {t('certificates.list.dialog.title')}
                   </DialogPrimitive.Title>
+                  <DialogPrimitive.Description className="sr-only">
+                    {t('certificates.list.dialog.description')}
+                  </DialogPrimitive.Description>
                   <DialogPrimitive.Close
                     className="rounded-sm text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     aria-label={t('common.actions.close')}
