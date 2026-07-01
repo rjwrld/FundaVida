@@ -1,6 +1,20 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import { afterEach, beforeAll, vi } from 'vitest'
+
+// The store seeds via `seedDemo(new Date())` at import time (src/data/store.ts).
+// Under a live clock that epoch varies every run, and a cohort whose Term boundary
+// falls near it can flip its closed / Certificate state across the runner's timezone
+// and timing — a flaky, environment-dependent seed (ADR-0002/0014). Pin `Date` to a
+// fixed instant so the Demo Epoch is deterministic while the store module is first
+// evaluated (setup runs before any test file's imports). Fake ONLY `Date`, never
+// timers, so React Query, debounce, and async waits keep real timers. Real time is
+// restored in `beforeAll` — after imports/seeding, before any test body — so the
+// freeze's blast radius is exactly the seed phase.
+vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-06-15T12:00:00Z') })
+beforeAll(() => {
+  vi.useRealTimers()
+})
 
 afterEach(() => {
   cleanup()
