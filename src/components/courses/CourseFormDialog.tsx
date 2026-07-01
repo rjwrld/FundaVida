@@ -385,7 +385,6 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
         <div
           role="group"
           aria-label={t('courses.form.fields.meetingDays')}
-          aria-invalid={errors.meetingDays !== undefined}
           aria-describedby={errors.meetingDays ? 'meetingDays-error' : undefined}
           className="grid grid-cols-2 gap-3 sm:grid-cols-4"
         >

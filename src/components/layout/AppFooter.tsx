@@ -22,6 +22,7 @@ export function AppFooter() {
             i18nKey="app.footer.byline"
             components={{
               org: (
+                // eslint-disable-next-line jsx-a11y/anchor-has-content -- content is injected by <Trans> at runtime
                 <a
                   href={ORG_URL}
                   target="_blank"

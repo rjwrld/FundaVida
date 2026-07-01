@@ -10,6 +10,7 @@ import {
   clearPersistedRole,
   clearPersistedState,
 } from '@/data/persistence'
+import { axe } from '@/test/axe'
 
 function renderForm(props: Partial<Parameters<typeof StudentForm>[0]> = {}) {
   const onSuccess = vi.fn()
@@ -33,6 +34,12 @@ describe('<StudentForm />', () => {
     useStore.getState().resetDemo()
     useStore.getState().setRole('admin')
     useStore.getState().setLocale('en')
+  })
+
+  it('has no axe-detectable a11y violations when pristine', async () => {
+    renderForm()
+    await screen.findByLabelText('First name')
+    expect(await axe(document.body)).toHaveNoViolations()
   })
 
   it('shows validation errors on empty submit', async () => {

@@ -23,6 +23,7 @@ export const CardTitle = React.forwardRef<
   HTMLHeadingElement,
   React.HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => (
+  // eslint-disable-next-line jsx-a11y/heading-has-content -- content is supplied by consumers via children
   <h2 ref={ref} className={cn('font-semibold leading-none tracking-tight', className)} {...props} />
 ))
 CardTitle.displayName = 'CardTitle'
