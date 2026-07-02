@@ -96,7 +96,9 @@ describe('<MeProfilePage /> (#166)', () => {
 
     const link = await screen.findByRole('link', { name: shortCourseName(passingCourse) })
     const row = req(link.closest('tr') ?? undefined, 'enrollment row missing')
-    expect(within(row).getByText(formatGrade(passingGrade.score, 'en'))).toBeInTheDocument()
+    // The grade cell fills from a separate query that can resolve after the
+    // enrollment link, so await it rather than reading the row synchronously.
+    expect(await within(row).findByText(formatGrade(passingGrade.score, 'en'))).toBeInTheDocument()
     expect(within(row).getByText('Passing')).toBeInTheDocument()
 
     // The per-course attendance % renders for a course with attendance records.
@@ -106,7 +108,7 @@ describe('<MeProfilePage /> (#166)', () => {
     if (records.length > 0) {
       const present = records.filter((r) => r.status === 'present').length
       expect(
-        within(row).getByText(formatPercent(present / records.length, 'en'))
+        await within(row).findByText(formatPercent(present / records.length, 'en'))
       ).toBeInTheDocument()
     }
   })
