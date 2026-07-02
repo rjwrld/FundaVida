@@ -2,10 +2,13 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { parseISO } from 'date-fns'
 import { I18nProvider } from '@/lib/i18n'
 import { formatGrade, formatDate } from '@/lib/format'
 import { shortCourseName } from '@/lib/courseName'
 import { sessionsFor } from '@/lib/sessions'
+import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
+import { clock } from '@/lib/clock'
 import { SEDES } from '@/constants/sede'
 import { CoursesDetailPage } from '@/pages/CoursesDetailPage'
 import { useStore } from '@/data/store'
@@ -14,7 +17,7 @@ import {
   clearPersistedRole,
   clearPersistedState,
 } from '@/data/persistence'
-import type { Role } from '@/types'
+import type { Course, Role } from '@/types'
 
 function renderPage(courseId: string) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
@@ -358,6 +361,170 @@ describe('<CoursesDetailPage /> — close course action (ADR-0024)', () => {
     })
     expect(screen.getByText('Closed')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Close course' })).not.toBeInTheDocument()
+  })
+})
+
+describe('<CoursesDetailPage /> — close-readiness checklist (issue #204)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  /** A published Course whose Term has ended — the checklist's target audience. */
+  function endedPublishedCourse(): Course {
+    const s = useStore.getState()
+    return req(
+      s.courses.find((c) => c.status === 'published' && isTermEnded(c, clock.now())),
+      'seed: no published, Term-ended course'
+    )
+  }
+
+  /** Strip every Grade and AttendanceRecord for the Course so both checks fail. */
+  function makeBlocked(course: Course) {
+    const s = useStore.getState()
+    useStore.setState({
+      grades: s.grades.filter((g) => g.courseId !== course.id),
+      attendance: s.attendance.filter((a) => a.courseId !== course.id),
+    })
+    const ungraded = new Set(
+      s.enrollments
+        .filter((e) => e.courseId === course.id && e.status === 'approved')
+        .map((e) => e.studentId)
+    ).size
+    const unrecorded = sessionsFor(course).filter((x) => parseISO(x.date) <= clock.now()).length
+    return { ungraded, unrecorded }
+  }
+
+  /** Fill exactly the gaps closeReadiness reports so both checks pass. */
+  function makeReady(course: Course) {
+    const s = useStore.getState()
+    const gaps = closeReadiness({
+      course,
+      enrollments: s.enrollments,
+      grades: s.grades,
+      attendance: s.attendance,
+      now: clock.now(),
+    })
+    useStore.setState({
+      grades: [
+        ...s.grades,
+        ...gaps.ungradedStudentIds.map((studentId, i) => ({
+          id: `grade-ready-${i}`,
+          studentId,
+          courseId: course.id,
+          score: 85,
+          issuedAt: clock.now().toISOString(),
+        })),
+      ],
+      attendance: [
+        ...s.attendance,
+        ...gaps.unrecordedSessions.map((session, i) => ({
+          id: `att-ready-${i}`,
+          courseId: course.id,
+          studentId: 'stu-1',
+          sessionDate: session.date,
+          status: 'present' as const,
+        })),
+      ],
+    })
+  }
+
+  it('shows an admin both fail rows with counts and a blocked verdict on a blocked course', async () => {
+    const course = endedPublishedCourse()
+    const { ungraded, unrecorded } = makeBlocked(course)
+    expect(ungraded).toBeGreaterThan(0)
+    expect(unrecorded).toBeGreaterThan(0)
+    asRole('admin')
+    renderPage(course.id)
+
+    const badge = await screen.findByTestId('close-readiness-verdict')
+    expect(badge).toHaveTextContent('Blocked')
+    // Counts track the seed, so derive the plural form rather than hard-coding it.
+    const students = ungraded === 1 ? 'student' : 'students'
+    const sessions = unrecorded === 1 ? 'session' : 'sessions'
+    expect(await screen.findByText(`${ungraded} ${students} ungraded`)).toBeInTheDocument()
+    expect(await screen.findByText(`${unrecorded} ${sessions} unrecorded`)).toBeInTheDocument()
+  })
+
+  it('shows an admin both pass rows and a ready verdict once every gap is filled', async () => {
+    const course = endedPublishedCourse()
+    makeReady(course)
+    asRole('admin')
+    renderPage(course.id)
+
+    const badge = await screen.findByTestId('close-readiness-verdict')
+    expect(badge).toHaveTextContent('Ready to close')
+    expect(await screen.findByText('All approved students are graded.')).toBeInTheDocument()
+    expect(
+      await screen.findByText('All past sessions have attendance records.')
+    ).toBeInTheDocument()
+  })
+
+  it('renders no checklist on a published mid-Term course', async () => {
+    const s = useStore.getState()
+    const midTerm = req(
+      s.courses.find((c) => c.status === 'published' && !isTermEnded(c, clock.now())),
+      'seed: no published mid-Term course'
+    )
+    asRole('admin')
+    renderPage(midTerm.id)
+
+    await screen.findByRole('heading', { name: shortCourseName(midTerm) })
+    expect(screen.queryByTestId('close-readiness-verdict')).not.toBeInTheDocument()
+  })
+
+  it('renders no checklist on a closed course', async () => {
+    const course = endedPublishedCourse()
+    asRole('admin')
+    useStore.getState().closeCourse(course.id)
+    renderPage(course.id)
+
+    await screen.findByRole('heading', { name: shortCourseName(course) })
+    expect(screen.queryByTestId('close-readiness-verdict')).not.toBeInTheDocument()
+  })
+
+  it('renders no checklist for an enrolled Student on the same Term-ended course', async () => {
+    const course = endedPublishedCourse()
+    const s = useStore.getState()
+    // Make stu-1 approved-enrolled (replacing any seeded non-approved record for
+    // this course) so the page renders the self-view and the only reason the
+    // checklist is absent is the missing close capability.
+    useStore.setState({
+      enrollments: [
+        ...s.enrollments.filter((e) => !(e.courseId === course.id && e.studentId === 'stu-1')),
+        {
+          id: 'enr-readiness-self',
+          studentId: 'stu-1',
+          courseId: course.id,
+          status: 'approved' as const,
+          enrolledAt: clock.now().toISOString(),
+          requestedAt: clock.now().toISOString(),
+        },
+      ],
+    })
+    asRole('student')
+    renderPage(course.id)
+
+    await screen.findByRole('heading', { name: shortCourseName(course) })
+    expect(screen.queryByTestId('close-readiness-verdict')).not.toBeInTheDocument()
+  })
+
+  it('keeps the close button enabled and opening the confirm dialog on a blocked course', async () => {
+    const course = endedPublishedCourse()
+    makeBlocked(course)
+    asRole('admin')
+    renderPage(course.id)
+
+    // The checklist reports blocked…
+    expect(await screen.findByTestId('close-readiness-verdict')).toHaveTextContent('Blocked')
+    // …but the close action is informational-only: still enabled, still confirms.
+    const closeButton = await screen.findByRole('button', { name: 'Close course' })
+    expect(closeButton).toBeEnabled()
+    fireEvent.click(closeButton)
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 })
 

@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react'
+import { useMemo, useState, Fragment } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -34,6 +34,7 @@ import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { findSession, sessionsFor } from '@/lib/sessions'
+import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
 import { clock } from '@/lib/clock'
 import type {
   AttendanceRecord,
@@ -43,6 +44,7 @@ import type {
   Enrollment,
   Student,
 } from '@/types'
+import { CloseReadinessChecklist } from '@/components/courses/CloseReadinessChecklist'
 import { GradeDialog } from '@/components/courses/GradeDialog'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
 import { CourseCertificatesSection } from '@/components/courses/CourseCertificatesSection'
@@ -250,6 +252,22 @@ export function CoursesDetailPage() {
   const canDelete = useCan('delete', 'enrollments')
   const canMark = useCan('mark', 'attendance', { course: course || undefined })
 
+  // Close-readiness derivation (issue #204), from the page's existing scoped
+  // queries. Non-null only for a viewer who could run the close ceremony on a
+  // published, Term-ended Course — the checklist's whole audience. Informational
+  // only: it never gates or disables the close action.
+  const readiness = useMemo(() => {
+    if (!course || !canClose || course.status !== 'published') return null
+    if (!isTermEnded(course, clock.now())) return null
+    return closeReadiness({
+      course,
+      enrollments: courseEnrollments,
+      grades: scopedGrades,
+      attendance: ownAttendance,
+      now: clock.now(),
+    })
+  }, [course, canClose, courseEnrollments, scopedGrades, ownAttendance])
+
   if (isLoading)
     return <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
 
@@ -328,6 +346,8 @@ export function CoursesDetailPage() {
           </>
         }
       />
+
+      {readiness && <CloseReadinessChecklist readiness={readiness} />}
 
       <section className="grid gap-4 sm:grid-cols-2">
         <Card>

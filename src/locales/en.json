@@ -281,6 +281,23 @@
         "removeConfirm": "Remove {{student}} from this course?"
       },
       "loading": "Loading…",
+      "readiness": {
+        "attendance": {
+          "fail_one": "{{count}} session unrecorded",
+          "fail_other": "{{count}} sessions unrecorded",
+          "pass": "All past sessions have attendance records."
+        },
+        "grades": {
+          "fail_one": "{{count}} student ungraded",
+          "fail_other": "{{count}} students ungraded",
+          "pass": "All approved students are graded."
+        },
+        "title": "Close readiness",
+        "verdict": {
+          "blocked": "Blocked",
+          "ready": "Ready to close"
+        }
+      },
       "sections": {
         "attendance": "Mark attendance",
         "certificates": "Certificates",
