@@ -17,7 +17,7 @@ export function DemoBanner() {
   const frozenDate = formatDate(clock.today().toISOString())
 
   return (
-    <div className="bg-primary/10 text-sm">
+    <div role="region" aria-label={t('demoBanner.label')} className="bg-primary/10 text-sm">
       <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-2">
         <p>{t('demoBanner.message', { date: frozenDate })}</p>
         <Button size="sm" variant="ghost" onClick={dismiss}>

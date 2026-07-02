@@ -446,6 +446,7 @@
   "demoBanner": {
     "badge": "Versión de demostración",
     "dismiss": "Descartar",
+    "label": "Aviso de demostración",
     "message": "Versión de demostración — datos de ejemplo congelados al {{date}}"
   },
   "enrollments": {
