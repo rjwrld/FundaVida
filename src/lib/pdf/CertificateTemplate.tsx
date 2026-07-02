@@ -1,6 +1,7 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import { formatDate } from '@/lib/format'
 import { FundaVidaMark } from './FundaVidaMark'
+import { CERTIFICATE_COLORS as C } from './certificateTheme'
 
 interface Props {
   studentName: string
@@ -11,10 +12,10 @@ interface Props {
 }
 
 const styles = StyleSheet.create({
-  page: { padding: 48, backgroundColor: '#ffffff', fontFamily: 'Helvetica' },
+  page: { padding: 48, backgroundColor: C.paper, fontFamily: 'Helvetica' },
   border: {
     borderWidth: 4,
-    borderColor: '#1e3a8a',
+    borderColor: C.navy,
     borderStyle: 'solid',
     flex: 1,
     padding: 48,
@@ -22,19 +23,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   mark: { marginBottom: 12 },
-  brand: { fontSize: 12, color: '#1e3a8a', letterSpacing: 2 },
-  title: { fontSize: 36, fontWeight: 700, color: '#0f172a', marginTop: 24 },
-  subtitle: { fontSize: 12, color: '#475569', marginTop: 8 },
-  name: { fontSize: 28, fontWeight: 700, color: '#1e3a8a', marginTop: 48 },
-  body: { fontSize: 14, color: '#0f172a', marginTop: 16, textAlign: 'center' },
+  brand: { fontSize: 12, color: C.navy, letterSpacing: 2 },
+  title: { fontSize: 36, fontWeight: 700, color: C.ink, marginTop: 24 },
+  subtitle: { fontSize: 12, color: C.slate, marginTop: 8 },
+  name: { fontSize: 28, fontWeight: 700, color: C.navy, marginTop: 48 },
+  body: { fontSize: 14, color: C.ink, marginTop: 16, textAlign: 'center' },
   footer: {
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 48,
   },
-  footerLabel: { fontSize: 10, color: '#64748b' },
-  footerValue: { fontSize: 12, color: '#0f172a', marginTop: 4 },
+  footerLabel: { fontSize: 10, color: C.muted },
+  footerValue: { fontSize: 12, color: C.ink, marginTop: 4 },
 })
 
 export function CertificateTemplate({
