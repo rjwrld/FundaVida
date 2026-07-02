@@ -444,6 +444,7 @@
   "demoBanner": {
     "badge": "Demo snapshot",
     "dismiss": "Dismiss",
+    "label": "Demo notice",
     "message": "Demo snapshot — sample data frozen at {{date}}"
   },
   "enrollments": {
