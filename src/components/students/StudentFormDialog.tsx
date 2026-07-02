@@ -140,14 +140,14 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
-          <Label>{t('students.form.fields.gender')}</Label>
+          <Label htmlFor="gender">{t('students.form.fields.gender')}</Label>
           <Select
             value={watch('gender')}
             onValueChange={(v) =>
               setValue('gender', v as StudentFormValues['gender'], { shouldValidate: true })
             }
           >
-            <SelectTrigger aria-label={t('students.form.fields.gender')}>
+            <SelectTrigger id="gender">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -160,7 +160,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label>{t('students.form.fields.province')}</Label>
+          <Label htmlFor="province">{t('students.form.fields.province')}</Label>
           <Select
             value={watch('province')}
             onValueChange={(v) => {
@@ -172,7 +172,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
             }}
           >
             <SelectTrigger
-              aria-label={t('students.form.fields.province')}
+              id="province"
               aria-invalid={errors.province !== undefined}
               aria-describedby={errors.province ? 'province-error' : undefined}
             >
@@ -193,7 +193,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
           )}
         </div>
         <div className="space-y-1.5">
-          <Label>{t('students.form.fields.canton')}</Label>
+          <Label htmlFor="canton">{t('students.form.fields.canton')}</Label>
           <Select
             value={watch('canton')}
             // Radix can emit a spurious '' when the controlled value is applied
@@ -203,7 +203,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
             disabled={!selectedProvince}
           >
             <SelectTrigger
-              aria-label={t('students.form.fields.canton')}
+              id="canton"
               aria-invalid={errors.canton !== undefined}
               aria-describedby={errors.canton ? 'canton-error' : undefined}
             >
@@ -226,7 +226,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label>{t('students.form.fields.sede')}</Label>
+          <Label htmlFor="sede">{t('students.form.fields.sede')}</Label>
           <Select
             value={watch('sede')}
             onValueChange={(v) =>
@@ -234,7 +234,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
             }
           >
             <SelectTrigger
-              aria-label={t('students.form.fields.sede')}
+              id="sede"
               aria-invalid={errors.sede !== undefined}
               aria-describedby={errors.sede ? 'sede-error' : undefined}
             >
@@ -255,7 +255,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
           )}
         </div>
         <div className="space-y-1.5">
-          <Label>{t('students.form.fields.educationalLevel')}</Label>
+          <Label htmlFor="educationalLevel">{t('students.form.fields.educationalLevel')}</Label>
           <Select
             value={watch('educationalLevel')}
             onValueChange={(v) =>
@@ -264,7 +264,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
               })
             }
           >
-            <SelectTrigger aria-label={t('students.form.fields.educationalLevel')}>
+            <SelectTrigger id="educationalLevel">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -296,7 +296,9 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
             )}
           </div>
           <div className="space-y-1.5">
-            <Label>{t('students.form.fields.guardianRelationship')}</Label>
+            <Label htmlFor="guardianRelationship">
+              {t('students.form.fields.guardianRelationship')}
+            </Label>
             <Select
               value={watch('guardian.relationship')}
               onValueChange={(v) =>
@@ -309,7 +311,7 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
                 )
               }
             >
-              <SelectTrigger aria-label={t('students.form.fields.guardianRelationship')}>
+              <SelectTrigger id="guardianRelationship">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

@@ -158,7 +158,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label>{t('courses.form.fields.sede')}</Label>
+          <Label htmlFor="sede">{t('courses.form.fields.sede')}</Label>
           {isTeacher ? (
             <div
               className="rounded border border-input bg-muted px-3 py-2 text-sm"
@@ -177,7 +177,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
               }}
             >
               <SelectTrigger
-                aria-label={t('courses.form.fields.sede')}
+                id="sede"
                 aria-invalid={errors.sede !== undefined}
                 aria-describedby={errors.sede ? 'sede-error' : undefined}
               >
@@ -199,13 +199,13 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
           )}
         </div>
         <div className="space-y-1.5">
-          <Label>{t('courses.form.fields.programId')}</Label>
+          <Label htmlFor="programId">{t('courses.form.fields.programId')}</Label>
           <Select
             value={watch('programId')}
             onValueChange={(v) => setValue('programId', v, { shouldValidate: true })}
           >
             <SelectTrigger
-              aria-label={t('courses.form.fields.programId')}
+              id="programId"
               aria-invalid={errors.programId !== undefined}
               aria-describedby={errors.programId ? 'programId-error' : undefined}
             >
@@ -228,7 +228,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
       </div>
       <div className={`grid gap-4 ${isTeacher && !isEdit ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}>
         <div className="space-y-1.5">
-          <Label>{t('courses.form.fields.level')}</Label>
+          <Label htmlFor="level">{t('courses.form.fields.level')}</Label>
           <Select
             value={watch('level')}
             onValueChange={(v) =>
@@ -236,7 +236,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
             }
           >
             <SelectTrigger
-              aria-label={t('courses.form.fields.level')}
+              id="level"
               aria-invalid={errors.level !== undefined}
               aria-describedby={errors.level ? 'level-error' : undefined}
             >
@@ -258,7 +258,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
         </div>
         {!isTeacher || isEdit ? (
           <div className="space-y-1.5">
-            <Label>{t('courses.form.fields.status')}</Label>
+            <Label htmlFor="status">{t('courses.form.fields.status')}</Label>
             <Select
               value={watch('status')}
               onValueChange={(v) =>
@@ -266,7 +266,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
               }
             >
               <SelectTrigger
-                aria-label={t('courses.form.fields.status')}
+                id="status"
                 aria-invalid={errors.status !== undefined}
                 aria-describedby={errors.status ? 'status-error' : undefined}
               >
@@ -305,7 +305,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
         </div>
       </div>
       <div className="space-y-1.5">
-        <Label>{t('courses.form.fields.teacherId')}</Label>
+        <Label htmlFor="teacherId">{t('courses.form.fields.teacherId')}</Label>
         {isTeacher && !isEdit ? (
           <div
             className="rounded border border-input bg-muted px-3 py-2 text-sm"
@@ -325,7 +325,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
             onValueChange={(v) => setValue('teacherId', v, { shouldValidate: true })}
           >
             <SelectTrigger
-              aria-label={t('courses.form.fields.teacherId')}
+              id="teacherId"
               aria-invalid={errors.teacherId !== undefined}
               aria-describedby={errors.teacherId ? 'teacherId-error' : undefined}
             >
@@ -381,10 +381,10 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
         </div>
       </div>
       <div className="space-y-1.5">
-        <Label>{t('courses.form.fields.meetingDays')}</Label>
+        <Label id="meetingDays-label">{t('courses.form.fields.meetingDays')}</Label>
         <div
           role="group"
-          aria-label={t('courses.form.fields.meetingDays')}
+          aria-labelledby="meetingDays-label"
           aria-describedby={errors.meetingDays ? 'meetingDays-error' : undefined}
           className="grid grid-cols-2 gap-3 sm:grid-cols-4"
         >

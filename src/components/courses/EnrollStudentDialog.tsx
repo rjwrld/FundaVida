@@ -60,9 +60,9 @@ export function EnrollStudentDialog({ open, onOpenChange, courseId }: Props) {
           <DialogDescription>{t('enrollments.dialog.description')}</DialogDescription>
         </DialogHeader>
         <div className="space-y-1.5">
-          <Label>{t('enrollments.dialog.studentLabel')}</Label>
+          <Label htmlFor="enrollStudent">{t('enrollments.dialog.studentLabel')}</Label>
           <Select value={selected} onValueChange={setSelected}>
-            <SelectTrigger aria-label={t('enrollments.dialog.studentLabel')}>
+            <SelectTrigger id="enrollStudent">
               <SelectValue placeholder={t('enrollments.dialog.studentPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
