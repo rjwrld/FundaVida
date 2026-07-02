@@ -38,7 +38,7 @@ export function DashboardShell({ children, courses, upcoming }: DashboardShellPr
       variants={stagger}
       initial="hidden"
       animate="visible"
-      className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]"
+      className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_300px]"
     >
       <div className="flex flex-col gap-6">{children}</div>
 

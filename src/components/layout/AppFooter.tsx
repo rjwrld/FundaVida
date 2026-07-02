@@ -39,7 +39,7 @@ export function AppFooter() {
             href={REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-colors hover:text-foreground"
+            className="-m-2 inline-flex items-center justify-center p-2 transition-colors hover:text-foreground"
           >
             <GithubMark size={18} />
           </a>
@@ -47,7 +47,7 @@ export function AppFooter() {
             href={LINKEDIN_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-colors hover:text-foreground"
+            className="-m-2 inline-flex items-center justify-center p-2 transition-colors hover:text-foreground"
           >
             <LinkedinMark size={18} />
           </a>

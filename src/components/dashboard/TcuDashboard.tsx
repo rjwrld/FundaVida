@@ -26,7 +26,12 @@ export function TcuDashboard() {
   const remainingHours = Math.max(0, TARGET_HOURS - totalHours)
 
   return (
-    <motion.div variants={stagger} initial="hidden" animate="visible" className="grid gap-6">
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      animate="visible"
+      className="grid grid-cols-1 gap-6"
+    >
       {/* Hero: Hours Completed and Remaining */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <StatCard
