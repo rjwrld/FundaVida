@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { MotionConfig } from 'framer-motion'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -60,6 +60,45 @@ describe('<AppLayout />', () => {
     renderWithRouter(<div id="main-content">Content</div>)
     const skipLink = screen.getByRole('link', { name: 'Skip to main content' })
     expect(skipLink).toHaveAttribute('href', '#main-content')
+  })
+
+  it('moves focus to the main region on client-side navigation, but not on first load', async () => {
+    useStore.getState().setRole('admin')
+    const router = createMemoryRouter(
+      [
+        {
+          path: '/',
+          element: <AppLayout />,
+          children: [
+            { index: true, element: <div>Start page</div> },
+            { path: 'next', element: <div>Next page</div> },
+          ],
+        },
+      ],
+      { initialEntries: ['/'] }
+    )
+    const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
+    render(
+      <I18nProvider>
+        <QueryClientProvider client={client}>
+          <MotionConfig reducedMotion="always">
+            <RouterProvider router={router} />
+          </MotionConfig>
+        </QueryClientProvider>
+      </I18nProvider>
+    )
+
+    // First load must not steal focus — the skip link stays the natural first stop.
+    const main = screen.getByRole('main')
+    expect(main).not.toHaveFocus()
+
+    await act(async () => {
+      await router.navigate('/next')
+    })
+
+    // The outlet swaps through AnimatePresence mode="wait", so await the new content.
+    await screen.findByText('Next page')
+    expect(main).toHaveFocus()
   })
 
   it('keeps the animated route outlet content mounted under prefers-reduced-motion', () => {
