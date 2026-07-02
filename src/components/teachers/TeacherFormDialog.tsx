@@ -126,7 +126,7 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
           )}
         </div>
         <div className="space-y-1.5 sm:col-span-2">
-          <Label>{t('teachers.form.fields.sede')}</Label>
+          <Label htmlFor="sede">{t('teachers.form.fields.sede')}</Label>
           <Select
             value={watch('sede')}
             onValueChange={(v) =>
@@ -134,7 +134,7 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
             }
           >
             <SelectTrigger
-              aria-label={t('teachers.form.fields.sede')}
+              id="sede"
               aria-invalid={errors.sede !== undefined}
               aria-describedby={errors.sede ? 'sede-error' : undefined}
             >
@@ -155,7 +155,7 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
           )}
         </div>
         <div className="space-y-1.5">
-          <Label>{t('teachers.form.fields.province')}</Label>
+          <Label htmlFor="province">{t('teachers.form.fields.province')}</Label>
           <Select
             value={watch('province')}
             onValueChange={(v) => {
@@ -165,7 +165,7 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
             }}
           >
             <SelectTrigger
-              aria-label={t('teachers.form.fields.province')}
+              id="province"
               aria-invalid={errors.province !== undefined}
               aria-describedby={errors.province ? 'province-error' : undefined}
             >
@@ -186,14 +186,14 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
           )}
         </div>
         <div className="space-y-1.5">
-          <Label>{t('teachers.form.fields.canton')}</Label>
+          <Label htmlFor="canton">{t('teachers.form.fields.canton')}</Label>
           <Select
             value={watch('canton')}
             onValueChange={(v) => v && setValue('canton', v, { shouldValidate: true })}
             disabled={!selectedProvince}
           >
             <SelectTrigger
-              aria-label={t('teachers.form.fields.canton')}
+              id="canton"
               aria-invalid={errors.canton !== undefined}
               aria-describedby={errors.canton ? 'canton-error' : undefined}
             >
