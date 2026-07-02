@@ -118,9 +118,11 @@ test.describe('enrollment approval workflow', () => {
     await expect(row).toContainText(COURSE_NAME)
 
     // Approve — the row leaves the queue without a page reload (cache invalidation).
-    await page.getByTestId(`approve-${PENDING_ID}`).click()
+    // The table row and its display:none mobile card share the test id, so scope
+    // through the visible row (getByRole('row') reads the a11y tree).
+    await row.getByTestId(`approve-${PENDING_ID}`).click()
     await expect(page.getByText('Enrollment approved.')).toBeVisible()
-    await expect(page.getByTestId(`approve-${PENDING_ID}`)).toBeHidden()
+    await expect(row.getByTestId(`approve-${PENDING_ID}`)).toBeHidden()
 
     // Wait for the approval to persist before switching roles.
     await expect.poll(async () => persistedStatus(page, PENDING_ID)).toBe('approved')
@@ -138,10 +140,11 @@ test.describe('enrollment approval workflow', () => {
     await seedAndEnter(page, snapshotWithPending(), 'teacher', TEACHER_ID)
 
     await expect(page.getByRole('heading', { name: 'Enrollment requests' })).toBeVisible()
-    await page.getByTestId(`reject-${PENDING_ID}`).click()
+    const row = page.getByRole('row').filter({ hasText: STUDENT_NAME })
+    await row.getByTestId(`reject-${PENDING_ID}`).click()
 
     await expect(page.getByText('Enrollment rejected.')).toBeVisible()
-    await expect(page.getByTestId(`reject-${PENDING_ID}`)).toBeHidden()
+    await expect(row.getByTestId(`reject-${PENDING_ID}`)).toBeHidden()
   })
 
   test('approve is disabled with a reason when the course is at capacity', async ({ page }) => {
@@ -154,11 +157,12 @@ test.describe('enrollment approval workflow', () => {
     await seedAndEnter(page, snapshot, 'teacher', TEACHER_ID)
 
     await expect(page.getByRole('heading', { name: 'Enrollment requests' })).toBeVisible()
-    const approve = page.getByTestId(`approve-${PENDING_ID}`)
+    const row = page.getByRole('row').filter({ hasText: STUDENT_NAME })
+    const approve = row.getByTestId(`approve-${PENDING_ID}`)
     await expect(approve).toBeDisabled()
     await expect(approve).toHaveAttribute('title', 'Course is at capacity')
     // Rejecting a request remains available even when full.
-    await expect(page.getByTestId(`reject-${PENDING_ID}`)).toBeEnabled()
+    await expect(row.getByTestId(`reject-${PENDING_ID}`)).toBeEnabled()
   })
 
   test('student requests a spot through Browse and the teacher approves it end-to-end', async ({

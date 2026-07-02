@@ -1,16 +1,17 @@
 import { useTranslation } from 'react-i18next'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
+import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { useEnrollments, useApproveEnrollment, useRejectEnrollment } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import { useStore } from '@/data/store'
+
+interface PendingRow {
+  id: string
+  studentName: string
+  courseName: string
+  requestedAt: string
+  isAtCapacity: boolean
+}
 
 /**
  * Renders an approval queue for pending enrollment requests.
@@ -47,104 +48,89 @@ export function EnrollmentApprovalQueue() {
     return null
   }
 
-  const rows = pendingEnrollments.map((enrollment) => {
+  const rows: PendingRow[] = pendingEnrollments.map((enrollment) => {
     const student = students.find((s) => s.id === enrollment.studentId)
     const course = courses.find((c) => c.id === enrollment.courseId)
     const approvedCount = enrollments.filter(
       (e) => e.courseId === enrollment.courseId && e.status === 'approved'
     ).length
-    const isAtCapacity = Boolean(course && approvedCount >= course.capacity)
-    const studentName = `${student?.firstName ?? ''} ${student?.lastName ?? ''}`.trim()
-    return { enrollment, courseName: course?.name ?? '', studentName, isAtCapacity }
+    return {
+      id: enrollment.id,
+      studentName: `${student?.firstName ?? ''} ${student?.lastName ?? ''}`.trim(),
+      courseName: course?.name ?? '',
+      requestedAt: enrollment.requestedAt,
+      isAtCapacity: Boolean(course && approvedCount >= course.capacity),
+    }
   })
 
-  // `testId` is set only on the desktop table buttons: both layouts live in the DOM
-  // (one hidden via CSS), so a shared test id would match twice.
-  const approveButton = (
-    enrollment: (typeof rows)[number]['enrollment'],
-    isAtCapacity: boolean,
-    opts?: { full?: boolean; testId?: boolean }
-  ) => (
-    <Button
-      size="sm"
-      variant="default"
-      className={opts?.full ? 'flex-1' : undefined}
-      onClick={() => approveMutation.mutate(enrollment.id)}
-      disabled={approveMutation.isPending || isAtCapacity}
-      title={isAtCapacity ? t('enrollments.approvalQueue.capacityReached') : undefined}
-      data-testid={opts?.testId ? `approve-${enrollment.id}` : undefined}
-    >
-      {t('common.actions.approve')}
-    </Button>
-  )
-
-  const rejectButton = (
-    enrollment: (typeof rows)[number]['enrollment'],
-    opts?: { full?: boolean; testId?: boolean }
-  ) => (
-    <Button
-      size="sm"
-      variant="outline"
-      className={opts?.full ? 'flex-1' : undefined}
-      onClick={() => rejectMutation.mutate(enrollment.id)}
-      disabled={rejectMutation.isPending}
-      data-testid={opts?.testId ? `reject-${enrollment.id}` : undefined}
-    >
-      {t('common.actions.reject')}
-    </Button>
-  )
+  // A single column set drives both the desktop table and the mobile cards
+  // (via `renderCard`), so the two layouts can never drift. Both copies of a
+  // row live in the DOM — one hidden per breakpoint — so the shared test ids
+  // resolve to a single element only when scoped through the visible row.
+  const columns: DataTableColumn<PendingRow>[] = [
+    {
+      id: 'student',
+      header: t('enrollments.list.columns.student'),
+      cell: (r) => r.studentName,
+    },
+    {
+      id: 'course',
+      header: t('enrollments.list.columns.course'),
+      cell: (r) => r.courseName,
+    },
+    {
+      id: 'enrolledAt',
+      header: t('enrollments.list.columns.enrolledAt'),
+      cell: (r) => formatDate(r.requestedAt),
+    },
+    {
+      id: 'actions',
+      header: t('enrollments.approvalQueue.actions'),
+      align: 'right',
+      cell: (r) => (
+        <div className="flex justify-end gap-2">
+          <Button
+            size="sm"
+            variant="default"
+            onClick={() => approveMutation.mutate(r.id)}
+            disabled={approveMutation.isPending || r.isAtCapacity}
+            title={r.isAtCapacity ? t('enrollments.approvalQueue.capacityReached') : undefined}
+            aria-label={t('enrollments.list.approveAria', { student: r.studentName })}
+            data-testid={`approve-${r.id}`}
+          >
+            {t('common.actions.approve')}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => rejectMutation.mutate(r.id)}
+            disabled={rejectMutation.isPending}
+            aria-label={t('enrollments.list.rejectAria', { student: r.studentName })}
+            data-testid={`reject-${r.id}`}
+          >
+            {t('common.actions.reject')}
+          </Button>
+        </div>
+      ),
+    },
+  ]
 
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-semibold">{t('enrollments.approvalQueue.title')}</h2>
-
-      {/* Desktop: a dense table. Hidden on mobile, where columns would push the
-          actions off-screen — the same rows render as stacked cards instead. */}
-      <div className="hidden overflow-hidden rounded-xl border border-border bg-card shadow-card sm:block">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50 hover:bg-muted/50">
-              <TableHead>{t('enrollments.list.columns.student')}</TableHead>
-              <TableHead>{t('enrollments.list.columns.course')}</TableHead>
-              <TableHead>{t('enrollments.list.columns.enrolledAt')}</TableHead>
-              <TableHead className="text-right">{t('enrollments.approvalQueue.actions')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map(({ enrollment, courseName, studentName, isAtCapacity }) => (
-              <TableRow key={enrollment.id} className="h-12 hover:bg-muted/40">
-                <TableCell>{studentName}</TableCell>
-                <TableCell>{courseName}</TableCell>
-                <TableCell>{formatDate(enrollment.requestedAt)}</TableCell>
-                <TableCell className="space-x-2 text-right">
-                  {approveButton(enrollment, isAtCapacity, { testId: true })}
-                  {rejectButton(enrollment, { testId: true })}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Mobile: one card per request with the actions full-width underneath. */}
-      <ul className="space-y-3 sm:hidden">
-        {rows.map(({ enrollment, courseName, studentName, isAtCapacity }) => (
-          <li
-            key={enrollment.id}
-            className="rounded-xl border border-border bg-card p-4 shadow-card"
-          >
-            <p className="font-medium text-foreground">{studentName}</p>
-            <p className="text-sm text-muted-foreground">{courseName}</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {formatDate(enrollment.requestedAt)}
-            </p>
-            <div className="mt-3 flex gap-2">
-              {approveButton(enrollment, isAtCapacity, { full: true })}
-              {rejectButton(enrollment, { full: true })}
-            </div>
-          </li>
-        ))}
-      </ul>
+      <DataTable
+        data={rows}
+        columns={columns}
+        getRowKey={(r) => r.id}
+        renderCard={(r) => (
+          <DataTableCard
+            row={r}
+            columns={columns}
+            titleColumnId="student"
+            actionsColumnId="actions"
+          />
+        )}
+      />
     </section>
   )
 }
