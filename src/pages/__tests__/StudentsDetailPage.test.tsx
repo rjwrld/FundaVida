@@ -95,7 +95,8 @@ describe('<StudentsDetailPage />', () => {
 
     const link = await screen.findByRole('link', { name: shortCourseName(course) })
     const row = req(link.closest('tr') ?? undefined, 'enrollment row missing')
-    expect(within(row).getByText(formatGrade(grade.score, 'en'))).toBeInTheDocument()
+    // The grade cell fills in when useGrades resolves, after the row itself renders.
+    expect(await within(row).findByText(formatGrade(grade.score, 'en'))).toBeInTheDocument()
     expect(within(row).getByText('Passing')).toBeInTheDocument()
   })
 
@@ -111,7 +112,8 @@ describe('<StudentsDetailPage />', () => {
 
     const link = await screen.findByRole('link', { name: shortCourseName(course) })
     const row = req(link.closest('tr') ?? undefined, 'enrollment row missing')
-    expect(within(row).getByText(expected)).toBeInTheDocument()
+    // The percentage cell fills in when useAttendance resolves, after the row renders.
+    expect(await within(row).findByText(expected)).toBeInTheDocument()
   })
 
   it('visualizes per-course attendance with a progress bar reflecting the percentage', async () => {
@@ -125,7 +127,8 @@ describe('<StudentsDetailPage />', () => {
 
     const link = await screen.findByRole('link', { name: shortCourseName(course) })
     const row = req(link.closest('tr') ?? undefined, 'enrollment row missing')
-    const bar = within(row).getByRole('progressbar')
+    // The progress bar renders once useAttendance resolves, after the row itself.
+    const bar = await within(row).findByRole('progressbar')
     expect(bar).toHaveAttribute('aria-valuenow', String(expectedValue))
   })
 
@@ -139,7 +142,8 @@ describe('<StudentsDetailPage />', () => {
     // The certificate-bearing course's row shows the Issued state…
     const link = await screen.findByRole('link', { name: shortCourseName(course) })
     const row = req(link.closest('tr') ?? undefined, 'enrollment row missing')
-    expect(within(row).getByText('Issued')).toBeInTheDocument()
+    // The Issued badge renders once useCertificates resolves, after the row itself.
+    expect(await within(row).findByText('Issued')).toBeInTheDocument()
     // …and within the enrollments table, exactly the emitted certificates are
     // marked Issued (open courses show none).
     const table = screen.getByRole('table')
