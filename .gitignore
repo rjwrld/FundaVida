@@ -53,3 +53,7 @@ test-results/
 .claude/*
 !.claude/settings.json
 CLAUDE.md
+
+# Agent pod run artifacts (bootstrap script itself stays tracked)
+.agents/runs/
+.agents/evidence/
