@@ -124,7 +124,7 @@ export function StudentsListPage() {
           value={filters.sede ?? 'any'}
           onValueChange={(v) => setFilters((f) => ({ ...f, sede: v === 'any' ? undefined : v }))}
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label={t('students.list.columns.sede')}>
             <SelectValue placeholder={t('students.list.columns.sede')} />
           </SelectTrigger>
           <SelectContent>
@@ -142,7 +142,7 @@ export function StudentsListPage() {
             setFilters((f) => ({ ...f, educationalLevel: v === 'any' ? undefined : v }))
           }
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label={t('students.list.columns.level')}>
             <SelectValue placeholder={t('students.list.columns.level')} />
           </SelectTrigger>
           <SelectContent>

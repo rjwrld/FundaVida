@@ -110,7 +110,7 @@ export function AttendanceListPage() {
               setFilters((f) => ({ ...f, studentId: v === 'any' ? undefined : v }))
             }
           >
-            <SelectTrigger>
+            <SelectTrigger aria-label={t('attendance.list.filters.studentPlaceholder')}>
               <SelectValue placeholder={t('attendance.list.filters.studentPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
@@ -129,7 +129,7 @@ export function AttendanceListPage() {
             setFilters((f) => ({ ...f, courseId: v === 'any' ? undefined : v }))
           }
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label={t('attendance.list.filters.coursePlaceholder')}>
             <SelectValue placeholder={t('attendance.list.filters.coursePlaceholder')} />
           </SelectTrigger>
           <SelectContent>
@@ -147,7 +147,7 @@ export function AttendanceListPage() {
             setFilters((f) => ({ ...f, status: v === 'any' ? undefined : (v as AttendanceStatus) }))
           }
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label={t('attendance.list.filters.statusPlaceholder')}>
             <SelectValue placeholder={t('attendance.list.filters.statusPlaceholder')} />
           </SelectTrigger>
           <SelectContent>
