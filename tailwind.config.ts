@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss'
+import plugin from 'tailwindcss/plugin'
 
 export default {
   darkMode: ['class'],
@@ -149,5 +150,11 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // Touch-target sweep: enlarge coarse-pointer (touch) hit areas without
+    // bloating dense mouse/desktop rows. Not a core Tailwind variant.
+    plugin(({ addVariant }) => {
+      addVariant('pointer-coarse', '@media (pointer: coarse)')
+    }),
+  ],
 } satisfies Config

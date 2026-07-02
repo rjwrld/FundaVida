@@ -40,7 +40,7 @@ export function AppHeader() {
         size="icon"
         aria-label={t('common.search')}
         onClick={() => setOpen(true)}
-        className="md:hidden"
+        className="shrink-0 md:hidden"
       >
         <Search className="size-4" />
       </Button>

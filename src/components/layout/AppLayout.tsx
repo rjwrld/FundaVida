@@ -46,7 +46,7 @@ export function AppLayout() {
         <AppHeader />
         <div className="flex flex-1">
           <AppSidebar />
-          <main id="main-content" className="flex-1 p-6">
+          <main id="main-content" className="min-w-0 flex-1 p-6">
             <AnimatedOutlet />
           </main>
         </div>

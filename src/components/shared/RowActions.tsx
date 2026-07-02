@@ -31,7 +31,7 @@ export function RowActions({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-green-600"
+          className="h-8 w-8 pointer-coarse:h-11 pointer-coarse:w-11 text-muted-foreground hover:text-green-600"
           aria-label={publishLabel ?? 'Publish'}
           onClick={onPublish}
           data-testid="publish-button"
@@ -43,7 +43,7 @@ export function RowActions({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          className="h-8 w-8 pointer-coarse:h-11 pointer-coarse:w-11 text-muted-foreground hover:text-foreground"
           aria-label={editLabel}
           onClick={onEdit}
         >
@@ -54,7 +54,7 @@ export function RowActions({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+          className="h-8 w-8 pointer-coarse:h-11 pointer-coarse:w-11 text-muted-foreground hover:text-destructive"
           aria-label={deleteLabel}
           onClick={onDelete}
         >
