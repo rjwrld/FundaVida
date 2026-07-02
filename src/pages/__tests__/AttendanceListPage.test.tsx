@@ -56,28 +56,15 @@ describe('<AttendanceListPage />', () => {
   it('renders Session N · date for each attendance record', async () => {
     renderPage()
 
-    // Wait for data to load (table appears instead of skeleton)
+    // The "Session N" label needs the courses query (findSession) as well as the
+    // attendance rows; those queries resolve independently, so poll until the
+    // enriched label appears rather than reading the rows the instant they mount
+    // (courses may still be loading, leaving a date-only fallback — a CI race).
     await waitFor(() => {
-      const rows = screen.getAllByRole('row')
-      expect(rows.length).toBeGreaterThan(1) // At least header + 1 data row
+      const rows = screen.getAllByRole('row').slice(1) // Skip header
+      expect(rows.length).toBeGreaterThan(0)
+      expect(rows.some((row) => /Session \d+/.test(row.textContent || ''))).toBe(true)
     })
-
-    // Get all rows in the table body (skip the header row)
-    const rows = screen.getAllByRole('row').slice(1) // Skip header
-
-    // Check that we have some records
-    expect(rows.length).toBeGreaterThan(0)
-
-    // Verify at least one row contains "Session" text with an ordinal
-    let foundSessionCell = false
-    rows.forEach((row) => {
-      const text = row.textContent || ''
-      if (/Session \d+/.test(text)) {
-        foundSessionCell = true
-      }
-    })
-
-    expect(foundSessionCell).toBe(true)
   })
 
   it('renders fallback date when session not found (graceful degradation)', async () => {
