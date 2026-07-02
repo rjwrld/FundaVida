@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { ListHeaderBand } from '@/components/shared/ListHeaderBand'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
@@ -88,13 +89,7 @@ export function TeachersListPage() {
         <NoResults message={t('teachers.list.emptyFiltered')} />
       ) : (
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-          <div
-            className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground"
-            aria-hidden="true"
-          >
-            <span>{t('teachers.list.title')}</span>
-            <span className="font-mono normal-case tabular-nums text-foreground">{count}</span>
-          </div>
+          <ListHeaderBand label={t('teachers.list.title')} count={count} />
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50 hover:bg-muted/50">
