@@ -19,13 +19,24 @@ export const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<
 )
 CardHeader.displayName = 'CardHeader'
 
-export const CardTitle = React.forwardRef<
-  HTMLHeadingElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  // eslint-disable-next-line jsx-a11y/heading-has-content -- content is supplied by consumers via children
-  <h2 ref={ref} className={cn('font-semibold leading-none tracking-tight', className)} {...props} />
-))
+export interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+  /**
+   * Heading level to render. Defaults to `h2`. Set this when a card sits under a
+   * section heading so the card title nests correctly in the document outline
+   * (e.g. `as="h3"`) instead of flattening every card to the same level.
+   */
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+}
+
+export const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
+  ({ className, as: Heading = 'h2', ...props }, ref) => (
+    <Heading
+      ref={ref}
+      className={cn('font-semibold leading-none tracking-tight', className)}
+      {...props}
+    />
+  )
+)
 CardTitle.displayName = 'CardTitle'
 
 export const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(

@@ -202,15 +202,13 @@ export function MarkSessionAttendancePage() {
   if (!isMarkable && session && course) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="font-display text-2xl text-foreground">{course.name}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('attendance.mark.sessionNumber', {
-              ordinal: String(session.ordinal),
-              total: String(sessions.length),
-            } as Record<string, string>)}
-          </p>
-        </div>
+        <PageHeader
+          title={course.name}
+          description={`${t('attendance.mark.sessionNumber', {
+            ordinal: String(session.ordinal),
+            total: String(sessions.length),
+          } as Record<string, string>)} · ${formatDate(session.date)}`}
+        />
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800 dark:border-yellow-900 dark:bg-yellow-950/40 dark:text-yellow-200">
           {t('attendance.mark.future')}
         </div>
@@ -244,16 +242,13 @@ export function MarkSessionAttendancePage() {
   // Rendering: normal case (ready to mark)
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl text-foreground">{course?.name}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t('attendance.mark.sessionNumber', {
-            ordinal: String(session?.ordinal),
-            total: String(sessions.length),
-          } as Record<string, string>)}
-        </p>
-        <p className="mt-2 text-xs text-muted-foreground">{formatDate(session?.date ?? '')}</p>
-      </div>
+      <PageHeader
+        title={course?.name ?? ''}
+        description={`${t('attendance.mark.sessionNumber', {
+          ordinal: String(session?.ordinal),
+          total: String(sessions.length),
+        } as Record<string, string>)} · ${formatDate(session?.date ?? '')}`}
+      />
 
       <p className="text-sm text-muted-foreground">{t('attendance.mark.subtitle')}</p>
 

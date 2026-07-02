@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useLocation, useOutlet } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -33,6 +34,23 @@ function AnimatedOutlet() {
 
 export function AppLayout() {
   const { t } = useTranslation()
+  const { pathname } = useLocation()
+  const mainRef = useRef<HTMLElement>(null)
+  const previousPathname = useRef(pathname)
+
+  // On client-side navigation, move focus to the main region so keyboard and
+  // screen-reader users land on the new page's content (which starts at its
+  // <h1>) instead of being stranded where the previous route left focus — the
+  // route swap is otherwise silent. Compare against the previous path (rather
+  // than a "first render" flag) so the initial load keeps its natural focus
+  // (e.g. the skip link) even when StrictMode double-invokes this effect.
+  useEffect(() => {
+    if (previousPathname.current !== pathname) {
+      mainRef.current?.focus()
+    }
+    previousPathname.current = pathname
+  }, [pathname])
+
   return (
     <CommandPaletteProvider>
       <div className="flex min-h-screen flex-col">
@@ -46,7 +64,12 @@ export function AppLayout() {
         <AppHeader />
         <div className="flex flex-1">
           <AppSidebar />
-          <main id="main-content" className="min-w-0 flex-1 p-6">
+          <main
+            id="main-content"
+            ref={mainRef}
+            tabIndex={-1}
+            className="min-w-0 flex-1 p-6 focus:outline-none"
+          >
             <AnimatedOutlet />
           </main>
         </div>
