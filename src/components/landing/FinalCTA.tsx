@@ -23,13 +23,13 @@ export function FinalCTA() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
         transition={transitionDefaults}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-blue-50/60 via-card to-brand-green-50/80 p-12 text-center shadow-card ring-1 ring-brand-green-200/60 md:p-16 lg:p-20"
+        className="relative overflow-hidden rounded-2xl bg-card p-12 text-center shadow-card ring-1 ring-brand-green-200/60 md:p-16 lg:p-20"
       >
         <div className="relative">
           <p className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-brand-green-700">
             ↳ try it
           </p>
-          <h2 className="mx-auto mt-4 max-w-3xl bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text font-display text-4xl tracking-tight text-transparent md:text-6xl">
+          <h2 className="mx-auto mt-4 max-w-3xl font-display text-4xl tracking-tight text-foreground md:text-6xl">
             {t('landing.finalCta.headline')}
           </h2>
           <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-muted-foreground">
