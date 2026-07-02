@@ -117,7 +117,7 @@ export function GradesListPage() {
               setFilters((f) => ({ ...f, studentId: v === 'any' ? undefined : v }))
             }
           >
-            <SelectTrigger>
+            <SelectTrigger aria-label={t('grades.list.filters.studentPlaceholder')}>
               <SelectValue placeholder={t('grades.list.filters.studentPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
@@ -136,7 +136,7 @@ export function GradesListPage() {
             setFilters((f) => ({ ...f, courseId: v === 'any' ? undefined : v }))
           }
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label={t('grades.list.filters.coursePlaceholder')}>
             <SelectValue placeholder={t('grades.list.filters.coursePlaceholder')} />
           </SelectTrigger>
           <SelectContent>

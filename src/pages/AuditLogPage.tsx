@@ -101,7 +101,7 @@ export function AuditLogPage() {
             setFilters((f) => ({ ...f, action: v === 'any' ? undefined : (v as AuditAction) }))
           }
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label={t('auditLog.columns.action')}>
             <SelectValue placeholder={t('auditLog.columns.action')} />
           </SelectTrigger>
           <SelectContent>
@@ -119,7 +119,7 @@ export function AuditLogPage() {
             setFilters((f) => ({ ...f, entity: v === 'any' ? undefined : (v as AuditEntity) }))
           }
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label={t('auditLog.columns.entity')}>
             <SelectValue placeholder={t('auditLog.columns.entity')} />
           </SelectTrigger>
           <SelectContent>
