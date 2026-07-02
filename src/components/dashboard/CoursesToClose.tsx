@@ -2,9 +2,14 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { GraduationCap } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { clock } from '@/lib/clock'
+import { closeReadiness } from '@/lib/closeReadiness'
 import { coursesToClose } from '@/lib/dashboard'
+import { useAttendance } from '@/hooks/api/attendance'
 import { useCourses } from '@/hooks/api/courses'
+import { useEnrollments } from '@/hooks/api/enrollments'
+import { useGrades } from '@/hooks/api/grades'
 import { useFormat } from '@/hooks/useFormat'
 
 /**
@@ -18,8 +23,25 @@ export function CoursesToClose() {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
   const { data: courses = [], isLoading } = useCourses()
+  const { data: enrollments } = useEnrollments()
+  const { data: grades } = useGrades()
+  const { data: attendance } = useAttendance()
 
   const closeable = useMemo(() => coursesToClose(courses, clock.now()), [courses])
+
+  // Same derivation as the detail page's checklist (#204), so the two verdicts
+  // agree by construction. Null until all three record queries resolve — an
+  // empty grades/attendance window would misread as "ready".
+  const readinessById = useMemo(() => {
+    if (!enrollments || !grades || !attendance) return null
+    const now = clock.now()
+    return new Map(
+      closeable.map((course) => [
+        course.id,
+        closeReadiness({ course, enrollments, grades, attendance, now }),
+      ])
+    )
+  }, [closeable, enrollments, grades, attendance])
 
   return (
     <article className="flex h-full flex-col rounded-lg border border-border bg-card p-5">
@@ -37,27 +59,41 @@ export function CoursesToClose() {
         <p className="text-sm text-muted-foreground">{t('dashboard.coursesToClose.empty')}</p>
       ) : (
         <ul className="flex flex-1 flex-col divide-y divide-border/60">
-          {closeable.map((course) => (
-            <li key={course.id} className="py-2 first:pt-0 last:pb-0">
-              <Link
-                to={`/app/courses/${course.id}`}
-                className="group flex items-center gap-3 rounded-md py-1"
-              >
-                <GraduationCap
-                  className="size-4 shrink-0 text-brand-green-700 dark:text-brand-green-300"
-                  aria-hidden="true"
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
-                    {course.name}
+          {closeable.map((course) => {
+            const readiness = readinessById?.get(course.id)
+            return (
+              <li key={course.id} className="py-2 first:pt-0 last:pb-0">
+                <Link
+                  to={`/app/courses/${course.id}`}
+                  className="group flex items-center gap-3 rounded-md py-1"
+                >
+                  <GraduationCap
+                    className="size-4 shrink-0 text-brand-green-700 dark:text-brand-green-300"
+                    aria-hidden="true"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
+                      {course.name}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {t('dashboard.coursesToClose.ended', { date: formatDate(course.term.end) })}
+                    </span>
                   </span>
-                  <span className="block truncate text-xs text-muted-foreground">
-                    {t('dashboard.coursesToClose.ended', { date: formatDate(course.term.end) })}
-                  </span>
-                </span>
-              </Link>
-            </li>
-          ))}
+                  {readiness && (
+                    <Badge
+                      variant={readiness.ready ? 'success' : 'warning'}
+                      className="shrink-0"
+                      data-testid="close-readiness-indicator"
+                    >
+                      {readiness.ready
+                        ? t('courses.detail.readiness.verdict.ready')
+                        : t('courses.detail.readiness.verdict.blocked')}
+                    </Badge>
+                  )}
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       )}
     </article>

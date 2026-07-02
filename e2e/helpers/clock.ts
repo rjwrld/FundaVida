@@ -1,8 +1,11 @@
 import type { Page } from '@playwright/test'
 import { seedDemo } from '../../src/data/seed'
 
-// Must match STATE_KEY in src/data/persistence.ts (bumped to v3 by ADR-0014).
-const STATE_KEY = 'fundavida:v3:state'
+// MUST mirror STATE_KEY in src/data/persistence.ts — a stale version here makes
+// the pin a silent no-op (worse: old versions are in its legacy purge list, so
+// the injected snapshot is actively deleted at boot and the app seeds at
+// wall-time instead of the pinned epoch).
+const STATE_KEY = 'fundavida:v10:state'
 
 /**
  * Pin the Demo Epoch for an e2e run (ADR-0014). Runs an init script — before any
