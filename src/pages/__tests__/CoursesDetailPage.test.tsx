@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -11,6 +11,8 @@ import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
 import { clock } from '@/lib/clock'
 import { SEDES } from '@/constants/sede'
 import { CoursesDetailPage } from '@/pages/CoursesDetailPage'
+import { api } from '@/data/api'
+import { delay } from '@/data/api/_delay'
 import { useStore } from '@/data/store'
 import {
   clearPersistedCurrentUser,
@@ -373,6 +375,10 @@ describe('<CoursesDetailPage /> — close-readiness checklist (issue #204)', () 
     useStore.getState().setLocale('en')
   })
 
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   /** A published Course whose Term has ended — the checklist's target audience. */
   function endedPublishedCourse(): Course {
     const s = useStore.getState()
@@ -461,6 +467,26 @@ describe('<CoursesDetailPage /> — close-readiness checklist (issue #204)', () 
     expect(
       await screen.findByText('All past sessions have attendance records.')
     ).toBeInTheDocument()
+  })
+
+  it('never paints a blocked verdict on a ready course while grades are still loading', async () => {
+    const course = endedPublishedCourse()
+    makeReady(course)
+    asRole('admin')
+    // Hold the grades query open well past the course/enrollments queries so the
+    // render window where grades are still [] is wide and deterministic instead
+    // of a sub-tick race (the #182/#203 flake class).
+    const listGrades = api.grades.list
+    vi.spyOn(api.grades, 'list').mockImplementation(async (filters) => {
+      await delay(600)
+      return listGrades(filters)
+    })
+    renderPage(course.id)
+
+    // The first checklist ever painted must already reflect resolved data: the
+    // moment the verdict exists, it must be the ready verdict — never Blocked.
+    const badge = await screen.findByTestId('close-readiness-verdict', {}, { timeout: 3000 })
+    expect(badge).toHaveTextContent('Ready to close')
   })
 
   it('renders no checklist on a published mid-Term course', async () => {

@@ -226,8 +226,10 @@ export function CoursesDetailPage() {
   const isLoading = enrolledLoading || browseLoading || enrollmentsLoading
   const { data: scopedStudents = [] } = useStudents()
   const { data: scopedTrainees = [] } = useTcuTrainees()
-  const { data: scopedGrades = [] } = useGrades({ courseId: id ?? '' })
-  const { data: ownAttendance = [] } = useAttendance({ courseId: id ?? '' })
+  const { data: scopedGrades = [], isLoading: gradesLoading } = useGrades({ courseId: id ?? '' })
+  const { data: ownAttendance = [], isLoading: attendanceLoading } = useAttendance({
+    courseId: id ?? '',
+  })
   const unenroll = useUnenrollStudent()
   const markAttendance = useMarkAttendance()
   const requestEnrollment = useRequestEnrollment()
@@ -257,6 +259,10 @@ export function CoursesDetailPage() {
   // published, Term-ended Course — the checklist's whole audience. Informational
   // only: it never gates or disables the close action.
   const readiness = useMemo(() => {
+    // Grades/attendance resolve on their own timers, after the page-level loading
+    // gate: deriving from their [] placeholders would flash a false Blocked verdict
+    // on a ready course. Hold the checklist back until both have resolved.
+    if (gradesLoading || attendanceLoading) return null
     if (!course || !canClose || course.status !== 'published') return null
     if (!isTermEnded(course, clock.now())) return null
     return closeReadiness({
@@ -266,7 +272,15 @@ export function CoursesDetailPage() {
       attendance: ownAttendance,
       now: clock.now(),
     })
-  }, [course, canClose, courseEnrollments, scopedGrades, ownAttendance])
+  }, [
+    course,
+    canClose,
+    courseEnrollments,
+    scopedGrades,
+    ownAttendance,
+    gradesLoading,
+    attendanceLoading,
+  ])
 
   if (isLoading)
     return <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
