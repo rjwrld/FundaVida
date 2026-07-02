@@ -11,11 +11,15 @@ const badgeVariants = cva(
         default: 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
         secondary:
           'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        // border/bg derive from the shared --destructive/--success tokens (so the
+        // tint tracks the theme, incl. the vivid dark --success). The text shades
+        // stay hand-tuned literals — they are darker/lighter than the base token
+        // to hold AA contrast on the low-alpha tint, which no token expresses.
         destructive:
-          'border-[oklch(0.64_0.21_25/0.4)] bg-[oklch(0.64_0.21_25/0.12)] text-[oklch(0.55_0.2_25)] dark:text-[oklch(0.72_0.17_22)]',
+          'border-[oklch(var(--destructive)/0.4)] bg-[oklch(var(--destructive)/0.12)] text-[oklch(0.55_0.2_25)] dark:text-[oklch(0.72_0.17_22)]',
         outline: 'border-border text-foreground',
         success:
-          'border-[oklch(0.57_0.17_138/0.4)] bg-[oklch(0.57_0.17_138/0.14)] text-[oklch(0.5_0.16_138)] dark:text-[oklch(0.78_0.14_138)]',
+          'border-[oklch(var(--success)/0.4)] bg-[oklch(var(--success)/0.14)] text-[oklch(0.5_0.16_138)] dark:text-[oklch(0.78_0.14_138)]',
         warning: 'border-border bg-muted text-foreground',
         info: 'border-border bg-transparent text-muted-foreground',
         neutral: 'border-border bg-transparent text-muted-foreground',
