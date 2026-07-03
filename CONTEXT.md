@@ -10,6 +10,9 @@ Educational management for a Costa Rican non-profit, rearchitected as a browser-
 One cohort of a program: a named class with a Term and Meeting Days, taught by one Teacher. A new run of the same program is a new Course.
 _Avoid_: class, program (a Program is what a Course is an instance of)
 
+**Owned Courses**:
+The Courses a given Teacher teaches (`teacherId` matches) — the unit of Teacher scope. A Teacher sees the roster, Grades, Attendance, Certificates, and assigned TCU Trainees only for their Owned Courses. Derived, not stored.
+
 **Term**:
 The date range a Course runs, from start date to end date. Enrollment, Sessions, and the Grade all fall inside or at the edges of the Term.
 
@@ -62,3 +65,7 @@ _Avoid_: grade (that's the 0–100 course score — see Grade), year, university
 **Encargado** (guardian):
 The adult responsible for a Student — name, relationship (Madre/Padre/Tutor/Otro), phone, and email. Students are minors, so every Student has exactly one. The English UI renders it "Guardian".
 _Avoid_: parent (a guardian need not be a parent — use Encargado/Guardian)
+
+**Student Progress**:
+A Student's per-Course roll-up across their Enrollments — for each enrolled Course, the attendance rate, the Grade (if issued), and whether a Certificate was earned. A **derived** view, never stored; shown on the admin/teacher student-detail page and on the Student's own profile.
+_Avoid_: grade (that names the single 0–100 Course score — see Grade); progress unqualified (a TCU Trainee's 300-hour completion is a different progress)
