@@ -45,16 +45,13 @@ export function EnrollmentFunnelBySede() {
                     {t('dashboard.enrollmentFunnel.summary', { approved, pending })}
                   </span>
                 </div>
-                <div className="flex h-2 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="bg-brand-green-500"
-                    style={{ width: `${approvedPct}%` }}
-                    aria-label={t('dashboard.enrollmentFunnel.approved')}
-                  />
+                {/* Decorative: the approved/pending split is already announced
+                    by the summary text above, so the bar is hidden from AT. */}
+                <div className="flex h-2 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+                  <div className="bg-brand-green-500" style={{ width: `${approvedPct}%` }} />
                   <div
                     className="bg-flame-yellow-400 dark:bg-flame-yellow-600"
                     style={{ width: `${100 - approvedPct}%` }}
-                    aria-label={t('dashboard.enrollmentFunnel.pending')}
                   />
                 </div>
               </li>

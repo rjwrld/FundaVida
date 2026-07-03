@@ -94,9 +94,9 @@ export function CalendarWidget({
         {DAY_LABELS.map((d, i) => (
           <span
             key={`${d.full}-${i}`}
-            aria-label={d.full}
             className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground/70"
           >
+            <span className="sr-only">{d.full}</span>
             <span aria-hidden="true">{d.letter}</span>
           </span>
         ))}

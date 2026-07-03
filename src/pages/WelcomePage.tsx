@@ -28,6 +28,7 @@ export function WelcomePage() {
 
       <div className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-6 py-16">
         <WelcomeBanner
+          headingLevel={1}
           eyebrow={t('welcome.eyebrow')}
           greeting={t('welcome.heading')}
           context={t('welcome.subtitle')}
