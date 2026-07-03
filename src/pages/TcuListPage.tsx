@@ -111,7 +111,7 @@ export function TcuListPage() {
       {(isTeacher || role === 'admin') && pendingActivities.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">{t('tcu.approvalQueue.title')}</h2>
-          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -202,7 +202,7 @@ export function TcuListPage() {
       ) : count === 0 ? (
         <NoResults message={hasFilters ? t('tcu.list.emptyFiltered') : t('tcu.list.empty')} />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
           <ListHeaderBand label={t('tcu.list.title')} count={count} />
           <Table>
             <TableHeader>

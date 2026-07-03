@@ -59,7 +59,7 @@ export function ProgramsDetailPage() {
         {courses.length === 0 ? (
           <NoResults message={t('programs.detail.noCourses')} />
         ) : (
-          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">

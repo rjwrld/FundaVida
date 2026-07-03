@@ -6,10 +6,7 @@ export function SkeletonStatCard({ className, ...props }: React.HTMLAttributes<H
     <div
       role="status"
       aria-label="Loading stat"
-      className={cn(
-        'flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-card',
-        className
-      )}
+      className={cn('flex flex-col gap-3 rounded-xl border border-border bg-card p-5', className)}
       {...props}
     >
       <span className="h-2.5 w-1/2 animate-pulse-soft rounded bg-muted" aria-hidden="true" />
