@@ -54,7 +54,7 @@ export function Hero() {
             transition={transitionDefaults}
             className="mt-8 flex flex-wrap items-center gap-3"
           >
-            <Button size="lg" onClick={enterAsAdmin} className="group gap-2 shadow-glow-primary">
+            <Button size="lg" onClick={enterAsAdmin} className="group gap-2">
               {t('landing.hero.primaryCta')}
               <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
             </Button>

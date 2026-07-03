@@ -109,11 +109,7 @@ export default {
         '2xl': 'calc(var(--radius) + 12px)',
       },
       boxShadow: {
-        soft: 'none',
-        card: 'none',
         elevated: '0 10px 40px -10px rgba(0,0,0,0.10), 0 2px 10px -2px rgba(0,0,0,0.04)',
-        'glow-primary': 'none',
-        'glow-flame': 'none',
       },
       keyframes: {
         'fade-in': {

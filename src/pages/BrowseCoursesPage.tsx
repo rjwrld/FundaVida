@@ -80,7 +80,7 @@ export function BrowseCoursesPage() {
       ) : count === 0 ? (
         <NoResults message={t('courses.browse.emptyFiltered')} />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
           <ListHeaderBand label={t('courses.browse.title')} count={count} />
           <Table>
             <TableHeader>

@@ -11,10 +11,7 @@ export function SkeletonTable({ rows = 5, columns = 4, className, ...props }: Sk
     <div
       role="status"
       aria-label="Loading table"
-      className={cn(
-        'overflow-hidden rounded-xl border border-border bg-card shadow-card',
-        className
-      )}
+      className={cn('overflow-hidden rounded-xl border border-border bg-card', className)}
       {...props}
     >
       <div

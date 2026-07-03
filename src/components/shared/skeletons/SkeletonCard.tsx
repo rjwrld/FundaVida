@@ -10,10 +10,7 @@ export function SkeletonCard({ lines = 3, className, ...props }: SkeletonCardPro
     <div
       role="status"
       aria-label="Loading"
-      className={cn(
-        'flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-card',
-        className
-      )}
+      className={cn('flex flex-col gap-3 rounded-xl border border-border bg-card p-5', className)}
       {...props}
     >
       <span className="h-4 w-1/3 animate-pulse-soft rounded bg-muted" aria-hidden="true" />

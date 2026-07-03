@@ -71,7 +71,7 @@ export function TcuApprovalQueue() {
 
       {/* Desktop: a dense table. Hidden on mobile, where columns would push the
           actions off-screen — the same rows render as stacked cards instead. */}
-      <div className="hidden overflow-hidden rounded-xl border border-border bg-card shadow-card sm:block">
+      <div className="hidden overflow-hidden rounded-xl border border-border bg-card sm:block">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -106,7 +106,7 @@ export function TcuApprovalQueue() {
       {/* Mobile: one card per activity with the actions full-width underneath. */}
       <ul className="space-y-3 sm:hidden">
         {rows.map(({ activity, traineeName }) => (
-          <li key={activity.id} className="rounded-xl border border-border bg-card p-4 shadow-card">
+          <li key={activity.id} className="rounded-xl border border-border bg-card p-4">
             <p className="font-medium text-foreground">{activity.title}</p>
             <p className="text-sm text-muted-foreground">{traineeName}</p>
             <p className="mt-1 text-xs text-muted-foreground">

@@ -33,7 +33,7 @@ export function AvatarStack({
   return (
     <div className={cn('flex items-center -space-x-2', className)} {...props}>
       {visible.map((avatar, i) => (
-        <Avatar key={i} className={cn('ring-2 ring-card shadow-card', sizeClasses[size])}>
+        <Avatar key={i} className={cn('ring-2 ring-card', sizeClasses[size])}>
           {avatar.src ? <AvatarImage src={avatar.src} alt={avatar.alt ?? avatar.fallback} /> : null}
           <AvatarFallback className="bg-brand-green-100 text-brand-green-800 dark:bg-brand-green-800 dark:text-brand-green-100">
             {avatar.fallback}

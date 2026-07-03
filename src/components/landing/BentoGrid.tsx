@@ -21,7 +21,7 @@ export function BentoCell({
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-xl border border-border bg-card p-6 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-elevated',
+        'group relative overflow-hidden rounded-xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:shadow-elevated',
         span === 2 && 'md:col-span-2',
         className
       )}

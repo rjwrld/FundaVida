@@ -23,7 +23,7 @@ export function FinalCTA() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
         transition={transitionDefaults}
-        className="relative overflow-hidden rounded-2xl bg-card p-12 text-center shadow-card ring-1 ring-brand-green-200/60 md:p-16 lg:p-20"
+        className="relative overflow-hidden rounded-2xl bg-card p-12 text-center ring-1 ring-brand-green-200/60 md:p-16 lg:p-20"
       >
         <div className="relative">
           <p className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-brand-green-700">
@@ -35,7 +35,7 @@ export function FinalCTA() {
           <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-muted-foreground">
             {t('landing.finalCta.subline')}
           </p>
-          <Button size="lg" onClick={enterAsAdmin} className="mt-10 gap-2 shadow-glow-primary">
+          <Button size="lg" onClick={enterAsAdmin} className="mt-10 gap-2">
             {t('landing.finalCta.cta')}
             <ArrowRight size={16} />
           </Button>

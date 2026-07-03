@@ -88,7 +88,7 @@ export function TeachersListPage() {
       ) : count === 0 ? (
         <NoResults message={t('teachers.list.emptyFiltered')} />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
           <ListHeaderBand label={t('teachers.list.title')} count={count} />
           <Table>
             <TableHeader>

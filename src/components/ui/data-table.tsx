@@ -87,7 +87,7 @@ export function DataTableCard<T>({
   const detailColumns = columns.filter((c) => c.id !== titleColumnId && c.id !== actionsColumnId)
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-card">
+    <div className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 font-medium text-foreground">{titleColumn?.cell(row)}</div>
         {actionsColumn ? <div className="shrink-0">{actionsColumn.cell(row)}</div> : null}
@@ -159,7 +159,7 @@ export function DataTable<T>({
     <div className="space-y-3">
       <div
         className={cn(
-          'overflow-hidden rounded-xl border border-border bg-card shadow-card',
+          'overflow-hidden rounded-xl border border-border bg-card',
           renderCard && 'hidden sm:block'
         )}
       >

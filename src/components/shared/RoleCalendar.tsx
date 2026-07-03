@@ -26,7 +26,7 @@ export function RoleCalendar({ courses, linkSessions }: RoleCalendarProps) {
       <CalendarWidget selected={selected} events={events} onSelect={setSelected} />
       <section
         aria-label={t('calendar.panelTitle')}
-        className="rounded-xl border border-border bg-card p-5 shadow-card"
+        className="rounded-xl border border-border bg-card p-5"
       >
         <h3 className="font-display text-base text-foreground">{t('calendar.panelTitle')}</h3>
         <SessionList sessions={daySessions} linkSessions={linkSessions} />

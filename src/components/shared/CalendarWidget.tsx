@@ -68,10 +68,7 @@ export function CalendarWidget({
   const days = eachDayOfInterval({ start, end })
 
   return (
-    <div
-      className={cn('rounded-xl border border-border bg-card p-5 shadow-card', className)}
-      {...props}
-    >
+    <div className={cn('rounded-xl border border-border bg-card p-5', className)} {...props}>
       <div className="flex items-center justify-between">
         <h3 className="font-display text-lg text-foreground">{format(month, 'MMMM yyyy')}</h3>
         <div className="flex items-center gap-2">
