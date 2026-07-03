@@ -275,7 +275,12 @@ export function MarkSessionAttendancePage() {
                         handleStatusChange(student.id, value as AttendanceRecord['status'])
                       }
                     >
-                      <SelectTrigger className="w-32">
+                      <SelectTrigger
+                        className="w-32"
+                        aria-label={t('attendance.mark.statusLabel', {
+                          name: `${student.firstName} ${student.lastName}`,
+                        })}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>

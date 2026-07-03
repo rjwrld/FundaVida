@@ -46,6 +46,7 @@
         "excused": "Excused",
         "present": "Present"
       },
+      "statusLabel": "Attendance status for {{name}}",
       "studentNameColumn": "Student",
       "subtitle": "Mark attendance for the selected session. All students default to present.",
       "title": "Mark Session Attendance"

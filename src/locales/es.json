@@ -46,6 +46,7 @@
         "excused": "Justificado",
         "present": "Presente"
       },
+      "statusLabel": "Estado de asistencia de {{name}}",
       "studentNameColumn": "Estudiante",
       "subtitle": "Marcar asistencia para la sesión seleccionada. Todos los estudiantes se asumen presentes por defecto.",
       "title": "Marcar Asistencia de Sesión"
