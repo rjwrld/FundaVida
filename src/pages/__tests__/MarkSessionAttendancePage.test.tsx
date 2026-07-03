@@ -152,6 +152,12 @@ describe('<MarkSessionAttendancePage />', () => {
     // Verify the Select buttons are rendered (one per student)
     const selectButtons = screen.getAllByRole('combobox')
     expect(selectButtons.length).toBeGreaterThan(0)
+    // Each status Select is named after its student so screen readers can tell
+    // the per-row comboboxes apart (a11y follow-up).
+    const labeled = screen.getAllByRole('combobox', {
+      name: new RegExp(`Attendance status for ${enrolledStudent.firstName}`, 'i'),
+    })
+    expect(labeled.length).toBeGreaterThan(0)
   })
 
   it('shows read-only state for a future session', async () => {
