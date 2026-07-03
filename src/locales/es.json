@@ -282,6 +282,25 @@
         "removeConfirm": "¿Quitar a {{student}} de este curso?"
       },
       "loading": "Cargando…",
+      "readiness": {
+        "attendance": {
+          "fail_one": "{{count}} sesión sin registrar",
+          "fail_many": "{{count}} sesiones sin registrar",
+          "fail_other": "{{count}} sesiones sin registrar",
+          "pass": "Todas las sesiones pasadas tienen registro de asistencia."
+        },
+        "grades": {
+          "fail_one": "{{count}} estudiante sin calificar",
+          "fail_many": "{{count}} estudiantes sin calificar",
+          "fail_other": "{{count}} estudiantes sin calificar",
+          "pass": "Todos los estudiantes aprobados tienen calificación."
+        },
+        "title": "Preparación para el cierre",
+        "verdict": {
+          "blocked": "Bloqueado",
+          "ready": "Listo para cerrar"
+        }
+      },
       "sections": {
         "attendance": "Marcar asistencia",
         "certificates": "Certificados",
