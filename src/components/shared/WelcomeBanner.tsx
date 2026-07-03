@@ -7,6 +7,12 @@ export interface WelcomeBannerProps extends React.HTMLAttributes<HTMLDivElement>
   eyebrow?: string
   action?: React.ReactNode
   illustration?: React.ReactNode
+  /**
+   * Heading level for the greeting. Defaults to `2` for use alongside a page's
+   * `PageHeader` <h1>; the standalone /welcome page passes `1` so the page has a
+   * top-level heading of its own.
+   */
+  headingLevel?: 1 | 2
 }
 
 export function WelcomeBanner({
@@ -15,9 +21,11 @@ export function WelcomeBanner({
   eyebrow,
   action,
   illustration,
+  headingLevel = 2,
   className,
   ...props
 }: WelcomeBannerProps) {
+  const Heading = `h${headingLevel}` as const
   return (
     <div
       className={cn(
@@ -36,9 +44,9 @@ export function WelcomeBanner({
             {eyebrow}
           </span>
         ) : null}
-        <h2 className="font-display text-4xl font-normal tracking-normal text-foreground">
+        <Heading className="font-display text-4xl font-normal tracking-normal text-foreground">
           {greeting}
-        </h2>
+        </Heading>
         <p className="max-w-md text-sm leading-relaxed text-muted-foreground">{context}</p>
         {action ? <div className="mt-1">{action}</div> : null}
       </div>

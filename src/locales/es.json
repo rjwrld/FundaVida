@@ -403,9 +403,7 @@
       "title": "Cursos por cerrar"
     },
     "enrollmentFunnel": {
-      "approved": "Aprobadas",
       "empty": "Sin actividad de matrículas.",
-      "pending": "Pendientes",
       "summary": "{{approved}} aprobadas · {{pending}} pendientes",
       "title": "Embudo de matrículas por sede",
       "viewAll": "Revisar matrículas"

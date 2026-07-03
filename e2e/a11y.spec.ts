@@ -11,13 +11,18 @@ const USER_KEY = 'fundavida:v2:current-user'
 const EPOCH = new Date('2026-06-01T12:00:00.000Z')
 
 /**
- * Axe runs in real Chromium here, so it can evaluate the two rules the jsdom
+ * Axe runs in real Chromium here, so it can evaluate the rules the jsdom
  * component suite must switch off — colour-contrast (needs layout + a canvas)
  * and region/landmark containment (a whole-page concern). This spec is the CI
- * home for both (see src/test/axe.ts). We scan against WCAG 2.0/2.1 A + AA plus
- * axe's landmark best-practices, and fail on any violation.
+ * home for both (see src/test/axe.ts).
+ *
+ * We scan the full WCAG 2.0/2.1 A + AA rule set plus axe's best-practice rules
+ * (which cover the landmark/region and heading-structure checks) and fail on
+ * any violation. This started as a four-rule allowlist; it was widened once the
+ * pre-existing findings it surfaced were fixed (dashboard heatmap grid roles,
+ * decorative funnel bars, weekday-header labels, /welcome heading level).
  */
-const RULES = ['color-contrast', 'region', 'landmark-one-main', 'landmark-unique']
+const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']
 
 async function scan(page: Page) {
   // Wait for framer-motion entrance fades to finish. Mid-fade, text sits at
@@ -34,7 +39,7 @@ async function scan(page: Page) {
     )
     // If a looping animation never settles we still scan the current frame.
     .catch(() => undefined)
-  return new AxeBuilder({ page }).withRules(RULES).analyze()
+  return new AxeBuilder({ page }).withTags(TAGS).analyze()
 }
 
 /** Seed the demo store and sign in as the given role before navigating. */

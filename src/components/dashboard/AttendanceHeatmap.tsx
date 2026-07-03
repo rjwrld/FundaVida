@@ -40,29 +40,32 @@ export function AttendanceHeatmap({ data }: AttendanceHeatmapProps) {
       <div
         role="grid"
         aria-label={t('dashboard.attendanceHeatmap.title')}
-        className="grid grid-cols-7 grid-rows-12 gap-[3px]"
+        className="flex flex-col gap-[3px]"
       >
-        {Array.from({ length: rows }).map((_, rowIdx) =>
-          Array.from({ length: cols }).map((__, colIdx) => {
-            const flat = rowIdx * cols + colIdx
-            const cell = cells[flat] ?? { date: '', rate: 0 }
-            const hasDate = cell.date !== ''
-            const tooltip = hasDate ? `${formatDate(cell.date)} · ${formatPercent(cell.rate)}` : ''
-            return (
-              <div
-                key={`${rowIdx}-${colIdx}`}
-                role="gridcell"
-                title={tooltip}
-                aria-label={tooltip}
-                className={`size-4 rounded-[3px] transition-transform hover:scale-110 ${bucketClass(
-                  cell.rate,
-                  hasDate
-                )}`}
-                style={{ gridRow: rowIdx + 1, gridColumn: colIdx + 1 }}
-              />
-            )
-          })
-        )}
+        {Array.from({ length: rows }).map((_, rowIdx) => (
+          <div key={rowIdx} role="row" className="flex gap-[3px]">
+            {Array.from({ length: cols }).map((__, colIdx) => {
+              const flat = rowIdx * cols + colIdx
+              const cell = cells[flat] ?? { date: '', rate: 0 }
+              const hasDate = cell.date !== ''
+              const tooltip = hasDate
+                ? `${formatDate(cell.date)} · ${formatPercent(cell.rate)}`
+                : ''
+              return (
+                <div
+                  key={`${rowIdx}-${colIdx}`}
+                  role="gridcell"
+                  title={tooltip || undefined}
+                  aria-label={tooltip || undefined}
+                  className={`size-4 rounded-[3px] transition-transform hover:scale-110 ${bucketClass(
+                    cell.rate,
+                    hasDate
+                  )}`}
+                />
+              )
+            })}
+          </div>
+        ))}
       </div>
       <div className="flex w-full items-center justify-end gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
         <span aria-hidden="true">{t('dashboard.attendanceHeatmap.legendLess')}</span>
