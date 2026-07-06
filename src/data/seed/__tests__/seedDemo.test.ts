@@ -267,18 +267,23 @@ describe('seedDemo — email campaigns reuse the Bulk Email recipient resolution
 })
 
 describe('seedDemo — Certificates are emitted on course close (ADR-0024)', () => {
-  it('earns one downloadable Certificate per passing Grade in a closed Course, score snapshotted', () => {
+  it('earns one downloadable Certificate per approved, passing Enrollment in a closed Course, score snapshotted', () => {
     const world = seedDemo(EPOCH)
     const closedCourseIds = new Set(
       world.courses.filter((c) => c.status === 'closed').map((c) => c.id)
     )
-    const passingInClosed = world.grades.filter(
-      (g) => g.score >= 70 && closedCourseIds.has(g.courseId)
-    )
-    expect(passingInClosed.length).toBeGreaterThan(0)
-    expect(world.certificates.length).toBe(passingInClosed.length)
+    const gradeByPair = new Map(world.grades.map((g) => [`${g.studentId}:${g.courseId}`, g]))
+    // The seed emits through the app's rule (ADR-0034): one Certificate per Student
+    // with an approved Enrollment in a closed Course AND a passing Grade.
+    const earned = world.enrollments.filter((e) => {
+      if (!closedCourseIds.has(e.courseId)) return false
+      if (e.status !== 'approved') return false
+      const grade = gradeByPair.get(`${e.studentId}:${e.courseId}`)
+      return !!grade && grade.score >= 70
+    })
+    expect(earned.length).toBeGreaterThan(0)
+    expect(world.certificates.length).toBe(earned.length)
 
-    const gradeByPair = new Map(passingInClosed.map((g) => [`${g.studentId}:${g.courseId}`, g]))
     world.certificates.forEach((cert) => {
       const grade = gradeByPair.get(`${cert.studentId}:${cert.courseId}`)
       expect(grade).toBeDefined()
@@ -286,6 +291,20 @@ describe('seedDemo — Certificates are emitted on course close (ADR-0024)', () 
       // A Certificate exists iff its PDF is available — it carries an emit instant
       // and no pending/approved status.
       expect(cert.issuedAt).toBeTruthy()
+    })
+  })
+
+  it('emits no Certificate for a non-approved Enrollment (ADR-0034)', () => {
+    const world = seedDemo(EPOCH)
+    const approvedPair = new Set(
+      world.enrollments
+        .filter((e) => e.status === 'approved')
+        .map((e) => `${e.studentId}:${e.courseId}`)
+    )
+    // Every seeded Certificate must correspond to an approved Enrollment; a
+    // withdrawn/rejected/pending Student never earns one even with a passing Grade.
+    world.certificates.forEach((cert) => {
+      expect(approvedPair.has(`${cert.studentId}:${cert.courseId}`)).toBe(true)
     })
   })
 
