@@ -73,8 +73,8 @@ export function applyScope<T extends keyof ScopeFilters>(
 
   switch (resource) {
     case 'programs':
-      // The only non-'all'/'none' path is unreachable (every role is 'all'); a
-      // narrowed token defensively yields an empty catalog.
+      // Viewing roles are 'all' (short-circuited above); tcu is 'none' (ADR-0035)
+      // and any narrowed token yields an empty catalog.
       return applyProgramsScope(items as ProgramList, token) as ScopeFilters[T]
     case 'students':
       return applyStudentsScope(items as StudentList, token, userId) as ScopeFilters[T]

@@ -26,6 +26,9 @@ export interface NavItem {
   resource?: Resource
   section: NavSection
   icon: LucideIcon
+  // Extra search aliases for the command palette (⌘K); the sidebar and drawer
+  // ignore them. Lets a user reach a destination by a synonym of its label.
+  keywords?: string[]
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -34,6 +37,7 @@ export const NAV_ITEMS: NavItem[] = [
     labelKey: 'nav.dashboard',
     section: 'programs',
     icon: LayoutDashboard,
+    keywords: ['home'],
   },
   {
     // No `resource`: the calendar is role-scoped by its derived Sessions, not by a
@@ -45,7 +49,8 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     // The read-only Program catalog (ADR-0015), derived from the matrix like
-    // every other resource nav entry (ADR-0010); viewable by every role.
+    // every other resource nav entry (ADR-0010); visible per-role, so it derives
+    // away for tcu (ADR-0035).
     to: '/app/programs',
     labelKey: 'nav.programs',
     resource: 'programs',

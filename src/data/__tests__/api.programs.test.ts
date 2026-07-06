@@ -12,11 +12,12 @@ describe('programsApi', () => {
     useStore.getState().resetDemo()
   })
 
-  const roles: Role[] = ['admin', 'teacher', 'student', 'tcu']
+  // The Program catalog is org-wide and read-only (ADR-0015) but visible per-role
+  // (ADR-0035): the viewing roles see the whole catalog through the scope seam,
+  // never a raw store read.
+  const viewingRoles: Role[] = ['admin', 'teacher', 'student']
 
-  // The Program catalog is org-wide and read-only (ADR-0015): every role sees the
-  // whole catalog through the scope seam, never a raw store read.
-  roles.forEach((role) => {
+  viewingRoles.forEach((role) => {
     it(`returns the whole catalog for ${role}`, async () => {
       useStore.getState().setRole(role)
       const expected = useStore.getState().programs
@@ -32,6 +33,21 @@ describe('programsApi', () => {
       const result = await programsApi.get(first.id)
       expect(result?.id).toBe(first.id)
     })
+  })
+
+  // The tcu read seam is closed ('none' scope, ADR-0035): the catalog reads empty
+  // and a by-id lookup resolves nothing, even though programs are seeded.
+  it('returns an empty catalog for tcu', async () => {
+    useStore.getState().setRole('tcu')
+    expect(useStore.getState().programs.length).toBeGreaterThan(0)
+    expect(await programsApi.list()).toEqual([])
+  })
+
+  it('resolves no program by id for tcu', async () => {
+    useStore.getState().setRole('tcu')
+    const first = useStore.getState().programs[0]
+    if (!first) throw new Error('expected a seeded program')
+    expect(await programsApi.get(first.id)).toBeNull()
   })
 
   it('returns null for an unknown program id', async () => {

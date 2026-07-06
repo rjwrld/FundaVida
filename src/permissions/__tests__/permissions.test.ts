@@ -346,8 +346,9 @@ describe('Permissions Matrix', () => {
         },
       },
       tcu: {
+        // The tcu role does not view the Program catalog (ADR-0035).
         programs: {
-          view: true,
+          view: false,
           create: false,
           edit: false,
           delete: false,
@@ -870,7 +871,8 @@ describe('Permissions Matrix', () => {
     it('tcu has self scope for tcu and none for everything else', () => {
       const scopes = scopeFor('tcu')
       expect(scopes).toEqual({
-        programs: 'all',
+        // The tcu catalog read seam is closed (ADR-0035).
+        programs: 'none',
         students: 'none',
         teachers: 'none',
         courses: 'none',
@@ -885,12 +887,13 @@ describe('Permissions Matrix', () => {
     })
   })
 
-  // The Program catalog is a read-only resource viewable by every role with an
-  // org-wide 'all' scope (ADR-0015). Locked down here for all four roles.
-  describe('programs resource (ADR-0015)', () => {
-    const allRoles: Role[] = ['admin', 'teacher', 'student', 'tcu']
+  // The Program catalog is org-wide in scope (ADR-0015) but visible per-role
+  // (ADR-0035): admin/teacher/student view it whole ('all'); tcu does not view it
+  // at all and its read seam is closed ('none').
+  describe('programs resource (ADR-0015, ADR-0035)', () => {
+    const viewingRoles: Role[] = ['admin', 'teacher', 'student']
 
-    allRoles.forEach((role) => {
+    viewingRoles.forEach((role) => {
       it(`${role} may view programs but never create/edit/delete them`, () => {
         expect(can(role, 'view', 'programs')).toBe(true)
         expect(can(role, 'create', 'programs')).toBe(false)
@@ -901,6 +904,14 @@ describe('Permissions Matrix', () => {
       it(`${role} reads the whole program catalog ('all' scope)`, () => {
         expect(scopeFor(role).programs).toBe('all')
       })
+    })
+
+    it('tcu neither views the catalog nor reads it (ADR-0035)', () => {
+      expect(can('tcu', 'view', 'programs')).toBe(false)
+      expect(can('tcu', 'create', 'programs')).toBe(false)
+      expect(can('tcu', 'edit', 'programs')).toBe(false)
+      expect(can('tcu', 'delete', 'programs')).toBe(false)
+      expect(scopeFor('tcu').programs).toBe('none')
     })
   })
 })
