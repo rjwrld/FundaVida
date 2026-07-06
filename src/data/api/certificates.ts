@@ -23,7 +23,7 @@ export const certificatesApi = {
     const state = useStore.getState()
     const role = state.role ?? 'student'
     const scope = scopeFor(role)['certificates']
-    const scoped = applyScope('certificates', scope, state.certificates)
+    const scoped = applyScope('certificates', scope, state.certificates, state)
     return applyFilters(scoped, filters)
   },
 }

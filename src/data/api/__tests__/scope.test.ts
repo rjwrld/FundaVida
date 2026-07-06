@@ -1,225 +1,244 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { useStore } from '../../store'
-import { applyScope } from '../scope'
-import {
-  clearPersistedState,
-  clearPersistedRole,
-  clearPersistedCurrentUser,
-} from '../../persistence'
-import type { Course } from '@/types'
+import { describe, it, expect } from 'vitest'
+import { applyScope, ownCourseIds, type ScopeContext } from '../scope'
+import type { Course, Student, Enrollment, Certificate } from '@/types'
 
-function getStudent() {
-  const student = useStore.getState().students[0]
-  if (!student) throw new Error('No student in seed')
-  return student
+// These are pure scope-rule units (ADR-0033): a scenario is a small hand-built
+// ScopeContext, not a resetDemo/setRole/store-mutation sequence. End-to-end
+// scoping (scopeFor + applyScope + slice) is covered by the api-surface tests.
+
+function makeCourse(over: Partial<Course> = {}): Course {
+  return {
+    id: 'cou-1',
+    name: 'Course',
+    description: '',
+    sede: 'Linda Vista',
+    programId: 'prog-1',
+    level: 'primaria',
+    status: 'published',
+    capacity: 20,
+    teacherId: 'tea-1',
+    term: { start: '2026-01-01', end: '2026-06-01' },
+    meetingDays: ['mon'],
+    createdAt: '2026-01-01T00:00:00.000Z',
+    ...over,
+  }
 }
 
-describe('openForEnrollment scope', () => {
-  beforeEach(() => {
-    clearPersistedState()
-    clearPersistedRole()
-    clearPersistedCurrentUser()
-    useStore.getState().resetDemo()
+function makeStudent(over: Partial<Student> = {}): Student {
+  return {
+    id: 'stu-1',
+    firstName: 'A',
+    lastName: 'B',
+    email: 'a@b.co',
+    gender: 'F',
+    sede: 'Linda Vista',
+    province: 'San José',
+    canton: 'Central',
+    educationalLevel: 'primaria',
+    guardian: { name: 'G', relationship: 'madre', phone: '', email: '' },
+    enrolledCourseIds: [],
+    createdAt: '2026-01-01T00:00:00.000Z',
+    ...over,
+  }
+}
+
+function makeEnrollment(over: Partial<Enrollment> = {}): Enrollment {
+  return {
+    id: 'enr-1',
+    studentId: 'stu-1',
+    courseId: 'cou-1',
+    enrolledAt: '2026-01-01T00:00:00.000Z',
+    status: 'approved',
+    requestedAt: '2026-01-01T00:00:00.000Z',
+    ...over,
+  }
+}
+
+function makeCertificate(over: Partial<Certificate> = {}): Certificate {
+  return {
+    id: 'cert-1',
+    studentId: 'stu-1',
+    courseId: 'cou-1',
+    score: 85,
+    issuedAt: '2026-06-01T00:00:00.000Z',
+    ...over,
+  }
+}
+
+function makeCtx(over: Partial<ScopeContext> = {}): ScopeContext {
+  return {
+    currentUserId: null,
+    courses: [],
+    enrollments: [],
+    students: [],
+    tcuTrainees: [],
+    ...over,
+  }
+}
+
+describe('ownCourseIds', () => {
+  it('returns the ids of courses the user teaches, and nothing else', () => {
+    const courses = [
+      makeCourse({ id: 'cou-1', teacherId: 'tea-1' }),
+      makeCourse({ id: 'cou-2', teacherId: 'tea-2' }),
+      makeCourse({ id: 'cou-3', teacherId: 'tea-1' }),
+    ]
+    const owned = ownCourseIds(courses, 'tea-1')
+    expect([...owned].sort()).toEqual(['cou-1', 'cou-3'])
+    expect(owned.has('cou-2')).toBe(false)
   })
 
-  it('filters to published, upcoming courses at student sede with matching level', async () => {
-    useStore.getState().setRole('student')
-    const state = useStore.getState()
+  it('returns an empty set when the user teaches nothing', () => {
+    const courses = [makeCourse({ teacherId: 'tea-2' })]
+    expect(ownCourseIds(courses, 'tea-1').size).toBe(0)
+  })
+})
 
-    // Get the student's sede and level
-    const student = getStudent()
-    expect(student).toBeDefined()
-
-    const courses = state.courses
-    const scoped = applyScope('courses', 'openForEnrollment', courses)
-
-    // Should return at least some courses
-    expect(scoped.length).toBeGreaterThan(0)
-
-    // All scoped courses should be:
-    // - published (not draft)
-    // - upcoming or in-progress (term start is not in past relative to now)
-    // - at student's sede
-    // - level matches the student's level (ADR-0020)
-    // - student is not already enrolled or pending
-
-    scoped.forEach((c) => {
-      expect(c.status).toBe('published')
-      expect(c.sede).toBe(student.sede)
-      expect(c.level === student.educationalLevel).toBe(true)
-      // Not already enrolled or pending — withdrawn/rejected courses may reappear
-      // (ADR-0016).
-      const activeEnrollment = state.enrollments.find(
-        (e) =>
-          e.studentId === student.id &&
-          e.courseId === c.id &&
-          (e.status === 'approved' || e.status === 'pending')
-      )
-      expect(activeEnrollment).toBeUndefined()
-    })
+describe('applyScope token short-circuits', () => {
+  it("'all' returns the list unfiltered regardless of user", () => {
+    const students = [makeStudent({ id: 'stu-1' }), makeStudent({ id: 'stu-2' })]
+    expect(applyScope('students', 'all', students, makeCtx())).toBe(students)
   })
 
-  it('excludes draft courses', async () => {
-    useStore.getState().setRole('student')
-    const state = useStore.getState()
-    const student = getStudent()
-
-    // Create a published course at student's sede
-    const publishedCourse = state.courses.find(
-      (c) =>
-        c.status === 'published' && c.sede === student.sede && c.level === student.educationalLevel
+  it("'none' always returns empty", () => {
+    const students = [makeStudent()]
+    expect(applyScope('students', 'none', students, makeCtx({ currentUserId: 'stu-1' }))).toEqual(
+      []
     )
-
-    // Create a draft course
-    if (publishedCourse) {
-      const draftCourse: Course = {
-        ...publishedCourse,
-        id: 'test-draft-cou-1',
-        status: 'draft',
-        createdAt: new Date().toISOString(),
-      }
-      useStore.getState().courses = [...state.courses, draftCourse]
-    }
-
-    const courses = useStore.getState().courses
-    const scoped = applyScope('courses', 'openForEnrollment', courses)
-
-    // Draft course should not be in the result
-    expect(scoped.some((c) => c.status === 'draft')).toBe(false)
   })
 
-  it('excludes courses at different sede', async () => {
-    useStore.getState().setRole('student')
-    const state = useStore.getState()
-    const student = getStudent()
+  it('returns empty when there is no current user and the token is narrowed', () => {
+    const students = [makeStudent({ id: 'stu-1' })]
+    expect(applyScope('students', 'self', students, makeCtx({ currentUserId: null }))).toEqual([])
+  })
+})
 
-    const courses = state.courses
-    const scoped = applyScope('courses', 'openForEnrollment', courses)
+describe('courses openForEnrollment scope', () => {
+  const student = makeStudent({ id: 'stu-1', sede: 'Linda Vista', educationalLevel: 'primaria' })
 
-    // No scoped course should be at a different sede
-    scoped.forEach((c) => {
-      expect(c.sede).toBe(student.sede)
-    })
+  it('keeps published, matching-sede, matching-level courses the student is not in', () => {
+    const courses = [
+      makeCourse({ id: 'open', status: 'published', sede: 'Linda Vista', level: 'primaria' }),
+    ]
+    const ctx = makeCtx({ currentUserId: 'stu-1', students: [student], courses })
+    const scoped = applyScope('courses', 'openForEnrollment', courses, ctx)
+    expect(scoped.map((c) => c.id)).toEqual(['open'])
   })
 
-  it('excludes courses with non-matching level', async () => {
-    useStore.getState().setRole('student')
-    const state = useStore.getState()
-    const student = getStudent()
-
-    const courses = state.courses
-    const scoped = applyScope('courses', 'openForEnrollment', courses)
-
-    // All scoped courses should have level matching the student (ADR-0020)
-    scoped.forEach((c) => {
-      expect(c.level === student.educationalLevel).toBe(true)
-    })
+  it('excludes draft courses', () => {
+    const courses = [
+      makeCourse({ id: 'draft', status: 'draft', sede: 'Linda Vista', level: 'primaria' }),
+    ]
+    const ctx = makeCtx({ currentUserId: 'stu-1', students: [student], courses })
+    expect(applyScope('courses', 'openForEnrollment', courses, ctx)).toEqual([])
   })
 
-  it('excludes courses the student is already enrolled in', async () => {
-    useStore.getState().setRole('student')
-    const state = useStore.getState()
-    const student = getStudent()
-
-    // Get a course the student is enrolled in
-    const enrolledCourse = state.courses.find((c) => student.enrolledCourseIds.includes(c.id))
-
-    const courses = state.courses
-    const scoped = applyScope('courses', 'openForEnrollment', courses)
-
-    // Enrolled course should not be in browse list
-    if (enrolledCourse) {
-      expect(scoped.some((c) => c.id === enrolledCourse.id)).toBe(false)
-    }
+  it('excludes courses at a different sede', () => {
+    const courses = [
+      makeCourse({ id: 'far', status: 'published', sede: 'Hatillo', level: 'primaria' }),
+    ]
+    const ctx = makeCtx({ currentUserId: 'stu-1', students: [student], courses })
+    expect(applyScope('courses', 'openForEnrollment', courses, ctx)).toEqual([])
   })
 
-  it('excludes courses student already has pending request for', async () => {
-    useStore.getState().setRole('student')
-    const state = useStore.getState()
-    const student = getStudent()
+  it('excludes courses with a non-matching level (ADR-0020)', () => {
+    const courses = [
+      makeCourse({ id: 'sec', status: 'published', sede: 'Linda Vista', level: 'secundaria' }),
+    ]
+    const ctx = makeCtx({ currentUserId: 'stu-1', students: [student], courses })
+    expect(applyScope('courses', 'openForEnrollment', courses, ctx)).toEqual([])
+  })
 
-    // Find or create a course student can browse
-    const browseableCourse = state.courses.find(
-      (c) =>
-        c.status === 'published' &&
-        c.sede === student.sede &&
-        c.level === student.educationalLevel &&
-        !student.enrolledCourseIds.includes(c.id)
-    )
+  it('excludes courses the student is already enrolled in or pending for (ADR-0016)', () => {
+    const courses = [
+      makeCourse({ id: 'approved', sede: 'Linda Vista', level: 'primaria' }),
+      makeCourse({ id: 'pending', sede: 'Linda Vista', level: 'primaria' }),
+      makeCourse({ id: 'withdrawn', sede: 'Linda Vista', level: 'primaria' }),
+    ]
+    const enrollments = [
+      makeEnrollment({ courseId: 'approved', status: 'approved' }),
+      makeEnrollment({ courseId: 'pending', status: 'pending' }),
+      // Withdrawn does not exclude — the student may re-request it.
+      makeEnrollment({ courseId: 'withdrawn', status: 'withdrawn' }),
+    ]
+    const ctx = makeCtx({ currentUserId: 'stu-1', students: [student], courses, enrollments })
+    const scoped = applyScope('courses', 'openForEnrollment', courses, ctx)
+    expect(scoped.map((c) => c.id)).toEqual(['withdrawn'])
+  })
 
-    if (browseableCourse) {
-      // Create a pending enrollment
-      useStore.getState().enrollments = [
-        ...state.enrollments,
-        {
-          id: 'enr-test-pending',
-          studentId: student.id,
-          courseId: browseableCourse.id,
-          enrolledAt: new Date().toISOString(),
-          status: 'pending',
-          requestedAt: new Date().toISOString(),
-        },
-      ]
+  it('returns empty when the current user is not a known student', () => {
+    const courses = [makeCourse({ sede: 'Linda Vista', level: 'primaria' })]
+    const ctx = makeCtx({ currentUserId: 'ghost', students: [student], courses })
+    expect(applyScope('courses', 'openForEnrollment', courses, ctx)).toEqual([])
+  })
+})
 
-      const courses = useStore.getState().courses
-      const scoped = applyScope('courses', 'openForEnrollment', courses)
-
-      // Course with pending request should not be browseable
-      expect(scoped.some((c) => c.id === browseableCourse.id)).toBe(false)
-    }
+describe('courses enrolled scope', () => {
+  it('keeps only courses the current user has any enrollment record in', () => {
+    const courses = [makeCourse({ id: 'in' }), makeCourse({ id: 'out' })]
+    const enrollments = [makeEnrollment({ studentId: 'stu-1', courseId: 'in' })]
+    const ctx = makeCtx({ currentUserId: 'stu-1', courses, enrollments })
+    const scoped = applyScope('courses', 'enrolled', courses, ctx)
+    expect(scoped.map((c) => c.id)).toEqual(['in'])
   })
 })
 
 describe('student self/own scopes (#166)', () => {
-  beforeEach(() => {
-    clearPersistedState()
-    clearPersistedRole()
-    clearPersistedCurrentUser()
-    useStore.getState().resetDemo()
-    useStore.getState().setRole('student')
-  })
-
   it("'self' narrows students to only the current student", () => {
-    const { currentUserId, students } = useStore.getState()
-    const scoped = applyScope('students', 'self', students)
-
-    expect(scoped).toHaveLength(1)
-    expect(scoped[0]?.id).toBe(currentUserId)
-    // Proves it actually narrows: the seed has more than one student.
-    expect(students.length).toBeGreaterThan(1)
+    const students = [makeStudent({ id: 'stu-1' }), makeStudent({ id: 'stu-2' })]
+    const scoped = applyScope('students', 'self', students, makeCtx({ currentUserId: 'stu-1' }))
+    expect(scoped.map((s) => s.id)).toEqual(['stu-1'])
   })
 
   it("'own' narrows enrollments to only the current student's enrollments", () => {
-    const { currentUserId, enrollments } = useStore.getState()
-    const scoped = applyScope('enrollments', 'own', enrollments)
-
-    expect(scoped.length).toBeGreaterThan(0)
-    expect(scoped.every((e) => e.studentId === currentUserId)).toBe(true)
-    // Proves it narrows: at least one seeded enrollment belongs to another student.
-    expect(scoped.length).toBeLessThan(enrollments.length)
+    const enrollments = [
+      makeEnrollment({ id: 'e1', studentId: 'stu-1' }),
+      makeEnrollment({ id: 'e2', studentId: 'stu-2' }),
+    ]
+    const scoped = applyScope(
+      'enrollments',
+      'own',
+      enrollments,
+      makeCtx({ currentUserId: 'stu-1' })
+    )
+    expect(scoped.map((e) => e.id)).toEqual(['e1'])
   })
 })
 
-describe('certificates ownCourses scope', () => {
-  beforeEach(() => {
-    clearPersistedState()
-    clearPersistedRole()
-    clearPersistedCurrentUser()
-    useStore.getState().resetDemo()
+describe('teacher ownCourses scopes', () => {
+  const courses = [
+    makeCourse({ id: 'mine', teacherId: 'tea-1' }),
+    makeCourse({ id: 'theirs', teacherId: 'tea-2' }),
+  ]
+
+  it('certificates narrow to those in courses the teacher owns (ADR-0019)', () => {
+    const certificates = [
+      makeCertificate({ id: 'c1', courseId: 'mine' }),
+      makeCertificate({ id: 'c2', courseId: 'theirs' }),
+    ]
+    const ctx = makeCtx({ currentUserId: 'tea-1', courses })
+    const scoped = applyScope('certificates', 'ownCourses', certificates, ctx)
+    expect(scoped.map((c) => c.id)).toEqual(['c1'])
   })
 
-  it('filters certificates to those in courses owned by the current teacher', () => {
-    useStore.getState().setRole('teacher')
-    const { currentUserId, courses, certificates } = useStore.getState()
-    const ownCourseIds = new Set(
-      courses.filter((c) => c.teacherId === currentUserId).map((c) => c.id)
-    )
+  it('enrollments narrow to the rosters of courses the teacher owns', () => {
+    const enrollments = [
+      makeEnrollment({ id: 'e1', courseId: 'mine' }),
+      makeEnrollment({ id: 'e2', courseId: 'theirs' }),
+    ]
+    const ctx = makeCtx({ currentUserId: 'tea-1', courses })
+    const scoped = applyScope('enrollments', 'ownCourses', enrollments, ctx)
+    expect(scoped.map((e) => e.id)).toEqual(['e1'])
+  })
 
-    const scoped = applyScope('certificates', 'ownCourses', certificates)
-
-    expect(scoped.length).toBeGreaterThan(0)
-    expect(scoped.every((c) => ownCourseIds.has(c.courseId))).toBe(true)
-    // Proves it actually narrows: at least one seeded certificate is excluded.
-    expect(scoped.length).toBeLessThan(certificates.length)
+  it('students narrow to those enrolled in courses the teacher owns', () => {
+    const enrollments = [
+      makeEnrollment({ studentId: 'stu-1', courseId: 'mine' }),
+      makeEnrollment({ studentId: 'stu-2', courseId: 'theirs' }),
+    ]
+    const students = [makeStudent({ id: 'stu-1' }), makeStudent({ id: 'stu-2' })]
+    const ctx = makeCtx({ currentUserId: 'tea-1', courses, enrollments })
+    const scoped = applyScope('students', 'enrolledInOwnCourses', students, ctx)
+    expect(scoped.map((s) => s.id)).toEqual(['stu-1'])
   })
 })

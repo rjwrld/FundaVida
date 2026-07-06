@@ -12,6 +12,6 @@ export const traineesApi = {
     // The trainee roster rides the tcu visibility scope (ADR-0013 pattern): admin
     // sees all, a TCU volunteer sees only themselves — never a raw, unscoped store read.
     const scope = scopeFor(role)['tcu']
-    return applyScope('trainees', scope, state.tcuTrainees)
+    return applyScope('trainees', scope, state.tcuTrainees, state)
   },
 }
