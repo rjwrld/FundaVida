@@ -34,6 +34,7 @@ import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { findSession, sessionsFor } from '@/lib/sessions'
+import { resolveQueries } from '@/lib/resolveQueries'
 import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
 import { clock } from '@/lib/clock'
 import type {
@@ -185,7 +186,8 @@ export function CoursesDetailPage() {
   const { formatGrade, formatDate } = useFormat()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { data: enrolledCourse, isLoading: enrolledLoading } = useCourse(id ?? '')
+  const courseQuery = useCourse(id ?? '')
+  const enrolledCourse = courseQuery.data
   const currentRole = useStore((s) => s.role)
   const currentUserId = useStore((s) => s.currentUserId)
 
@@ -193,9 +195,10 @@ export function CoursesDetailPage() {
   // (ADR-0012, issue #166): admin sees all, the Course's Teacher sees their own
   // Course's records, and a Student's 'own' scope collapses this to self — their
   // single enrollment in this Course, or empty.
-  const { data: courseEnrollments = [], isLoading: enrollmentsLoading } = useEnrollments({
+  const enrollmentsQuery = useEnrollments({
     courseId: id ?? '',
   })
+  const { data: courseEnrollments = [] } = enrollmentsQuery
 
   // The current Student's own enrollment in this Course, derived from the scoped
   // read above rather than a raw store filter (issue #166). "Active" = approved or
@@ -206,10 +209,11 @@ export function CoursesDetailPage() {
     : undefined
   const isActiveEnrollment = enrollment?.status === 'approved' || enrollment?.status === 'pending'
 
-  const { data: browseableCourse, isLoading: browseLoading } = useBrowseableCourse(
+  const browseableQuery = useBrowseableCourse(
     id ?? '',
     currentRole === 'student' && !isActiveEnrollment
   )
+  const browseableCourse = browseableQuery.data
   // Seats remaining for the browse path, read through the data-layer aggregate
   // seam (issue #166): a Student's 'own' enrollment scope can't count others', so
   // the count is computed server-side and never exposes who is enrolled.
@@ -223,13 +227,15 @@ export function CoursesDetailPage() {
   // Wait on the scoped enrollment query too: the browse-vs-records-vs-deny
   // decision below reads `enrollment`, so rendering before it resolves would
   // briefly mis-route an enrolled Student into the deny fallback (issue #166).
-  const isLoading = enrolledLoading || browseLoading || enrollmentsLoading
+  // The browse query is conditionally disabled — resolveQueries gates on
+  // isLoading, which a disabled query never sets, so it does not hang (ADR-0030).
+  const { isPending: isLoading } = resolveQueries([courseQuery, browseableQuery, enrollmentsQuery])
   const { data: scopedStudents = [] } = useStudents()
   const { data: scopedTrainees = [] } = useTcuTrainees()
-  const { data: scopedGrades = [], isLoading: gradesLoading } = useGrades({ courseId: id ?? '' })
-  const { data: ownAttendance = [], isLoading: attendanceLoading } = useAttendance({
-    courseId: id ?? '',
-  })
+  const gradesQuery = useGrades({ courseId: id ?? '' })
+  const attendanceQuery = useAttendance({ courseId: id ?? '' })
+  const { data: scopedGrades = [] } = gradesQuery
+  const { data: ownAttendance = [] } = attendanceQuery
   const unenroll = useUnenrollStudent()
   const markAttendance = useMarkAttendance()
   const requestEnrollment = useRequestEnrollment()
@@ -258,11 +264,13 @@ export function CoursesDetailPage() {
   // queries. Non-null only for a viewer who could run the close ceremony on a
   // published, Term-ended Course — the checklist's whole audience. Informational
   // only: it never gates or disables the close action.
+  // Grades/attendance resolve on their own timers, after the page-level loading
+  // gate: deriving from their [] placeholders would flash a false Blocked verdict
+  // on a ready course. resolveQueries owns that loading guard (ADR-0030); the memo
+  // below keeps only its domain guards and the derivation.
+  const readinessGate = resolveQueries([gradesQuery, attendanceQuery])
   const readiness = useMemo(() => {
-    // Grades/attendance resolve on their own timers, after the page-level loading
-    // gate: deriving from their [] placeholders would flash a false Blocked verdict
-    // on a ready course. Hold the checklist back until both have resolved.
-    if (gradesLoading || attendanceLoading) return null
+    if (readinessGate.isPending) return null
     if (!course || !canClose || course.status !== 'published') return null
     if (!isTermEnded(course, clock.now())) return null
     return closeReadiness({
@@ -272,15 +280,7 @@ export function CoursesDetailPage() {
       attendance: ownAttendance,
       now: clock.now(),
     })
-  }, [
-    course,
-    canClose,
-    courseEnrollments,
-    scopedGrades,
-    ownAttendance,
-    gradesLoading,
-    attendanceLoading,
-  ])
+  }, [course, canClose, courseEnrollments, scopedGrades, ownAttendance, readinessGate.isPending])
 
   if (isLoading)
     return <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>

@@ -489,6 +489,40 @@ describe('<CoursesDetailPage /> — close-readiness checklist (issue #204)', () 
     expect(badge).toHaveTextContent('Ready to close')
   })
 
+  it('the first painted verdict is never a false Blocked while attendance still loads', async () => {
+    const course = endedPublishedCourse()
+    makeReady(course)
+    asRole('admin')
+    // Hold attendance open past grades so the window where the checklist gate
+    // sees grades resolved but attendance still [] is wide and deterministic. A
+    // gate that dropped attendance would paint a Blocked verdict in this window.
+    const listAttendance = api.attendance.list
+    vi.spyOn(api.attendance, 'list').mockImplementation(async (filters) => {
+      await delay(600)
+      return listAttendance(filters)
+    })
+
+    // Capture the verdict text the very first frame it exists — a waiting findBy*
+    // could poll only after a flash had already resolved and miss it (ADR-0030).
+    let firstVerdict: string | null = null
+    const observer = new MutationObserver(() => {
+      if (firstVerdict !== null) return
+      const badge = document.querySelector('[data-testid="close-readiness-verdict"]')
+      if (badge) firstVerdict = badge.textContent
+    })
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true })
+
+    try {
+      renderPage(course.id)
+      const badge = await screen.findByTestId('close-readiness-verdict', {}, { timeout: 3000 })
+      expect(badge).toHaveTextContent('Ready to close')
+      // The FIRST frame the verdict ever painted must already be the ready verdict.
+      expect(firstVerdict).toContain('Ready to close')
+    } finally {
+      observer.disconnect()
+    }
+  })
+
   it('renders no checklist on a published mid-Term course', async () => {
     const s = useStore.getState()
     const midTerm = req(
