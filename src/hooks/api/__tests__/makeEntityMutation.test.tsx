@@ -78,7 +78,6 @@ describe('makeEntityMutation', () => {
     const { toast } = await import('sonner')
     const useThing = makeEntityMutation('createStudent')({
       toastKey: 'toasts.studentCreated',
-      invalidates: [['students']],
     })
 
     const { result } = renderHook(() => useThing(), { wrapper: wrapper() })
@@ -96,7 +95,6 @@ describe('makeEntityMutation', () => {
     })
     const useThing = makeEntityMutation('createStudent')({
       toastKey: 'toasts.studentCreated',
-      invalidates: [['students']],
     })
 
     const { result } = renderHook(() => useThing(), { wrapper: wrapper() })
@@ -108,11 +106,10 @@ describe('makeEntityMutation', () => {
     expect(toast.success).not.toHaveBeenCalled()
   })
 
-  it('invalidates the configured entity keys plus the audit key on success', async () => {
+  it('invalidates the keys the store call wrote, plus the audit key, on success', async () => {
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
     const useThing = makeEntityMutation('createStudent')({
       toastKey: 'toasts.studentCreated',
-      invalidates: [['students'], ['enrollments']],
     })
 
     const { result } = renderHook(() => useThing(), { wrapper: wrapper() })
@@ -120,9 +117,11 @@ describe('makeEntityMutation', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
+    // createStudent writes the students slice and (via withAudit) the audit log —
+    // and only those. Invalidation is derived from that write-set, not declared.
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['students'] })
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['enrollments'] })
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['auditLog'] })
+    expect(invalidateSpy).not.toHaveBeenCalledWith({ queryKey: ['enrollments'] })
   })
 
   it('does not invalidate anything when the store method throws', async () => {
@@ -132,7 +131,6 @@ describe('makeEntityMutation', () => {
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
     const useThing = makeEntityMutation('createStudent')({
       toastKey: 'toasts.studentCreated',
-      invalidates: [['students']],
     })
 
     const { result } = renderHook(() => useThing(), { wrapper: wrapper() })
@@ -143,7 +141,7 @@ describe('makeEntityMutation', () => {
     expect(invalidateSpy).not.toHaveBeenCalled()
   })
 
-  it('maps variables to positional args and derives invalidation keys from them', async () => {
+  it('maps variables to positional args and derives invalidation from the write-set', async () => {
     const { toast } = await import('sonner')
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
     const useThing = makeEntityMutation('updateStudent')<{
@@ -151,7 +149,6 @@ describe('makeEntityMutation', () => {
       patch: { firstName: string }
     }>({
       toastKey: 'toasts.studentUpdated',
-      invalidates: ({ id }) => [['students'], ['students', id]],
       args: ({ id, patch }) => [id, patch],
     })
 
@@ -164,7 +161,8 @@ describe('makeEntityMutation', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
     expect(toast.success).toHaveBeenCalledWith('toasts.studentUpdated')
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['students', first.id] })
+    // The list-key prefix invalidates via fuzzy matching; no per-id key is emitted.
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['students'] })
     expect(useStore.getState().students[0]?.firstName).toBe('Jane')
   })
 })

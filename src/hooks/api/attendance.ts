@@ -4,8 +4,7 @@ import { api } from '@/data/api'
 import { useStore } from '@/data/store'
 import type { AttendanceFilters } from '@/data/api/attendance'
 import { makeEntityMutation } from './makeEntityMutation'
-
-const ATTENDANCE_KEY = ['attendance'] as const
+import { ATTENDANCE_KEY } from './queryKeys'
 
 export function useAttendance(filters: AttendanceFilters = {}) {
   const role = useStore((s) => s.role)
@@ -23,7 +22,6 @@ export const useMarkAttendance = makeEntityMutation('markAttendance')<{
   status: AttendanceRecord['status']
 }>({
   toastKey: 'toasts.attendanceMarked',
-  invalidates: [ATTENDANCE_KEY, ['courses']],
   args: ({ courseId, studentId, sessionDate, status }) => [
     courseId,
     studentId,
@@ -38,7 +36,6 @@ export const useMarkSessionAttendance = makeEntityMutation('markSessionAttendanc
   attendanceByStudentId: Record<string, AttendanceRecord['status']>
 }>({
   toastKey: 'toasts.sessionAttendanceMarked',
-  invalidates: [ATTENDANCE_KEY, ['courses']],
   args: ({ courseId, sessionDate, attendanceByStudentId }) => [
     courseId,
     sessionDate,
