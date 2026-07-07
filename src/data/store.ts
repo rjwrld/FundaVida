@@ -14,10 +14,14 @@ import type {
   EmailCampaign,
   EmailFilter,
   Role,
+  SessionException,
+  SessionExceptionType,
 } from '@/types'
 import { can, type Action, type Resource, type PermissionContext } from '@/permissions'
 import { emitCertificatesForClose, isPassingScore } from '@/lib/certificates'
 import { clock, setDemoEpoch } from '@/lib/clock'
+import { effectiveSessions, isSessionMarked, isSessionRecordable } from '@/lib/sessions'
+import { isSameDay, parseISO, startOfDay } from 'date-fns'
 import { seedDemo } from './seed'
 import { debounce } from './debounce'
 import {
@@ -52,6 +56,7 @@ export interface StoreState {
   tcuTrainees: TcuTrainee[]
   tcuActivities: TcuActivity[]
   attendance: AttendanceRecord[]
+  sessionExceptions: SessionException[]
   auditLog: AuditLogEntry[]
   emailCampaigns: EmailCampaign[]
   role: Role | null
@@ -95,6 +100,13 @@ export interface StoreState {
     sessionDate: string,
     attendanceByStudentId: Record<string, AttendanceRecord['status']>
   ) => AttendanceRecord[]
+  createSessionException: (input: {
+    courseId: string
+    type: SessionExceptionType
+    date: string
+    newDate?: string
+    note?: string
+  }) => SessionException
   sendEmailCampaign: (input: {
     subject: string
     body: string
@@ -185,6 +197,7 @@ function initialState(): Pick<
   | 'tcuTrainees'
   | 'tcuActivities'
   | 'attendance'
+  | 'sessionExceptions'
   | 'auditLog'
   | 'emailCampaigns'
   | 'role'
@@ -213,11 +226,25 @@ function initialState(): Pick<
     tcuTrainees: snapshot.tcuTrainees,
     tcuActivities: snapshot.tcuActivities,
     attendance: snapshot.attendance,
+    sessionExceptions: snapshot.sessionExceptions,
     auditLog: snapshot.auditLog,
     emailCampaigns: snapshot.emailCampaigns,
     role,
     currentUserId,
     locale,
+  }
+}
+
+/** English audit copy for a session deviation (ADR-0005; audit is never t()d). */
+function sessionExceptionSummary(course: Course, exception: SessionException): string {
+  const day = (iso: string) => iso.slice(0, 10)
+  switch (exception.type) {
+    case 'cancelled':
+      return `Cancelled session on ${day(exception.date)} for ${course.name}`
+    case 'rescheduled':
+      return `Rescheduled session from ${day(exception.date)} to ${day(exception.newDate ?? exception.date)} for ${course.name}`
+    case 'extra':
+      return `Added extra session on ${day(exception.date)} for ${course.name}`
   }
 }
 
@@ -1225,6 +1252,96 @@ export const useStore = create<StoreState>((set, get) => ({
 
     return records
   },
+  createSessionException: (input) => {
+    const state = get()
+    const course = state.courses.find((c) => c.id === input.courseId)
+    if (!course) {
+      throw new Error(`cannot create session exception: unknown course ${input.courseId}`)
+    }
+    // Writers are the Course's own Teacher (courseOwned predicate) or admin, via
+    // the existing `courses` edit permission plus ownership — no new matrix
+    // resource (ADR-0039, ADR-0009). assertCan throws on a violation before any
+    // integrity check runs.
+    assertCan(state, 'edit', 'courses', { course, userId: state.currentUserId ?? undefined })
+    // A closed cohort is terminal (ADR-0024): its schedule is frozen. The UI hides
+    // the controls, but the store is the real boundary (ADR-0009), so guard here too.
+    if (course.status === 'closed') {
+      throw new Error(`cannot modify sessions of course ${input.courseId}: it is closed`)
+    }
+
+    const today = clock.today()
+    // The overlay composes on top of whatever exceptions already exist, so
+    // collision/target checks see the *current* effective schedule (ADR-0039).
+    const current = effectiveSessions(course, state.sessionExceptions)
+    const onOrAfterToday = (date: string) => startOfDay(parseISO(date)) >= today
+
+    if (input.type === 'cancelled' || input.type === 'rescheduled') {
+      // The target must name a Session that currently exists and has not yet
+      // occurred; a Session with any recorded attendance is immutable (ADR-0039).
+      const target = current.find((s) => isSameDay(parseISO(s.date), parseISO(input.date)))
+      if (!target) {
+        throw new Error(`cannot modify session on ${input.date}: no such session for this course`)
+      }
+      if (isSessionRecordable(target, today)) {
+        throw new Error(`cannot modify session on ${input.date}: it has already occurred (past)`)
+      }
+      if (isSessionMarked(course.id, input.date, state.attendance)) {
+        throw new Error(`cannot modify session on ${input.date}: it has recorded attendance`)
+      }
+    }
+
+    if (input.type === 'rescheduled' || input.type === 'extra') {
+      // The landing date (reschedule target / added date) must be today-or-later
+      // and must not collide with another effective Session; it need not land on a
+      // Meeting Day (ADR-0039).
+      const landing = input.type === 'rescheduled' ? input.newDate : input.date
+      if (!landing) {
+        throw new Error('cannot reschedule session: newDate is required')
+      }
+      if (!onOrAfterToday(landing)) {
+        throw new Error(`cannot schedule session on ${landing}: the date is in the past`)
+      }
+      // A reschedule frees up its own original slot, so that Session never counts
+      // as a collision against its own move; an extra frees nothing.
+      const freedDate = input.type === 'rescheduled' ? input.date : null
+      const collides = current.some(
+        (s) =>
+          (freedDate === null || !isSameDay(parseISO(s.date), parseISO(freedDate))) &&
+          isSameDay(parseISO(s.date), parseISO(landing))
+      )
+      if (collides) {
+        throw new Error(
+          `cannot schedule session on ${landing}: it collides with an existing session`
+        )
+      }
+    }
+
+    const exception: SessionException = {
+      id: nextId('sxc', state.sessionExceptions),
+      courseId: input.courseId,
+      type: input.type,
+      date: input.date,
+      ...(input.newDate !== undefined ? { newDate: input.newDate } : {}),
+      ...(input.note !== undefined ? { note: input.note } : {}),
+      createdAt: clock.now().toISOString(),
+    }
+    // ADR-0039 pairs this action with an auto-posted system Announcement
+    // (ADR-0040). That rides this same store action when the announcements slice
+    // lands (issue #250) — the seam is this single mutation, deliberately not
+    // stubbed here.
+    withAudit(set, (state) => ({
+      next: {
+        sessionExceptions: [...state.sessionExceptions, exception],
+      },
+      audit: {
+        action: 'create',
+        entity: 'session',
+        entityId: exception.id,
+        summary: sessionExceptionSummary(course, exception),
+      },
+    }))
+    return exception
+  },
   sendEmailCampaign: (input) => {
     const existing = get()
     assertCan(existing, 'create', 'bulkEmail')
@@ -1268,6 +1385,7 @@ const persistSnapshot = debounce((state: StoreState) => {
     tcuTrainees: state.tcuTrainees,
     tcuActivities: state.tcuActivities,
     attendance: state.attendance,
+    sessionExceptions: state.sessionExceptions,
     auditLog: state.auditLog,
     emailCampaigns: state.emailCampaigns,
   })

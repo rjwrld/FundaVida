@@ -36,6 +36,7 @@ const ENTITIES: AuditEntity[] = [
   'enrollment',
   'grade',
   'certificate',
+  'session',
   'emailCampaign',
 ]
 

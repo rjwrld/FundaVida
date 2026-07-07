@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { AttendanceRecord, Course, Enrollment, Grade } from '@/types'
+import type { AttendanceRecord, Course, Enrollment, Grade, SessionException } from '@/types'
 import { sessionsFor } from '../sessions'
 import { closeReadiness, isTermEnded } from '../closeReadiness'
 
@@ -82,6 +82,76 @@ describe('isTermEnded', () => {
     expect(isTermEnded(makeCourse({ term: { start: '2026-08-01', end: '2026-09-01' } }), NOW)).toBe(
       false
     )
+  })
+})
+
+describe('closeReadiness with the session-exceptions overlay (ADR-0039)', () => {
+  // Dates are derived from sessionsFor rather than hardcoded, so the assertions
+  // hold in any timezone (the base derivation anchors to local midnight).
+  const exception = (over: Partial<SessionException>): SessionException => ({
+    id: 'sxc-1',
+    courseId: 'cou-1',
+    type: 'cancelled',
+    date: '',
+    createdAt: '2026-05-01T00:00:00.000Z',
+    ...over,
+  })
+
+  it('a cancelled Session leaves the expected-session count (never blocks close)', () => {
+    const course = makeCourse()
+    const past = sessionsFor(course).filter((s) => new Date(s.date) <= NOW)
+    const target = past[1]?.date ?? ''
+    // No attendance: every past Monday would be unrecorded. Cancelling one drops
+    // it from the blocker list — a cancellation never penalizes the cohort.
+    const result = closeReadiness({
+      course,
+      enrollments: [makeEnrollment('s1')],
+      grades: [makeGrade('s1')],
+      attendance: [],
+      sessionExceptions: [exception({ type: 'cancelled', date: target })],
+      now: NOW,
+    })
+    expect(result.unrecordedSessions).toHaveLength(past.length - 1)
+    expect(result.unrecordedSessions.some((s) => s.date === target)).toBe(false)
+  })
+
+  it('a Session rescheduled into the future is no longer a past unrecorded blocker', () => {
+    const course = makeCourse()
+    const past = sessionsFor(course).filter((s) => new Date(s.date) <= NOW)
+    const result = closeReadiness({
+      course,
+      enrollments: [makeEnrollment('s1')],
+      grades: [makeGrade('s1')],
+      attendance: [],
+      sessionExceptions: [
+        exception({
+          type: 'rescheduled',
+          date: past[1]?.date ?? '',
+          newDate: '2026-07-20T00:00:00.000Z',
+        }),
+      ],
+      now: NOW,
+    })
+    expect(result.unrecordedSessions).toHaveLength(past.length - 1)
+  })
+
+  it('an extra past Session with no attendance is a new blocker', () => {
+    const course = makeCourse()
+    // A past date that is not already a base Session: one day after the first.
+    const firstPast = sessionsFor(course).filter((s) => new Date(s.date) <= NOW)[0]?.date ?? ''
+    const extraDate = new Date(firstPast)
+    extraDate.setDate(extraDate.getDate() + 1)
+    const result = closeReadiness({
+      course,
+      enrollments: [makeEnrollment('s1')],
+      grades: [makeGrade('s1')],
+      attendance: fullAttendance(course),
+      sessionExceptions: [exception({ type: 'extra', date: extraDate.toISOString() })],
+      now: NOW,
+    })
+    // Every base Monday is recorded, but the extra Session is not.
+    expect(result.unrecordedSessions).toHaveLength(1)
+    expect(result.ready).toBe(false)
   })
 })
 

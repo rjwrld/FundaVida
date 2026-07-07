@@ -12,6 +12,7 @@ import type {
   EmailCampaign,
   TcuActivity,
   TcuTrainee,
+  SessionException,
 } from '@/types'
 
 /**
@@ -69,6 +70,7 @@ type AuditLogList = AuditLogEntry[]
 type EmailCampaignList = EmailCampaign[]
 type TcuList = TcuActivity[]
 type TraineeList = TcuTrainee[]
+type SessionExceptionList = SessionException[]
 
 /**
  * Apply a scope token to a list of items.
@@ -122,6 +124,13 @@ export function applyScope<T extends keyof ScopeFilters>(
       return applyTcuScope(items as TcuList, token, userId, ctx) as ScopeFilters[T]
     case 'trainees':
       return applyTraineesScope(items as TraineeList, token, userId, ctx) as ScopeFilters[T]
+    case 'sessionExceptions':
+      return applySessionExceptionsScope(
+        items as SessionExceptionList,
+        token,
+        userId,
+        ctx
+      ) as ScopeFilters[T]
     default:
       // Unhandled resource: default to 'none'
       return [] as ScopeFilters[T]
@@ -141,6 +150,7 @@ export interface ScopeFilters {
   emailCampaigns: EmailCampaignList
   tcu: TcuList
   trainees: TraineeList
+  sessionExceptions: SessionExceptionList
 }
 
 function applyProgramsScope(_programs: ProgramList, token: Scope): ProgramList {
@@ -380,6 +390,23 @@ function applyTcuScope(
     default:
       return []
   }
+}
+
+function applySessionExceptionsScope(
+  exceptions: SessionExceptionList,
+  token: Scope,
+  userId: string,
+  ctx: ScopeContext
+): SessionExceptionList {
+  // Session exceptions inherit Course visibility exactly (ADR-0039): a viewer sees
+  // the exceptions of precisely the Courses they can see, so the overlay never
+  // leaks a deviation on a Course they can't read. Reuse the Courses scope rather
+  // than re-deriving the visible set, so the two can't diverge. ('all'/'none' are
+  // short-circuited in applyScope before this runs.)
+  const visibleCourseIds = new Set(
+    applyCoursesScope(ctx.courses, token, userId, ctx).map((c) => c.id)
+  )
+  return exceptions.filter((e) => visibleCourseIds.has(e.courseId))
 }
 
 function applyTraineesScope(

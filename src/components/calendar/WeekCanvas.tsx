@@ -8,13 +8,15 @@ import { clock } from '@/lib/clock'
 import { cn } from '@/lib/utils'
 import { weekAgendaDays } from '@/lib/weekAgenda'
 import { SessionCard, type SessionCardStatus } from './SessionCard'
-import type { Course } from '@/types'
+import type { Course, SessionException } from '@/types'
 
 export type CalendarViewMode = 'week' | 'month'
 
 export interface WeekCanvasProps {
   /** Already-scoped Courses (ADR-0008/0012); their derived Sessions fill the columns. */
   courses: Course[]
+  /** The Session exceptions overlay (ADR-0039), applied by `weekAgendaDays`. Omit for none. */
+  sessionExceptions?: SessionException[]
   /** Any day within the week to render; the canvas normalizes to that week's Monday. */
   weekOf: Date
   onWeekChange: (date: Date) => void
@@ -32,6 +34,7 @@ export interface WeekCanvasProps {
  */
 export function WeekCanvas({
   courses,
+  sessionExceptions = [],
   weekOf,
   onWeekChange,
   linkToMark,
@@ -41,7 +44,7 @@ export function WeekCanvas({
   const { locale } = useFormat()
   const dfLocale = locale === 'es' ? es : enUS
 
-  const days = weekAgendaDays(courses, weekOf)
+  const days = weekAgendaDays(courses, weekOf, sessionExceptions)
   const isEmptyWeek = days.every((day) => day.sessions.length === 0)
   const today = clock.today()
 

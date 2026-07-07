@@ -9,6 +9,7 @@ import { useAttendance } from '@/hooks/api/attendance'
 import { useGrades } from '@/hooks/api/grades'
 import { useEnrollments } from '@/hooks/api/enrollments'
 import { useCertificates } from '@/hooks/api/certificates'
+import { useSessionExceptions } from '@/hooks/api/sessionExceptions'
 import { useStore } from '@/data/store'
 import { clock } from '@/lib/clock'
 import { resolveQueries } from '@/lib/resolveQueries'
@@ -35,6 +36,7 @@ export function AgendaSlice() {
   const gradesQuery = useGrades()
   const enrollmentsQuery = useEnrollments()
   const certificatesQuery = useCertificates()
+  const sessionExceptionsQuery = useSessionExceptions()
 
   const gate = resolveQueries([
     coursesQuery,
@@ -42,13 +44,14 @@ export function AgendaSlice() {
     gradesQuery,
     enrollmentsQuery,
     certificatesQuery,
+    sessionExceptionsQuery,
   ])
 
   if (gate.isPending || !role) {
     return <SkeletonCard lines={4} data-testid="agenda-slice" />
   }
 
-  const [courses, attendance, grades, enrollments, certificates] = gate.data
+  const [courses, attendance, grades, enrollments, certificates, sessionExceptions] = gate.data
   const agenda = buildAgenda({
     role,
     courses,
@@ -56,6 +59,7 @@ export function AgendaSlice() {
     grades,
     enrollments,
     certificates,
+    sessionExceptions,
     now: clock.now(),
   })
 

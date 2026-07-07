@@ -31,9 +31,9 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v10 key', () => {
+  it('persists state under the v11 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v10:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v11:state')).not.toBeNull()
   })
 
   it('reseeds from a stale v2 snapshot and removes the stale v2 state key (ADR-0014)', () => {
@@ -113,6 +113,23 @@ describe('persistence', () => {
 
     expect(loadPersistedState()).toBeNull()
     expect(window.localStorage.getItem('fundavida:v9:state')).toBeNull()
+  })
+
+  it('reseeds from a stale v10 snapshot and removes the stale v10 state key (ADR-0039)', () => {
+    // A returning v10 visitor's snapshot predates the sessionExceptions slice. The
+    // v11 key bump makes it stale; it is dropped so the app reseeds rather than
+    // rehydrating Sessions with no overlay.
+    window.localStorage.setItem('fundavida:v10:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v10:state')).toBeNull()
+  })
+
+  it('rejects a snapshot lacking the sessionExceptions slice (pre-v11 reseeds, ADR-0039)', () => {
+    const snapshot = seedDemo(new Date()) as unknown as Record<string, unknown>
+    delete snapshot.sessionExceptions
+    savePersistedState(snapshot as never)
+    expect(loadPersistedState()).toBeNull()
   })
 
   it('rejects a snapshot whose certificate has the v9 shape (status, no issuedAt)', () => {

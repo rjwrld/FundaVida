@@ -54,6 +54,9 @@ const RESOURCE_READ = {
   emailCampaigns: { scopeKey: 'bulkEmail', slice: 'emailCampaigns' },
   tcu: { scopeKey: 'tcu', slice: 'tcuActivities' },
   trainees: { scopeKey: 'tcu', slice: 'tcuTrainees' },
+  // Session exceptions ride the Courses scope token (ADR-0039): visibility is
+  // "the exceptions of the Courses you can see", not a new permission resource.
+  sessionExceptions: { scopeKey: 'courses', slice: 'sessionExceptions' },
 } satisfies { [R in keyof ScopeFilters]: { scopeKey: Resource; slice: SliceKeyFor<R> } }
 
 /**

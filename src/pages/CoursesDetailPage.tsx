@@ -28,11 +28,12 @@ import {
   useUnenrollStudent,
   useRequestEnrollment,
   useWithdrawEnrollmentRequest,
+  useSessionExceptions,
 } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
-import { findSession, sessionsFor } from '@/lib/sessions'
+import { effectiveSessions, findSession } from '@/lib/sessions'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
 import { clock } from '@/lib/clock'
@@ -115,8 +116,10 @@ export function CoursesDetailPage() {
   const { data: scopedTrainees = [] } = useTcuTrainees()
   const gradesQuery = useGrades({ courseId: id ?? '' })
   const attendanceQuery = useAttendance({ courseId: id ?? '' })
+  const sessionExceptionsQuery = useSessionExceptions({ courseId: id ?? '' })
   const { data: scopedGrades = [] } = gradesQuery
   const { data: ownAttendance = [] } = attendanceQuery
+  const { data: sessionExceptions = [] } = sessionExceptionsQuery
   const unenroll = useUnenrollStudent()
   const requestEnrollment = useRequestEnrollment()
   const withdrawRequest = useWithdrawEnrollmentRequest()
@@ -138,6 +141,10 @@ export function CoursesDetailPage() {
   const canEditGrade = useCan('edit', 'grades', { course: course || undefined })
   const canDelete = useCan('delete', 'enrollments')
   const canMark = useCan('mark', 'attendance', { course: course || undefined })
+  // Cancel/reschedule/add Sessions ride the `edit courses` permission + ownership
+  // (ADR-0039): the Course's own Teacher or admin, on a non-closed cohort.
+  const canManageSessions =
+    useCan('edit', 'courses', { course: course || undefined }) && course?.status !== 'closed'
 
   // Close-readiness derivation (issue #204), from the page's existing scoped
   // queries. ONE closeReadiness derivation feeds both the close-readiness
@@ -149,7 +156,12 @@ export function CoursesDetailPage() {
   // page-level loading gate: deriving from their [] placeholders would flash a
   // false verdict (a Blocked checklist, or an all-past queue). resolveQueries owns
   // that loading guard (ADR-0030); until it resolves, both consumers hold.
-  const readinessGate = resolveQueries([gradesQuery, attendanceQuery, enrollmentsQuery])
+  const readinessGate = resolveQueries([
+    gradesQuery,
+    attendanceQuery,
+    enrollmentsQuery,
+    sessionExceptionsQuery,
+  ])
   const readiness = useMemo(() => {
     if (readinessGate.isPending) return null
     if (!course || (!canClose && !canMark)) return null
@@ -158,6 +170,7 @@ export function CoursesDetailPage() {
       enrollments: courseEnrollments,
       grades: scopedGrades,
       attendance: ownAttendance,
+      sessionExceptions,
       now: clock.now(),
     })
   }, [
@@ -167,6 +180,7 @@ export function CoursesDetailPage() {
     courseEnrollments,
     scopedGrades,
     ownAttendance,
+    sessionExceptions,
     readinessGate.isPending,
   ])
 
@@ -217,8 +231,10 @@ export function CoursesDetailPage() {
   // `readiness` object but surfaces for any marker, mid-Term gaps included.
   const showChecklist =
     !!readiness && canClose && course.status === 'published' && isTermEnded(course, clock.now())
-  // Sessions are derived from Term × Meeting Days, never stored (ADR-0001).
-  const sessions = sessionsFor(course)
+  // Sessions are derived from Term × Meeting Days (ADR-0001), then the stored
+  // exceptions overlay is applied last (ADR-0039) — one composed seam every
+  // surface reads.
+  const sessions = effectiveSessions(course, sessionExceptions)
   // Volunteers (TCU trainees) assigned to this Course, read through the scope seam.
   // Cross-check the One-Sede invariant (ADR-0011): a volunteer must share the
   // Course's Sede — a mismatch is a data violation and is dropped, never shown.
@@ -308,6 +324,7 @@ export function CoursesDetailPage() {
         readiness={readiness}
         attendance={ownAttendance}
         enrolledCount={courseEnrollments.length}
+        canManageSessions={canManageSessions}
       />
 
       {canViewRoster && (

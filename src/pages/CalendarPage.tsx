@@ -9,7 +9,14 @@ import { WeekCanvas, type CalendarViewMode } from '@/components/calendar/WeekCan
 import { SessionCard, type SessionCardStatus } from '@/components/calendar/SessionCard'
 import { Button } from '@/components/ui/button'
 import { useStore } from '@/data/store'
-import { useAttendance, useCertificates, useCourses, useEnrollments, useGrades } from '@/hooks/api'
+import {
+  useAttendance,
+  useCertificates,
+  useCourses,
+  useEnrollments,
+  useGrades,
+  useSessionExceptions,
+} from '@/hooks/api'
 import { buildAgenda } from '@/lib/agenda'
 import { clock } from '@/lib/clock'
 import { resolveQueries } from '@/lib/resolveQueries'
@@ -36,19 +43,24 @@ export function CalendarPage() {
   const gradesQuery = useGrades()
   const enrollmentsQuery = useEnrollments()
   const certificatesQuery = useCertificates()
+  const sessionExceptionsQuery = useSessionExceptions()
 
-  // The sidebar's verdict (needs-marking count, progress rows, pulse) reads
-  // five scoped queries; gate on all of them (ADR-0030) so a default-`[]`
-  // window can never flash a false count before every query resolves.
+  // The sidebar's verdict (needs-marking count, progress rows, pulse) and every
+  // Session surface read six scoped queries; gate on all of them (ADR-0030) so a
+  // default-`[]` window can never flash a false count before every query resolves.
   const gate = resolveQueries([
     coursesQuery,
     attendanceQuery,
     gradesQuery,
     enrollmentsQuery,
     certificatesQuery,
+    sessionExceptionsQuery,
   ])
 
-  const { selected, setSelected, events } = useDaySessions(gate.isPending ? [] : gate.data[0])
+  const { selected, setSelected, events } = useDaySessions(
+    gate.isPending ? [] : gate.data[0],
+    gate.isPending ? [] : gate.data[5]
+  )
 
   if (!role) return null
 
@@ -61,7 +73,7 @@ export function CalendarPage() {
     )
   }
 
-  const [courses, attendance, grades, enrollments, certificates] = gate.data
+  const [courses, attendance, grades, enrollments, certificates, sessionExceptions] = gate.data
 
   if (courses.length === 0) {
     return (
@@ -78,9 +90,18 @@ export function CalendarPage() {
   const linkToMark = role === 'admin' || role === 'teacher'
   const now = clock.today()
   // Month mode's day-detail panel (ADR-0038: "tap a day → its cards").
-  const daySessions = sessionsOnDay(courses, selected)
+  const daySessions = sessionsOnDay(courses, selected, sessionExceptions)
 
-  const agenda = buildAgenda({ role, courses, attendance, grades, enrollments, certificates, now })
+  const agenda = buildAgenda({
+    role,
+    courses,
+    attendance,
+    grades,
+    enrollments,
+    certificates,
+    sessionExceptions,
+    now,
+  })
 
   const statusFor = (courseId: string, date: string): SessionCardStatus => {
     if (role === 'student') {
@@ -141,6 +162,7 @@ export function CalendarPage() {
           {view === 'week' ? (
             <WeekCanvas
               courses={courses}
+              sessionExceptions={sessionExceptions}
               weekOf={weekOf}
               onWeekChange={setWeekOf}
               linkToMark={linkToMark}

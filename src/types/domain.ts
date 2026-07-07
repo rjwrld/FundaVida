@@ -194,6 +194,34 @@ export interface AttendanceRecord {
   status: AttendanceStatus
 }
 
+/**
+ * The kind of deviation a {@link SessionException} records (ADR-0039):
+ * `'cancelled'` drops a derived Session, `'rescheduled'` moves it to `newDate`,
+ * and `'extra'` adds a Session on a date the base derivation never produced.
+ */
+export type SessionExceptionType = 'cancelled' | 'rescheduled' | 'extra'
+
+/**
+ * A sparse, stored fact about a deviation from a Course's derived Sessions
+ * (ADR-0039). Sessions themselves stay derived (Term × Meeting Days, ADR-0001) —
+ * an exception is never a Session row, only an overlay applied last by
+ * `effectiveSessions`. `date` names the base Session being cancelled/moved (or the
+ * added date for `'extra'`); `newDate` is the reschedule target (present only for
+ * `'rescheduled'`). Future-only and attendance-guarded at the store (ADR-0009).
+ */
+export interface SessionException {
+  id: string
+  courseId: string
+  type: SessionExceptionType
+  /** The base Session's date being cancelled/moved, or the added date for `'extra'`. */
+  date: string
+  /** The reschedule target — present only when `type === 'rescheduled'`. */
+  newDate?: string
+  /** Optional teacher note explaining the deviation. */
+  note?: string
+  createdAt: string
+}
+
 export type AuditAction =
   | 'create'
   | 'update'
@@ -217,6 +245,7 @@ export type AuditEntity =
   | 'attendance'
   | 'emailCampaign'
   | 'tcuActivity'
+  | 'session'
 
 export interface AuditLogEntry {
   id: string

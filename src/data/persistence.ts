@@ -3,16 +3,23 @@ import { WEEKDAYS, type Role, type Weekday } from '@/types'
 import { SEDES, type Sede } from '@/constants/sede'
 import { COURSE_LEVELS, COURSE_STATUSES } from '@/constants/course'
 
-const STATE_KEY = 'fundavida:v10:state'
+// Exported so e2e's `pinDemoEpoch` imports the one source of truth instead of
+// hand-mirroring it — the drift class that silently voided the pin when it lagged
+// (ADR-0039; the v3→v10 drift). A stale mirror not only no-ops the pin but sits in
+// the legacy purge list below, actively deleting the injected snapshot at boot.
+export const STATE_KEY = 'fundavida:v11:state'
 const ROLE_KEY = 'fundavida:v2:role'
 
 // Stale pre-v4 snapshot keys this layer owns. They are not migrated (ADR-0003,
 // ADR-0014): they are removed on first load so the app reseeds cleanly at a
 // fresh Demo Epoch instead of rehydrating an incoherent older world. The v3
 // state snapshot predates the Program entity and the new Course/Enrollment/TCU
-// fields (ADR-0015/0016/0017). The v10 key bump reworks the Certificate model
-// (ADR-0024): emitted on course-close, no pending/approved status, `createdAt →
-// issuedAt` — so a v9 cert's shape no longer validates. It sits on top of v9's
+// fields (ADR-0015/0016/0017). The v11 key bump adds the persisted
+// `sessionExceptions` slice (ADR-0039): a v10 snapshot lacks it entirely, so the
+// world reseeds at a fresh Demo Epoch rather than rehydrating a Course whose
+// derived Sessions carry no overlay. It sits on top of v10's reworked Certificate
+// model (ADR-0024): emitted on course-close, no pending/approved status,
+// `createdAt → issuedAt` — so a v9 cert's shape no longer validates. That sits on v9's
 // Spanish TCU service-activity titles (catalog data rendered raw, never via
 // t()), on top of v8's level-neutral Program descriptions (so a single-level Course never
 // contradicts its blurb), v7's single-level Courses (ADR-0020) + human names
@@ -37,6 +44,7 @@ const LEGACY_SNAPSHOT_KEYS = [
   'fundavida:v7:state',
   'fundavida:v8:state',
   'fundavida:v9:state',
+  'fundavida:v10:state',
 ]
 
 export type PersistedState = SeedSnapshot
@@ -79,7 +87,10 @@ function isValidSnapshot(value: unknown): value is PersistedState {
     !Array.isArray(v.tcuActivities) ||
     !Array.isArray(v.attendance) ||
     !Array.isArray(v.auditLog) ||
-    !Array.isArray(v.emailCampaigns)
+    !Array.isArray(v.emailCampaigns) ||
+    // The v11 slice (ADR-0039): a v10 snapshot lacks it, so it fails here and the
+    // world reseeds rather than rehydrating Sessions with no overlay.
+    !Array.isArray(v.sessionExceptions)
   ) {
     return false
   }

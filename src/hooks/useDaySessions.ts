@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { isSameDay } from 'date-fns'
 import { clock } from '@/lib/clock'
-import { sessionsFor, type Session } from '@/lib/sessions'
-import type { Course } from '@/types'
+import { effectiveSessions, type Session } from '@/lib/sessions'
+import type { Course, SessionException } from '@/types'
 
 export interface DaySession extends Session {
   courseName: string
@@ -25,12 +25,18 @@ export interface UseDaySessions {
  * week agenda and the dashboard AgendaSlice, which bucket via lib/weekAgenda
  * and lib/agenda instead.
  */
-export function useDaySessions(courses: Course[]): UseDaySessions {
+export function useDaySessions(
+  courses: Course[],
+  exceptions: SessionException[] = []
+): UseDaySessions {
   const [selected, setSelected] = useState<Date>(() => clock.today())
 
   const sessions = useMemo<DaySession[]>(
-    () => courses.flatMap((c) => sessionsFor(c).map((s) => ({ ...s, courseName: c.name }))),
-    [courses]
+    () =>
+      courses.flatMap((c) =>
+        effectiveSessions(c, exceptions).map((s) => ({ ...s, courseName: c.name }))
+      ),
+    [courses, exceptions]
   )
 
   const events = useMemo(() => sessions.map((s) => new Date(s.date)), [sessions])
