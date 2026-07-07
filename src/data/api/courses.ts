@@ -1,8 +1,7 @@
 import type { Course } from '@/types'
 import type { Scope } from '@/permissions'
-import { scopeFor } from '@/permissions'
 import { useStore } from '../store'
-import { applyScope } from './scope'
+import { scopedGet, scopedList } from './scopedRead'
 import { delay } from './_delay'
 
 export interface CourseFilters {
@@ -25,23 +24,11 @@ function applyFilters(courses: Course[], filters: CourseFilters): Course[] {
 }
 
 export const coursesApi = {
-  async list(filters: CourseFilters = {}): Promise<Course[]> {
-    await delay()
-    const state = useStore.getState()
-    const role = state.role ?? 'student'
-    const courses = state.courses
-    const scope = filters.scopeOverride ?? scopeFor(role)['courses']
-    const scoped = applyScope('courses', scope, courses, state)
-    return applyFilters(scoped, filters)
+  list(filters: CourseFilters = {}): Promise<Course[]> {
+    return scopedList('courses', filters, applyFilters, filters.scopeOverride)
   },
-  async get(id: string, scopeOverride?: Scope): Promise<Course | null> {
-    await delay()
-    const state = useStore.getState()
-    const role = state.role ?? 'student'
-    const courses = state.courses
-    const scope = scopeOverride ?? scopeFor(role)['courses']
-    const scoped = applyScope('courses', scope, courses, state)
-    return scoped.find((c) => c.id === id) ?? null
+  get(id: string, scopeOverride?: Scope): Promise<Course | null> {
+    return scopedGet('courses', id, scopeOverride)
   },
   /**
    * Seats left in a Course = capacity − approved enrollments. An aggregate count

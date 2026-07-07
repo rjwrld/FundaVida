@@ -1,8 +1,5 @@
 import type { TcuActivity } from '@/types'
-import { scopeFor } from '@/permissions'
-import { useStore } from '../store'
-import { applyScope } from './scope'
-import { delay } from './_delay'
+import { scopedList } from './scopedRead'
 
 export interface TcuFilters {
   traineeId?: string
@@ -15,14 +12,10 @@ function applyFilters(activities: TcuActivity[], filters: TcuFilters): TcuActivi
   })
 }
 
+// Activities read the `tcuActivities` slice (not `tcu`) — the deviant slice is
+// declared in the RESOURCE_READ registry, so this delegation stays uniform.
 export const tcuApi = {
-  async list(filters: TcuFilters = {}): Promise<TcuActivity[]> {
-    await delay()
-    const state = useStore.getState()
-    const role = state.role ?? 'student'
-    const activities = state.tcuActivities
-    const scope = scopeFor(role)['tcu']
-    const scoped = applyScope('tcu', scope, activities, state)
-    return applyFilters(scoped, filters)
+  list(filters: TcuFilters = {}): Promise<TcuActivity[]> {
+    return scopedList('tcu', filters, applyFilters)
   },
 }

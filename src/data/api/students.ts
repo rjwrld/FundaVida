@@ -1,8 +1,5 @@
 import type { Student } from '@/types'
-import { scopeFor } from '@/permissions'
-import { useStore } from '../store'
-import { applyScope } from './scope'
-import { delay } from './_delay'
+import { scopedGet, scopedList } from './scopedRead'
 
 export interface StudentFilters {
   search?: string
@@ -26,22 +23,10 @@ function applyFilters(students: Student[], filters: StudentFilters): Student[] {
 }
 
 export const studentsApi = {
-  async list(filters: StudentFilters = {}): Promise<Student[]> {
-    await delay()
-    const state = useStore.getState()
-    const role = state.role ?? 'student'
-    const students = state.students
-    const scope = scopeFor(role)['students']
-    const scoped = applyScope('students', scope, students, state)
-    return applyFilters(scoped, filters)
+  list(filters: StudentFilters = {}): Promise<Student[]> {
+    return scopedList('students', filters, applyFilters)
   },
-  async get(id: string): Promise<Student | null> {
-    await delay()
-    const state = useStore.getState()
-    const role = state.role ?? 'student'
-    const students = state.students
-    const scope = scopeFor(role)['students']
-    const scoped = applyScope('students', scope, students, state)
-    return scoped.find((s) => s.id === id) ?? null
+  get(id: string): Promise<Student | null> {
+    return scopedGet('students', id)
   },
 }

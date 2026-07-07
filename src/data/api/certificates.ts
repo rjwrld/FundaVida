@@ -1,8 +1,5 @@
 import type { Certificate } from '@/types'
-import { scopeFor } from '@/permissions'
-import { useStore } from '../store'
-import { applyScope } from './scope'
-import { delay } from './_delay'
+import { scopedList } from './scopedRead'
 
 export interface CertificateFilters {
   studentId?: string
@@ -18,12 +15,7 @@ function applyFilters(certificates: Certificate[], filters: CertificateFilters):
 }
 
 export const certificatesApi = {
-  async list(filters: CertificateFilters = {}): Promise<Certificate[]> {
-    await delay()
-    const state = useStore.getState()
-    const role = state.role ?? 'student'
-    const scope = scopeFor(role)['certificates']
-    const scoped = applyScope('certificates', scope, state.certificates, state)
-    return applyFilters(scoped, filters)
+  list(filters: CertificateFilters = {}): Promise<Certificate[]> {
+    return scopedList('certificates', filters, applyFilters)
   },
 }

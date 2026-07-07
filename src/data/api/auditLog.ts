@@ -1,8 +1,5 @@
 import type { AuditLogEntry, AuditAction, AuditEntity } from '@/types'
-import { scopeFor } from '@/permissions'
-import { useStore } from '../store'
-import { applyScope } from './scope'
-import { delay } from './_delay'
+import { scopedList } from './scopedRead'
 
 export interface AuditLogFilters {
   action?: AuditAction
@@ -18,13 +15,7 @@ function applyFilters(entries: AuditLogEntry[], filters: AuditLogFilters): Audit
 }
 
 export const auditLogApi = {
-  async list(filters: AuditLogFilters = {}): Promise<AuditLogEntry[]> {
-    await delay()
-    const state = useStore.getState()
-    const role = state.role ?? 'student'
-    const auditLog = state.auditLog
-    const scope = scopeFor(role)['auditLog']
-    const scoped = applyScope('auditLog', scope, auditLog, state)
-    return applyFilters(scoped, filters)
+  list(filters: AuditLogFilters = {}): Promise<AuditLogEntry[]> {
+    return scopedList('auditLog', filters, applyFilters)
   },
 }

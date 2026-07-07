@@ -1,8 +1,5 @@
 import type { AttendanceRecord } from '@/types'
-import { scopeFor } from '@/permissions'
-import { useStore } from '../store'
-import { applyScope } from './scope'
-import { delay } from './_delay'
+import { scopedList } from './scopedRead'
 
 export interface AttendanceFilters {
   studentId?: string
@@ -20,13 +17,7 @@ function applyFilters(records: AttendanceRecord[], filters: AttendanceFilters): 
 }
 
 export const attendanceApi = {
-  async list(filters: AttendanceFilters = {}): Promise<AttendanceRecord[]> {
-    await delay()
-    const state = useStore.getState()
-    const role = state.role ?? 'student'
-    const attendance = state.attendance
-    const scope = scopeFor(role)['attendance']
-    const scoped = applyScope('attendance', scope, attendance, state)
-    return applyFilters(scoped, filters)
+  list(filters: AttendanceFilters = {}): Promise<AttendanceRecord[]> {
+    return scopedList('attendance', filters, applyFilters)
   },
 }
