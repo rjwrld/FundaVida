@@ -38,7 +38,7 @@ export function StudentDashboard() {
   // Hero: Next Class + Browse Open Courses
   // Supporting: My Courses, Attendance Rate
   return (
-    <DashboardShell courses={courses}>
+    <DashboardShell>
       {/* Hero: Next Class */}
       {nextClass && (
         <motion.div variants={fadeUp} transition={transitionDefaults}>

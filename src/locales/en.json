@@ -454,7 +454,20 @@
       "viewAll": "Review enrollments"
     },
     "rightPanel": {
-      "calendarTitle": "Calendar",
+      "agendaTitle": "Agenda",
+      "agendaUpcomingEmpty": "Nothing on deck.",
+      "agendaUpcomingTitle": "Upcoming",
+      "needsMarkingEmpty": "Nothing needs marking.",
+      "needsMarkingTitle": "Needs marking",
+      "noSessionsRecorded": "No sessions recorded yet",
+      "openCalendar": "Open Calendar",
+      "progressCount": "{{present}}/{{total}} attended",
+      "progressEmpty": "No enrollments yet.",
+      "progressTitle": "My progress",
+      "pulse": {
+        "toClose": "Ready to close",
+        "unmarked": "Unmarked sessions"
+      },
       "upcomingEmpty": "Nothing on deck.",
       "upcomingTitle": "On your radar"
     },

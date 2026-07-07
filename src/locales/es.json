@@ -460,7 +460,20 @@
       "viewAll": "Revisar matrículas"
     },
     "rightPanel": {
-      "calendarTitle": "Calendario",
+      "agendaTitle": "Agenda",
+      "agendaUpcomingEmpty": "Nada en la agenda.",
+      "agendaUpcomingTitle": "Próximas",
+      "needsMarkingEmpty": "Nada por registrar.",
+      "needsMarkingTitle": "Por registrar",
+      "noSessionsRecorded": "Aún no hay sesiones registradas",
+      "openCalendar": "Abrir calendario",
+      "progressCount": "{{present}}/{{total}} asistencias",
+      "progressEmpty": "Aún no hay matrículas.",
+      "progressTitle": "Mi progreso",
+      "pulse": {
+        "toClose": "Listos para cerrar",
+        "unmarked": "Sesiones sin registrar"
+      },
       "upcomingEmpty": "Nada en la agenda.",
       "upcomingTitle": "En tu radar"
     },
