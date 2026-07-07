@@ -8,53 +8,54 @@ const STATE_KEY = 'fundavida:v10:state'
 const ROLE_KEY = 'fundavida:v2:role'
 const USER_KEY = 'fundavida:v2:current-user'
 
-// A frozen epoch makes the seeded graph + clock deterministic (ADR-0014). "Now"
-// lands on a Monday so the default week view opens on a known Mon-Sun range.
-const EPOCH = new Date('2026-06-01T12:00:00.000Z')
-const NOW = new Date(2026, 5, 15) // Monday, June 15, 2026 (within the epoch's "today")
+// A frozen epoch makes the seeded graph + clock deterministic (ADR-0014). The
+// app's clock.today() resolves to startOfDay(EPOCH), so EPOCH must be the SAME
+// Monday the spec derives its "week of" expectations from — using two
+// different dates here was the seed-graph/clock mismatch that broke the first
+// pass of this spec (course terms are generated epoch-relative, ADR-0002, so a
+// different epoch reseeds different term windows entirely).
+const EPOCH = new Date(2026, 5, 15, 12, 0, 0) // Monday, June 15, 2026, noon local
+const NOW = new Date(2026, 5, 15) // the same calendar day, at local midnight
 
 type Snapshot = ReturnType<typeof seedDemo>
 
-// tea-1 (Jessica Marin, Linda Vista) teaches cou-19 — a published Mon/Wed
-// cohort whose term covers the week of June 15 — in the base seed already.
-// stu-1 (Linda Vista/primaria) has no enrollment in it by default, so we inject
-// one: this makes the student role's week agenda deterministic without
-// hardcoding faker-derived enrollment ids, which drift across reseeds.
-const TEACHER_ID = 'tea-1'
-const STUDENT_ID = 'stu-1'
-const TCU_ID = 'tcu-1'
-const COURSE_ID = 'cou-19'
-const ENROLLMENT_ID = 'enr-e2e-calendar'
+const seedSnapshot = seedDemo(EPOCH)
 
-function buildSnapshot(): Snapshot {
-  const snap = seedDemo(EPOCH)
-  const course = snap.courses.find((c) => c.id === COURSE_ID)
-  if (!course) throw new Error(`seed must include ${COURSE_ID}`)
-  if (course.teacherId !== TEACHER_ID) {
-    throw new Error(`seed drift: ${COURSE_ID} is no longer taught by ${TEACHER_ID}`)
-  }
-  const student = snap.students.find((s) => s.id === STUDENT_ID)
-  if (!student) throw new Error(`seed must include ${STUDENT_ID}`)
-  if (student.sede !== course.sede) {
-    throw new Error('seed drift: student/course Sede mismatch (ADR-0011)')
-  }
+// cou-13 (Música Secundaria, Hatillo, taught by tea-5) meets Mon/Wed and has
+// two sessions in the week of June 15 in this exact seed, one of them past
+// and unmarked (so the teacher's needs-marking bucket has a real deep link).
+// tcu-15 is the volunteer assigned to it (ADR-0036); stu-38 is enrolled with
+// real prior attendance. All are pre-existing seed anchors — no synthetic
+// enrollment injection needed. Anchors are asserted, not assumed: a seed
+// change that moves this course's term or roster fails loudly below rather
+// than producing a silently-wrong spec.
+const COURSE_ID = 'cou-13'
+const TEACHER_ID = 'tea-5'
+const TCU_ID = 'tcu-15'
+const STUDENT_ID = 'stu-38'
 
-  snap.enrollments.push({
-    id: ENROLLMENT_ID,
-    studentId: STUDENT_ID,
-    courseId: COURSE_ID,
-    enrolledAt: EPOCH.toISOString(),
-    status: 'approved',
-    requestedAt: EPOCH.toISOString(),
-  })
-
-  return snap
+const course = seedSnapshot.courses.find((c) => c.id === COURSE_ID)
+if (!course) throw new Error(`seed drift: ${COURSE_ID} missing`)
+if (course.teacherId !== TEACHER_ID) {
+  throw new Error(`seed drift: ${COURSE_ID} is no longer taught by ${TEACHER_ID}`)
+}
+const tcuTrainee = seedSnapshot.tcuTrainees.find((t) => t.id === TCU_ID)
+if (!tcuTrainee || tcuTrainee.courseId !== COURSE_ID) {
+  throw new Error(`seed drift: ${TCU_ID} is no longer assigned to ${COURSE_ID}`)
+}
+const studentEnrollment = seedSnapshot.enrollments.find(
+  (e) => e.studentId === STUDENT_ID && e.courseId === COURSE_ID && e.status === 'approved'
+)
+if (!studentEnrollment) {
+  throw new Error(`seed drift: ${STUDENT_ID} is no longer approved-enrolled in ${COURSE_ID}`)
 }
 
-const seedSnapshot = buildSnapshot()
-const course = seedSnapshot.courses.find((c) => c.id === COURSE_ID)
-if (!course) throw new Error(`seed must include ${COURSE_ID}`)
+// The card's short title (Program + Level + cohort, no Sede) — what SessionCard
+// renders. The sidebar's "needs marking"/"upcoming" rows use the full
+// courseName instead (course.name, with Sede) — the two surfaces render
+// different strings for the same Course, so each assertion targets the right one.
 const COURSE_SHORT = shortCourseName(course)
+const COURSE_FULL = course.name
 
 // Derive the week-of-June-15 session count from the same lib the app uses,
 // rather than hardcoding it — so a seed/lib change can't silently desync the spec.
@@ -62,6 +63,17 @@ const weekDays = weekAgendaDays([course], NOW)
 const weekSessionCount = weekDays.reduce((sum, d) => sum + d.sessions.length, 0)
 if (weekSessionCount === 0) {
   throw new Error(`seed drift: ${COURSE_ID} has no sessions in the week of ${NOW.toDateString()}`)
+}
+
+// Two weeks forward must still land inside the course's term so the
+// prev/next-navigation spec has something to assert on both sides.
+const twoWeeksLater = new Date(2026, 5, 29)
+const laterWeekSessionCount = weekAgendaDays([course], twoWeeksLater).reduce(
+  (sum, d) => sum + d.sessions.length,
+  0
+)
+if (laterWeekSessionCount === 0) {
+  throw new Error(`seed drift: ${COURSE_ID} has no sessions two weeks after ${NOW.toDateString()}`)
 }
 
 async function seedAndEnter(page: Page, snapshot: Snapshot, role: string, userId: string) {
@@ -89,10 +101,10 @@ test.describe('calendar week agenda (ADR-0038)', () => {
     await seedAndEnter(page, seedSnapshot, 'student', STUDENT_ID)
 
     await expect(page.getByRole('heading', { name: 'Calendar' })).toBeVisible()
-    // The week canvas renders the enrolled course's sessions this week.
-    await expect(page.getByText(COURSE_SHORT).first()).toBeVisible()
+    // The week canvas renders the enrolled course's sessions this week (short title).
+    await expect(page.getByText(COURSE_SHORT, { exact: true }).first()).toBeVisible()
     // Read-only: a student's card is never a link into Mark Attendance.
-    await expect(page.getByRole('link', { name: new RegExp(COURSE_SHORT) })).toHaveCount(0)
+    await expect(page.getByRole('main').getByRole('link', { name: COURSE_SHORT })).toHaveCount(0)
 
     // The sidebar carries "My progress" (present/total), not a needs-marking worklist.
     await expect(page.getByRole('heading', { name: 'My progress' })).toBeVisible()
@@ -107,27 +119,34 @@ test.describe('calendar week agenda (ADR-0038)', () => {
     await expect(page.getByRole('heading', { name: 'Calendar' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Needs marking' })).toBeVisible()
 
-    // At least one card for the taught course deep-links into Mark Attendance.
-    const links = page.getByRole('link', { name: new RegExp(COURSE_SHORT) })
-    await expect(links.first()).toBeVisible()
-    const href = await links.first().getAttribute('href')
-    expect(href).toMatch(new RegExp(`/app/courses/${COURSE_ID}/sessions/.*/mark`))
+    // The sidebar's needs-marking row uses the full course name (with Sede).
+    const sidebarLink = page.getByRole('link', { name: COURSE_FULL, exact: false })
+    await expect(sidebarLink.first()).toBeVisible()
+    const sidebarHref = await sidebarLink.first().getAttribute('href')
+    expect(sidebarHref).toMatch(new RegExp(`/app/courses/${COURSE_ID}/sessions/.*/mark`))
+
+    // The week canvas also renders a card for the taught course (short title),
+    // deep-linked into Mark Attendance.
+    const cardLink = page.getByRole('main').getByRole('link', { name: COURSE_SHORT })
+    await expect(cardLink.first()).toBeVisible()
+    const cardHref = await cardLink.first().getAttribute('href')
+    expect(cardHref).toMatch(new RegExp(`/app/courses/${COURSE_ID}/sessions/.*/mark`))
   })
 
   test('a tcu volunteer sees a read-only schedule for their one assigned course (ADR-0036)', async ({
     page,
   }) => {
-    const tcuTrainee = seedSnapshot.tcuTrainees.find((t) => t.id === TCU_ID)
-    if (!tcuTrainee) test.skip(true, 'seed must include tcu-1')
-
     await seedAndEnter(page, seedSnapshot, 'tcu', TCU_ID)
 
     await expect(page.getByRole('heading', { name: 'Calendar' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Upcoming' })).toBeVisible()
-    // No teacher/admin buckets, and no action links — read-only (ADR-0036).
+    // No teacher/admin buckets — read-only (ADR-0036).
     await expect(page.getByRole('heading', { name: 'Needs marking' })).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'Operational pulse' })).toHaveCount(0)
-    await expect(page.getByRole('link')).toHaveCount(0)
+    // No action links anywhere in the page's main content (the agenda surface) —
+    // scoped to `main` so the app-shell nav/footer links (always present) don't
+    // inflate the count.
+    await expect(page.getByRole('main').getByRole('link')).toHaveCount(0)
   })
 
   test('an admin sees every scoped course’s sessions and an operational pulse', async ({
@@ -137,13 +156,13 @@ test.describe('calendar week agenda (ADR-0038)', () => {
 
     await expect(page.getByRole('heading', { name: 'Calendar' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Operational pulse' })).toBeVisible()
-    await expect(page.getByText(COURSE_SHORT).first()).toBeVisible()
+    await expect(page.getByText(COURSE_SHORT, { exact: true }).first()).toBeVisible()
   })
 
   test('the Week|Month toggle switches to CalendarWidget month mode', async ({ page }) => {
     await seedAndEnter(page, seedSnapshot, 'admin', 'admin')
 
-    await expect(page.getByText(COURSE_SHORT).first()).toBeVisible()
+    await expect(page.getByText(COURSE_SHORT, { exact: true }).first()).toBeVisible()
     await page.getByRole('button', { name: 'Month', exact: true }).click()
 
     // CalendarWidget renders a month heading like "June 2026".
@@ -153,21 +172,17 @@ test.describe('calendar week agenda (ADR-0038)', () => {
   test('prev/next week navigation updates the visible sessions', async ({ page }) => {
     await seedAndEnter(page, seedSnapshot, 'admin', 'admin')
 
-    await expect(page.getByText(COURSE_SHORT).first()).toBeVisible()
-    // Two weeks forward moves past this Mon/Wed course's June cards (it still
+    const canvasLinks = page.getByRole('main').getByRole('link', { name: COURSE_SHORT })
+    await expect(canvasLinks.first()).toBeVisible()
+    const beforeHref = await canvasLinks.first().getAttribute('href')
+
+    // Two weeks forward moves past this Mon/Wed course's June 15 cards (it still
     // meets, but the specific date-stamped Mark links must change).
-    const beforeHref = await page
-      .getByRole('link', { name: new RegExp(COURSE_SHORT) })
-      .first()
-      .getAttribute('href')
-
     await page.getByRole('button', { name: 'Next week' }).click()
     await page.getByRole('button', { name: 'Next week' }).click()
 
-    const afterHref = await page
-      .getByRole('link', { name: new RegExp(COURSE_SHORT) })
-      .first()
-      .getAttribute('href')
+    await expect(canvasLinks.first()).toBeVisible()
+    const afterHref = await canvasLinks.first().getAttribute('href')
     expect(afterHref).not.toBe(beforeHref)
   })
 })
