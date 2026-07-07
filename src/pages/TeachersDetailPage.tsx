@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { NoResults } from '@/components/shared/NoResults'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { CourseStateBadge } from '@/components/courses/CourseStateBadge'
 import {
   Table,
   TableBody,
@@ -17,13 +17,6 @@ import { useCertificates, useCourses, useEnrollments, useGrades, useTeacher } fr
 import { resolveQueries } from '@/lib/resolveQueries'
 import { useFormat } from '@/hooks/useFormat'
 import { shortCourseName } from '@/lib/courseName'
-import type { CourseStatus } from '@/types'
-
-function courseStatusVariant(status: CourseStatus): 'success' | 'secondary' | 'warning' {
-  if (status === 'published') return 'success'
-  if (status === 'closed') return 'secondary'
-  return 'warning'
-}
 
 export function TeachersDetailPage() {
   const { t } = useTranslation()
@@ -155,9 +148,7 @@ export function TeachersDetailPage() {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={courseStatusVariant(course.status)}>
-                      {t(`courses.status.${course.status}`)}
-                    </Badge>
+                    <CourseStateBadge course={course} />
                   </TableCell>
                   <TableCell data-testid="teacher-course-term">
                     <span className="whitespace-nowrap">

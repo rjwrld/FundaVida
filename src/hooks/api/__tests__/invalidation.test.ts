@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { writeSetInvalidations, SLICE_TO_KEYS, type StoreSliceName } from '../invalidation'
 import { useStore, type StoreState } from '@/data/store'
+import { clock } from '@/lib/clock'
+import { isOpenForEnrollment } from '@/lib/courseDisplayState'
 import {
   clearPersistedState,
   clearPersistedRole,
@@ -120,8 +122,12 @@ describe('writeSetInvalidations — named regressions', () => {
   })
 
   it('enroll invalidates courses so the roster refetches (#87)', () => {
-    const course = useStore.getState().courses[0]
-    if (!course) throw new Error('expected a seeded course')
+    // An open published course — a closed/ended one is rejected by the ADR-0042 gate.
+    const now = clock.now()
+    const course = useStore
+      .getState()
+      .courses.find((c) => c.status === 'published' && isOpenForEnrollment(c, now))
+    if (!course) throw new Error('expected an open published seeded course')
     const enrolled = new Set(
       useStore
         .getState()

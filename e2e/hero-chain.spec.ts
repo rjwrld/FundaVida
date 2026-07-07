@@ -1,14 +1,22 @@
 import { test, expect } from '@playwright/test'
 import { seedDemo } from '../src/data/seed'
+import { isOpenForEnrollment } from '../src/lib/courseDisplayState'
 
-// A published Linda Vista / primaria cohort — matches the new student the chain
-// creates (campus Linda Vista, default level primaria), so they are enroll-eligible,
-// and it is published so the chain can close it to emit the Certificate (ADR-0024).
+// A published Linda Vista / primaria cohort still open for enrollment (ADR-0042) —
+// matches the new student the chain creates (campus Linda Vista, default level
+// primaria), so the direct-enroll is accepted by the term-end gate, and it is
+// published so the chain can close it to emit the Certificate (ADR-0024). Both the
+// app and this module seed at wall-time, so the open window agrees.
 const world = seedDemo(new Date())
+const chainNow = new Date()
 const chainCourse = world.courses.find(
-  (c) => c.status === 'published' && c.sede === 'Linda Vista' && c.level === 'primaria'
+  (c) =>
+    c.status === 'published' &&
+    isOpenForEnrollment(c, chainNow) &&
+    c.sede === 'Linda Vista' &&
+    c.level === 'primaria'
 )
-if (!chainCourse) throw new Error('seed has no published Linda Vista primaria course')
+if (!chainCourse) throw new Error('seed has no open published Linda Vista primaria course')
 
 test('admin runs the full chain: create student, enroll, grade, close, certificate', async ({
   page,
@@ -51,6 +59,9 @@ test('admin runs the full chain: create student, enroll, grade, close, certifica
   // in-memory store — a full reload could race the debounced localStorage flush.
   await page.getByRole('link', { name: 'Courses' }).click()
   await expect(page.getByRole('heading', { name: 'Courses' })).toBeVisible()
+  // Filter by name so the target lands on the first (10-row) page regardless of
+  // where it sorts in the full catalog.
+  await page.getByPlaceholder('Search by name').fill(chainCourse.name)
   // The course link renders in both the desktop table and the display:none mobile
   // card; :visible picks the table one so strict mode sees a single match.
   await page.locator(`a[href$="/courses/${chainCourse.id}"]:visible`).click()

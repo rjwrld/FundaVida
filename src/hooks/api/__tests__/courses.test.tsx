@@ -11,6 +11,8 @@ import {
   useSetGrade,
 } from '../courses'
 import { useStore } from '@/data/store'
+import { clock } from '@/lib/clock'
+import { isOpenForEnrollment } from '@/lib/courseDisplayState'
 import type { Weekday } from '@/types'
 import {
   clearPersistedState,
@@ -304,8 +306,12 @@ describe('useEnrollStudent', () => {
     // already-enrolled pair short-circuits in the store and writes nothing, so the
     // derived write-set (correctly) invalidates nothing.
     const state = useStore.getState()
-    const course = state.courses[0]
-    if (!course) throw new Error('expected at least one course')
+    // An open published course — a closed/ended one is rejected by the ADR-0042 gate.
+    const now = clock.now()
+    const course = state.courses.find(
+      (c) => c.status === 'published' && isOpenForEnrollment(c, now)
+    )
+    if (!course) throw new Error('expected an open published course')
     const enrolled = new Set(
       state.enrollments.filter((e) => e.courseId === course.id).map((e) => e.studentId)
     )

@@ -8,6 +8,7 @@ import { formatGrade } from '@/lib/format'
 import { shortCourseName } from '@/lib/courseName'
 import { sessionsFor } from '@/lib/sessions'
 import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
+import { courseDisplayState, isOpenForEnrollment } from '@/lib/courseDisplayState'
 import { clock } from '@/lib/clock'
 import { SEDES } from '@/constants/sede'
 import { CoursesDetailPage } from '@/pages/CoursesDetailPage'
@@ -87,16 +88,18 @@ function fixtures() {
     s.students.find((st) => st.id === self),
     'seed: stu-1 student missing'
   )
-  // Find a published course at stu-1's sede/level that stu-1 is not enrolled in
+  // A published course open for enrollment (ADR-0042) at stu-1's sede/level that
+  // stu-1 is not enrolled in — the request surface only renders for the open window.
   const browseableCourse = req(
     s.courses.find(
       (c) =>
         c.status === 'published' &&
+        isOpenForEnrollment(c, clock.now()) &&
         c.sede === student.sede &&
         c.level === student.educationalLevel &&
         !s.enrollments.some((e) => e.studentId === self && e.courseId === c.id)
     ),
-    'seed: no browseable course found for stu-1'
+    'seed: no open browseable course found for stu-1'
   )
   // tea-1's just-ended cohort is still published (the teacher hasn't run the close
   // ceremony) — the runway for the Close-course action. cou-1 is now closed (a
@@ -209,6 +212,38 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     expect(screen.queryByRole('heading', { name: /enrolled students/i })).not.toBeInTheDocument()
     // …and the Request button is visible (ADR-0016: browseable third path).
     expect(await screen.findByRole('button', { name: /request a spot/i })).toBeInTheDocument()
+  })
+
+  it('hides the Request button once the Course Term has ended (ADR-0042)', async () => {
+    const { browseableCourse } = fixtures()
+    // Seal the Term in the past: the course stays viewable (still in the browse
+    // scope) but the request surface must drop — the store would reject the
+    // mutation, so a live button would contradict the "Term ended" badge.
+    const now = clock.now()
+    useStore.setState((s) => ({
+      courses: s.courses.map((c) =>
+        c.id === browseableCourse.id
+          ? {
+              ...c,
+              term: {
+                start: new Date(now.getTime() - 60 * 24 * 3600 * 1000).toISOString(),
+                end: new Date(now.getTime() - 24 * 3600 * 1000).toISOString(),
+              },
+            }
+          : c
+      ),
+    }))
+    asRole('student')
+    renderPage(browseableCourse.id)
+
+    // The course detail still renders (the badge shows Term ended)…
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: shortCourseName(browseableCourse) })
+      ).toBeInTheDocument()
+    })
+    // …but the request surface is gone.
+    expect(screen.queryByRole('button', { name: /request a spot/i })).not.toBeInTheDocument()
   })
 
   it('shows an admin the full enrollment roster', async () => {
@@ -349,7 +384,7 @@ describe('<CoursesDetailPage /> — close course action (ADR-0024)', () => {
     expect(screen.queryByRole('button', { name: 'Close course' })).not.toBeInTheDocument()
   })
 
-  it('hides the Close course button once a course is closed and shows the Closed status', async () => {
+  it('hides the Close course button once a course is closed and shows the Finished state', async () => {
     const { publishedOwnCourse } = fixtures()
     // Close it first, then view it as admin.
     asRole('admin')
@@ -361,7 +396,8 @@ describe('<CoursesDetailPage /> — close course action (ADR-0024)', () => {
         screen.getByRole('heading', { name: shortCourseName(publishedOwnCourse) })
       ).toBeInTheDocument()
     })
-    expect(screen.getByText('Closed')).toBeInTheDocument()
+    // A closed cohort derives the Finished display state (ADR-0042).
+    expect(screen.getByText('Finished')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Close course' })).not.toBeInTheDocument()
   })
 })
@@ -743,24 +779,37 @@ describe('<CoursesDetailPage /> — sessions surface & roster (issue 153, ADR-00
     ).toBeInTheDocument()
   })
 
-  it('renders a closed Course’s status as a Closed badge', async () => {
+  it('renders a closed Course as a Finished badge (ADR-0042)', async () => {
     const { publishedOwnCourse } = fixtures()
     asRole('admin')
     useStore.getState().closeCourse(publishedOwnCourse.id)
     renderPage(publishedOwnCourse.id)
 
     const badge = await screen.findByTestId('course-status-badge')
-    expect(badge).toHaveTextContent('Closed')
+    expect(badge).toHaveTextContent('Finished')
   })
 
-  it('shows a published Course’s status badge, not a Closed one', async () => {
+  it('renders a published Course’s derived display state, never Finished (ADR-0042)', async () => {
     const { publishedOwnCourse } = fixtures()
     expect(publishedOwnCourse.status).toBe('published')
     asRole('admin')
     renderPage(publishedOwnCourse.id)
 
+    // A published cohort derives Starts soon / In progress / Term ended by its Term
+    // dates — computed here so the assertion tracks the seed rather than hard-coding.
+    const expected = {
+      startsSoon: 'Starts soon',
+      inProgress: 'In progress',
+      termEnded: 'Term ended',
+    }[
+      courseDisplayState(publishedOwnCourse, clock.now()) as
+        | 'startsSoon'
+        | 'inProgress'
+        | 'termEnded'
+    ]
+
     const badge = await screen.findByTestId('course-status-badge')
-    expect(badge).toHaveTextContent('Published')
-    expect(badge).not.toHaveTextContent('Closed')
+    expect(badge).toHaveTextContent(expected)
+    expect(badge).not.toHaveTextContent('Finished')
   })
 })

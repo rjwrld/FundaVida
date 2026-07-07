@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useStore } from '../store'
 import { clearPersistedState, clearPersistedRole, clearPersistedCurrentUser } from '../persistence'
+import { clock } from '@/lib/clock'
+import { isOpenForEnrollment } from '@/lib/courseDisplayState'
 
 function getTeacher() {
   const teacher = useStore.getState().teachers[0]
@@ -84,9 +86,12 @@ describe('enrollment approval mutations', () => {
       useStore.getState().setRole('admin')
       const state = useStore.getState()
 
-      // Pick a course and the unenrolled students eligible for it: same Sede and
-      // matching level (ADR-0020).
-      const course = state.courses.find((c) => c.capacity > 0)
+      // Pick a course open for enrollment (ADR-0042) and the unenrolled students
+      // eligible for it: same Sede and matching level (ADR-0020).
+      const now = clock.now()
+      const course = state.courses.find(
+        (c) => c.capacity > 0 && c.status === 'published' && isOpenForEnrollment(c, now)
+      )
       if (!course) return
       const enrolledIds = new Set(
         state.enrollments.filter((e) => e.courseId === course.id).map((e) => e.studentId)
@@ -290,10 +295,14 @@ describe('enrollment approval mutations', () => {
       const student = allStudents[2]
       if (!student) return
 
+      const now = clock.now()
       const ownCourse = state.courses.find(
         (c) =>
           c.teacherId === teacher.id &&
           c.sede === student.sede &&
+          c.level === student.educationalLevel &&
+          c.status === 'published' &&
+          isOpenForEnrollment(c, now) &&
           !state.enrollments.some((e) => e.studentId === student.id && e.courseId === c.id)
       )
 

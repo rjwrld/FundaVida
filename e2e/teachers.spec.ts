@@ -27,9 +27,9 @@ test('admin sees a teacher profile with per-course stats (ADR-0012 scope seam)',
   for (const col of ['Course', 'Status', 'Term', 'Roster', 'Graded', 'Certificates']) {
     await expect(page.getByRole('columnheader', { name: col, exact: true })).toBeVisible()
   }
-  // The closed anchor Course links to its detail and shows the Closed status.
+  // The closed anchor Course links to its detail and shows the Finished display state (ADR-0042).
   await expect(page.getByRole('link', { name: shortCourseName(anchorCourse) })).toBeVisible()
-  await expect(page.getByText('Closed').first()).toBeVisible()
+  await expect(page.getByText('Finished').first()).toBeVisible()
 })
 
 test('teacher profile renders its per-course table in Spanish', async ({ page }) => {
@@ -42,7 +42,7 @@ test('teacher profile renders its per-course table in Spanish', async ({ page })
   for (const col of ['Curso', 'Estado', 'Periodo', 'Matrícula', 'Calificados', 'Certificados']) {
     await expect(page.getByRole('columnheader', { name: col, exact: true })).toBeVisible()
   }
-  await expect(page.getByText('Cerrado').first()).toBeVisible()
+  await expect(page.getByText('Finalizado').first()).toBeVisible()
 })
 
 test('admin creates a teacher', async ({ page }) => {
