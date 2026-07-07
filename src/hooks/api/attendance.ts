@@ -15,21 +15,6 @@ export function useAttendance(filters: AttendanceFilters = {}) {
   })
 }
 
-export const useMarkAttendance = makeEntityMutation('markAttendance')<{
-  courseId: string
-  studentId: string
-  sessionDate: string
-  status: AttendanceRecord['status']
-}>({
-  toastKey: 'toasts.attendanceMarked',
-  args: ({ courseId, studentId, sessionDate, status }) => [
-    courseId,
-    studentId,
-    sessionDate,
-    status,
-  ],
-})
-
 export const useMarkSessionAttendance = makeEntityMutation('markSessionAttendance')<{
   courseId: string
   sessionDate: string
