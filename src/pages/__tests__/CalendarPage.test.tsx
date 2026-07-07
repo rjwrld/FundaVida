@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { CalendarPage } from '@/pages/CalendarPage'
+import { api } from '@/data/api'
+import { delay } from '@/data/api/_delay'
 import { useStore } from '@/data/store'
 import { setDemoEpoch } from '@/lib/clock'
 import {
@@ -11,13 +13,9 @@ import {
   clearPersistedRole,
   clearPersistedState,
 } from '@/data/persistence'
-import type { Course, Enrollment, TcuTrainee, Weekday } from '@/types'
+import type { AttendanceRecord, Course, Enrollment, TcuTrainee, Weekday } from '@/types'
 
-// Fixed Demo Epoch (ADR-0014) so the calendar opens on June 2026 with
-// deterministic session days and selects the frozen today (June 15) on mount.
-// The clock is driven by setDemoEpoch alone (never wall-time), so no fake timers
-// are needed — and none may be used, since the calendar now loads its Courses
-// through useCourses (react-query + an async delay) that fake timers would stall.
+// Fixed Demo Epoch (ADR-0014) so the week agenda opens on a known Mon-Sun week.
 const NOW = new Date(2026, 5, 15) // Monday, June 15, 2026
 
 function isoDay(year: number, monthIndex: number, day: number): string {
@@ -65,8 +63,7 @@ const enrollmentStu1A: Enrollment = {
   requestedAt: isoDay(2026, 4, 20),
 }
 
-// tcu-1 is the tcu persona's userId; its courseId assigns it to courseA (ADR-0036),
-// so the tcu Courses scope resolves to cou-A and its Sessions light up the calendar.
+// tcu-1 is the tcu persona's userId; its courseId assigns it to courseA (ADR-0036).
 const traineeTcu1A: TcuTrainee = {
   id: 'tcu-1',
   firstName: 'Vera',
@@ -105,67 +102,147 @@ describe('<CalendarPage />', () => {
     useStore.getState().setLocale('en')
   })
 
-  it('shows a student only their enrolled courses’ sessions, read-only', async () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('shows a student only their enrolled course’s sessions, read-only', async () => {
     useStore.getState().setRole('student')
     renderPage()
 
-    // June 15 (today, a Mon/Wed session) is selected on mount → Matemáticas Session 5.
-    // Wait for the scoped Courses query (useCourses) to resolve past the skeleton.
-    expect(await screen.findByText('Matemáticas — Session 5')).toBeInTheDocument()
-    // Read-only: a student's entry is not a link.
+    // Matemáticas (Mon/Wed) has 2 sessions in the week of June 15; Historia never appears.
+    const cards = await screen.findAllByText('Matemáticas')
+    expect(cards.length).toBeGreaterThan(0)
+    expect(screen.queryByText('Historia')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Matemáticas/ })).not.toBeInTheDocument()
   })
 
-  it('never shows a session outside the student’s scope', async () => {
-    useStore.getState().setRole('student')
-    renderPage()
-
-    // Wait for the query to resolve (the in-scope session mounts).
-    await screen.findByText('Matemáticas — Session 5')
-    // Historia (cou-B) is not enrolled → never rendered, anywhere.
-    expect(screen.queryByText(/Historia/)).not.toBeInTheDocument()
-
-    // A cou-B-only day carries no event dot for the student...
-    const tue = screen.getByRole('button', { name: /Tuesday, June 16, 2026/ })
-    expect(tue).toHaveAttribute('data-has-event', 'false')
-
-    // ...and selecting it lists nothing, never the out-of-scope Historia session.
-    fireEvent.click(tue)
-    expect(screen.getByText('No sessions on this day.')).toBeInTheDocument()
-    expect(screen.queryByText(/Historia/)).not.toBeInTheDocument()
-  })
-
-  it('shows a teacher only their taught courses’ sessions, linked into the session', async () => {
+  it('shows a teacher only their taught course’s sessions, linked into Mark Attendance', async () => {
     useStore.getState().setRole('teacher')
     renderPage()
 
-    const link = await screen.findByRole('link', { name: 'Matemáticas — Session 5' })
-    expect(link.getAttribute('href')).toMatch(/\/app\/courses\/cou-A\/sessions\/.*\/mark/)
-    // Historia is taught by tea-2 → out of the teacher persona's scope.
-    expect(screen.queryByText(/Historia/)).not.toBeInTheDocument()
+    const links = await screen.findAllByRole('link', { name: /Matemáticas/ })
+    expect(links.length).toBeGreaterThan(0)
+    links.forEach((link) => {
+      expect(link.getAttribute('href')).toMatch(/\/app\/courses\/cou-A\/sessions\/.*\/mark/)
+    })
+    expect(screen.queryByText('Historia')).not.toBeInTheDocument()
   })
 
-  it('lights up for a tcu volunteer with their assigned course’s sessions (ADR-0036)', async () => {
+  it('lights up for a tcu volunteer with their assigned course’s sessions, read-only (ADR-0036)', async () => {
     useStore.getState().setRole('tcu')
     renderPage()
 
-    // The tcu Courses scope was 'none' (empty calendar); now 'assigned' resolves
-    // cou-A, so June 15 (Mon) shows Matemáticas Session 5 — the calendar lights up.
-    expect(await screen.findByText('Matemáticas — Session 5')).toBeInTheDocument()
-    // Historia (cou-B) is another trainee's course → never in this volunteer's scope.
-    expect(screen.queryByText(/Historia/)).not.toBeInTheDocument()
-    // A volunteer only serves; their entries are read-only (not links).
+    const cards = await screen.findAllByText('Matemáticas')
+    expect(cards.length).toBeGreaterThan(0)
+    expect(screen.queryByText('Historia')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Matemáticas/ })).not.toBeInTheDocument()
   })
 
-  it('shows an admin every course’s sessions', async () => {
+  it('shows an admin every course’s sessions in the week canvas', async () => {
     useStore.getState().setRole('admin')
     renderPage()
 
-    // Matemáticas on June 15 (Mon).
-    expect(await screen.findByText(/Matemáticas — Session 5/)).toBeInTheDocument()
-    // Historia on a Tue/Thu day is visible to the admin.
-    fireEvent.click(screen.getByRole('button', { name: /Tuesday, June 16, 2026/ }))
-    expect(screen.getByText(/Historia — Session 5/)).toBeInTheDocument()
+    expect((await screen.findAllByText('Matemáticas')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Historia').length).toBeGreaterThan(0)
+  })
+
+  it('shows the teacher a needs-marking worklist in the sidebar', async () => {
+    useStore.getState().setRole('teacher')
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: 'Needs marking' })).toBeInTheDocument()
+  })
+
+  it('shows the student "My progress" with no-sessions-yet copy when total is 0', async () => {
+    useStore.getState().setRole('student')
+    renderPage()
+
+    expect(await screen.findByText('My progress')).toBeInTheDocument()
+    // No AttendanceRecord seeded → total 0/0 → the coordinator's copy override.
+    expect(screen.getByText('No sessions recorded yet')).toBeInTheDocument()
+  })
+
+  it('toggles to month mode, reusing CalendarWidget', async () => {
+    useStore.getState().setRole('admin')
+    renderPage()
+
+    await screen.findAllByText('Matemáticas')
+    fireEvent.click(screen.getByRole('button', { name: 'Month' }))
+
+    // CalendarWidget renders a month heading like "June 2026".
+    expect(screen.getByText('June 2026')).toBeInTheDocument()
+  })
+
+  it('tapping a day in month mode shows that day’s session cards (ADR-0038)', async () => {
+    useStore.getState().setRole('admin')
+    renderPage()
+
+    await screen.findAllByText('Matemáticas')
+    fireEvent.click(screen.getByRole('button', { name: 'Month' }))
+
+    // June 15 (today, a Mon/Wed session) is selected on mount → its card shows below,
+    // panel copy is "Course · Session N" (SessionCard), not the old flat entry text.
+    const panel = screen.getByRole('heading', { name: 'Sessions' }).closest('div')
+    expect(panel).not.toBeNull()
+    if (panel) {
+      expect(await within(panel).findByText('Matemáticas')).toBeInTheDocument()
+      expect(within(panel).getByText('5')).toBeInTheDocument()
+    }
+
+    // A day with no session (neither course meets on Saturday) shows the empty-day copy.
+    fireEvent.click(screen.getByRole('button', { name: /Saturday, June 20, 2026/ }))
+    expect(screen.getByText('No sessions on this day.')).toBeInTheDocument()
+  })
+
+  it('shows an empty state when the viewer has no scoped courses', async () => {
+    useStore.getState().setRole('student')
+    useStore.setState({ courses: [courseB], enrollments: [] })
+    renderPage()
+
+    expect(await screen.findByText(/No courses yet/)).toBeInTheDocument()
+  })
+
+  // First-paint regression (ADR-0030): the student sidebar's progress bucket
+  // reads enrollments + courses + grades + attendance + certificates. Holding
+  // one of those queries open past the others must not let the sidebar paint
+  // a false "no sessions recorded" or flash a wrong present/total count.
+  it('never flashes the wrong progress verdict while a slower query resolves', async () => {
+    useStore.getState().setRole('student')
+    const attendanceRecords: AttendanceRecord[] = [
+      {
+        id: 'att-1',
+        courseId: 'cou-A',
+        studentId: 'stu-1',
+        sessionDate: isoDay(2026, 5, 1),
+        status: 'present',
+      },
+    ]
+    useStore.setState({ attendance: attendanceRecords })
+
+    const listAttendance = api.attendance.list
+    vi.spyOn(api.attendance, 'list').mockImplementation(async (filters) => {
+      await delay(600)
+      return listAttendance(filters)
+    })
+
+    let firstSidebarText: string | null = null
+    const observer = new MutationObserver(() => {
+      if (firstSidebarText !== null) return
+      const heading = screen.queryByText('My progress')
+      if (heading) firstSidebarText = heading.closest('section')?.textContent ?? null
+    })
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true })
+
+    try {
+      renderPage()
+      await screen.findByText('1/1 attended')
+      // The FIRST frame "My progress" ever painted already carried the real count,
+      // never a "no sessions recorded yet" placeholder computed off a [] default.
+      expect(firstSidebarText).not.toBeNull()
+      expect(firstSidebarText).not.toContain('No sessions recorded yet')
+    } finally {
+      observer.disconnect()
+    }
   })
 })

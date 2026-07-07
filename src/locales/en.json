@@ -139,11 +139,47 @@
     "title": "Bulk email"
   },
   "calendar": {
+    "card": {
+      "needsMarking": "Needs marking",
+      "session": "Session"
+    },
     "emptyDay": "No sessions on this day.",
+    "emptyWeek": "No sessions this week.",
+    "next": "Next week",
+    "noCourses": "No courses yet — sessions will appear here once you have one.",
     "panelTitle": "Sessions",
+    "previous": "Previous week",
     "sessionEntry": "{{course}} — Session {{ordinal}}",
+    "sidebar": {
+      "admin": {
+        "coursesToClose_one": "{{count}} course ready to close",
+        "coursesToClose_other": "{{count}} courses ready to close",
+        "pulseTitle": "Operational pulse",
+        "unmarked_one": "{{count}} session needs marking",
+        "unmarked_other": "{{count}} sessions need marking",
+        "unmarkedNone": "All sessions marked"
+      },
+      "student": {
+        "attended": "{{present}}/{{total}} attended",
+        "certificateEarned": "Certificate earned",
+        "certPending": "Certificate pending",
+        "noSessionsRecorded": "No sessions recorded yet",
+        "onTrack": "On track",
+        "progressTitle": "My progress"
+      },
+      "teacher": {
+        "empty": "Nothing needs marking",
+        "worklistTitle": "Needs marking"
+      },
+      "upcomingTitle": "Upcoming"
+    },
     "subtitle": "Your scoped sessions at a glance.",
-    "title": "Calendar"
+    "title": "Calendar",
+    "today": "Today",
+    "viewToggle": {
+      "month": "Month",
+      "week": "Week"
+    }
   },
   "certificates": {
     "empty": {
