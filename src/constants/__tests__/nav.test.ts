@@ -27,4 +27,14 @@ describe('navItemsForRole', () => {
     const tcuItems = navItemsForRole('tcu')
     expect(tcuItems.some((item) => item.to === '/app/programs')).toBe(false)
   })
+
+  it('exposes My profile to the student role only (self-only /app/me is structural)', () => {
+    const studentItems = navItemsForRole('student')
+    expect(studentItems.some((item) => item.to === '/app/me')).toBe(true)
+
+    for (const role of ['admin', 'teacher', 'tcu'] as Role[]) {
+      const items = navItemsForRole(role)
+      expect(items.some((item) => item.to === '/app/me')).toBe(false)
+    }
+  })
 })

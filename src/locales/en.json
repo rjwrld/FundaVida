@@ -659,8 +659,10 @@
     "dashboard": "Dashboard",
     "enrollments": "Enrollments",
     "grades": "Grades",
+    "myProfile": "My profile",
     "programs": "Programs",
     "sections": {
+      "account": "Account",
       "people": "People",
       "programs": "Programs",
       "reports": "Reports"

@@ -12,6 +12,7 @@ const { t } = require('i18next') as { t: (key: string) => string }
 t('nav.sections.programs')
 t('nav.sections.people')
 t('nav.sections.reports')
+t('nav.sections.account')
 
 // Keys referenced via NAV_ITEMS[].labelKey in AppSidebar
 t('nav.dashboard')
@@ -27,6 +28,7 @@ t('nav.certificates')
 t('nav.tcu')
 t('nav.auditLog')
 t('nav.bulkEmail')
+t('nav.myProfile')
 
 // Keys referenced via ROLES[].labelKey and ROLES[].blurbKey in LandingPage and RoleSwitcher
 t('roles.admin.label')

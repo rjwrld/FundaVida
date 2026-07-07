@@ -3,6 +3,7 @@ import {
   BookOpen,
   CalendarCheck2,
   CalendarDays,
+  CircleUserRound,
   FileText,
   GraduationCap,
   HandHeart,
@@ -18,12 +19,16 @@ import { can } from '@/permissions'
 import type { Resource } from '@/permissions'
 import type { Role } from '@/types'
 
-export type NavSection = 'programs' | 'people' | 'reports'
+export type NavSection = 'programs' | 'people' | 'reports' | 'account'
 
 export interface NavItem {
   to: string
   labelKey: string
   resource?: Resource
+  // For destinations whose access is structural rather than matrix-gated (like
+  // /app/me, which reads self-scoped seams and redirects other roles), visibility
+  // is pinned to these roles instead of a `resource`.
+  roles?: Role[]
   section: NavSection
   icon: LucideIcon
   // Extra search aliases for the command palette (⌘K); the sidebar and drawer
@@ -127,12 +132,24 @@ export const NAV_ITEMS: NavItem[] = [
     section: 'reports',
     icon: ScrollText,
   },
+  {
+    // The Student's self-service profile (/app/me). Self-only is structural —
+    // the page reads self-scoped seams and redirects any non-Student role — so
+    // the entry is pinned to the student role rather than a matrix resource.
+    to: '/app/me',
+    labelKey: 'nav.myProfile',
+    roles: ['student'],
+    section: 'account',
+    icon: CircleUserRound,
+    keywords: ['profile', 'account'],
+  },
 ]
 
-export const NAV_SECTIONS: NavSection[] = ['programs', 'people', 'reports']
+export const NAV_SECTIONS: NavSection[] = ['programs', 'people', 'reports', 'account']
 
 export function navItemsForRole(role: Role): NavItem[] {
   return NAV_ITEMS.filter((item) => {
+    if (item.roles && !item.roles.includes(role)) return false
     if (!item.resource) return true
     return can(role, 'view', item.resource)
   })
