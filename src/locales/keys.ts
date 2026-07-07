@@ -154,6 +154,11 @@ t('dashboard.tcu.noActivities')
 t('dashboard.atRisk.reasonFailing')
 t('dashboard.atRisk.reasonLowAttendance')
 
+// Keys referenced dynamically via t(`tcu.list.status.${a.status}`) in TcuListPage
+t('tcu.list.status.pending')
+t('tcu.list.status.approved')
+t('tcu.list.status.rejected')
+
 // Keys referenced dynamically via t(`landing.trustStrip.stat.${stat.key}`) in TrustStrip
 t('landing.trustStrip.stat.modules')
 t('landing.trustStrip.stat.locales')
