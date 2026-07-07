@@ -23,7 +23,6 @@ import {
   useCourseSeats,
   useEnrollments,
   useGrades,
-  useMarkAttendance,
   useStudents,
   useTcuTrainees,
   useUnenrollStudent,
@@ -33,19 +32,13 @@ import {
 import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
-import { findSession, isSessionRecordable, sessionsFor } from '@/lib/sessions'
+import { findSession, sessionsFor } from '@/lib/sessions'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
 import { clock } from '@/lib/clock'
-import type {
-  AttendanceRecord,
-  AttendanceStatus,
-  Course,
-  CourseStatus,
-  Enrollment,
-  Student,
-} from '@/types'
+import type { AttendanceStatus, CourseStatus } from '@/types'
 import { CloseReadinessChecklist } from '@/components/courses/CloseReadinessChecklist'
+import { CourseSessionsSection } from '@/components/courses/CourseSessionsSection'
 import { GradeDialog } from '@/components/courses/GradeDialog'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
 import { CourseCertificatesSection } from '@/components/courses/CourseCertificatesSection'
@@ -67,117 +60,6 @@ function courseStatusVariant(status: CourseStatus): 'success' | 'secondary' | 'w
   if (status === 'published') return 'success'
   if (status === 'closed') return 'secondary'
   return 'warning'
-}
-
-interface AttendanceMarkingSectionProps {
-  course: Course
-  courseEnrollments: Enrollment[]
-  scopedStudents: Student[]
-  selectedSessionDate: string | null
-  onSessionSelect: (date: string | null) => void
-  markAttendance: ReturnType<typeof useMarkAttendance>
-  ownAttendance: AttendanceRecord[]
-}
-
-function AttendanceMarkingSection({
-  course,
-  courseEnrollments,
-  scopedStudents,
-  selectedSessionDate,
-  onSessionSelect,
-  markAttendance,
-  ownAttendance,
-}: AttendanceMarkingSectionProps) {
-  const { t } = useTranslation()
-  const { formatDate } = useFormat()
-
-  const allSessions = sessionsFor(course)
-  const today = clock.today()
-  const markableSessions = allSessions.filter((s) => isSessionRecordable(s, today))
-
-  if (markableSessions.length === 0) {
-    return <NoResults message={t('courses.detail.attendance.noMarkableSessions')} />
-  }
-
-  const selected = selectedSessionDate
-    ? markableSessions.find((s) => s.date === selectedSessionDate)
-    : null
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        {markableSessions.map((session) => (
-          <Button
-            key={session.date}
-            variant={selectedSessionDate === session.date ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => onSessionSelect(session.date)}
-          >
-            {t('attendance.list.session', { ordinal: String(session.ordinal) } as Record<
-              string,
-              string
-            >)}{' '}
-            · {formatDate(session.date)}
-          </Button>
-        ))}
-      </div>
-
-      {selected && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('courses.detail.enrolledTable.name')}</TableHead>
-              <TableHead>{t('courses.detail.attendance.status')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {courseEnrollments.map((enrollment) => {
-              const student = scopedStudents.find((s) => s.id === enrollment.studentId)
-              if (!student) return null
-
-              const existingRecord = ownAttendance.find(
-                (a) =>
-                  a.courseId === course.id &&
-                  a.studentId === student.id &&
-                  a.sessionDate === selected.date
-              )
-              const currentStatus = existingRecord?.status || 'absent'
-
-              return (
-                <TableRow key={student.id}>
-                  <TableCell>
-                    {student.firstName} {student.lastName}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      {(['present', 'absent', 'excused'] as const).map((status) => (
-                        <Button
-                          key={status}
-                          variant={currentStatus === status ? 'default' : 'outline'}
-                          size="sm"
-                          disabled={markAttendance.isPending}
-                          onClick={() => {
-                            markAttendance.mutate({
-                              courseId: course.id,
-                              studentId: student.id,
-                              sessionDate: selected.date,
-                              status,
-                            })
-                          }}
-                        >
-                          {t(`attendance.list.status.${status}`)}
-                        </Button>
-                      ))}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
-      )}
-    </div>
-  )
 }
 
 export function CoursesDetailPage() {
@@ -236,7 +118,6 @@ export function CoursesDetailPage() {
   const { data: scopedGrades = [] } = gradesQuery
   const { data: ownAttendance = [] } = attendanceQuery
   const unenroll = useUnenrollStudent()
-  const markAttendance = useMarkAttendance()
   const requestEnrollment = useRequestEnrollment()
   const withdrawRequest = useWithdrawEnrollmentRequest()
   const closeCourse = useCloseCourse()
@@ -247,7 +128,6 @@ export function CoursesDetailPage() {
     id: string
     studentName: string
   } | null>(null)
-  const [selectedSessionDate, setSelectedSessionDate] = useState<string | null>(null)
   const [confirmClose, setConfirmClose] = useState(false)
 
   const canViewRoster = useCan('view', 'enrollments', { course: course || undefined })
@@ -260,18 +140,19 @@ export function CoursesDetailPage() {
   const canMark = useCan('mark', 'attendance', { course: course || undefined })
 
   // Close-readiness derivation (issue #204), from the page's existing scoped
-  // queries. Non-null only for a viewer who could run the close ceremony on a
-  // published, Term-ended Course — the checklist's whole audience. Informational
-  // only: it never gates or disables the close action.
-  // Grades/attendance resolve on their own timers, after the page-level loading
-  // gate: deriving from their [] placeholders would flash a false Blocked verdict
-  // on a ready course. resolveQueries owns that loading guard (ADR-0030); the memo
-  // below keeps only its domain guards and the derivation.
-  const readinessGate = resolveQueries([gradesQuery, attendanceQuery])
+  // queries. ONE closeReadiness derivation feeds both the close-readiness
+  // checklist and the Sessions section's Needs-attendance queue (ADR-0037), so the
+  // two verdicts agree by construction rather than by two calls that happen to
+  // share inputs. Computed for anyone who consumes either verdict — the close
+  // audience (canClose) or a marker (canMark) — and left null for everyone else.
+  // Grades/attendance/enrollments resolve on their own timers, after the
+  // page-level loading gate: deriving from their [] placeholders would flash a
+  // false verdict (a Blocked checklist, or an all-past queue). resolveQueries owns
+  // that loading guard (ADR-0030); until it resolves, both consumers hold.
+  const readinessGate = resolveQueries([gradesQuery, attendanceQuery, enrollmentsQuery])
   const readiness = useMemo(() => {
     if (readinessGate.isPending) return null
-    if (!course || !canClose || course.status !== 'published') return null
-    if (!isTermEnded(course, clock.now())) return null
+    if (!course || (!canClose && !canMark)) return null
     return closeReadiness({
       course,
       enrollments: courseEnrollments,
@@ -279,7 +160,15 @@ export function CoursesDetailPage() {
       attendance: ownAttendance,
       now: clock.now(),
     })
-  }, [course, canClose, courseEnrollments, scopedGrades, ownAttendance, readinessGate.isPending])
+  }, [
+    course,
+    canClose,
+    canMark,
+    courseEnrollments,
+    scopedGrades,
+    ownAttendance,
+    readinessGate.isPending,
+  ])
 
   if (isLoading)
     return <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
@@ -323,6 +212,11 @@ export function CoursesDetailPage() {
 
   const teacher = teachers.find((tt) => tt.id === course.teacherId)
   const programName = programs.find((p) => p.id === course.programId)?.name ?? course.programId
+  // The close-readiness checklist shows only for the close audience on a
+  // published, Term-ended Course; the Sessions queue (below) consumes the same
+  // `readiness` object but surfaces for any marker, mid-Term gaps included.
+  const showChecklist =
+    !!readiness && canClose && course.status === 'published' && isTermEnded(course, clock.now())
   // Sessions are derived from Term × Meeting Days, never stored (ADR-0001).
   const sessions = sessionsFor(course)
   // Volunteers (TCU trainees) assigned to this Course, read through the scope seam.
@@ -360,7 +254,7 @@ export function CoursesDetailPage() {
         }
       />
 
-      {readiness && <CloseReadinessChecklist readiness={readiness} />}
+      {showChecklist && <CloseReadinessChecklist readiness={readiness} />}
 
       <section className="grid gap-4 sm:grid-cols-2">
         <Card>
@@ -406,28 +300,15 @@ export function CoursesDetailPage() {
         </Card>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold tracking-tight">
-          {t('courses.detail.sections.schedule')}
-        </h2>
-        {sessions.length === 0 ? (
-          <NoResults message={t('courses.detail.sections.noSchedule')} />
-        ) : (
-          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {sessions.map((session) => (
-              <li
-                key={session.date}
-                className="rounded-md border bg-card px-3 py-2 text-sm text-foreground"
-              >
-                {`${t('attendance.list.session', { ordinal: String(session.ordinal) } as Record<
-                  string,
-                  string
-                >)} · ${formatDate(session.date)}`}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <CourseSessionsSection
+        course={course}
+        sessions={sessions}
+        today={clock.today()}
+        canMark={canMark}
+        readiness={readiness}
+        attendance={ownAttendance}
+        enrolledCount={courseEnrollments.length}
+      />
 
       {canViewRoster && (
         <Fragment>
@@ -540,23 +421,6 @@ export function CoursesDetailPage() {
               </ul>
             )}
           </section>
-
-          {canMark && (
-            <section className="space-y-3">
-              <h2 className="text-lg font-semibold tracking-tight">
-                {t('courses.detail.sections.attendance')}
-              </h2>
-              <AttendanceMarkingSection
-                course={course}
-                courseEnrollments={courseEnrollments}
-                scopedStudents={scopedStudents}
-                selectedSessionDate={selectedSessionDate}
-                onSessionSelect={setSelectedSessionDate}
-                markAttendance={markAttendance}
-                ownAttendance={ownAttendance}
-              />
-            </section>
-          )}
 
           <CourseCertificatesSection course={course} />
         </Fragment>

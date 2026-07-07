@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { parseISO } from 'date-fns'
 import { I18nProvider } from '@/lib/i18n'
-import { formatGrade, formatDate } from '@/lib/format'
+import { formatGrade } from '@/lib/format'
 import { shortCourseName } from '@/lib/courseName'
 import { sessionsFor } from '@/lib/sessions'
 import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
@@ -588,7 +588,7 @@ describe('<CoursesDetailPage /> — close-readiness checklist (issue #204)', () 
   })
 })
 
-describe('<CoursesDetailPage /> — schedule & roster (issue 153, ADR-0001/0011)', () => {
+describe('<CoursesDetailPage /> — sessions surface & roster (issue 153, ADR-0001/0011/0037)', () => {
   beforeEach(() => {
     clearPersistedState()
     clearPersistedRole()
@@ -597,25 +597,59 @@ describe('<CoursesDetailPage /> — schedule & roster (issue 153, ADR-0001/0011)
     useStore.getState().setLocale('en')
   })
 
-  it('shows the Course’s derived Schedule (session ordinal + date) to an admin', async () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('holds the Needs-attendance queue until the attendance window resolves (no false flash)', async () => {
+    const s = useStore.getState()
+    const course = req(
+      s.courses.find((c) => c.status === 'published' && isTermEnded(c, clock.now())),
+      'seed: no published, Term-ended course'
+    )
+    asRole('admin')
+    // Hold the attendance query open well past the course/enrollment gate so the
+    // window where the section sees a default-[] attendance list is wide. A section
+    // that dropped the resolveQueries gate would flash an "all past unrecorded" queue.
+    const listAttendance = api.attendance.list
+    vi.spyOn(api.attendance, 'list').mockImplementation(async (filters) => {
+      await delay(600)
+      return listAttendance(filters)
+    })
+    renderPage(course.id)
+
+    // The Sessions surface paints once the course/enrollment gate resolves, while
+    // attendance is still open — but its Needs-attendance queue is held, never a
+    // false flash (ADR-0030/0037).
+    await screen.findByRole('heading', { name: 'Sessions' })
+    expect(screen.queryByRole('list', { name: 'Needs attendance' })).not.toBeInTheDocument()
+
+    // Once attendance resolves the queue appears (the seed leaves past Sessions
+    // unrecorded on every ended cohort).
+    expect(
+      await screen.findByRole('list', { name: 'Needs attendance' }, { timeout: 3000 })
+    ).toBeInTheDocument()
+  })
+
+  it('shows the Course’s derived Sessions surface (session ordinal + date) to an admin', async () => {
     const { gradedCourse } = fixtures()
     const sessions = sessionsFor(gradedCourse)
     expect(sessions.length).toBeGreaterThan(0)
     asRole('admin')
     renderPage(gradedCourse.id)
 
-    const heading = await screen.findByRole('heading', { name: 'Schedule' })
+    // The one state-grouped Sessions surface (ADR-0037) replaces the old Schedule
+    // wall. gradedCourse is an ended cohort, so its past Sessions surface in the
+    // expanded Needs-attendance queue (gated on the attendance window → findBy).
+    const heading = await screen.findByRole('heading', { name: 'Sessions' })
     const section = req(
       heading.closest('section') ?? undefined,
-      'Schedule heading has no <section>'
+      'Sessions heading has no <section>'
     )
-    const first = req(sessions[0], 'seed: course has no sessions')
-    // Scope to the Schedule section: the attendance marker lists the same sessions.
-    expect(
-      within(section).getByText(`Session ${first.ordinal} · ${formatDate(first.date, 'en')}`)
-    ).toBeInTheDocument()
-    // Every derived Session is listed (ordinal + date), nothing Session-shaped stored.
-    expect(within(section).getAllByRole('listitem')).toHaveLength(sessions.length)
+    const rows = await within(section).findAllByRole('listitem')
+    expect(rows.length).toBeGreaterThan(0)
+    // Each row is a derived Session labeled by ordinal + date — nothing stored.
+    expect(rows[0]).toHaveTextContent(/Session \d+ · /)
   })
 
   // A seeded TCU trainee and the Course they are assigned to (trainee.courseId).

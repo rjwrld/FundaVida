@@ -36,8 +36,8 @@ const teacherGradableCourse = browseWorld.courses.find(
 if (!teacherGradableCourse) throw new Error('seed has no gradable published, ended tea-1 course')
 
 // A seeded volunteer (TCU trainee) and the Course they are assigned to, so the
-// Course detail page renders both a derived Schedule and a populated Volunteers
-// section. Names are localized in the seed, matching what the app renders.
+// Course detail page renders both the derived Sessions surface and a populated
+// Volunteers section. Names are localized in the seed, matching what the app renders.
 const seedVolunteer = browseWorld.tcuTrainees[0]
 if (!seedVolunteer) throw new Error('seed has no TCU trainees')
 const volunteerCourse = browseWorld.courses.find((c) => c.id === seedVolunteer.courseId)
@@ -71,18 +71,20 @@ test('teacher grades a student in their course', async ({ page }) => {
   ).toBeVisible()
 })
 
-test('course detail shows the derived Schedule and assigned Volunteers (issue 153)', async ({
+test('course detail shows the derived Sessions surface and assigned Volunteers (issue 153, ADR-0037)', async ({
   page,
 }) => {
   await enterAs(page, 'admin')
   await page.goto(`/app/courses/${volunteerCourse.id}`)
   await expect(page.getByRole('heading', { name: shortCourseName(volunteerCourse) })).toBeVisible()
 
-  // Schedule: derived Sessions (Term × Meeting Days) list at least one entry.
-  const scheduleSection = page
+  // Sessions: the one state-grouped surface (ADR-0037) replaces the old Schedule
+  // wall. This ended cohort's past Sessions surface as an expanded Needs-attendance
+  // queue, so at least one Session row is visible.
+  const sessionsSection = page
     .locator('section')
-    .filter({ has: page.getByRole('heading', { name: 'Schedule' }) })
-  await expect(scheduleSection.getByRole('listitem').first()).toBeVisible()
+    .filter({ has: page.getByRole('heading', { name: 'Sessions' }) })
+  await expect(sessionsSection.getByRole('listitem').first()).toBeVisible()
 
   // Volunteers: the assigned TCU trainee is listed for this Course.
   const volunteersSection = page
