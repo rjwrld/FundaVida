@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, within, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -99,7 +99,12 @@ describe('<TeachersDetailPage />', () => {
 
     const link = await screen.findByRole('link', { name: shortCourseName(course) })
     const row = req(link.closest('tr') ?? undefined, 'course row missing')
-    expect(within(row).getByTestId('teacher-course-roster')).toHaveTextContent(String(rosterCount))
+    // The roster cell fills in when useEnrollments resolves, after the row itself renders.
+    await waitFor(() =>
+      expect(within(row).getByTestId('teacher-course-roster')).toHaveTextContent(
+        String(rosterCount)
+      )
+    )
   })
 
   it('shows the number of graded enrollments per course', async () => {
@@ -109,7 +114,12 @@ describe('<TeachersDetailPage />', () => {
 
     const link = await screen.findByRole('link', { name: shortCourseName(course) })
     const row = req(link.closest('tr') ?? undefined, 'course row missing')
-    expect(within(row).getByTestId('teacher-course-graded')).toHaveTextContent(String(gradedCount))
+    // The graded cell fills in when useGrades resolves, after the row itself renders.
+    await waitFor(() =>
+      expect(within(row).getByTestId('teacher-course-graded')).toHaveTextContent(
+        String(gradedCount)
+      )
+    )
   })
 
   it('shows the number of certificates issued per course', async () => {
@@ -119,7 +129,10 @@ describe('<TeachersDetailPage />', () => {
 
     const link = await screen.findByRole('link', { name: shortCourseName(course) })
     const row = req(link.closest('tr') ?? undefined, 'course row missing')
-    expect(within(row).getByTestId('teacher-course-certs')).toHaveTextContent(String(certCount))
+    // The certs cell fills in when useCertificates resolves, after the row itself renders.
+    await waitFor(() =>
+      expect(within(row).getByTestId('teacher-course-certs')).toHaveTextContent(String(certCount))
+    )
   })
 
   it('shows the course term (date range) per course', async () => {
