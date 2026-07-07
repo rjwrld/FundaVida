@@ -4,9 +4,9 @@ import { useStore } from '@/data/store'
 import type { StudentFilters } from '@/data/api/students'
 import type { Student } from '@/types'
 import { makeEntityMutation } from './makeEntityMutation'
+import { STUDENTS_KEY } from './queryKeys'
 
-const STUDENTS_KEY = ['students'] as const
-const studentKey = (id: string) => ['students', id] as const
+const studentKey = (id: string) => [...STUDENTS_KEY, id] as const
 
 // Role is captured in the queryKey so cache entries per role are isolated.
 // When the role changes, Zustand triggers a re-render, React Query sees a new
@@ -36,7 +36,7 @@ export function useCurrentStudent() {
   const role = useStore((s) => s.role)
   const userId = useStore((s) => s.currentUserId)
   return useQuery({
-    queryKey: ['students', 'me', role, userId],
+    queryKey: [...STUDENTS_KEY, 'me', role, userId],
     queryFn: () => (userId ? api.students.get(userId) : Promise.resolve(null)),
     enabled: !!userId,
   })
@@ -44,7 +44,6 @@ export function useCurrentStudent() {
 
 export const useCreateStudent = makeEntityMutation('createStudent')({
   toastKey: 'toasts.studentCreated',
-  invalidates: [STUDENTS_KEY],
 })
 
 export const useUpdateStudent = makeEntityMutation('updateStudent')<{
@@ -52,18 +51,9 @@ export const useUpdateStudent = makeEntityMutation('updateStudent')<{
   patch: Partial<Student>
 }>({
   toastKey: 'toasts.studentUpdated',
-  invalidates: ({ id }) => [STUDENTS_KEY, studentKey(id)],
   args: ({ id, patch }) => [id, patch],
 })
 
 export const useDeleteStudent = makeEntityMutation('deleteStudent')({
   toastKey: 'toasts.studentDeleted',
-  invalidates: [
-    STUDENTS_KEY,
-    ['enrollments'],
-    ['grades'],
-    ['certificates'],
-    ['attendance'],
-    ['tcu'],
-  ],
 })

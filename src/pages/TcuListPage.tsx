@@ -22,6 +22,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { ListHeaderBand } from '@/components/shared/ListHeaderBand'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useTcuActivities, useTcuTrainees, useApproveTcuActivity } from '@/hooks/api'
+import { resolveQueries } from '@/lib/resolveQueries'
 import { useFormat } from '@/hooks/useFormat'
 import { useStore } from '@/data/store'
 import { LogTcuActivityDialog } from '@/components/tcu/LogTcuActivityDialog'
@@ -37,8 +38,15 @@ export function TcuListPage() {
   const courses = useStore((s) => s.courses)
   const [filters, setFilters] = useState<TcuFilters>({})
   const [logDialogOpen, setLogDialogOpen] = useState(false)
-  const { data = [], isLoading } = useTcuActivities(filters)
-  const { data: trainees = [], isLoading: traineesLoading } = useTcuTrainees()
+  const activitiesQuery = useTcuActivities(filters)
+  const traineesQuery = useTcuTrainees()
+  const { data = [] } = activitiesQuery
+  const { data: trainees = [], isLoading: traineesLoading } = traineesQuery
+  // Both name-rendering tables (the roster and the approval queue) read trainee
+  // names from the separate trainees query, so their data dependency is BOTH
+  // queries — gate on both, not activities alone (ADR-0030). Gating on activities
+  // only flashed blank names in the window where activities resolved first.
+  const roster = resolveQueries([activitiesQuery, traineesQuery])
   const approveMutation = useApproveTcuActivity()
 
   const approvedHours = data.reduce((sum, a) => sum + (a.status === 'approved' ? a.hours : 0), 0)
@@ -108,7 +116,7 @@ export function TcuListPage() {
         </section>
       )}
 
-      {(isTeacher || role === 'admin') && pendingActivities.length > 0 && (
+      {!roster.isPending && (isTeacher || role === 'admin') && pendingActivities.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">{t('tcu.approvalQueue.title')}</h2>
           <div className="overflow-hidden rounded-xl border border-border bg-card">
@@ -197,7 +205,7 @@ export function TcuListPage() {
         </section>
       )}
 
-      {isLoading ? (
+      {roster.isPending ? (
         <SkeletonTable rows={8} columns={4} />
       ) : count === 0 ? (
         <NoResults message={hasFilters ? t('tcu.list.emptyFiltered') : t('tcu.list.empty')} />

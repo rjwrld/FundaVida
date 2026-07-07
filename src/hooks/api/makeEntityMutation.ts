@@ -1,8 +1,8 @@
-import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useStore, type StoreState } from '@/data/store'
-import { AUDIT_LOG_KEY } from './auditLog'
+import { writeSetInvalidations } from './invalidation'
 
 // Names of the store slices that are mutation methods.
 type MutationMethodName = {
@@ -17,8 +17,6 @@ type MethodArgs<K extends MutationMethodName> = StoreState[K] extends (...args: 
 interface EntityMutationConfig<K extends MutationMethodName, TVars> {
   /** i18n key for the success toast. */
   toastKey: string
-  /** Entity query keys to invalidate on success (the audit key is always invalidated too). */
-  invalidates?: QueryKey[] | ((vars: TVars) => QueryKey[])
   /**
    * Map mutation variables to the store method's positional arguments. Omit when
    * the method takes the mutation variables as its only argument. The returned
@@ -30,7 +28,12 @@ interface EntityMutationConfig<K extends MutationMethodName, TVars> {
 
 /**
  * Factory for the entity mutation-hook template: call a store method, fire the
- * success/error toast, and invalidate the entity query keys plus the audit log.
+ * success/error toast, and invalidate the query keys the store call actually
+ * wrote (ADR-0029). Invalidation is derived, not declared: `makeEntityMutation`
+ * snapshots store state around the synchronous store call and hands the before/
+ * after pair to `writeSetInvalidations`, so a hook can never drift from what its
+ * mutation touched. The audit log is covered like any other slice — every
+ * `withAudit` mutation writes it, so `['auditLog']` is always in the diff.
  *
  * Curried (`method` first, then config) so the method name fixes `K` before the
  * config is checked — that lets `args` be validated against the method's real
@@ -46,19 +49,22 @@ export function makeEntityMutation<K extends MutationMethodName>(method: K) {
       const run = useStore((s) => s[method]) as (...args: unknown[]) => unknown
       const { t } = useTranslation()
       return useMutation({
+        // Snapshot store state before the write. React Query pairs this context
+        // with this call's onSuccess, so overlapping mutate() calls on one hook
+        // instance can't cross wires the way a shared ref could.
+        onMutate: () => ({ before: useStore.getState() }),
         mutationFn: async (vars: TVars) => {
           const callArgs = config.args ? config.args(vars) : [vars]
           return run(...callArgs)
         },
-        onSuccess: (_data, vars) => {
+        onSuccess: (_data, _vars, context) => {
           toast.success(t(config.toastKey))
-          const keys =
-            typeof config.invalidates === 'function' ? config.invalidates(vars) : config.invalidates
-          for (const queryKey of keys ?? []) {
+          // `run` is synchronous and done, so getState() is the post-write state;
+          // diffing it against the pre-write snapshot yields this call's write-set.
+          const invalidations = writeSetInvalidations(context.before, useStore.getState())
+          for (const queryKey of invalidations) {
             client.invalidateQueries({ queryKey })
           }
-          // Every store mutation appends an audit entry, so the audit log always refreshes.
-          client.invalidateQueries({ queryKey: AUDIT_LOG_KEY })
         },
         onError: (error: unknown) => {
           toast.error(

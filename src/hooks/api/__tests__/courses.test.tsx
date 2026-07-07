@@ -296,14 +296,23 @@ describe('useEnrollStudent', () => {
     })
   })
 
-  it('invalidates the enrollments cache so the Course roster reflects the new enrollment', async () => {
+  it('invalidates enrollments and courses so the Course roster reflects the new enrollment', async () => {
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
     const { result } = renderHook(() => useEnrollStudent(), { wrapper: createWrapper() })
 
+    // A genuinely new enrollment: same-Sede, same-level, not already enrolled. An
+    // already-enrolled pair short-circuits in the store and writes nothing, so the
+    // derived write-set (correctly) invalidates nothing.
     const state = useStore.getState()
-    const student = state.students[0]
     const course = state.courses[0]
-    if (!student || !course) throw new Error('expected at least one student and one course')
+    if (!course) throw new Error('expected at least one course')
+    const enrolled = new Set(
+      state.enrollments.filter((e) => e.courseId === course.id).map((e) => e.studentId)
+    )
+    const student = state.students.find(
+      (s) => s.sede === course.sede && s.educationalLevel === course.level && !enrolled.has(s.id)
+    )
+    if (!student) throw new Error('expected an unenrolled same-Sede, same-level student')
 
     await act(async () => {
       result.current.mutate({ studentId: student.id, courseId: course.id })
@@ -311,6 +320,8 @@ describe('useEnrollStudent', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['enrollments'] })
+    // enrollments → +['courses'] edge: the roster query under ['courses'] refetches (#87).
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['courses'] })
   })
 
   it('fires error toast on student enrollment failure', async () => {

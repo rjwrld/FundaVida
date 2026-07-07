@@ -5,6 +5,7 @@ import { RoleSwitcher } from '@/components/demo/RoleSwitcher'
 import { DemoBadge } from '@/components/demo/DemoBadge'
 import { BrandLockup } from '@/components/brand/BrandLockup'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
+import { MobileNav } from '@/components/layout/MobileNav'
 import { LanguageToggle } from '@/components/layout/LanguageToggle'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { useCommandPaletteContext } from '@/hooks/useCommandPaletteContext'
@@ -16,6 +17,7 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border/60 bg-background/85 px-4 backdrop-blur-md md:px-6">
       <div className="flex min-w-0 items-center gap-3">
+        <MobileNav />
         <BrandLockup />
         <div aria-hidden className="hidden h-5 w-px bg-border/60 sm:block" />
         <Breadcrumbs />
