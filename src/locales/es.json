@@ -258,10 +258,6 @@
       "withdrawButton": "Retirar solicitud"
     },
     "detail": {
-      "attendance": {
-        "noMarkableSessions": "No hay sesiones pasadas o actuales disponibles para marcar.",
-        "status": "Estado"
-      },
       "certificates": {
         "empty": "Los certificados aparecen aquí cuando se cierra este curso."
       },
@@ -303,17 +299,33 @@
         }
       },
       "sections": {
-        "attendance": "Marcar asistencia",
         "certificates": "Certificados",
-        "noSchedule": "No hay sesiones programadas para este curso.",
         "noStudents": "Ningún estudiante matriculado.",
         "noVolunteers": "No hay voluntarios asignados a este curso.",
         "overview": "Resumen",
-        "schedule": "Cronograma",
         "students": "Estudiantes",
         "volunteers": "Voluntarios",
         "yourAttendance": "Tu asistencia",
         "yourRecords": "Tus registros"
+      },
+      "sessions": {
+        "empty": "No hay sesiones programadas para este curso.",
+        "groups": {
+          "needsAttendance": "Por registrar",
+          "past": "Pasadas",
+          "recorded": "Registradas",
+          "today": "Hoy",
+          "upcoming": "Próximas"
+        },
+        "heading": "Sesiones",
+        "mark": "Marcar asistencia",
+        "markNamed": "Marcar asistencia — {{session}}",
+        "present": "{{present}}/{{total}} presentes",
+        "review": "Revisar",
+        "reviewNamed": "Revisar — {{session}}",
+        "showMore": "Ver {{n}} más",
+        "summary": "{{recorded}} registradas · {{needsAttendance}} por registrar",
+        "unrecorded": "0/{{total}} registradas"
       },
       "title": "Curso",
       "unassignedTeacher": "Sin asignar"
