@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useCertificates, useCourses, useEnrollments, useGrades, useTeacher } from '@/hooks/api'
+import { resolveQueries } from '@/lib/resolveQueries'
 import { useFormat } from '@/hooks/useFormat'
 import { shortCourseName } from '@/lib/courseName'
 import type { CourseStatus } from '@/types'
@@ -29,15 +30,29 @@ export function TeachersDetailPage() {
   const { formatDate } = useFormat()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { data: teacher, isLoading } = useTeacher(id ?? '')
+  const teacherQuery = useTeacher(id ?? '')
   // Courses and the per-course metrics read through the scope seam (ADR-0012),
   // never the raw store.
-  const { data: courses = [] } = useCourses()
-  const { data: enrollments = [] } = useEnrollments()
-  const { data: grades = [] } = useGrades()
-  const { data: certificates = [] } = useCertificates()
+  const coursesQuery = useCourses()
+  const enrollmentsQuery = useEnrollments()
+  const gradesQuery = useGrades()
+  const certificatesQuery = useCertificates()
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">…</p>
+  // Gate the render on every query the table reads, not the teacher query alone:
+  // the roster/graded/certs cells derive from the four secondary queries, so
+  // gating on `useTeacher` alone paints a `?? 0` placeholder in the window before
+  // they resolve (ADR-0030). resolveQueries holds the whole page until all five
+  // land, so no cell can flash a false 0.
+  const resolved = resolveQueries([
+    teacherQuery,
+    coursesQuery,
+    enrollmentsQuery,
+    gradesQuery,
+    certificatesQuery,
+  ])
+
+  if (resolved.isPending) return <p className="text-sm text-muted-foreground">…</p>
+  const [teacher, courses, enrollments, grades, certificates] = resolved.data
   if (!teacher) {
     return (
       <div className="space-y-4">
