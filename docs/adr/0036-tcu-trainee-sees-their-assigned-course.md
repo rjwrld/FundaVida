@@ -1,6 +1,6 @@
 # A TCU Trainee sees their assigned Course through an 'assigned' scope token
 
-_Proposed (UX pass 2026-07-03). Extends ADR-0008/0013/0017._
+_Accepted (UX pass 2026-07-03). Extends ADR-0008/0013/0017._
 
 A TCU Trainee serves at exactly one Course (ADR-0017), but the tcu role's `courses` scope token was `'none'` — so no seam-honoring surface could show the volunteer which Course they serve, when it meets, or where. The dashboard hero for the role showed only hour counts; the calendar (which rides the Courses scope, ADR-0013) rendered empty. The trainee record carries `courseId`, yet reading `store.courses` raw in a component would be exactly the leak ADR-0033 closed in CalendarPage.
 
