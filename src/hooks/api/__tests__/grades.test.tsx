@@ -72,10 +72,11 @@ describe('useUpdateGradeScore', () => {
     })
   })
 
-  it('invalidates grades, certificates, and courses so a post-close revocation is not stale', async () => {
-    // A post-close grade correction reconciles the Certificate (ADR-0025), so the
-    // mutation must invalidate ['certificates'] and ['courses'] alongside ['grades']
-    // — otherwise the Certificates gallery and Course detail read a revoked cert.
+  it('invalidates grades and certificates so a post-close revocation is not stale', async () => {
+    // A post-close grade correction reconciles the Certificate (ADR-0025): the
+    // write-set includes both the grades and certificates slices, so both keys
+    // invalidate — otherwise the Certificates gallery reads a revoked cert. It does
+    // NOT touch the courses slice, so ['courses'] is (correctly) not invalidated.
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
     const { result } = renderHook(() => useUpdateGradeScore(), { wrapper: createWrapper() })
 
@@ -89,7 +90,7 @@ describe('useUpdateGradeScore', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['grades'] })
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['certificates'] })
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['courses'] })
+    expect(invalidateSpy).not.toHaveBeenCalledWith({ queryKey: ['courses'] })
   })
 
   it('fires error toast on grade score update failure', async () => {
