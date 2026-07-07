@@ -888,6 +888,11 @@
         "anyTrainee": "Cualquier becario",
         "traineePlaceholder": "Becario"
       },
+      "status": {
+        "approved": "Aprobada",
+        "pending": "Pendiente",
+        "rejected": "Rechazada"
+      },
       "subtitle": "Horas de servicio comunitario registradas por becarios hacia su requisito de 300 horas.",
       "title": "Actividades TCU"
     }

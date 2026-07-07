@@ -89,4 +89,23 @@ describe('<TcuListPage /> — roster multi-query gate (ADR-0030)', () => {
       observer.disconnect()
     }
   })
+
+  // Status labels resolve through a dynamic key (t(`tcu.list.status.${a.status}`)),
+  // which the i18n extractor can't see — without manifest lines in keys.ts the
+  // extractor prunes the keys and the raw key string renders in the badge.
+  it('status badges render translated labels, not raw i18n keys', async () => {
+    useStore.getState().setRole('admin')
+    const trainee = useStore.getState().tcuTrainees[0]
+    if (!trainee) throw new Error('seed: no TCU trainees')
+
+    renderPage()
+    await screen.findAllByText(`${trainee.firstName} ${trainee.lastName}`)
+
+    const roster = rosterTable()
+    if (!roster) throw new Error('roster table not found')
+    expect(roster.textContent).not.toContain('tcu.list.status.')
+    expect(
+      ['Pending', 'Approved', 'Rejected'].some((label) => roster.textContent?.includes(label))
+    ).toBe(true)
+  })
 })
