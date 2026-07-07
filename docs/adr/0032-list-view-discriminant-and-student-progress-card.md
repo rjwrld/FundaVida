@@ -1,6 +1,6 @@
 # Page-layer duplication collapses into a list-view discriminant and a student-progress card
 
-_Proposed (architecture review 2026-07-03)._
+_Accepted (architecture review 2026-07-03)._
 
 Two page-layer duplications, extracted along different lines because they are duplications of different depth.
 

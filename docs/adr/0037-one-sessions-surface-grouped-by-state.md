@@ -1,6 +1,6 @@
 # A Course has one Sessions surface, grouped by state; inline marking is removed
 
-_Proposed (UX pass 2026-07-03, shaped via design brief). Consumes ADR-0030/0034; complements ADR-0018._
+_Accepted (UX pass 2026-07-03, shaped via design brief). Consumes ADR-0030/0034; complements ADR-0018._
 
 CoursesDetailPage rendered the same ~26 derived Sessions twice: a "Schedule" section of static, stateless chips, then a "Mark attendance" section re-listing every past Session as an undifferentiated button wall — on an ended Course, 26 buttons with no signal which ones still need attendance, even though `closeReadiness` computes exactly that verdict for the readiness checklist on the same page. Selecting a button revealed an inline roster table that duplicates `MarkSessionAttendancePage`'s entire job, with its own fourth spelling of the session-window predicate (`parseISO(s.date) <= clock.now()`). Two renderings of one concept plus two marking surfaces is the house failure mode PRODUCT.md now names ("one surface per concept").
 
