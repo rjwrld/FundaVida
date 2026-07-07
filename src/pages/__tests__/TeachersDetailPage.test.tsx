@@ -1,11 +1,13 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, within, waitFor } from '@testing-library/react'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { formatDate } from '@/lib/format'
 import { shortCourseName } from '@/lib/courseName'
 import { TeachersDetailPage } from '@/pages/TeachersDetailPage'
+import { api } from '@/data/api'
+import { delay } from '@/data/api/_delay'
 import { useStore } from '@/data/store'
 import {
   clearPersistedCurrentUser,
@@ -99,12 +101,9 @@ describe('<TeachersDetailPage />', () => {
 
     const link = await screen.findByRole('link', { name: shortCourseName(course) })
     const row = req(link.closest('tr') ?? undefined, 'course row missing')
-    // The roster cell fills in when useEnrollments resolves, after the row itself renders.
-    await waitFor(() =>
-      expect(within(row).getByTestId('teacher-course-roster')).toHaveTextContent(
-        String(rosterCount)
-      )
-    )
+    // The row and its cells render together — resolveQueries holds the page until
+    // every query resolves (ADR-0030), so the roster count is present synchronously.
+    expect(within(row).getByTestId('teacher-course-roster')).toHaveTextContent(String(rosterCount))
   })
 
   it('shows the number of graded enrollments per course', async () => {
@@ -114,12 +113,9 @@ describe('<TeachersDetailPage />', () => {
 
     const link = await screen.findByRole('link', { name: shortCourseName(course) })
     const row = req(link.closest('tr') ?? undefined, 'course row missing')
-    // The graded cell fills in when useGrades resolves, after the row itself renders.
-    await waitFor(() =>
-      expect(within(row).getByTestId('teacher-course-graded')).toHaveTextContent(
-        String(gradedCount)
-      )
-    )
+    // The row and its cells render together — resolveQueries holds the page until
+    // every query resolves (ADR-0030), so the graded count is present synchronously.
+    expect(within(row).getByTestId('teacher-course-graded')).toHaveTextContent(String(gradedCount))
   })
 
   it('shows the number of certificates issued per course', async () => {
@@ -129,10 +125,9 @@ describe('<TeachersDetailPage />', () => {
 
     const link = await screen.findByRole('link', { name: shortCourseName(course) })
     const row = req(link.closest('tr') ?? undefined, 'course row missing')
-    // The certs cell fills in when useCertificates resolves, after the row itself renders.
-    await waitFor(() =>
-      expect(within(row).getByTestId('teacher-course-certs')).toHaveTextContent(String(certCount))
-    )
+    // The row and its cells render together — resolveQueries holds the page until
+    // every query resolves (ADR-0030), so the certs count is present synchronously.
+    expect(within(row).getByTestId('teacher-course-certs')).toHaveTextContent(String(certCount))
   })
 
   it('shows the course term (date range) per course', async () => {
@@ -155,5 +150,69 @@ describe('<TeachersDetailPage />', () => {
 
     expect(await screen.findByText('No assigned courses.')).toBeInTheDocument()
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+})
+
+describe('<TeachersDetailPage /> — first-paint multi-query gate (ADR-0030)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
+    useStore.getState().setLocale('en')
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  // First-paint regression: the course table joins five queries. Gating on the
+  // teacher query alone (the other four defaulted to []) painted `0` in the
+  // roster/graded/certs cells in the window before those queries resolved.
+  // resolveQueries holds the whole page on the loading placeholder until every
+  // query lands, so the table never paints before certificates resolve — the
+  // first time a certs cell exists it already shows the real count, never a 0.
+  it('never flashes a `0` certs cell — holds the page until certificates resolve', async () => {
+    const { teacher, course, certCount } = adminFixtures()
+    expect(certCount).toBeGreaterThan(0)
+
+    // Hold certificates open well past the other four queries so the window the
+    // old teacher-only gate exposed (table painted, certs cell still 0) is wide
+    // and deterministic, not a sub-tick race.
+    const listCerts = api.certificates.list.bind(api.certificates)
+    vi.spyOn(api.certificates, 'list').mockImplementation(async (filters) => {
+      await delay(600)
+      return listCerts(filters)
+    })
+
+    // Capture the anchor row's certs cell the very first frame it paints — a
+    // waiting findBy* could poll only after a `0` flash had already resolved and
+    // miss it (ADR-0030). The MutationObserver records the first mount, once.
+    let firstCerts: string | null = null
+    const observer = new MutationObserver(() => {
+      if (firstCerts !== null) return
+      const link = document.querySelector(`a[href="/app/courses/${course.id}"]`)
+      const cell = link?.closest('tr')?.querySelector('[data-testid="teacher-course-certs"]')
+      if (cell) firstCerts = cell.textContent
+    })
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true })
+
+    try {
+      renderDetail(teacher.id)
+
+      const link = await screen.findByRole(
+        'link',
+        { name: shortCourseName(course) },
+        { timeout: 3000 }
+      )
+      const row = req(link.closest('tr') ?? undefined, 'course row missing')
+      expect(within(row).getByTestId('teacher-course-certs')).toHaveTextContent(String(certCount))
+      // The FIRST frame the certs cell ever painted already carried the real
+      // count — the row never existed with a `0` placeholder.
+      expect(firstCerts).toBe(String(certCount))
+    } finally {
+      observer.disconnect()
+    }
   })
 })
