@@ -1,7 +1,6 @@
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useState, useMemo } from 'react'
-import { parseISO } from 'date-fns'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,7 +21,7 @@ import {
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useCourses, useEnrollments, useMarkSessionAttendance, useStudents } from '@/hooks/api'
 import { resolveQueries } from '@/lib/resolveQueries'
-import { sessionsFor } from '@/lib/sessions'
+import { isSessionRecordable, sessionsFor } from '@/lib/sessions'
 import { clock } from '@/lib/clock'
 import { useFormat } from '@/hooks/useFormat'
 import { can } from '@/permissions'
@@ -92,10 +91,9 @@ export function MarkSessionAttendancePage() {
         }
       }
 
-      // Check if session is markable (on or before today)
-      const sessionDateObj = parseISO(foundSession.date)
-      const today = clock.today()
-      const markable = sessionDateObj <= today
+      // Markable iff the session is past/recordable (date <= today) — the one
+      // session-window boundary (ADR-0034).
+      const markable = isSessionRecordable(foundSession, clock.today())
 
       if (!markable) {
         return {

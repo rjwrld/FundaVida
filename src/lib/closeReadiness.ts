@@ -1,6 +1,6 @@
 import { isBefore, isSameDay, parseISO } from 'date-fns'
 import type { AttendanceRecord, Course, Enrollment, Grade } from '@/types'
-import { type Session, sessionsFor } from './sessions'
+import { type Session, isSessionRecordable, sessionsFor } from './sessions'
 
 /**
  * True when the Course's Term has ended: term.end strictly before `now`.
@@ -62,8 +62,10 @@ export function closeReadiness(input: CloseReadinessInput): CloseReadiness {
     .filter((a) => a.courseId === course.id)
     .map((a) => parseISO(a.sessionDate))
   const unrecordedSessions = sessionsFor(course).filter((session) => {
+    // Only past/recordable sessions can be missing attendance — the one
+    // session-window boundary (ADR-0034). `now` is compared at day granularity.
+    if (!isSessionRecordable(session, now)) return false
     const sessionDate = parseISO(session.date)
-    if (sessionDate > now) return false
     return !courseAttendanceDates.some((recorded) => isSameDay(recorded, sessionDate))
   })
 

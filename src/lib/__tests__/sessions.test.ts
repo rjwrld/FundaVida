@@ -1,7 +1,14 @@
 import { describe, it, expect } from 'vitest'
-import { sessionsFor, findSession } from '../sessions'
+import {
+  sessionsFor,
+  findSession,
+  isSessionRecordable,
+  isSessionUpcoming,
+  upcomingSessions,
+  type Session,
+} from '../sessions'
 import { type Course } from '@/types/domain'
-import { startOfDay, isSameDay, parseISO } from 'date-fns'
+import { addDays, startOfDay, isSameDay, parseISO } from 'date-fns'
 
 describe('sessions', () => {
   // Build term bounds the proper way: startOfDay(local Date) → toISOString()
@@ -288,6 +295,142 @@ describe('sessions', () => {
       if (session1) {
         expect(isSameDay(parseISO(session1.date), new Date(2026, 5, 17))).toBe(true)
       }
+    })
+  })
+
+  // ADR-0034: one session-window boundary. A Session is past/recordable iff its
+  // date <= today, upcoming iff its date > today — the single predicate the
+  // three call sites (markability, closeReadiness's unrecorded filter, the
+  // dashboards) all route through so they cannot diverge.
+  describe('session-window boundary', () => {
+    const session = (date: Date): Session => ({
+      courseId: 'course-1',
+      date: startOfDay(date).toISOString(),
+      ordinal: 1,
+    })
+
+    const today = startOfDay(new Date(2026, 2, 4)) // Wednesday, March 4, 2026
+    const yesterday = session(new Date(2026, 2, 3))
+    const todaySession = session(new Date(2026, 2, 4))
+    const tomorrow = session(new Date(2026, 2, 5))
+
+    it('treats yesterday and today as recordable, tomorrow as not', () => {
+      expect(isSessionRecordable(yesterday, today)).toBe(true)
+      expect(isSessionRecordable(todaySession, today)).toBe(true)
+      expect(isSessionRecordable(tomorrow, today)).toBe(false)
+    })
+
+    it('treats only tomorrow as upcoming', () => {
+      expect(isSessionUpcoming(yesterday, today)).toBe(false)
+      expect(isSessionUpcoming(todaySession, today)).toBe(false)
+      expect(isSessionUpcoming(tomorrow, today)).toBe(true)
+    })
+
+    it('recordable and upcoming are exact complements at every boundary point', () => {
+      for (const s of [yesterday, todaySession, tomorrow]) {
+        expect(isSessionUpcoming(s, today)).toBe(!isSessionRecordable(s, today))
+      }
+    })
+
+    it('is day-granular: a same-day noon reference agrees with midnight today', () => {
+      // Proves the ADR's "switching now() → today() is a no-op": passing a live
+      // clock reading (noon) yields the same verdict as startOfDay(today).
+      const noon = new Date(2026, 2, 4, 12, 0)
+      for (const s of [yesterday, todaySession, tomorrow]) {
+        expect(isSessionRecordable(s, noon)).toBe(isSessionRecordable(s, today))
+        expect(isSessionUpcoming(s, noon)).toBe(isSessionUpcoming(s, today))
+      }
+    })
+  })
+
+  describe('upcomingSessions', () => {
+    const today = startOfDay(new Date(2026, 2, 4)) // Wednesday, March 4, 2026
+
+    // MWF, Mar 2 – Mar 13: Mon 2, Wed 4, Fri 6, Mon 9, Wed 11, Fri 13
+    const courseMWF: Course = {
+      id: 'course-mwf',
+      name: 'Math 101',
+      description: 'Calculus',
+      sede: 'Linda Vista',
+      programId: 'prog-1',
+      level: 'primaria',
+      status: 'published',
+      capacity: 20,
+      teacherId: 'teacher-1',
+      term: {
+        start: startOfDay(new Date(2026, 2, 2)).toISOString(),
+        end: startOfDay(new Date(2026, 2, 13)).toISOString(),
+      },
+      meetingDays: ['mon', 'wed', 'fri'],
+      createdAt: '2026-01-01T00:00:00Z',
+    }
+
+    // Tue/Thu, Mar 3 – Mar 12: Tue 3, Thu 5, Tue 10, Thu 12
+    const courseTuTh: Course = {
+      ...courseMWF,
+      id: 'course-tuth',
+      name: 'Physics 101',
+      meetingDays: ['tue', 'thu'],
+      term: {
+        start: startOfDay(new Date(2026, 2, 3)).toISOString(),
+        end: startOfDay(new Date(2026, 2, 12)).toISOString(),
+      },
+    }
+
+    it('excludes past and today sessions, keeping only strictly-future ones', () => {
+      const result = upcomingSessions([courseMWF, courseTuTh], today)
+      // Nothing on Mar 2 (past), Mar 3 (past), or Mar 4 (today) survives.
+      for (const s of result) {
+        expect(parseISO(s.date).getTime()).toBeGreaterThan(today.getTime())
+      }
+    })
+
+    it('orders ascending by date, interleaving across courses, enriched with course name', () => {
+      const result = upcomingSessions([courseMWF, courseTuTh], today)
+      const actual = result.map((s) => ({
+        day: startOfDay(parseISO(s.date)).getTime(),
+        courseName: s.courseName,
+      }))
+      const expected = [
+        { day: startOfDay(new Date(2026, 2, 5)).getTime(), courseName: 'Physics 101' }, // Thu
+        { day: startOfDay(new Date(2026, 2, 6)).getTime(), courseName: 'Math 101' }, // Fri
+        { day: startOfDay(new Date(2026, 2, 9)).getTime(), courseName: 'Math 101' }, // Mon
+        { day: startOfDay(new Date(2026, 2, 10)).getTime(), courseName: 'Physics 101' }, // Tue
+        { day: startOfDay(new Date(2026, 2, 11)).getTime(), courseName: 'Math 101' }, // Wed
+        { day: startOfDay(new Date(2026, 2, 12)).getTime(), courseName: 'Physics 101' }, // Thu
+        { day: startOfDay(new Date(2026, 2, 13)).getTime(), courseName: 'Math 101' }, // Fri
+      ]
+      expect(actual).toEqual(expected)
+    })
+
+    it('caps the result at limit when provided, keeping the earliest', () => {
+      const result = upcomingSessions([courseMWF, courseTuTh], today, 3)
+      const days = result.map((s) => startOfDay(parseISO(s.date)).getTime())
+      expect(days).toEqual([
+        startOfDay(new Date(2026, 2, 5)).getTime(),
+        startOfDay(new Date(2026, 2, 6)).getTime(),
+        startOfDay(new Date(2026, 2, 9)).getTime(),
+      ])
+    })
+
+    it('returns all upcoming sessions when limit is omitted', () => {
+      const withLimit = upcomingSessions([courseMWF, courseTuTh], today, 100)
+      const withoutLimit = upcomingSessions([courseMWF, courseTuTh], today)
+      expect(withoutLimit).toEqual(withLimit)
+    })
+
+    it('preserves each session ordinal and courseId', () => {
+      const result = upcomingSessions([courseMWF], today)
+      const first = result.at(0)
+      // Fri 6 is the 3rd MWF session (Mon 2, Wed 4, Fri 6).
+      expect(first?.courseName).toBe('Math 101')
+      expect(first?.ordinal).toBe(3)
+      expect(first?.courseId).toBe('course-mwf')
+    })
+
+    it('returns empty when a future-relative today outruns every session', () => {
+      const future = addDays(today, 30)
+      expect(upcomingSessions([courseMWF, courseTuTh], future)).toEqual([])
     })
   })
 })
