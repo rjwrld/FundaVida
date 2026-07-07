@@ -430,13 +430,6 @@
       "title": "Students at risk",
       "viewAll": "View all students"
     },
-    "attendanceHeatmap": {
-      "empty": "No attendance recorded yet.",
-      "legendLess": "Less",
-      "legendMore": "More",
-      "subtitle": "Daily attendance, last 12 weeks",
-      "title": "Attendance heatmap"
-    },
     "certsThisEpoch": {
       "subtitle": "All issued on course close — no approval needed",
       "title": "Certificates this epoch",

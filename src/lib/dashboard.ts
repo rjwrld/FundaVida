@@ -1,4 +1,4 @@
-import { format, isBefore, parseISO, startOfDay, subDays } from 'date-fns'
+import { isBefore, parseISO } from 'date-fns'
 import type { AttendanceRecord, Course, Enrollment, Grade, Student } from '@/types'
 import { SEDES, type Sede } from '@/constants/sede'
 import { PASSING_SCORE } from './certificates'
@@ -99,44 +99,5 @@ export function enrollmentFunnelBySede(enrollments: Enrollment[], courses: Cours
   return SEDES.filter((sede) => counts.has(sede)).map((sede) => {
     const bucket = counts.get(sede) ?? { pending: 0, approved: 0 }
     return { sede, pending: bucket.pending, approved: bucket.approved }
-  })
-}
-
-/** Number of days the attendance heatmap covers (7 cols × 12 rows). */
-export const HEATMAP_DAYS = 84
-
-export interface HeatmapCell {
-  /** `yyyy-MM-dd` of the day this cell represents. */
-  date: string
-  /** Present-rate for the day (present / total records), 0 when no data. */
-  rate: number
-}
-
-/**
- * Daily present-rate cells for the attendance heatmap, oldest-to-newest over the
- * last `days` calendar days ending on `now`. A day with no attendance records
- * gets rate 0 (rendered as the empty bucket). Salvaged from the removed Reports
- * module (ADR-0028), re-derived here so the card reads scoped attendance.
- */
-export function attendanceHeatmapCells(
-  attendance: AttendanceRecord[],
-  now: Date,
-  days = HEATMAP_DAYS
-): HeatmapCell[] {
-  const byDay = new Map<string, { present: number; total: number }>()
-  attendance.forEach((a) => {
-    const key = format(parseISO(a.sessionDate), 'yyyy-MM-dd')
-    const bucket = byDay.get(key) ?? { present: 0, total: 0 }
-    bucket.total += 1
-    if (a.status === 'present') bucket.present += 1
-    byDay.set(key, bucket)
-  })
-
-  const today = startOfDay(now)
-  return Array.from({ length: days }, (_, i) => {
-    const date = format(subDays(today, days - 1 - i), 'yyyy-MM-dd')
-    const bucket = byDay.get(date)
-    const rate = bucket && bucket.total > 0 ? bucket.present / bucket.total : 0
-    return { date, rate }
   })
 }
