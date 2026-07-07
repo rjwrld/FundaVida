@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/select'
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { ListView } from '@/components/shared/ListView'
+import { listViewState } from '@/lib/listViewState'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
@@ -196,27 +198,27 @@ export function CoursesListPage() {
         </Select>
       </section>
 
-      {isLoading ? (
-        <SkeletonTable rows={8} columns={columnCount} />
-      ) : count === 0 && !hasFilters ? (
-        <CoursesEmpty onAdd={canCreate ? openCreate : undefined} />
-      ) : count === 0 ? (
-        <NoResults message={t('courses.list.emptyFiltered')} />
-      ) : (
-        <DataTable
-          data={data}
-          columns={columns}
-          getRowKey={(c) => c.id}
-          renderCard={(c) => (
-            <DataTableCard
-              row={c}
-              columns={columns}
-              titleColumnId="name"
-              actionsColumnId="actions"
-            />
-          )}
-        />
-      )}
+      <ListView
+        state={listViewState({ isLoading, count, hasFilters })}
+        skeleton={<SkeletonTable rows={8} columns={columnCount} />}
+        empty={<CoursesEmpty onAdd={canCreate ? openCreate : undefined} />}
+        noResults={<NoResults message={t('courses.list.emptyFiltered')} />}
+        content={
+          <DataTable
+            data={data}
+            columns={columns}
+            getRowKey={(c) => c.id}
+            renderCard={(c) => (
+              <DataTableCard
+                row={c}
+                columns={columns}
+                titleColumnId="name"
+                actionsColumnId="actions"
+              />
+            )}
+          />
+        }
+      />
 
       <CourseFormDialog
         open={isOpen && (mode === 'edit' ? canEdit : canCreate)}

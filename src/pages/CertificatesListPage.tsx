@@ -13,6 +13,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { ListView } from '@/components/shared/ListView'
+import { listViewState } from '@/lib/listViewState'
 import { Pager } from '@/components/ui/pager'
 import { usePagination } from '@/hooks/usePagination'
 import { CertificatesEmpty } from '@/components/empty-states/CertificatesEmpty'
@@ -163,9 +165,33 @@ export function CertificatesListPage() {
       }
     : null
 
-  // Only an actually-loaded, empty list shows the empty state — never the
-  // async loading gap, which would briefly flash "No certificates issued yet".
-  const isEmpty = !isLoading && items.length === 0
+  const hasFilters = query.trim() !== '' || courseId !== ALL_COURSES
+
+  // The filter chrome rides above both the filtered-empty and the populated
+  // gallery, so it is hoisted once and shared by the two branches below; the
+  // unfiltered-empty state (`CertificatesEmpty`) deliberately hides it.
+  const filtersRow = (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex-1">
+        <SearchBox value={query} onChange={setQuery} />
+      </div>
+      {courseOptions.length > 1 && (
+        <Select value={courseId} onValueChange={setCourseId}>
+          <SelectTrigger aria-label={t('certificates.list.filterByCourse')} className="sm:w-56">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_COURSES}>{t('certificates.list.allCourses')}</SelectItem>
+            {courseOptions.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+    </div>
+  )
 
   return (
     <div className="space-y-6">
@@ -174,75 +200,55 @@ export function CertificatesListPage() {
         description={t('certificates.list.subtitle')}
       />
 
-      {isLoading ? (
-        <div
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-          aria-busy="true"
-        >
-          {Array.from({ length: 8 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
-      ) : isEmpty ? (
-        <CertificatesEmpty />
-      ) : (
-        <div className="space-y-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex-1">
-              <SearchBox value={query} onChange={setQuery} />
-            </div>
-            {courseOptions.length > 1 && (
-              <Select value={courseId} onValueChange={setCourseId}>
-                <SelectTrigger
-                  aria-label={t('certificates.list.filterByCourse')}
-                  className="sm:w-56"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL_COURSES}>{t('certificates.list.allCourses')}</SelectItem>
-                  {courseOptions.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      <ListView
+        state={listViewState({ isLoading, count: visible.length, hasFilters })}
+        skeleton={
+          <div
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            aria-busy="true"
+          >
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        }
+        empty={<CertificatesEmpty />}
+        noResults={
+          <div className="space-y-5">
+            {filtersRow}
+            <NoResults message={t('certificates.list.emptyFiltered', { query })} />
+          </div>
+        }
+        content={
+          <div className="space-y-5">
+            {filtersRow}
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              transition={transitionDefaults}
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            >
+              {pagination.pageItems.map((c) => (
+                <CertificateCard
+                  key={c.id}
+                  cert={{
+                    id: c.id,
+                    studentName: c.studentName,
+                    courseName: c.courseName,
+                    issuedAt: c.issuedAt,
+                    grade: c.grade,
+                  }}
+                  onOpen={() => setSelectedId(c.id)}
+                />
+              ))}
+            </motion.div>
+            {pagination.pageCount > 1 && (
+              <Pager pagination={pagination} pageSizeOptions={[12, 24, 48]} />
             )}
           </div>
-
-          {visible.length === 0 ? (
-            <NoResults message={t('certificates.list.emptyFiltered', { query })} />
-          ) : (
-            <>
-              <motion.div
-                variants={fadeUp}
-                initial="hidden"
-                animate="visible"
-                transition={transitionDefaults}
-                className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-              >
-                {pagination.pageItems.map((c) => (
-                  <CertificateCard
-                    key={c.id}
-                    cert={{
-                      id: c.id,
-                      studentName: c.studentName,
-                      courseName: c.courseName,
-                      issuedAt: c.issuedAt,
-                      grade: c.grade,
-                    }}
-                    onOpen={() => setSelectedId(c.id)}
-                  />
-                ))}
-              </motion.div>
-              {pagination.pageCount > 1 && (
-                <Pager pagination={pagination} pageSizeOptions={[12, 24, 48]} />
-              )}
-            </>
-          )}
-        </div>
-      )}
+        }
+      />
 
       <CertificatePreviewDialog
         open={selected !== null}

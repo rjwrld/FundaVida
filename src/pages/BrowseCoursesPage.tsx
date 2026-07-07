@@ -16,6 +16,8 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { ListView } from '@/components/shared/ListView'
+import { listViewState } from '@/lib/listViewState'
 import { ListHeaderBand } from '@/components/shared/ListHeaderBand'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useCourses } from '@/hooks/api'
@@ -68,75 +70,81 @@ export function BrowseCoursesPage() {
         />
       </div>
 
-      {isLoading ? (
-        <SkeletonTable rows={8} columns={5} />
-      ) : count === 0 && !hasFilters ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <AlertCircle className="mb-3 text-muted-foreground" size={32} />
-            <p className="text-center text-sm text-muted-foreground">{t('courses.browse.empty')}</p>
-          </CardContent>
-        </Card>
-      ) : count === 0 ? (
-        <NoResults message={t('courses.browse.emptyFiltered')} />
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
-          <ListHeaderBand label={t('courses.browse.title')} count={count} />
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead>{t('courses.list.columns.name')}</TableHead>
-                <TableHead>{t('courses.list.columns.program')}</TableHead>
-                <TableHead>{t('courses.form.fields.level')}</TableHead>
-                <TableHead>{t('courses.browse.columns.seats')}</TableHead>
-                <TableHead className="text-right">{t('courses.browse.columns.actions')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((c) => {
-                const seatsRemaining = getSeatsRemaining(c)
-                const full = isFull(c)
+      <ListView
+        state={listViewState({ isLoading, count, hasFilters })}
+        skeleton={<SkeletonTable rows={8} columns={5} />}
+        empty={
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <AlertCircle className="mb-3 text-muted-foreground" size={32} />
+              <p className="text-center text-sm text-muted-foreground">
+                {t('courses.browse.empty')}
+              </p>
+            </CardContent>
+          </Card>
+        }
+        noResults={<NoResults message={t('courses.browse.emptyFiltered')} />}
+        content={
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <ListHeaderBand label={t('courses.browse.title')} count={count} />
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead>{t('courses.list.columns.name')}</TableHead>
+                  <TableHead>{t('courses.list.columns.program')}</TableHead>
+                  <TableHead>{t('courses.form.fields.level')}</TableHead>
+                  <TableHead>{t('courses.browse.columns.seats')}</TableHead>
+                  <TableHead className="text-right">
+                    {t('courses.browse.columns.actions')}
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.map((c) => {
+                  const seatsRemaining = getSeatsRemaining(c)
+                  const full = isFull(c)
 
-                return (
-                  <TableRow key={c.id} className="h-12 hover:bg-muted/40">
-                    <TableCell>
-                      <button
-                        onClick={() => navigate(`/app/courses/${c.id}`)}
-                        className="hover:underline text-left"
-                      >
-                        {c.name}
-                      </button>
-                    </TableCell>
-                    <TableCell>{programName(c.programId)}</TableCell>
-                    <TableCell>{t(`courses.level.${c.level}`)}</TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <p className="text-sm">
-                          {seatsRemaining}/{c.capacity}
-                        </p>
-                        {full && (
-                          <Badge variant="destructive" className="text-xs">
-                            {t('courses.browse.full')}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        onClick={() => navigate(`/app/courses/${c.id}`)}
-                        variant="outline"
-                      >
-                        {t('courses.browse.viewButton')}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+                  return (
+                    <TableRow key={c.id} className="h-12 hover:bg-muted/40">
+                      <TableCell>
+                        <button
+                          onClick={() => navigate(`/app/courses/${c.id}`)}
+                          className="hover:underline text-left"
+                        >
+                          {c.name}
+                        </button>
+                      </TableCell>
+                      <TableCell>{programName(c.programId)}</TableCell>
+                      <TableCell>{t(`courses.level.${c.level}`)}</TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <p className="text-sm">
+                            {seatsRemaining}/{c.capacity}
+                          </p>
+                          {full && (
+                            <Badge variant="destructive" className="text-xs">
+                              {t('courses.browse.full')}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          onClick={() => navigate(`/app/courses/${c.id}`)}
+                          variant="outline"
+                        >
+                          {t('courses.browse.viewButton')}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        }
+      />
     </div>
   )
 }

@@ -11,6 +11,8 @@ import { NoResults } from '@/components/shared/NoResults'
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { EditGradeDialog } from '@/components/grades/EditGradeDialog'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { ListView } from '@/components/shared/ListView'
+import { listViewState } from '@/lib/listViewState'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
@@ -150,27 +152,27 @@ export function GradesListPage() {
         </Select>
       </section>
 
-      {isLoading ? (
-        <SkeletonTable rows={8} columns={5} />
-      ) : count === 0 && !hasFilters ? (
-        <GradesEmpty />
-      ) : count === 0 ? (
-        <NoResults message={t('grades.list.emptyFiltered')} />
-      ) : (
-        <DataTable
-          data={data}
-          columns={columns}
-          getRowKey={(g) => g.id}
-          renderCard={(g) => (
-            <DataTableCard
-              row={g}
-              columns={columns}
-              titleColumnId="student"
-              actionsColumnId="actions"
-            />
-          )}
-        />
-      )}
+      <ListView
+        state={listViewState({ isLoading, count, hasFilters })}
+        skeleton={<SkeletonTable rows={8} columns={5} />}
+        empty={<GradesEmpty />}
+        noResults={<NoResults message={t('grades.list.emptyFiltered')} />}
+        content={
+          <DataTable
+            data={data}
+            columns={columns}
+            getRowKey={(g) => g.id}
+            renderCard={(g) => (
+              <DataTableCard
+                row={g}
+                columns={columns}
+                titleColumnId="student"
+                actionsColumnId="actions"
+              />
+            )}
+          />
+        }
+      />
 
       <EditGradeDialog
         gradeId={editTarget?.id ?? null}

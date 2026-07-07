@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/select'
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { ListView } from '@/components/shared/ListView'
+import { listViewState } from '@/lib/listViewState'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
@@ -156,27 +158,27 @@ export function StudentsListPage() {
         </Select>
       </section>
 
-      {isLoading ? (
-        <SkeletonTable rows={8} columns={5} />
-      ) : count === 0 && !hasFilters ? (
-        <StudentsEmpty onAdd={canCreate ? openCreate : undefined} />
-      ) : count === 0 ? (
-        <NoResults message={t('students.list.emptyFiltered')} />
-      ) : (
-        <DataTable
-          data={data}
-          columns={columns}
-          getRowKey={(s) => s.id}
-          renderCard={(s) => (
-            <DataTableCard
-              row={s}
-              columns={columns}
-              titleColumnId="name"
-              actionsColumnId="actions"
-            />
-          )}
-        />
-      )}
+      <ListView
+        state={listViewState({ isLoading, count, hasFilters })}
+        skeleton={<SkeletonTable rows={8} columns={5} />}
+        empty={<StudentsEmpty onAdd={canCreate ? openCreate : undefined} />}
+        noResults={<NoResults message={t('students.list.emptyFiltered')} />}
+        content={
+          <DataTable
+            data={data}
+            columns={columns}
+            getRowKey={(s) => s.id}
+            renderCard={(s) => (
+              <DataTableCard
+                row={s}
+                columns={columns}
+                titleColumnId="name"
+                actionsColumnId="actions"
+              />
+            )}
+          />
+        }
+      />
 
       <StudentFormDialog
         open={isOpen && (mode === 'edit' ? canEdit : canCreate)}
