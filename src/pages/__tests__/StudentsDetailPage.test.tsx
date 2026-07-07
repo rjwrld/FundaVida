@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -6,6 +6,8 @@ import { I18nProvider } from '@/lib/i18n'
 import { formatDate, formatGrade, formatPercent } from '@/lib/format'
 import { shortCourseName } from '@/lib/courseName'
 import { StudentsDetailPage } from '@/pages/StudentsDetailPage'
+import { api } from '@/data/api'
+import { delay } from '@/data/api/_delay'
 import { useStore } from '@/data/store'
 import {
   clearPersistedCurrentUser,
@@ -225,5 +227,53 @@ describe('<StudentsDetailPage /> — scope seam (ADR-0012)', () => {
         name: `${outsideStudent.firstName} ${outsideStudent.lastName}`,
       })
     ).not.toBeInTheDocument()
+  })
+})
+
+describe('<StudentsDetailPage /> — progress multi-query gate (ADR-0030/0032)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
+    useStore.getState().setLocale('en')
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  // First-paint regression: the progress section joins five queries. Gating on
+  // the student query alone (with the other four defaulted to []) flashed every
+  // enrolled course as "Not graded" (and "—" attendance) in the window before
+  // grades/attendance resolved. resolveQueries holds the whole section on a
+  // skeleton until all five resolve, so buildStudentProgress never runs on a
+  // placeholder and no false verdict paints.
+  it('shows a section skeleton — not a false "Not graded" row — until grades resolve', async () => {
+    const { subject, course, grade } = adminFixtures()
+    expect(grade.score).toBeGreaterThanOrEqual(70)
+
+    // Hold grades open well past the other four queries so the false-verdict
+    // window the old gate exposed is wide and deterministic, not a sub-tick race.
+    const listGrades = api.grades.list.bind(api.grades)
+    vi.spyOn(api.grades, 'list').mockImplementation(async (filters) => {
+      await delay(600)
+      return listGrades(filters)
+    })
+
+    renderDetail(subject.id)
+
+    // While grades load, the enrollments section is a loading skeleton: no table,
+    // and crucially no transient "Not graded" verdict on the graded course.
+    expect(await screen.findByRole('status', { name: 'Loading table' })).toBeInTheDocument()
+    expect(screen.queryByText('Not graded')).not.toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+
+    // Once grades resolve the real grade paints and the skeleton is gone.
+    const link = await screen.findByRole('link', { name: shortCourseName(course) })
+    const row = req(link.closest('tr') ?? undefined, 'enrollment row missing')
+    expect(await within(row).findByText(formatGrade(grade.score, 'en'))).toBeInTheDocument()
+    expect(screen.queryByRole('status', { name: 'Loading table' })).not.toBeInTheDocument()
   })
 })
