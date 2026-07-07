@@ -1,5 +1,5 @@
 import { eachDayOfInterval, getDay, isSameDay, parseISO, startOfDay } from 'date-fns'
-import { type Course, WEEKDAYS, type Weekday } from '@/types/domain'
+import { type AttendanceRecord, type Course, WEEKDAYS, type Weekday } from '@/types/domain'
 
 export interface Session {
   courseId: string
@@ -92,6 +92,23 @@ export function isSessionRecordable(session: Session, today: Date): boolean {
 /** Complement of {@link isSessionRecordable}: the Session's date is after today. */
 export function isSessionUpcoming(session: Session, today: Date): boolean {
   return !isSessionRecordable(session, today)
+}
+
+/**
+ * The one marked-vs-unmarked rule (ADR-0034, factored out per ADR-0038): a
+ * session is marked iff ANY AttendanceRecord for its Course matches its date
+ * same-day. Backs closeReadiness's unrecorded filter and the calendar agenda's
+ * needs-marking buckets so they cannot silently diverge.
+ */
+export function isSessionMarked(
+  courseId: string,
+  date: string,
+  attendance: AttendanceRecord[]
+): boolean {
+  const sessionDate = parseISO(date)
+  return attendance.some(
+    (record) => record.courseId === courseId && isSameDay(parseISO(record.sessionDate), sessionDate)
+  )
 }
 
 /**

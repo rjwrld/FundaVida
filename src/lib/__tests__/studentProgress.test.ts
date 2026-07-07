@@ -100,6 +100,37 @@ describe('buildStudentProgress', () => {
     expect(rows[0]?.attendanceRate).toBeNull()
   })
 
+  it('surfaces raw present/total counts alongside the rate (ADR-0038)', () => {
+    const rows = buildStudentProgress({
+      enrollments: [makeEnrollment('cou-1')],
+      courses: [makeCourse('cou-1')],
+      grades: [],
+      certificates: [],
+      attendance: [
+        makeAttendance('cou-1', 'present', 1),
+        makeAttendance('cou-1', 'present', 2),
+        makeAttendance('cou-1', 'absent', 3),
+      ],
+    })
+
+    expect(rows[0]?.present).toBe(2)
+    expect(rows[0]?.total).toBe(3)
+  })
+
+  it('counts are zero when the course has no attendance records', () => {
+    const rows = buildStudentProgress({
+      enrollments: [makeEnrollment('cou-1')],
+      courses: [makeCourse('cou-1')],
+      grades: [],
+      certificates: [],
+      attendance: [],
+    })
+
+    expect(rows[0]?.present).toBe(0)
+    expect(rows[0]?.total).toBe(0)
+    expect(rows[0]?.attendanceRate).toBeNull()
+  })
+
   it('computes the attendance rate as present / total', () => {
     const rows = buildStudentProgress({
       enrollments: [makeEnrollment('cou-1')],
