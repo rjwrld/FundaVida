@@ -49,6 +49,7 @@ export function ownCourseIds(courses: CourseList, userId: string): Set<string> {
  * - 'ownCourses' → filtered by userId's owned courses (e.g., teacher's courses for grades/attendance)
  * - 'enrolledInOwnCourses' → filtered by userId's enrollments in their own courses (students in teacher's courses)
  * - 'enrolled' → filtered by userId's enrollments (students see courses they're enrolled in)
+ * - 'assigned' → the single Course the userId's own trainee record is assigned to (a TCU volunteer's course)
  * - 'self' → filtered to the userId's own record (a Student's own student record; a tcu trainee/owner — traineeId === userId)
  * - 'none' → always return empty array
  *
@@ -203,6 +204,18 @@ function applyCoursesScope(
       const enrollments = ctx.enrollments.filter((e) => e.studentId === userId)
       const enrolledCourseIds = new Set(enrollments.map((e) => e.courseId))
       return courses.filter((c) => enrolledCourseIds.has(c.id))
+    }
+    case 'assigned': {
+      // The single Course the current user's own trainee record is assigned to
+      // (ADR-0036) — the mirror of 'assignedTrainees' (a Teacher's view of their
+      // volunteers) pointed the other way. The courseId is read from the trainee
+      // slice, so no raw store.courses read leaks into the component (the leak
+      // ADR-0033 closed in CalendarPage). A userId with no trainee record → [].
+      const trainee = ctx.tcuTrainees.find((tr) => tr.id === userId)
+      if (!trainee) {
+        return []
+      }
+      return courses.filter((c) => c.id === trainee.courseId)
     }
     case 'openForEnrollment': {
       // Published, upcoming courses at the student's Sede with matching level,

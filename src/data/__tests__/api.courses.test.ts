@@ -88,4 +88,14 @@ describe('api.courses role filter', () => {
     const result = await api.courses.get(enrollment.courseId)
     expect(result?.id).toBe(enrollment.courseId)
   })
+
+  it('tcu sees exactly the one Course their trainee record is assigned to (ADR-0036)', async () => {
+    useStore.getState().setRole('tcu')
+    const trainee = useStore.getState().tcuTrainees.find((tr) => tr.id === 'tcu-1')
+    if (!trainee) throw new Error('seed is missing the tcu-1 trainee')
+    const list = await api.courses.list()
+    // The intended side effect: the tcu Courses scope goes from empty to exactly
+    // the assigned Course, which is what lights up the role's calendar (ADR-0013).
+    expect(list.map((c) => c.id)).toEqual([trainee.courseId])
+  })
 })
