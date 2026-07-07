@@ -868,14 +868,15 @@ describe('Permissions Matrix', () => {
       expect(can('student', 'view', 'enrollments')).toBe(false)
     })
 
-    it('tcu has self scope for tcu and none for everything else', () => {
+    it('tcu has self scope for tcu, assigned for courses, and none for everything else', () => {
       const scopes = scopeFor('tcu')
       expect(scopes).toEqual({
         // The tcu catalog read seam is closed (ADR-0035).
         programs: 'none',
         students: 'none',
         teachers: 'none',
-        courses: 'none',
+        // A TCU volunteer sees the one Course they serve at (ADR-0036).
+        courses: 'assigned',
         enrollments: 'none',
         grades: 'none',
         certificates: 'none',

@@ -442,11 +442,17 @@
       "nextClass": "Next class"
     },
     "tcu": {
+      "assignedCourse": "Your course",
       "hoursCompleted": "Hours completed",
       "hoursRemaining": "Hours remaining toward 300",
+      "logHours": "Log hours",
+      "meetingDaysLabel": "Meeting days",
+      "nextSessionLabel": "Next session",
       "noActivities": "No activities logged yet.",
+      "noUpcomingSessions": "No upcoming sessions",
       "recentActivities": "Recent activities",
-      "recentActivitiesList": "Recent activities"
+      "recentActivitiesList": "Recent activities",
+      "sedeLabel": "Campus"
     },
     "teacher": {
       "createCourseButton": "Create a course",

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { applyScope, ownCourseIds, type ScopeContext } from '../scope'
-import type { Course, Student, Enrollment, Certificate } from '@/types'
+import type { Course, Student, Enrollment, Certificate, TcuTrainee } from '@/types'
 
 // These are pure scope-rule units (ADR-0033): a scenario is a small hand-built
 // ScopeContext, not a resetDemo/setRole/store-mutation sequence. End-to-end
@@ -61,6 +61,20 @@ function makeCertificate(over: Partial<Certificate> = {}): Certificate {
     courseId: 'cou-1',
     score: 85,
     issuedAt: '2026-06-01T00:00:00.000Z',
+    ...over,
+  }
+}
+
+function makeTrainee(over: Partial<TcuTrainee> = {}): TcuTrainee {
+  return {
+    id: 'tcu-1',
+    firstName: 'V',
+    lastName: 'W',
+    email: 'v@w.co',
+    sede: 'Linda Vista',
+    university: 'Universidad de Costa Rica',
+    courseId: 'cou-1',
+    createdAt: '2026-01-01T00:00:00.000Z',
     ...over,
   }
 }
@@ -180,6 +194,37 @@ describe('courses enrolled scope', () => {
     const ctx = makeCtx({ currentUserId: 'stu-1', courses, enrollments })
     const scoped = applyScope('courses', 'enrolled', courses, ctx)
     expect(scoped.map((c) => c.id)).toEqual(['in'])
+  })
+})
+
+describe('courses assigned scope (ADR-0036)', () => {
+  it("returns exactly the self-trainee's Course, never another's", () => {
+    const courses = [
+      makeCourse({ id: 'mine' }),
+      makeCourse({ id: 'theirs' }),
+      makeCourse({ id: 'unrelated' }),
+    ]
+    const trainees = [
+      makeTrainee({ id: 'tcu-1', courseId: 'mine' }),
+      makeTrainee({ id: 'tcu-2', courseId: 'theirs' }),
+    ]
+    const ctx = makeCtx({ currentUserId: 'tcu-1', courses, tcuTrainees: trainees })
+    const scoped = applyScope('courses', 'assigned', courses, ctx)
+    expect(scoped.map((c) => c.id)).toEqual(['mine'])
+  })
+
+  it('returns [] for a userId with no trainee record', () => {
+    const courses = [makeCourse({ id: 'mine' })]
+    const trainees = [makeTrainee({ id: 'tcu-2', courseId: 'mine' })]
+    const ctx = makeCtx({ currentUserId: 'ghost', courses, tcuTrainees: trainees })
+    expect(applyScope('courses', 'assigned', courses, ctx)).toEqual([])
+  })
+
+  it('returns [] when the trainee record points at a Course not in the list', () => {
+    const courses = [makeCourse({ id: 'present' })]
+    const trainees = [makeTrainee({ id: 'tcu-1', courseId: 'gone' })]
+    const ctx = makeCtx({ currentUserId: 'tcu-1', courses, tcuTrainees: trainees })
+    expect(applyScope('courses', 'assigned', courses, ctx)).toEqual([])
   })
 })
 

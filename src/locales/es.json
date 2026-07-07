@@ -446,11 +446,17 @@
       "nextClass": "Próxima clase"
     },
     "tcu": {
+      "assignedCourse": "Tu curso",
       "hoursCompleted": "Horas completadas",
       "hoursRemaining": "Horas restantes hacia 300",
+      "logHours": "Registrar horas",
+      "meetingDaysLabel": "Días de reunión",
+      "nextSessionLabel": "Próxima sesión",
       "noActivities": "Aún no hay actividades registradas.",
+      "noUpcomingSessions": "Sin próximas sesiones",
       "recentActivities": "Actividades recientes",
-      "recentActivitiesList": "Actividades recientes"
+      "recentActivitiesList": "Actividades recientes",
+      "sedeLabel": "Sede"
     },
     "teacher": {
       "createCourseButton": "Crear un curso",

@@ -36,6 +36,7 @@ export type Scope =
   | 'openForEnrollment'
   | 'self'
   | 'assignedTrainees'
+  | 'assigned'
   | 'none'
 
 export interface PermissionContext {
@@ -217,7 +218,12 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     programs: 'none',
     students: 'none',
     teachers: 'none',
-    courses: 'none',
+    // A TCU volunteer serves at exactly one Course (ADR-0017): 'assigned' resolves
+    // it from their own trainee record's courseId, mirroring the Teacher's
+    // 'assignedTrainees' the other way. The catalog route/nav stay hidden — the
+    // token governs reads, not routes (ADR-0036). Lights up the dashboard card
+    // and the role's calendar (ADR-0013).
+    courses: 'assigned',
     enrollments: 'none',
     grades: 'none',
     certificates: 'none',

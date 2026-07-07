@@ -25,12 +25,11 @@ import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useTcuActivities, useTcuTrainees, useApproveTcuActivity } from '@/hooks/api'
 import { listViewState } from '@/lib/listViewState'
 import { resolveQueries } from '@/lib/resolveQueries'
+import { tcuHoursByStatus, TCU_TARGET_HOURS } from '@/lib/tcuHours'
 import { useFormat } from '@/hooks/useFormat'
 import { useStore } from '@/data/store'
 import { LogTcuActivityDialog } from '@/components/tcu/LogTcuActivityDialog'
 import type { TcuFilters } from '@/data/api/tcu'
-
-const TARGET_HOURS = 300
 
 export function TcuListPage() {
   const { t } = useTranslation()
@@ -51,8 +50,7 @@ export function TcuListPage() {
   const roster = resolveQueries([activitiesQuery, traineesQuery])
   const approveMutation = useApproveTcuActivity()
 
-  const approvedHours = data.reduce((sum, a) => sum + (a.status === 'approved' ? a.hours : 0), 0)
-  const pendingHours = data.reduce((sum, a) => sum + (a.status === 'pending' ? a.hours : 0), 0)
+  const { approved: approvedHours, pending: pendingHours } = tcuHoursByStatus(data)
   const hasFilters = Boolean(filters.traineeId)
   const count = data.length
 
@@ -62,7 +60,7 @@ export function TcuListPage() {
   const selfTrainee = isTcuRole ? trainees.find((t) => t.id === userId) : null
 
   // Calculate progress toward 300 hours (approved hours only)
-  const progressPercent = Math.min((approvedHours / TARGET_HOURS) * 100, 100)
+  const progressPercent = Math.min((approvedHours / TCU_TARGET_HOURS) * 100, 100)
 
   // For teachers: get their courses and pending activities for their trainees
   const teacherCourseIds = isTeacher
@@ -104,7 +102,7 @@ export function TcuListPage() {
             </div>
             <div className="text-right">
               <p className="font-mono text-lg tabular-nums">
-                {formatNumber(approvedHours)} / {TARGET_HOURS}
+                {formatNumber(approvedHours)} / {TCU_TARGET_HOURS}
               </p>
               <p className="text-xs text-muted-foreground">{t('tcu.dashboard.approvedHours')}</p>
             </div>

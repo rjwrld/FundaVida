@@ -11,7 +11,7 @@ import {
   clearPersistedRole,
   clearPersistedState,
 } from '@/data/persistence'
-import type { Course, Enrollment, Weekday } from '@/types'
+import type { Course, Enrollment, TcuTrainee, Weekday } from '@/types'
 
 // Fixed Demo Epoch (ADR-0014) so the calendar opens on June 2026 with
 // deterministic session days and selects the frozen today (June 15) on mount.
@@ -65,6 +65,19 @@ const enrollmentStu1A: Enrollment = {
   requestedAt: isoDay(2026, 4, 20),
 }
 
+// tcu-1 is the tcu persona's userId; its courseId assigns it to courseA (ADR-0036),
+// so the tcu Courses scope resolves to cou-A and its Sessions light up the calendar.
+const traineeTcu1A: TcuTrainee = {
+  id: 'tcu-1',
+  firstName: 'Vera',
+  lastName: 'Núñez',
+  email: 'vera@u.cr',
+  sede: 'Linda Vista',
+  university: 'Universidad de Costa Rica',
+  courseId: 'cou-A',
+  createdAt: isoDay(2026, 3, 1),
+}
+
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
   return render(
@@ -84,7 +97,11 @@ describe('<CalendarPage />', () => {
     clearPersistedState()
     clearPersistedRole()
     clearPersistedCurrentUser()
-    useStore.setState({ courses: [courseA, courseB], enrollments: [enrollmentStu1A] })
+    useStore.setState({
+      courses: [courseA, courseB],
+      enrollments: [enrollmentStu1A],
+      tcuTrainees: [traineeTcu1A],
+    })
     useStore.getState().setLocale('en')
   })
 
@@ -126,6 +143,19 @@ describe('<CalendarPage />', () => {
     expect(link.getAttribute('href')).toMatch(/\/app\/courses\/cou-A\/sessions\/.*\/mark/)
     // Historia is taught by tea-2 → out of the teacher persona's scope.
     expect(screen.queryByText(/Historia/)).not.toBeInTheDocument()
+  })
+
+  it('lights up for a tcu volunteer with their assigned course’s sessions (ADR-0036)', async () => {
+    useStore.getState().setRole('tcu')
+    renderPage()
+
+    // The tcu Courses scope was 'none' (empty calendar); now 'assigned' resolves
+    // cou-A, so June 15 (Mon) shows Matemáticas Session 5 — the calendar lights up.
+    expect(await screen.findByText('Matemáticas — Session 5')).toBeInTheDocument()
+    // Historia (cou-B) is another trainee's course → never in this volunteer's scope.
+    expect(screen.queryByText(/Historia/)).not.toBeInTheDocument()
+    // A volunteer only serves; their entries are read-only (not links).
+    expect(screen.queryByRole('link', { name: /Matemáticas/ })).not.toBeInTheDocument()
   })
 
   it('shows an admin every course’s sessions', async () => {

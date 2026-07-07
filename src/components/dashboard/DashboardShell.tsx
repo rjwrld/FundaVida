@@ -26,9 +26,9 @@ export interface DashboardShellProps {
 /**
  * The two-column dashboard layout shared by every role that has a calendar: a main
  * column (children) beside an aside holding the role-scoped DashboardCalendar and,
- * optionally, the "On your radar" panel. The aside collapses below xl. The TCU role
- * has no scoped Courses (scopeFor('tcu').courses === 'none'), so its dashboard does
- * not use this shell — an always-empty calendar would be noise.
+ * optionally, the "On your radar" panel. The aside collapses below xl. The TCU
+ * dashboard opts out of this shell by design: it centres a single assigned-Course
+ * card and the log-hours action (ADR-0036), not a full calendar aside.
  */
 export function DashboardShell({ children, courses, upcoming }: DashboardShellProps) {
   const { t } = useTranslation()

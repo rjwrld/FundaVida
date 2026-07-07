@@ -259,23 +259,25 @@ describe('<DashboardPage /> (tcu)', () => {
     useStore.getState().setLocale('en')
   })
 
-  it('renders at least three meaningful role-scoped widgets', () => {
+  it('renders at least three meaningful role-scoped widgets', async () => {
     renderDashboard()
-    // TCU dashboard should show: hours completed, hours remaining, recent activities
-    expect(screen.getByText(/hours completed/i)).toBeInTheDocument()
+    // TCU dashboard should show: hours completed, hours remaining, recent activities.
+    // It gates on its scope-seam queries (ADR-0030), so await the first paint.
+    expect(await screen.findByText(/hours completed/i)).toBeInTheDocument()
     expect(screen.getByText(/hours remaining/i)).toBeInTheDocument()
     expect(screen.getByText(/recent activities/i)).toBeInTheDocument()
   })
 
   it("scopes hours to the TCU trainee's own activities, never the raw store", async () => {
-    // Capture this trainee's scoped hours, then inject a DIFFERENT trainee's
-    // activity. A dashboard that reads the scope seam (api.tcu.list) must ignore
-    // it; one that reads the raw store would inflate the total — exactly the
-    // widget-local recomputation issue #74 (criterion 2) forbids.
+    // Capture this trainee's scoped APPROVED hours (the dashboard counts
+    // approved-only toward the target, ADR-0036), then inject a DIFFERENT
+    // trainee's activity. A dashboard that reads the scope seam (api.tcu.list)
+    // must ignore it; one that reads the raw store would inflate the total —
+    // exactly the widget-local recomputation issue #74 (criterion 2) forbids.
     const userId = useStore.getState().currentUserId
-    const ownHours = useStore
+    const approvedOwnHours = useStore
       .getState()
-      .tcuActivities.filter((a) => a.traineeId === userId)
+      .tcuActivities.filter((a) => a.traineeId === userId && a.status === 'approved')
       .reduce((sum, a) => sum + a.hours, 0)
 
     useStore.setState((s) => ({
@@ -294,10 +296,10 @@ describe('<DashboardPage /> (tcu)', () => {
 
     renderDashboard()
 
-    // The scoped total renders (await the async scope-seam query)...
-    expect((await screen.findAllByText(`${ownHours}h`)).length).toBeGreaterThan(0)
+    // The scoped approved total renders (await the async scope-seam query)...
+    expect((await screen.findAllByText(`${approvedOwnHours}h`)).length).toBeGreaterThan(0)
     // ...and the foreign 1000h never leaks into it.
-    expect(screen.queryByText(`${ownHours + 1000}h`)).not.toBeInTheDocument()
+    expect(screen.queryByText(`${approvedOwnHours + 1000}h`)).not.toBeInTheDocument()
   })
 
   it('does not show the placeholder panel for tcu', () => {
