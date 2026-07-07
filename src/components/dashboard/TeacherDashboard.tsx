@@ -20,7 +20,7 @@ export function TeacherDashboard() {
   // Hero: Enrollment Approvals + Next Sessions to Mark
   // Supporting: My Courses, Courses to close, TCU Approvals, Create Course CTA
   return (
-    <DashboardShell courses={courses}>
+    <DashboardShell>
       {/* Hero: Enrollment Approval Queue */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <EnrollmentApprovalQueue />
