@@ -20,8 +20,10 @@ export interface UseDaySessions {
 
 /**
  * Derive a viewer's Sessions from their already-scoped Courses (ADR-0013, ADR-0001)
- * and track a selected day. Shared by RoleCalendar (full page) and DashboardCalendar
- * (sidebar) so the session derivation lives in exactly one place.
+ * and track a selected day. Backs CalendarPage's month mode (ADR-0038) — its
+ * former consumers, RoleCalendar and DashboardCalendar, were superseded by the
+ * week agenda and the dashboard AgendaSlice, which bucket via lib/weekAgenda
+ * and lib/agenda instead.
  */
 export function useDaySessions(courses: Course[]): UseDaySessions {
   const [selected, setSelected] = useState<Date>(() => clock.today())
