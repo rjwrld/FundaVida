@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { isSameDay, startOfDay } from 'date-fns'
-import { startOfWeekMonday, weekAgendaDays } from '../weekAgenda'
+import { sessionsOnDay, startOfWeekMonday, weekAgendaDays } from '../weekAgenda'
 import type { Course } from '@/types/domain'
 
 describe('weekAgenda', () => {
@@ -105,6 +105,30 @@ describe('weekAgenda', () => {
     it('returns all-empty day-columns for no Courses', () => {
       const days = weekAgendaDays([], new Date(2026, 5, 17))
       expect(days.every((d) => d.sessions.length === 0)).toBe(true)
+    })
+  })
+
+  describe('sessionsOnDay', () => {
+    it('returns the sessions falling on the given day, tagged with their Course', () => {
+      const sessions = sessionsOnDay([courseMonWed], new Date(2026, 5, 17))
+      expect(sessions).toHaveLength(1)
+      const session = sessions.at(0)
+      expect(session).toBeDefined()
+      if (session) {
+        expect(session.course.id).toBe('course-1')
+        expect(session.ordinal).toBe(6)
+      }
+    })
+
+    it('returns an empty array for a day with no sessions', () => {
+      const sessions = sessionsOnDay([courseMonWed], new Date(2026, 5, 16)) // Tuesday
+      expect(sessions).toEqual([])
+    })
+
+    it('sorts multiple same-day sessions by ordinal', () => {
+      const otherCourse: Course = { ...courseMonWed, id: 'course-2', name: 'History 101' }
+      const sessions = sessionsOnDay([courseMonWed, otherCourse], new Date(2026, 5, 17))
+      expect(sessions.map((s) => s.course.id)).toEqual(['course-1', 'course-2'])
     })
   })
 })

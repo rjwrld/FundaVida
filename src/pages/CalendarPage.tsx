@@ -6,7 +6,7 @@ import { CalendarWidget } from '@/components/shared/CalendarWidget'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { AgendaSidebar } from '@/components/calendar/AgendaSidebar'
 import { WeekCanvas, type CalendarViewMode } from '@/components/calendar/WeekCanvas'
-import type { SessionCardStatus } from '@/components/calendar/SessionCard'
+import { SessionCard, type SessionCardStatus } from '@/components/calendar/SessionCard'
 import { Button } from '@/components/ui/button'
 import { useStore } from '@/data/store'
 import { useAttendance, useCertificates, useCourses, useEnrollments, useGrades } from '@/hooks/api'
@@ -14,6 +14,7 @@ import { buildAgenda } from '@/lib/agenda'
 import { clock } from '@/lib/clock'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { isSessionMarked, isSessionRecordable } from '@/lib/sessions'
+import { sessionsOnDay } from '@/lib/weekAgenda'
 import { useDaySessions } from '@/hooks/useDaySessions'
 import { cn } from '@/lib/utils'
 
@@ -76,6 +77,8 @@ export function CalendarPage() {
   // Teachers and admins act on Sessions (mark attendance); students/tcu view only.
   const linkToMark = role === 'admin' || role === 'teacher'
   const now = clock.today()
+  // Month mode's day-detail panel (ADR-0038: "tap a day → its cards").
+  const daySessions = sessionsOnDay(courses, selected)
 
   const agenda = buildAgenda({ role, courses, attendance, grades, enrollments, certificates, now })
 
@@ -144,7 +147,32 @@ export function CalendarPage() {
               statusFor={statusFor}
             />
           ) : (
-            <CalendarWidget selected={selected} events={events} onSelect={setSelected} />
+            <div className="space-y-4">
+              <CalendarWidget selected={selected} events={events} onSelect={setSelected} />
+              <div
+                aria-label={t('calendar.panelTitle')}
+                className="rounded-xl border border-border bg-card p-5"
+              >
+                <h3 className="font-display text-base text-foreground">
+                  {t('calendar.panelTitle')}
+                </h3>
+                {daySessions.length === 0 ? (
+                  <p className="mt-3 text-sm text-muted-foreground">{t('calendar.emptyDay')}</p>
+                ) : (
+                  <div className="mt-3 flex flex-col gap-2">
+                    {daySessions.map((session) => (
+                      <SessionCard
+                        key={`${session.courseId}-${session.date}`}
+                        course={session.course}
+                        session={session}
+                        status={statusFor(session.courseId, session.date)}
+                        linkToMark={linkToMark}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>

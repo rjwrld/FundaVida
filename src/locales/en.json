@@ -147,6 +147,7 @@
     "emptyWeek": "No sessions this week.",
     "next": "Next week",
     "noCourses": "No courses yet — sessions will appear here once you have one.",
+    "panelTitle": "Sessions",
     "previous": "Previous week",
     "sessionEntry": "{{course}} — Session {{ordinal}}",
     "sidebar": {

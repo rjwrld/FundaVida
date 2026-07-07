@@ -148,6 +148,7 @@
     "emptyWeek": "No hay sesiones esta semana.",
     "next": "Semana siguiente",
     "noCourses": "Aún no hay cursos — las sesiones aparecerán aquí cuando tengas uno.",
+    "panelTitle": "Sesiones",
     "previous": "Semana anterior",
     "sessionEntry": "{{course}} — Sesión {{ordinal}}",
     "sidebar": {

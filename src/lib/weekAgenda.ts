@@ -21,6 +21,11 @@ export function startOfWeekMonday(date: Date): Date {
   return startOfWeek(date, { weekStartsOn: 1 })
 }
 
+/** Every scoped Course's derived Sessions (ADR-0001), each tagged with its Course. */
+function allWeekSessions(courses: Course[]): WeekSession[] {
+  return courses.flatMap((course) => sessionsFor(course).map((session) => ({ ...session, course })))
+}
+
 /**
  * The seven Mon→Sun day-columns for the week containing `date`: every scoped
  * Course's derived Sessions (ADR-0001) bucketed by calendar day. Empty days
@@ -34,9 +39,7 @@ export function weekAgendaDays(courses: Course[], date: Date): WeekDay[] {
     sessions: [],
   }))
 
-  const allSessions: WeekSession[] = courses.flatMap((course) =>
-    sessionsFor(course).map((session) => ({ ...session, course }))
-  )
+  const allSessions = allWeekSessions(courses)
 
   days.forEach((day) => {
     day.sessions = allSessions
@@ -45,4 +48,16 @@ export function weekAgendaDays(courses: Course[], date: Date): WeekDay[] {
   })
 
   return days
+}
+
+/**
+ * A single day's Sessions across scoped Courses, tagged with their Course and
+ * sorted by ordinal — the month-mode day-detail panel's data (ADR-0038: "tap a
+ * day → its cards"). Shares the same bucketing shape as {@link weekAgendaDays}
+ * so a day never derives its Sessions two different ways.
+ */
+export function sessionsOnDay(courses: Course[], date: Date): WeekSession[] {
+  return allWeekSessions(courses)
+    .filter((session) => isSameDay(parseISO(session.date), date))
+    .sort((a, b) => a.ordinal - b.ordinal)
 }
