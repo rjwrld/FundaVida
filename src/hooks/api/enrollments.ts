@@ -3,8 +3,7 @@ import { api } from '@/data/api'
 import { useStore } from '@/data/store'
 import type { EnrollmentFilters } from '@/data/api/enrollments'
 import { makeEntityMutation } from './makeEntityMutation'
-
-const ENROLLMENTS_KEY = ['enrollments'] as const
+import { ENROLLMENTS_KEY } from './queryKeys'
 
 export function useEnrollments(filters: EnrollmentFilters = {}) {
   const role = useStore((s) => s.role)
@@ -16,15 +15,12 @@ export function useEnrollments(filters: EnrollmentFilters = {}) {
 
 export const useDeleteEnrollment = makeEntityMutation('unenrollStudent')({
   toastKey: 'toasts.unenrolled',
-  invalidates: [ENROLLMENTS_KEY, ['students'], ['courses'], ['grades'], ['attendance']],
 })
 
 export const useApproveEnrollment = makeEntityMutation('approveEnrollment')({
   toastKey: 'toasts.enrollmentApproved',
-  invalidates: [ENROLLMENTS_KEY, ['students'], ['courses']],
 })
 
 export const useRejectEnrollment = makeEntityMutation('rejectEnrollment')({
   toastKey: 'toasts.enrollmentRejected',
-  invalidates: [ENROLLMENTS_KEY, ['students'], ['courses']],
 })

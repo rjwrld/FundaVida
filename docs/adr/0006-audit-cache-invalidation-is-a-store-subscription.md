@@ -1,5 +1,10 @@
 # Audit cache invalidation is a store subscription
 
+_Superseded by [ADR-0029](0029-cache-invalidation-derives-from-the-mutation-write-set.md)._
+The dedicated `wireAuditInvalidation` store subscription is removed: `['auditLog']`
+is now invalidated by the same write-set diff as every other slice, because every
+`withAudit` mutation writes the `auditLog` slice and so it is always in the diff.
+
 The `['auditLog']` React Query cache is invalidated in exactly one place: a store subscription (`wireAuditInvalidation(queryClient)`) that watches the `auditLog` slice for reference changes and invalidates the key, wired once at app start in `main.tsx`. Mutation hooks never invalidate audit keys. We chose subscribing to the source of truth over a global `MutationCache.onSuccess` (fires for every mutation whether or not it audited, and couples invalidation to React Query plumbing) and over a shared per-hook helper (still N call sites, weakest collapse).
 
 ## Consequences

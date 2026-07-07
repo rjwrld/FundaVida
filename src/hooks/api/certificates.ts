@@ -2,8 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/data/api'
 import { useStore } from '@/data/store'
 import type { CertificateFilters } from '@/data/api/certificates'
-
-export const CERTIFICATES_KEY = ['certificates'] as const
+import { CERTIFICATES_KEY } from './queryKeys'
 
 // Role is part of the queryKey so the scoped list (admin sees all, a Student
 // sees only their own — ADR-0012) refetches when the role switches.

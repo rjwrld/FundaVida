@@ -13,7 +13,6 @@ import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { App } from './App'
 import { I18nProvider } from './lib/i18n'
-import { wireAuditInvalidation } from './hooks/api/auditInvalidation'
 import './index.css'
 
 const rootEl = document.getElementById('root')
@@ -28,8 +27,6 @@ const queryClient = new QueryClient({
     },
   },
 })
-
-wireAuditInvalidation(queryClient)
 
 createRoot(rootEl).render(
   <StrictMode>

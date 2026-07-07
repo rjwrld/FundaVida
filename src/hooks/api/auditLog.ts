@@ -2,8 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/data/api'
 import { useStore } from '@/data/store'
 import type { AuditLogFilters } from '@/data/api/auditLog'
-
-export const AUDIT_LOG_KEY = ['auditLog'] as const
+import { AUDIT_LOG_KEY } from './queryKeys'
 
 export function useAuditLog(filters: AuditLogFilters = {}) {
   const role = useStore((s) => s.role)
