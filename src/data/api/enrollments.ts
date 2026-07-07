@@ -24,7 +24,7 @@ export const enrollmentsApi = {
     const role = state.role ?? 'student'
     const enrollments = state.enrollments
     const scope = scopeFor(role)['enrollments']
-    const scoped = applyScope('enrollments', scope, enrollments)
+    const scoped = applyScope('enrollments', scope, enrollments, state)
     return applyFilters(scoped, filters)
   },
 }

@@ -11,7 +11,7 @@ export const emailCampaignsApi = {
     const role = state.role ?? 'student'
     const campaigns = state.emailCampaigns
     const scope = scopeFor(role)['bulkEmail']
-    const scoped = applyScope('emailCampaigns', scope, campaigns)
+    const scoped = applyScope('emailCampaigns', scope, campaigns, state)
     return scoped
   },
 }

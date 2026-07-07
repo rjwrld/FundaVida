@@ -32,7 +32,7 @@ export const studentsApi = {
     const role = state.role ?? 'student'
     const students = state.students
     const scope = scopeFor(role)['students']
-    const scoped = applyScope('students', scope, students)
+    const scoped = applyScope('students', scope, students, state)
     return applyFilters(scoped, filters)
   },
   async get(id: string): Promise<Student | null> {
@@ -41,7 +41,7 @@ export const studentsApi = {
     const role = state.role ?? 'student'
     const students = state.students
     const scope = scopeFor(role)['students']
-    const scoped = applyScope('students', scope, students)
+    const scoped = applyScope('students', scope, students, state)
     return scoped.find((s) => s.id === id) ?? null
   },
 }

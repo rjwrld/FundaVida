@@ -22,7 +22,7 @@ export const tcuApi = {
     const role = state.role ?? 'student'
     const activities = state.tcuActivities
     const scope = scopeFor(role)['tcu']
-    const scoped = applyScope('tcu', scope, activities)
+    const scoped = applyScope('tcu', scope, activities, state)
     return applyFilters(scoped, filters)
   },
 }

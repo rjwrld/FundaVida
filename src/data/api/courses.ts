@@ -31,7 +31,7 @@ export const coursesApi = {
     const role = state.role ?? 'student'
     const courses = state.courses
     const scope = filters.scopeOverride ?? scopeFor(role)['courses']
-    const scoped = applyScope('courses', scope, courses)
+    const scoped = applyScope('courses', scope, courses, state)
     return applyFilters(scoped, filters)
   },
   async get(id: string, scopeOverride?: Scope): Promise<Course | null> {
@@ -40,7 +40,7 @@ export const coursesApi = {
     const role = state.role ?? 'student'
     const courses = state.courses
     const scope = scopeOverride ?? scopeFor(role)['courses']
-    const scoped = applyScope('courses', scope, courses)
+    const scoped = applyScope('courses', scope, courses, state)
     return scoped.find((c) => c.id === id) ?? null
   },
   /**

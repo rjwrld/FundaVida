@@ -13,12 +13,35 @@ import type {
   TcuActivity,
   TcuTrainee,
 } from '@/types'
-import { useStore } from '../store'
+
+/**
+ * The data slices the scope rules read, traced across every branch. `applyScope`
+ * accepts this instead of reaching the global store, so "what data can this
+ * function see" is declared in the signature (ADR-0033). `StoreState`
+ * structurally satisfies it, so api callers pass `state` unchanged.
+ */
+export interface ScopeContext {
+  currentUserId: string | null
+  courses: Course[]
+  enrollments: Enrollment[]
+  students: Student[]
+  tcuTrainees: TcuTrainee[]
+}
+
+/**
+ * The pivot of all Teacher scope (CONTEXT.md → Owned Courses): the set of Course
+ * ids a Teacher owns, the unit by which they see rosters, Grades, Attendance,
+ * Certificates, and assigned Trainees. Extracted from the six per-resource
+ * functions that rebuilt it verbatim.
+ */
+export function ownCourseIds(courses: CourseList, userId: string): Set<string> {
+  return new Set(courses.filter((c) => c.teacherId === userId).map((c) => c.id))
+}
 
 /**
  * Interpreter for scopeFor tokens.
  * Each token describes a visibility/ownership scope; this module applies those tokens
- * to filter arrays from store state.
+ * to filter arrays, reading any cross-slice data it needs from the passed ScopeContext.
  *
  * Token semantics:
  * - 'all' → unfiltered list
@@ -53,7 +76,8 @@ type TraineeList = TcuTrainee[]
 export function applyScope<T extends keyof ScopeFilters>(
   resource: T,
   token: Scope,
-  items: ScopeFilters[T]
+  items: ScopeFilters[T],
+  ctx: ScopeContext
 ): ScopeFilters[T] {
   if (token === 'none') {
     return [] as ScopeFilters[T]
@@ -63,8 +87,7 @@ export function applyScope<T extends keyof ScopeFilters>(
     return items
   }
 
-  const state = useStore.getState()
-  const userId = state.currentUserId
+  const userId = ctx.currentUserId
 
   if (!userId) {
     // No user ID: only 'all' and 'none' are meaningful; default to empty
@@ -77,27 +100,27 @@ export function applyScope<T extends keyof ScopeFilters>(
       // narrowed token defensively yields an empty catalog.
       return applyProgramsScope(items as ProgramList, token) as ScopeFilters[T]
     case 'students':
-      return applyStudentsScope(items as StudentList, token, userId) as ScopeFilters[T]
+      return applyStudentsScope(items as StudentList, token, userId, ctx) as ScopeFilters[T]
     case 'teachers':
       return applyTeachersScope(items as TeacherList, token, userId) as ScopeFilters[T]
     case 'courses':
-      return applyCoursesScope(items as CourseList, token, userId) as ScopeFilters[T]
+      return applyCoursesScope(items as CourseList, token, userId, ctx) as ScopeFilters[T]
     case 'enrollments':
-      return applyEnrollmentsScope(items as EnrollmentList, token, userId) as ScopeFilters[T]
+      return applyEnrollmentsScope(items as EnrollmentList, token, userId, ctx) as ScopeFilters[T]
     case 'grades':
-      return applyGradesScope(items as GradeList, token, userId) as ScopeFilters[T]
+      return applyGradesScope(items as GradeList, token, userId, ctx) as ScopeFilters[T]
     case 'certificates':
-      return applyCertificatesScope(items as CertificateList, token, userId) as ScopeFilters[T]
+      return applyCertificatesScope(items as CertificateList, token, userId, ctx) as ScopeFilters[T]
     case 'attendance':
-      return applyAttendanceScope(items as AttendanceList, token, userId) as ScopeFilters[T]
+      return applyAttendanceScope(items as AttendanceList, token, userId, ctx) as ScopeFilters[T]
     case 'auditLog':
       return applyAuditLogScope(items as AuditLogList, token, userId) as ScopeFilters[T]
     case 'emailCampaigns':
       return applyEmailCampaignsScope(items as EmailCampaignList, token, userId) as ScopeFilters[T]
     case 'tcu':
-      return applyTcuScope(items as TcuList, token, userId) as ScopeFilters[T]
+      return applyTcuScope(items as TcuList, token, userId, ctx) as ScopeFilters[T]
     case 'trainees':
-      return applyTraineesScope(items as TraineeList, token, userId) as ScopeFilters[T]
+      return applyTraineesScope(items as TraineeList, token, userId, ctx) as ScopeFilters[T]
     default:
       // Unhandled resource: default to 'none'
       return [] as ScopeFilters[T]
@@ -128,7 +151,12 @@ function applyProgramsScope(_programs: ProgramList, token: Scope): ProgramList {
   }
 }
 
-function applyStudentsScope(students: StudentList, token: Scope, userId: string): StudentList {
+function applyStudentsScope(
+  students: StudentList,
+  token: Scope,
+  userId: string,
+  ctx: ScopeContext
+): StudentList {
   switch (token) {
     case 'self': {
       // A Student reads only their own record (issue #166, ADR-0012). The route
@@ -138,11 +166,8 @@ function applyStudentsScope(students: StudentList, token: Scope, userId: string)
     }
     case 'enrolledInOwnCourses': {
       // Students having an enrollment in a course owned by the current user
-      const state = useStore.getState()
-      const ownCourseIds = new Set(
-        state.courses.filter((c) => c.teacherId === userId).map((c) => c.id)
-      )
-      const enrollmentsInOwnCourses = state.enrollments.filter((e) => ownCourseIds.has(e.courseId))
+      const owned = ownCourseIds(ctx.courses, userId)
+      const enrollmentsInOwnCourses = ctx.enrollments.filter((e) => owned.has(e.courseId))
       const enrolledStudentIds = new Set(enrollmentsInOwnCourses.map((e) => e.studentId))
       return students.filter((s) => enrolledStudentIds.has(s.id))
     }
@@ -160,7 +185,12 @@ function applyTeachersScope(_teachers: TeacherList, token: Scope, _userId: strin
   }
 }
 
-function applyCoursesScope(courses: CourseList, token: Scope, userId: string): CourseList {
+function applyCoursesScope(
+  courses: CourseList,
+  token: Scope,
+  userId: string,
+  ctx: ScopeContext
+): CourseList {
   switch (token) {
     case 'own': {
       // Courses owned by the current user
@@ -170,16 +200,14 @@ function applyCoursesScope(courses: CourseList, token: Scope, userId: string): C
       // Courses the current user has any enrollment record in (ADR-0012). The
       // course-detail page distinguishes active (approved/pending) from
       // withdrawn/rejected for the browse-vs-records decision.
-      const state = useStore.getState()
-      const enrollments = state.enrollments.filter((e) => e.studentId === userId)
+      const enrollments = ctx.enrollments.filter((e) => e.studentId === userId)
       const enrolledCourseIds = new Set(enrollments.map((e) => e.courseId))
       return courses.filter((c) => enrolledCourseIds.has(c.id))
     }
     case 'openForEnrollment': {
       // Published, upcoming courses at the student's Sede with matching level,
       // excluding already enrolled/pending courses (ADR-0016).
-      const state = useStore.getState()
-      const student = state.students.find((s) => s.id === userId)
+      const student = ctx.students.find((s) => s.id === userId)
       if (!student) {
         return []
       }
@@ -187,7 +215,7 @@ function applyCoursesScope(courses: CourseList, token: Scope, userId: string): C
       // Exclude only courses the student is ALREADY enrolled in or pending for
       // (ADR-0016). Withdrawn/rejected enrollments don't exclude — the student may
       // re-request them.
-      const studentEnrollments = state.enrollments.filter(
+      const studentEnrollments = ctx.enrollments.filter(
         (e) => e.studentId === userId && (e.status === 'approved' || e.status === 'pending')
       )
       const enrolledOrPendingIds = new Set(studentEnrollments.map((e) => e.courseId))
@@ -212,7 +240,8 @@ function applyCoursesScope(courses: CourseList, token: Scope, userId: string): C
 function applyEnrollmentsScope(
   enrollments: EnrollmentList,
   token: Scope,
-  userId: string
+  userId: string,
+  ctx: ScopeContext
 ): EnrollmentList {
   switch (token) {
     case 'own': {
@@ -223,18 +252,20 @@ function applyEnrollmentsScope(
     }
     case 'ownCourses': {
       // Enrollments in courses owned by the current user (a Teacher's rosters).
-      const state = useStore.getState()
-      const ownCourseIds = new Set(
-        state.courses.filter((c) => c.teacherId === userId).map((c) => c.id)
-      )
-      return enrollments.filter((e) => ownCourseIds.has(e.courseId))
+      const owned = ownCourseIds(ctx.courses, userId)
+      return enrollments.filter((e) => owned.has(e.courseId))
     }
     default:
       return []
   }
 }
 
-function applyGradesScope(grades: GradeList, token: Scope, userId: string): GradeList {
+function applyGradesScope(
+  grades: GradeList,
+  token: Scope,
+  userId: string,
+  ctx: ScopeContext
+): GradeList {
   switch (token) {
     case 'own': {
       // Grades where the current user is the student
@@ -242,11 +273,8 @@ function applyGradesScope(grades: GradeList, token: Scope, userId: string): Grad
     }
     case 'ownCourses': {
       // Grades in courses owned by the current user
-      const state = useStore.getState()
-      const ownCourseIds = new Set(
-        state.courses.filter((c) => c.teacherId === userId).map((c) => c.id)
-      )
-      return grades.filter((g) => ownCourseIds.has(g.courseId))
+      const owned = ownCourseIds(ctx.courses, userId)
+      return grades.filter((g) => owned.has(g.courseId))
     }
     default:
       return []
@@ -256,7 +284,8 @@ function applyGradesScope(grades: GradeList, token: Scope, userId: string): Grad
 function applyCertificatesScope(
   certificates: CertificateList,
   token: Scope,
-  userId: string
+  userId: string,
+  ctx: ScopeContext
 ): CertificateList {
   switch (token) {
     case 'own': {
@@ -265,11 +294,8 @@ function applyCertificatesScope(
     }
     case 'ownCourses': {
       // A Teacher sees Certificates earned in the Courses they own (ADR-0019).
-      const state = useStore.getState()
-      const ownCourseIds = new Set(
-        state.courses.filter((c) => c.teacherId === userId).map((c) => c.id)
-      )
-      return certificates.filter((c) => ownCourseIds.has(c.courseId))
+      const owned = ownCourseIds(ctx.courses, userId)
+      return certificates.filter((c) => owned.has(c.courseId))
     }
     default:
       return []
@@ -279,7 +305,8 @@ function applyCertificatesScope(
 function applyAttendanceScope(
   records: AttendanceList,
   token: Scope,
-  userId: string
+  userId: string,
+  ctx: ScopeContext
 ): AttendanceList {
   switch (token) {
     case 'own': {
@@ -288,11 +315,8 @@ function applyAttendanceScope(
     }
     case 'ownCourses': {
       // Records in courses owned by the current user
-      const state = useStore.getState()
-      const ownCourseIds = new Set(
-        state.courses.filter((c) => c.teacherId === userId).map((c) => c.id)
-      )
-      return records.filter((r) => ownCourseIds.has(r.courseId))
+      const owned = ownCourseIds(ctx.courses, userId)
+      return records.filter((r) => owned.has(r.courseId))
     }
     default:
       return []
@@ -319,7 +343,12 @@ function applyEmailCampaignsScope(
   }
 }
 
-function applyTcuScope(activities: TcuList, token: Scope, userId: string): TcuList {
+function applyTcuScope(
+  activities: TcuList,
+  token: Scope,
+  userId: string,
+  ctx: ScopeContext
+): TcuList {
   switch (token) {
     case 'self': {
       // Activities logged by the current user (tcu trainee)
@@ -329,12 +358,9 @@ function applyTcuScope(activities: TcuList, token: Scope, userId: string): TcuLi
       // Activities for trainees assigned to courses owned by the current user (teacher).
       // Build the set of the teacher's course ids, then the set of trainee ids
       // assigned to those courses, then filter activities by traineeId.
-      const state = useStore.getState()
-      const teacherCourseIds = new Set(
-        state.courses.filter((c) => c.teacherId === userId).map((c) => c.id)
-      )
+      const teacherCourseIds = ownCourseIds(ctx.courses, userId)
       const assignedTraineeIds = new Set(
-        state.tcuTrainees.filter((t) => teacherCourseIds.has(t.courseId)).map((t) => t.id)
+        ctx.tcuTrainees.filter((t) => teacherCourseIds.has(t.courseId)).map((t) => t.id)
       )
       return activities.filter((a) => assignedTraineeIds.has(a.traineeId))
     }
@@ -343,7 +369,12 @@ function applyTcuScope(activities: TcuList, token: Scope, userId: string): TcuLi
   }
 }
 
-function applyTraineesScope(trainees: TraineeList, token: Scope, userId: string): TraineeList {
+function applyTraineesScope(
+  trainees: TraineeList,
+  token: Scope,
+  userId: string,
+  ctx: ScopeContext
+): TraineeList {
   switch (token) {
     case 'self': {
       // The trainee roster rides the tcu scope (no new permission): a TCU volunteer
@@ -353,12 +384,7 @@ function applyTraineesScope(trainees: TraineeList, token: Scope, userId: string)
     case 'assignedTrainees': {
       // A Teacher sees the volunteers assigned to the Courses they own (ADR-0011/0017),
       // mirroring the tcu-activities scope above — never a raw, unscoped store read.
-      const teacherCourseIds = new Set(
-        useStore
-          .getState()
-          .courses.filter((c) => c.teacherId === userId)
-          .map((c) => c.id)
-      )
+      const teacherCourseIds = ownCourseIds(ctx.courses, userId)
       return trainees.filter((t) => teacherCourseIds.has(t.courseId))
     }
     default:

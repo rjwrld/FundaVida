@@ -13,14 +13,14 @@ export const programsApi = {
     const state = useStore.getState()
     const role = state.role ?? 'student'
     const scope = scopeFor(role)['programs']
-    return applyScope('programs', scope, state.programs)
+    return applyScope('programs', scope, state.programs, state)
   },
   async get(id: string): Promise<Program | null> {
     await delay()
     const state = useStore.getState()
     const role = state.role ?? 'student'
     const scope = scopeFor(role)['programs']
-    const scoped = applyScope('programs', scope, state.programs)
+    const scoped = applyScope('programs', scope, state.programs, state)
     return scoped.find((p) => p.id === id) ?? null
   },
 }
