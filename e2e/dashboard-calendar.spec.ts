@@ -41,7 +41,7 @@ test.describe('teacher dashboard agenda slice', () => {
     await pinDemoEpoch(page, EPOCH)
     await enterAs(page, 'teacher')
 
-    const aside = page.getByRole('complementary')
+    const aside = page.getByRole('complementary', { name: 'Agenda' })
     const row = aside.getByRole('link', { name: first.courseName }).first()
     await expect(row).toBeVisible()
     await expect(row).toHaveAttribute(
@@ -79,7 +79,7 @@ test.describe('student dashboard agenda slice', () => {
     await pinDemoEpoch(page, EPOCH)
     await enterAs(page, 'student')
 
-    const aside = page.getByRole('complementary')
+    const aside = page.getByRole('complementary', { name: 'Agenda' })
     await expect(aside.getByText(row.courseName).first()).toBeVisible()
     await expect(aside.getByRole('link', { name: /open calendar/i })).toHaveAttribute(
       'href',
@@ -97,7 +97,7 @@ test.describe('tcu dashboard agenda slice', () => {
     await pinDemoEpoch(page, EPOCH)
     await enterAs(page, 'tcu')
 
-    const aside = page.getByRole('complementary')
+    const aside = page.getByRole('complementary', { name: 'Agenda' })
     await expect(aside).toBeVisible()
     await expect(aside.getByRole('link', { name: /open calendar/i })).toHaveAttribute(
       'href',
@@ -124,7 +124,7 @@ test.describe('admin dashboard agenda slice', () => {
     await pinDemoEpoch(page, EPOCH)
     await enterAs(page, 'admin')
 
-    const aside = page.getByRole('complementary')
+    const aside = page.getByRole('complementary', { name: 'Agenda' })
     await expect(aside.getByText(String(agenda.pulse.unmarkedCount)).first()).toBeVisible()
     await expect(aside.getByText(String(agenda.pulse.coursesToCloseCount)).first()).toBeVisible()
     await expect(aside.getByRole('link', { name: /mark attendance/i })).toHaveCount(0)
@@ -145,7 +145,7 @@ test.describe('aside visibility below xl', () => {
     await pinDemoEpoch(page, EPOCH)
     await enterAs(page, 'teacher')
 
-    const aside = page.getByRole('complementary')
+    const aside = page.getByRole('complementary', { name: 'Agenda' })
     await expect(aside).toBeVisible()
     await expect(aside.getByRole('link', { name: /open calendar/i })).toBeVisible()
   })
