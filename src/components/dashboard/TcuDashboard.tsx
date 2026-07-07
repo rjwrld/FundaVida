@@ -15,12 +15,7 @@ import { tcuHoursByStatus, TCU_TARGET_HOURS } from '@/lib/tcuHours'
 import { clock } from '@/lib/clock'
 import { useFormat } from '@/hooks/useFormat'
 import { TcuActivityList } from './TcuActivityList'
-import type { Variants } from 'framer-motion'
-
-const stagger: Variants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.05 } },
-}
+import { DashboardShell } from './DashboardShell'
 
 export function TcuDashboard() {
   const { t } = useTranslation()
@@ -41,13 +36,15 @@ export function TcuDashboard() {
     // Mirror the loaded happy-path layout — course card, three stat cards, and
     // the activity list — so resolving the gate doesn't shift the page.
     return (
-      <div className="grid grid-cols-1 gap-6">
-        <SkeletonCard lines={4} />
-        <SkeletonStatCard />
-        <SkeletonStatCard />
-        <SkeletonStatCard />
-        <SkeletonCard lines={3} />
-      </div>
+      <DashboardShell>
+        <div className="grid grid-cols-1 gap-6">
+          <SkeletonCard lines={4} />
+          <SkeletonStatCard />
+          <SkeletonStatCard />
+          <SkeletonStatCard />
+          <SkeletonCard lines={3} />
+        </div>
+      </DashboardShell>
     )
   }
 
@@ -74,12 +71,7 @@ export function TcuDashboard() {
     : ''
 
   return (
-    <motion.div
-      variants={stagger}
-      initial="hidden"
-      animate="visible"
-      className="grid grid-cols-1 gap-6"
-    >
+    <DashboardShell>
       {/* Hero: the assigned Course — where the volunteer serves (ADR-0036). */}
       {assignedCourse && (
         <motion.div variants={fadeUp} transition={transitionDefaults}>
@@ -161,6 +153,6 @@ export function TcuDashboard() {
       </motion.div>
 
       <LogTcuActivityDialog open={logDialogOpen} onClose={() => setLogDialogOpen(false)} />
-    </motion.div>
+    </DashboardShell>
   )
 }

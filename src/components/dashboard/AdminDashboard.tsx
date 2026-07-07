@@ -61,7 +61,7 @@ export function AdminDashboard() {
   // Supporting: role-scoped, actionable cards — each reads a scoped hook, never
   // the raw store (issue #155), and links to where the work gets done.
   return (
-    <DashboardShell courses={courses} upcoming={upcoming}>
+    <DashboardShell upcoming={upcoming}>
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <WelcomeBanner
           eyebrow={t('dashboard.welcome.eyebrow')}
