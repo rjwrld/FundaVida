@@ -398,13 +398,6 @@
       "title": "Estudiantes en riesgo",
       "viewAll": "Ver todos los estudiantes"
     },
-    "attendanceHeatmap": {
-      "empty": "Aún no hay asistencia registrada.",
-      "legendLess": "Menos",
-      "legendMore": "Más",
-      "subtitle": "Asistencia diaria, últimas 12 semanas",
-      "title": "Mapa de asistencia"
-    },
     "certsThisEpoch": {
       "subtitle": "Emitidos al cerrar cada curso, sin aprobación",
       "title": "Certificados de esta época",

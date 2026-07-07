@@ -1,11 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { AttendanceRecord, Course, Enrollment, Grade, Student } from '@/types'
-import {
-  atRiskStudents,
-  attendanceHeatmapCells,
-  coursesToClose,
-  enrollmentFunnelBySede,
-} from '../dashboard'
+import { atRiskStudents, coursesToClose, enrollmentFunnelBySede } from '../dashboard'
 
 function makeCourse(overrides: Partial<Course>): Course {
   return {
@@ -150,26 +145,6 @@ describe('enrollmentFunnelBySede', () => {
     expect(result).toEqual([
       { sede: 'Hatillo', pending: 2, approved: 3 },
       { sede: 'Alajuelita', pending: 1, approved: 0 },
-    ])
-  })
-})
-
-describe('attendanceHeatmapCells', () => {
-  it('emits one oldest-to-newest cell per day with its present-rate; empty days rate 0', () => {
-    const records: AttendanceRecord[] = [
-      makeAttendance('s1', 'present'),
-      makeAttendance('s2', 'present'),
-      makeAttendance('s3', 'absent'),
-      makeAttendance('s4', 'absent'),
-    ].map((r) => ({ ...r, sessionDate: '2026-06-15' }))
-    records.push({ ...makeAttendance('s5', 'present'), sessionDate: '2026-06-14' })
-
-    const cells = attendanceHeatmapCells(records, NOW, 3)
-
-    expect(cells).toEqual([
-      { date: '2026-06-13', rate: 0 },
-      { date: '2026-06-14', rate: 1 },
-      { date: '2026-06-15', rate: 0.5 },
     ])
   })
 })
