@@ -140,11 +140,48 @@
     "title": "Correos masivos"
   },
   "calendar": {
+    "card": {
+      "needsMarking": "Falta registrar",
+      "session": "Sesión"
+    },
     "emptyDay": "No hay sesiones este día.",
-    "panelTitle": "Sesiones",
+    "emptyWeek": "No hay sesiones esta semana.",
+    "next": "Semana siguiente",
+    "noCourses": "Aún no hay cursos — las sesiones aparecerán aquí cuando tengas uno.",
+    "previous": "Semana anterior",
     "sessionEntry": "{{course}} — Sesión {{ordinal}}",
+    "sidebar": {
+      "admin": {
+        "coursesToClose_one": "{{count}} curso listo para cerrar",
+        "coursesToClose_many": "{{count}} cursos listos para cerrar",
+        "coursesToClose_other": "{{count}} cursos listos para cerrar",
+        "pulseTitle": "Pulso operativo",
+        "unmarked_one": "{{count}} sesión sin registrar",
+        "unmarked_many": "{{count}} sesiones sin registrar",
+        "unmarked_other": "{{count}} sesiones sin registrar",
+        "unmarkedNone": "Todas las sesiones registradas"
+      },
+      "student": {
+        "attended": "{{present}}/{{total}} asistidas",
+        "certificateEarned": "Certificado obtenido",
+        "certPending": "Certificado pendiente",
+        "noSessionsRecorded": "Aún no hay sesiones registradas",
+        "onTrack": "Al día",
+        "progressTitle": "Mi progreso"
+      },
+      "teacher": {
+        "empty": "Nada por registrar",
+        "worklistTitle": "Falta registrar"
+      },
+      "upcomingTitle": "Próximas"
+    },
     "subtitle": "Tus sesiones de un vistazo.",
-    "title": "Calendario"
+    "title": "Calendario",
+    "today": "Hoy",
+    "viewToggle": {
+      "month": "Mes",
+      "week": "Semana"
+    }
   },
   "certificates": {
     "empty": {
