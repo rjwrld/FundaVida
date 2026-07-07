@@ -85,8 +85,9 @@ export function scopeFor(role: Role): Record<Resource, Scope> {
  */
 const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, MatrixCell>>>> = {
   admin: {
-    // Programs are a fixed, read-only catalog viewable by every role (ADR-0015):
-    // no create/edit/delete cell for anyone, not even admin.
+    // Programs are a fixed, read-only catalog, org-wide in scope (ADR-0015) but
+    // visible per-role (ADR-0035): no create/edit/delete cell for anyone, not even
+    // admin. The tcu role does not view it (see below).
     programs: { view: true },
     students: { view: true, create: true, edit: true, delete: true },
     teachers: { view: true, create: true, edit: true, delete: true },
@@ -141,7 +142,10 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     auditLog: {},
   },
   tcu: {
-    programs: { view: true },
+    // A TCU Trainee is not enrolled in Courses and no tcu surface reads the
+    // catalog, so the Program nav item and /app/programs route derive away for
+    // this role (ADR-0035, supersedes ADR-0015's "viewable by every role").
+    programs: {},
     students: {},
     teachers: {},
     courses: {},
@@ -207,7 +211,10 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     auditLog: 'none',
   },
   tcu: {
-    programs: 'all',
+    // The read seam closes alongside the UI gate (ADR-0035): with no tcu surface
+    // reading the catalog, 'none' keeps a future tcu surface from accidentally
+    // listing it. applyProgramsScope already returns [] for any non-'all' token.
+    programs: 'none',
     students: 'none',
     teachers: 'none',
     courses: 'none',

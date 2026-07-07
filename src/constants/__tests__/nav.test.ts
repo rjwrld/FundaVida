@@ -18,4 +18,13 @@ describe('navItemsForRole', () => {
       expect(items.some((item) => item.to === '/app/reports')).toBe(false)
     }
   })
+
+  it('exposes the Program catalog to viewing roles but not tcu (ADR-0035)', () => {
+    for (const role of ['admin', 'teacher', 'student'] as Role[]) {
+      const items = navItemsForRole(role)
+      expect(items.some((item) => item.to === '/app/programs')).toBe(true)
+    }
+    const tcuItems = navItemsForRole('tcu')
+    expect(tcuItems.some((item) => item.to === '/app/programs')).toBe(false)
+  })
 })

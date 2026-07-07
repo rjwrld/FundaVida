@@ -1,16 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  Award,
-  BookOpen,
-  LayoutDashboard,
-  Mail,
-  Monitor,
-  Moon,
-  Search,
-  Sun,
-  Users,
-} from 'lucide-react'
+import { Monitor, Moon, Search, Sun } from 'lucide-react'
 import {
   CommandDialog,
   CommandEmpty,
@@ -21,29 +11,22 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
+import { navItemsForRole } from '@/constants/nav'
+import { useStore } from '@/data/store'
 import { useTheme, type Theme } from '@/hooks/useTheme'
 import { useCommandPaletteContext } from '@/hooks/useCommandPaletteContext'
-
-interface NavAction {
-  to: string
-  labelKey: string
-  icon: typeof LayoutDashboard
-  keywords?: string[]
-}
-
-const NAV_ACTIONS: NavAction[] = [
-  { to: '/app', labelKey: 'nav.dashboard', icon: LayoutDashboard, keywords: ['home'] },
-  { to: '/app/students', labelKey: 'nav.students', icon: Users },
-  { to: '/app/courses', labelKey: 'nav.courses', icon: BookOpen },
-  { to: '/app/certificates', labelKey: 'nav.certificates', icon: Award },
-  { to: '/app/bulk-email', labelKey: 'nav.bulkEmail', icon: Mail },
-]
 
 export function CommandPalette() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const role = useStore((s) => s.role)
   const { open, setOpen } = useCommandPaletteContext()
   const { setTheme } = useTheme()
+
+  // The palette's navigation group derives from the same role→matrix filter the
+  // sidebar and mobile drawer use (ADR-0035), so it can never offer a destination
+  // RoleGate would bounce.
+  const navItems = role ? navItemsForRole(role) : []
 
   const runNav = (to: string) => {
     setOpen(false)
@@ -65,13 +48,13 @@ export function CommandPalette() {
         </CommandEmpty>
 
         <CommandGroup heading={t('common.commandPalette.navigation')}>
-          {NAV_ACTIONS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon
             const label = t(item.labelKey)
             return (
               <CommandItem
                 key={item.to}
-                value={`${label} ${item.keywords?.join(' ') ?? ''}`}
+                value={[label, ...(item.keywords ?? [])].join(' ')}
                 onSelect={() => runNav(item.to)}
               >
                 <Icon />
