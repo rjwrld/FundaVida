@@ -1,17 +1,10 @@
 import type { EmailCampaign } from '@/types'
-import { scopeFor } from '@/permissions'
-import { useStore } from '../store'
-import { applyScope } from './scope'
-import { delay } from './_delay'
+import { scopedList } from './scopedRead'
 
+// Campaigns ride the `bulkEmail` token (not an `emailCampaigns` token — there
+// isn't one): that deviation is declared in the RESOURCE_READ registry.
 export const emailCampaignsApi = {
-  async list(): Promise<EmailCampaign[]> {
-    await delay()
-    const state = useStore.getState()
-    const role = state.role ?? 'student'
-    const campaigns = state.emailCampaigns
-    const scope = scopeFor(role)['bulkEmail']
-    const scoped = applyScope('emailCampaigns', scope, campaigns, state)
-    return scoped
+  list(): Promise<EmailCampaign[]> {
+    return scopedList('emailCampaigns', {})
   },
 }

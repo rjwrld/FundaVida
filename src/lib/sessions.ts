@@ -7,6 +7,11 @@ export interface Session {
   ordinal: number
 }
 
+/** A {@link Session} enriched with its Course's display name. */
+export interface UpcomingSession extends Session {
+  courseName: string
+}
+
 /**
  * Derive all sessions for a course: every calendar day inside the term
  * whose weekday is in course.meetingDays, in ascending order.
@@ -68,6 +73,46 @@ export function findSession(course: Course, date: string): Session | null {
   }
 
   return null
+}
+
+/**
+ * The one session-window boundary (ADR-0034). Sessions are date-only
+ * (ADR-0001, anchored at local midnight), so past vs upcoming is a
+ * calendar-day question. A Session is past/recordable iff its date <= today.
+ * Both sides are compared at day granularity, so callers may pass
+ * `clock.today()` or `clock.now()` interchangeably (the "now → today" switch
+ * is a no-op for midnight-dated Sessions). This single predicate backs
+ * markability, closeReadiness's unrecorded filter, and the dashboards'
+ * upcoming derivation so they cannot silently diverge.
+ */
+export function isSessionRecordable(session: Session, today: Date): boolean {
+  return startOfDay(parseISO(session.date)) <= startOfDay(today)
+}
+
+/** Complement of {@link isSessionRecordable}: the Session's date is after today. */
+export function isSessionUpcoming(session: Session, today: Date): boolean {
+  return !isSessionRecordable(session, today)
+}
+
+/**
+ * Upcoming Sessions across many Courses, ascending by date, each enriched with
+ * its Course name. The single home for the `flatMap(sessionsFor) → filter →
+ * sort` shape the Student and Teacher dashboards both need. `limit` caps the
+ * result; omit it for all upcoming Sessions.
+ */
+export function upcomingSessions(
+  courses: Course[],
+  today: Date,
+  limit?: number
+): UpcomingSession[] {
+  const sessions = courses
+    .flatMap((course) =>
+      sessionsFor(course).map((session) => ({ ...session, courseName: course.name }))
+    )
+    .filter((session) => isSessionUpcoming(session, today))
+    .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime())
+
+  return limit === undefined ? sessions : sessions.slice(0, limit)
 }
 
 /**

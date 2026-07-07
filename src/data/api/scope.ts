@@ -127,7 +127,7 @@ export function applyScope<T extends keyof ScopeFilters>(
   }
 }
 
-interface ScopeFilters {
+export interface ScopeFilters {
   programs: ProgramList
   students: StudentList
   teachers: TeacherList

@@ -1,35 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Clock } from 'lucide-react'
-import { parseISO, isBefore } from 'date-fns'
 import { clock } from '@/lib/clock'
-import { sessionsFor } from '@/lib/sessions'
+import { upcomingSessions } from '@/lib/sessions'
 import type { Course } from '@/types'
-
-interface UpcomingSession {
-  date: string
-  ordinal: number
-  courseId: string
-  courseName: string
-}
-
-/**
- * Find all upcoming sessions across courses, sorted by date.
- */
-function getUpcomingSessions(courses: Course[]): UpcomingSession[] {
-  const now = clock.now()
-  return courses
-    .flatMap((c) =>
-      sessionsFor(c).map((s) => ({
-        date: s.date,
-        ordinal: s.ordinal,
-        courseId: c.id,
-        courseName: c.name,
-      }))
-    )
-    .filter((s) => isBefore(now, parseISO(s.date)))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-}
 
 export interface NextSessionsListProps {
   courses: Course[]
@@ -42,7 +16,7 @@ export interface NextSessionsListProps {
  */
 export function NextSessionsList({ courses, limit = 5 }: NextSessionsListProps) {
   const { t } = useTranslation()
-  const sessions = getUpcomingSessions(courses).slice(0, limit)
+  const sessions = upcomingSessions(courses, clock.today(), limit)
 
   return (
     <article className="flex h-full flex-col rounded-lg border border-border bg-card p-5">

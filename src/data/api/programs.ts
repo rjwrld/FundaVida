@@ -1,27 +1,15 @@
 import type { Program } from '@/types'
-import { scopeFor } from '@/permissions'
-import { useStore } from '../store'
-import { applyScope } from './scope'
-import { delay } from './_delay'
+import { scopedGet, scopedList } from './scopedRead'
 
 // The Program catalog read (ADR-0015). Like every other list/detail, it goes
 // through the scope seam (ADR-0008) rather than reading the store raw: the
 // 'programs' token is 'all' for the viewing roles (org-wide catalog) and 'none'
 // for tcu, whose read seam is closed (ADR-0035).
 export const programsApi = {
-  async list(): Promise<Program[]> {
-    await delay()
-    const state = useStore.getState()
-    const role = state.role ?? 'student'
-    const scope = scopeFor(role)['programs']
-    return applyScope('programs', scope, state.programs, state)
+  list(): Promise<Program[]> {
+    return scopedList('programs', {})
   },
-  async get(id: string): Promise<Program | null> {
-    await delay()
-    const state = useStore.getState()
-    const role = state.role ?? 'student'
-    const scope = scopeFor(role)['programs']
-    const scoped = applyScope('programs', scope, state.programs, state)
-    return scoped.find((p) => p.id === id) ?? null
+  get(id: string): Promise<Program | null> {
+    return scopedGet('programs', id)
   },
 }
