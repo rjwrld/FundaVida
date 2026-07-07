@@ -33,7 +33,7 @@ import {
 import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
-import { findSession, sessionsFor } from '@/lib/sessions'
+import { findSession, isSessionRecordable, sessionsFor } from '@/lib/sessions'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
 import { clock } from '@/lib/clock'
@@ -50,7 +50,6 @@ import { GradeDialog } from '@/components/courses/GradeDialog'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
 import { CourseCertificatesSection } from '@/components/courses/CourseCertificatesSection'
 import { shortCourseName } from '@/lib/courseName'
-import { parseISO } from 'date-fns'
 
 interface GradingTarget {
   studentId: string
@@ -93,8 +92,8 @@ function AttendanceMarkingSection({
   const { formatDate } = useFormat()
 
   const allSessions = sessionsFor(course)
-  const now = clock.now()
-  const markableSessions = allSessions.filter((s) => parseISO(s.date) <= now)
+  const today = clock.today()
+  const markableSessions = allSessions.filter((s) => isSessionRecordable(s, today))
 
   if (markableSessions.length === 0) {
     return <NoResults message={t('courses.detail.attendance.noMarkableSessions')} />

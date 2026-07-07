@@ -7,43 +7,17 @@ import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useCourses } from '@/hooks/api/courses'
 import { useAttendance } from '@/hooks/api/attendance'
 import { StatCard } from '@/components/shared/StatCard'
-import { parseISO, startOfDay, startOfMonth, isBefore } from 'date-fns'
+import { parseISO, startOfDay, startOfMonth } from 'date-fns'
 import { clock } from '@/lib/clock'
-import { sessionsFor } from '@/lib/sessions'
-import type { Course } from '@/types'
+import { upcomingSessions } from '@/lib/sessions'
 import { DashboardShell } from './DashboardShell'
-
-interface NextSessionInfo {
-  date: string
-  ordinal: number
-  courseName: string
-}
-
-/**
- * Find the student's next upcoming session (next class).
- */
-function getNextClass(courses: Course[]): NextSessionInfo | null {
-  const now = clock.now()
-  const upcomingSessions = courses
-    .flatMap((c) =>
-      sessionsFor(c).map((s) => ({
-        date: s.date,
-        ordinal: s.ordinal,
-        courseName: c.name,
-      }))
-    )
-    .filter((s) => isBefore(now, parseISO(s.date)))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-
-  return upcomingSessions[0] ?? null
-}
 
 export function StudentDashboard() {
   const { t } = useTranslation()
   const { data: courses = [] } = useCourses()
   const { data: attendance = [] } = useAttendance()
 
-  const nextClass = useMemo(() => getNextClass(courses), [courses])
+  const nextClass = useMemo(() => upcomingSessions(courses, clock.today(), 1)[0] ?? null, [courses])
 
   // Calculate attendance rate for this month
   const attendanceRate = useMemo(() => {
