@@ -2,12 +2,13 @@ import { describe, it, expect } from 'vitest'
 import {
   sessionsFor,
   findSession,
+  isSessionMarked,
   isSessionRecordable,
   isSessionUpcoming,
   upcomingSessions,
   type Session,
 } from '../sessions'
-import { type Course } from '@/types/domain'
+import { type AttendanceRecord, type Course } from '@/types/domain'
 import { addDays, startOfDay, isSameDay, parseISO } from 'date-fns'
 
 describe('sessions', () => {
@@ -222,6 +223,60 @@ describe('sessions', () => {
       const fridayDate = startOfDay(new Date(2026, 2, 6)).toISOString()
       const result = findSession(courseMWF, fridayDate)
       expect(result?.ordinal).toBe(3)
+    })
+  })
+
+  describe('isSessionMarked', () => {
+    // The one marked-vs-unmarked rule (ADR-0034, factored out per ADR-0038):
+    // a session is marked iff ANY AttendanceRecord for its course matches its
+    // date same-day.
+    const sessionDate = startOfDay(new Date(2026, 2, 2)).toISOString() // Mon March 2
+
+    function makeAttendance(overrides: Partial<AttendanceRecord> = {}): AttendanceRecord {
+      return {
+        id: 'att-1',
+        courseId: 'course-1',
+        studentId: 'stu-1',
+        sessionDate,
+        status: 'present',
+        ...overrides,
+      }
+    }
+
+    it('is marked when any record for the course matches the date same-day', () => {
+      expect(isSessionMarked('course-1', sessionDate, [makeAttendance()])).toBe(true)
+    })
+
+    it('matches same-day regardless of the record timestamp time-of-day', () => {
+      const eveningRecord = makeAttendance({
+        sessionDate: new Date(2026, 2, 2, 20, 30).toISOString(),
+      })
+      expect(isSessionMarked('course-1', sessionDate, [eveningRecord])).toBe(true)
+    })
+
+    it('a record for another course never marks the session', () => {
+      const otherCourse = makeAttendance({ courseId: 'course-other' })
+      expect(isSessionMarked('course-1', sessionDate, [otherCourse])).toBe(false)
+    })
+
+    it('a record on a different day never marks the session', () => {
+      const otherDay = makeAttendance({
+        sessionDate: startOfDay(new Date(2026, 2, 3)).toISOString(),
+      })
+      expect(isSessionMarked('course-1', sessionDate, [otherDay])).toBe(false)
+    })
+
+    it('is unmarked when attendance is empty', () => {
+      expect(isSessionMarked('course-1', sessionDate, [])).toBe(false)
+    })
+
+    it('any status counts as marked — absent and excused records still mark', () => {
+      expect(isSessionMarked('course-1', sessionDate, [makeAttendance({ status: 'absent' })])).toBe(
+        true
+      )
+      expect(
+        isSessionMarked('course-1', sessionDate, [makeAttendance({ status: 'excused' })])
+      ).toBe(true)
     })
   })
 

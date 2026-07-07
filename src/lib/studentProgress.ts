@@ -14,6 +14,10 @@ export interface StudentProgressRow {
   certificate: Certificate | null
   /** present / total across this Course's attendance records; null when there are none. */
   attendanceRate: number | null
+  /** Count of `present` records in this Course; 0 when there are none (ADR-0038). */
+  present: number
+  /** Count of all attendance records in this Course; 0 when there are none (ADR-0038). */
+  total: number
 }
 
 export interface StudentProgressInput {
@@ -61,6 +65,8 @@ export function buildStudentProgress({
       grade: gradeByCourse.get(course.id) ?? null,
       certificate: certByCourse.get(course.id) ?? null,
       attendanceRate: bucket ? bucket.present / bucket.total : null,
+      present: bucket?.present ?? 0,
+      total: bucket?.total ?? 0,
     })
   }
   return rows
