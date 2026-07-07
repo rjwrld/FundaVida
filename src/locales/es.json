@@ -708,8 +708,10 @@
     "dashboard": "Panel",
     "enrollments": "Matrículas",
     "grades": "Calificaciones",
+    "myProfile": "Mi perfil",
     "programs": "Programas",
     "sections": {
+      "account": "Cuenta",
       "people": "Personas",
       "programs": "Programas",
       "reports": "Reportes"

@@ -22,8 +22,13 @@ if (!passingGrade) throw new Error('seed: stu-1 has no passing grade')
 test('a student reaches their self-service profile from the dashboard (#166)', async ({ page }) => {
   await enterAs(page, 'student')
 
-  // The dashboard exposes a My profile entry point…
-  await page.getByRole('link', { name: /my profile/i }).click()
+  // The dashboard exposes a My profile entry point… (scoped to main: the sidebar
+  // carries a second "My profile" link since the Account nav section, and an
+  // unscoped locator trips strict mode)
+  await page
+    .getByRole('main')
+    .getByRole('link', { name: /my profile/i })
+    .click()
   await expect(page).toHaveURL(/\/app\/me$/)
 
   // …landing on the read-only hub: identity + guardian, read through self-scoped
@@ -60,7 +65,9 @@ test('the profile renders in Spanish when locale is ES (#166)', async ({ page })
   )
   await page.goto('/app/me')
 
-  await expect(page.getByText('Mi perfil')).toBeVisible()
+  // Scoped to main: the page's "Mi perfil" eyebrow, not the sidebar nav item of
+  // the same name (strict mode).
+  await expect(page.getByRole('main').getByText('Mi perfil')).toBeVisible()
   await expect(page.getByRole('heading', { name: meName })).toBeVisible()
 })
 
