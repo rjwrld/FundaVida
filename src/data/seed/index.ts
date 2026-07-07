@@ -28,7 +28,7 @@ import type {
   Weekday,
 } from '@/types'
 import { sessionsFor } from '@/lib/sessions'
-import { PASSING_SCORE } from '@/lib/certificates'
+import { emitCertificatesForClose } from '@/lib/certificates'
 import { resolveRecipients } from '@/lib/emailRecipients'
 import { PROGRAM_CATALOG } from '@/constants/programs'
 import { UNIVERSITIES, type University } from '@/constants/university'
@@ -630,32 +630,48 @@ function buildGrades(
 }
 
 /**
- * A Certificate is emitted when a Course closes (ADR-0024): one per enrolled
- * Student with a passing Grade, immediately downloadable. The seed mirrors that
- * story — every passing Grade in a *closed* cohort earns a downloadable
- * Certificate, dated a few days after the Grade was issued (the stand-in close
- * instant), never in the future. There is no pending/approved state.
+ * A Certificate is emitted when a Course closes (ADR-0024): one per Student with
+ * an *approved* Enrollment in the closed Course AND a passing Grade, immediately
+ * downloadable. The seed emits through the app's shared rule (ADR-0034,
+ * `emitCertificatesForClose`) so a withdrawn/rejected Student never earns one —
+ * only the id and `issuedAt` stay seed-specific: dated a few days after the
+ * Grade was issued (the stand-in close instant), never in the future, and
+ * `cert-${i+1}` after the existing deterministic sort.
  */
 function buildCertificates(
   epoch: Date,
+  enrollments: Enrollment[],
   grades: Grade[],
   closedCourseIds: Set<string>
 ): Certificate[] {
   const epochDay = startOfDay(epoch)
-  const passing = grades
-    .filter((g) => g.score >= PASSING_SCORE && closedCourseIds.has(g.courseId))
-    .sort((a, b) => (a.issuedAt < b.issuedAt ? -1 : a.issuedAt > b.issuedAt ? 1 : 0))
+  const gradeByPair = new Map(grades.map((g) => [`${g.studentId}:${g.courseId}`, g]))
 
-  return passing.map((grade, i) => {
+  const seeds = [...closedCourseIds].flatMap((id) =>
+    emitCertificatesForClose({ id }, enrollments, grades)
+  )
+
+  const dated = seeds
+    .flatMap((seed) => {
+      // Every emitted seed has a passing Grade by construction, so the lookup
+      // always hits; the guard keeps the type non-nullable without an assertion.
+      const grade = gradeByPair.get(`${seed.studentId}:${seed.courseId}`)
+      return grade ? [{ seed, grade }] : []
+    })
+    .sort((a, b) =>
+      a.grade.issuedAt < b.grade.issuedAt ? -1 : a.grade.issuedAt > b.grade.issuedAt ? 1 : 0
+    )
+
+  return dated.map(({ seed, grade }, i) => {
     // Issued a few days after the Grade, standing in for the close instant; capped
     // at the epoch so it is never in the future.
     let issuedAt = addDays(new Date(grade.issuedAt), faker.number.int({ min: 1, max: 7 }))
     if (issuedAt > epochDay) issuedAt = epochDay
     return {
       id: `cert-${i + 1}`,
-      studentId: grade.studentId,
-      courseId: grade.courseId,
-      score: grade.score,
+      studentId: seed.studentId,
+      courseId: seed.courseId,
+      score: seed.score,
       issuedAt: issuedAt.toISOString(),
     }
   })
@@ -1013,6 +1029,7 @@ export function seedDemo(epoch: Date): SeedSnapshot {
     grades,
     certificates: buildCertificates(
       epoch,
+      enrollments,
       grades,
       new Set(courses.filter((c) => c.status === 'closed').map((c) => c.id))
     ),

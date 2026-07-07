@@ -22,7 +22,7 @@ export const teachersApi = {
     const role = state.role ?? 'student'
     const teachers = state.teachers
     const scope = scopeFor(role)['teachers']
-    const scoped = applyScope('teachers', scope, teachers)
+    const scoped = applyScope('teachers', scope, teachers, state)
     return applyFilters(scoped, filters)
   },
   async get(id: string): Promise<Teacher | null> {
@@ -31,7 +31,7 @@ export const teachersApi = {
     const role = state.role ?? 'student'
     const teachers = state.teachers
     const scope = scopeFor(role)['teachers']
-    const scoped = applyScope('teachers', scope, teachers)
+    const scoped = applyScope('teachers', scope, teachers, state)
     return scoped.find((t) => t.id === id) ?? null
   },
 }

@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useCourses, useEnrollments, useMarkSessionAttendance, useStudents } from '@/hooks/api'
+import { resolveQueries } from '@/lib/resolveQueries'
 import { sessionsFor } from '@/lib/sessions'
 import { clock } from '@/lib/clock'
 import { useFormat } from '@/hooks/useFormat'
@@ -34,12 +35,15 @@ export function MarkSessionAttendancePage() {
   const navigate = useNavigate()
   const { courseId, sessionDate } = useParams<{ courseId: string; sessionDate: string }>()
 
-  const { data: courses = [], isLoading: coursesLoading } = useCourses()
-  const { data: students = [], isLoading: studentsLoading } = useStudents()
-  const { data: enrollments = [], isLoading: enrollmentsLoading } = useEnrollments()
+  const coursesQuery = useCourses()
+  const studentsQuery = useStudents()
+  const enrollmentsQuery = useEnrollments()
+  const { data: courses = [] } = coursesQuery
+  const { data: students = [] } = studentsQuery
+  const { data: enrollments = [] } = enrollmentsQuery
   const markSessionMutation = useMarkSessionAttendance()
 
-  const isLoading = coursesLoading || studentsLoading || enrollmentsLoading
+  const { isPending: isLoading } = resolveQueries([coursesQuery, studentsQuery, enrollmentsQuery])
 
   // Compute page state from params and data
   const { course, session, sessions, isMarkable, enrolledStudents, isValid, error } =

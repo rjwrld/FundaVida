@@ -699,6 +699,8 @@
     "switch": "Cambiar rol"
   },
   "sidebar": {
+    "navAriaLabel": "Navegación",
+    "openNav": "Abrir menú de navegación",
     "sectionsAriaLabel": "Secciones"
   },
   "students": {

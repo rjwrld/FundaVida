@@ -24,7 +24,7 @@ export const auditLogApi = {
     const role = state.role ?? 'student'
     const auditLog = state.auditLog
     const scope = scopeFor(role)['auditLog']
-    const scoped = applyScope('auditLog', scope, auditLog)
+    const scoped = applyScope('auditLog', scope, auditLog, state)
     return applyFilters(scoped, filters)
   },
 }

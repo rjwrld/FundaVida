@@ -694,6 +694,8 @@
     "switch": "Switch role"
   },
   "sidebar": {
+    "navAriaLabel": "Navigation",
+    "openNav": "Open navigation menu",
     "sectionsAriaLabel": "Sections"
   },
   "students": {

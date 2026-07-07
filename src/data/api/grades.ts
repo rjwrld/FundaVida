@@ -24,7 +24,7 @@ export const gradesApi = {
     const role = state.role ?? 'student'
     const grades = state.grades
     const scope = scopeFor(role)['grades']
-    const scoped = applyScope('grades', scope, grades)
+    const scoped = applyScope('grades', scope, grades, state)
     return applyFilters(scoped, filters)
   },
 }

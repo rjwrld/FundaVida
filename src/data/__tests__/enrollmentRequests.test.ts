@@ -288,7 +288,7 @@ describe('enrollment request mutations', () => {
       expect(enrollments.length).toBeGreaterThan(0)
 
       // Apply enrolled scope
-      const scoped = applyScope('courses', 'enrolled', state.courses)
+      const scoped = applyScope('courses', 'enrolled', state.courses, state)
 
       // All scoped courses should be in the student's enrollments
       for (const course of scoped) {
