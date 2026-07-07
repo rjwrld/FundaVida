@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/select'
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { ListView } from '@/components/shared/ListView'
+import { listViewState } from '@/lib/listViewState'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { AuditLogsEmpty } from '@/components/empty-states/AuditLogsEmpty'
 import { useAuditLog } from '@/hooks/api'
@@ -133,20 +135,20 @@ export function AuditLogPage() {
         </Select>
       </section>
 
-      {isLoading ? (
-        <SkeletonTable rows={8} columns={5} />
-      ) : count === 0 && !hasFilters ? (
-        <AuditLogsEmpty />
-      ) : count === 0 ? (
-        <NoResults message={t('auditLog.list.emptyFiltered')} />
-      ) : (
-        <DataTable
-          data={data}
-          columns={columns}
-          getRowKey={(e) => e.id}
-          renderCard={(e) => <DataTableCard row={e} columns={columns} titleColumnId="summary" />}
-        />
-      )}
+      <ListView
+        state={listViewState({ isLoading, count, hasFilters })}
+        skeleton={<SkeletonTable rows={8} columns={5} />}
+        empty={<AuditLogsEmpty />}
+        noResults={<NoResults message={t('auditLog.list.emptyFiltered')} />}
+        content={
+          <DataTable
+            data={data}
+            columns={columns}
+            getRowKey={(e) => e.id}
+            renderCard={(e) => <DataTableCard row={e} columns={columns} titleColumnId="summary" />}
+          />
+        }
+      />
     </div>
   )
 }

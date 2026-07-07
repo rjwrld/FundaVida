@@ -19,9 +19,11 @@ import {
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { ListView } from '@/components/shared/ListView'
 import { ListHeaderBand } from '@/components/shared/ListHeaderBand'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useTcuActivities, useTcuTrainees, useApproveTcuActivity } from '@/hooks/api'
+import { listViewState } from '@/lib/listViewState'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { useFormat } from '@/hooks/useFormat'
 import { useStore } from '@/data/store'
@@ -205,58 +207,60 @@ export function TcuListPage() {
         </section>
       )}
 
-      {roster.isPending ? (
-        <SkeletonTable rows={8} columns={4} />
-      ) : count === 0 ? (
-        <NoResults message={hasFilters ? t('tcu.list.emptyFiltered') : t('tcu.list.empty')} />
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
-          <ListHeaderBand label={t('tcu.list.title')} count={count} />
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead>{t('tcu.list.columns.title')}</TableHead>
-                <TableHead className="text-right font-mono tabular-nums">
-                  {t('tcu.list.columns.hours')}
-                </TableHead>
-                <TableHead>{t('tcu.list.columns.date')}</TableHead>
-                <TableHead>{t('tcu.list.columns.status')}</TableHead>
-                <TableHead>{t('tcu.list.columns.trainee')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((a) => {
-                const trainee = trainees.find((x) => x.id === a.traineeId)
-                return (
-                  <TableRow key={a.id} className="h-12 hover:bg-muted/40">
-                    <TableCell>{a.title}</TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
-                      {formatNumber(a.hours)}
-                    </TableCell>
-                    <TableCell>{formatDate(a.date)}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`text-xs font-medium px-2 py-1 rounded ${
-                          a.status === 'approved'
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : a.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                        }`}
-                      >
-                        {t(`tcu.list.status.${a.status}`)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {trainee?.firstName} {trainee?.lastName}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <ListView
+        state={listViewState({ isLoading: roster.isPending, count, hasFilters })}
+        skeleton={<SkeletonTable rows={8} columns={4} />}
+        empty={<NoResults message={t('tcu.list.empty')} />}
+        noResults={<NoResults message={t('tcu.list.emptyFiltered')} />}
+        content={
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <ListHeaderBand label={t('tcu.list.title')} count={count} />
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead>{t('tcu.list.columns.title')}</TableHead>
+                  <TableHead className="text-right font-mono tabular-nums">
+                    {t('tcu.list.columns.hours')}
+                  </TableHead>
+                  <TableHead>{t('tcu.list.columns.date')}</TableHead>
+                  <TableHead>{t('tcu.list.columns.status')}</TableHead>
+                  <TableHead>{t('tcu.list.columns.trainee')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.map((a) => {
+                  const trainee = trainees.find((x) => x.id === a.traineeId)
+                  return (
+                    <TableRow key={a.id} className="h-12 hover:bg-muted/40">
+                      <TableCell>{a.title}</TableCell>
+                      <TableCell className="text-right font-mono tabular-nums">
+                        {formatNumber(a.hours)}
+                      </TableCell>
+                      <TableCell>{formatDate(a.date)}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`text-xs font-medium px-2 py-1 rounded ${
+                            a.status === 'approved'
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              : a.status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          }`}
+                        >
+                          {t(`tcu.list.status.${a.status}`)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {trainee?.firstName} {trainee?.lastName}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        }
+      />
 
       <LogTcuActivityDialog open={logDialogOpen} onClose={() => setLogDialogOpen(false)} />
     </div>

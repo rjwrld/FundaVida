@@ -13,6 +13,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { ListView } from '@/components/shared/ListView'
+import { listViewState } from '@/lib/listViewState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { EnrollmentsEmpty } from '@/components/empty-states/EnrollmentsEmpty'
@@ -216,49 +218,51 @@ export function EnrollmentsListPage() {
         </Select>
       </section>
 
-      {isLoading ? (
-        <div className="space-y-4" aria-busy="true">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
-      ) : grouped.length === 0 && !hasFilters ? (
-        <EnrollmentsEmpty />
-      ) : grouped.length === 0 ? (
-        <NoResults message={t('enrollments.list.emptyFiltered')} />
-      ) : (
-        <div className="space-y-6">
-          {grouped.map(({ sede, courseGroups, pendingCount }) => (
-            <section key={sede} className="space-y-3">
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold tracking-tight">{sede}</h2>
-                {pendingCount > 0 && (
-                  <span className="font-mono text-xs text-muted-foreground tabular-nums">
-                    {t('enrollments.list.pendingCount', { count: pendingCount })}
-                  </span>
-                )}
-              </div>
+      <ListView
+        state={listViewState({ isLoading, count: grouped.length, hasFilters })}
+        skeleton={
+          <div className="space-y-4" aria-busy="true">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        }
+        empty={<EnrollmentsEmpty />}
+        noResults={<NoResults message={t('enrollments.list.emptyFiltered')} />}
+        content={
+          <div className="space-y-6">
+            {grouped.map(({ sede, courseGroups, pendingCount }) => (
+              <section key={sede} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-semibold tracking-tight">{sede}</h2>
+                  {pendingCount > 0 && (
+                    <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                      {t('enrollments.list.pendingCount', { count: pendingCount })}
+                    </span>
+                  )}
+                </div>
 
-              {courseGroups.map(({ course, rows }) => (
-                <CourseEnrollmentGroup
-                  key={course.id}
-                  course={course}
-                  rows={rows}
-                  teacher={teacherById.get(course.teacherId)}
-                  studentById={studentById}
-                  canApprove={canApproveCourse(course.id)}
-                  canDelete={canDelete}
-                  approveDisabled={approve.isPending}
-                  rejectDisabled={reject.isPending}
-                  onApprove={(id) => approve.mutate(id)}
-                  onReject={(id) => reject.mutate(id)}
-                  onUnenroll={(payload) => setPendingDelete(payload)}
-                />
-              ))}
-            </section>
-          ))}
-        </div>
-      )}
+                {courseGroups.map(({ course, rows }) => (
+                  <CourseEnrollmentGroup
+                    key={course.id}
+                    course={course}
+                    rows={rows}
+                    teacher={teacherById.get(course.teacherId)}
+                    studentById={studentById}
+                    canApprove={canApproveCourse(course.id)}
+                    canDelete={canDelete}
+                    approveDisabled={approve.isPending}
+                    rejectDisabled={reject.isPending}
+                    onApprove={(id) => approve.mutate(id)}
+                    onReject={(id) => reject.mutate(id)}
+                    onUnenroll={(payload) => setPendingDelete(payload)}
+                  />
+                ))}
+              </section>
+            ))}
+          </div>
+        }
+      />
 
       <ConfirmDialog
         open={pendingDelete !== null}

@@ -15,6 +15,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { ListView } from '@/components/shared/ListView'
+import { listViewState } from '@/lib/listViewState'
 import { ListHeaderBand } from '@/components/shared/ListHeaderBand'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
@@ -81,53 +83,53 @@ export function TeachersListPage() {
         </div>
       </section>
 
-      {isLoading ? (
-        <SkeletonTable rows={8} columns={4} />
-      ) : count === 0 && !hasFilters ? (
-        <TeachersEmpty onAdd={canCreate ? openCreate : undefined} />
-      ) : count === 0 ? (
-        <NoResults message={t('teachers.list.emptyFiltered')} />
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
-          <ListHeaderBand label={t('teachers.list.title')} count={count} />
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead>{t('teachers.list.columns.name')}</TableHead>
-                <TableHead>{t('teachers.list.columns.email')}</TableHead>
-                <TableHead className="text-right">{t('teachers.list.columns.courses')}</TableHead>
-                <TableHead className="text-right">{t('teachers.list.columns.actions')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((teacher) => {
-                const name = `${teacher.firstName} ${teacher.lastName}`
-                return (
-                  <TableRow key={teacher.id} className="h-12 hover:bg-muted/40">
-                    <TableCell>
-                      <Link to={`/app/teachers/${teacher.id}`} className="hover:underline">
-                        {name}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{teacher.email}</TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
-                      {teacher.courseIds.length}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <RowActions
-                        editLabel={t('common.actions.editItem', { name })}
-                        deleteLabel={t('common.actions.deleteItem', { name })}
-                        onEdit={canEdit ? () => openEdit(teacher.id) : undefined}
-                        onDelete={canDelete ? () => requestDelete(teacher) : undefined}
-                      />
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <ListView
+        state={listViewState({ isLoading, count, hasFilters })}
+        skeleton={<SkeletonTable rows={8} columns={4} />}
+        empty={<TeachersEmpty onAdd={canCreate ? openCreate : undefined} />}
+        noResults={<NoResults message={t('teachers.list.emptyFiltered')} />}
+        content={
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <ListHeaderBand label={t('teachers.list.title')} count={count} />
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead>{t('teachers.list.columns.name')}</TableHead>
+                  <TableHead>{t('teachers.list.columns.email')}</TableHead>
+                  <TableHead className="text-right">{t('teachers.list.columns.courses')}</TableHead>
+                  <TableHead className="text-right">{t('teachers.list.columns.actions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.map((teacher) => {
+                  const name = `${teacher.firstName} ${teacher.lastName}`
+                  return (
+                    <TableRow key={teacher.id} className="h-12 hover:bg-muted/40">
+                      <TableCell>
+                        <Link to={`/app/teachers/${teacher.id}`} className="hover:underline">
+                          {name}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{teacher.email}</TableCell>
+                      <TableCell className="text-right font-mono tabular-nums">
+                        {teacher.courseIds.length}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <RowActions
+                          editLabel={t('common.actions.editItem', { name })}
+                          deleteLabel={t('common.actions.deleteItem', { name })}
+                          onEdit={canEdit ? () => openEdit(teacher.id) : undefined}
+                          onDelete={canDelete ? () => requestDelete(teacher) : undefined}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        }
+      />
 
       <TeacherFormDialog
         open={isOpen && (mode === 'edit' ? canEdit : canCreate)}

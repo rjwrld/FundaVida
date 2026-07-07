@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { NoResults } from '@/components/shared/NoResults'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { ListView } from '@/components/shared/ListView'
+import { listViewState } from '@/lib/listViewState'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { AttendanceEmpty } from '@/components/empty-states/AttendanceEmpty'
 import {
@@ -161,20 +163,20 @@ export function AttendanceListPage() {
         </Select>
       </section>
 
-      {isLoading ? (
-        <SkeletonTable rows={8} columns={4} />
-      ) : count === 0 && !hasFilters ? (
-        <AttendanceEmpty />
-      ) : count === 0 ? (
-        <NoResults message={t('attendance.list.emptyFiltered')} />
-      ) : (
-        <DataTable
-          data={data}
-          columns={columns}
-          getRowKey={(r) => r.id}
-          renderCard={(r) => <DataTableCard row={r} columns={columns} titleColumnId="student" />}
-        />
-      )}
+      <ListView
+        state={listViewState({ isLoading, count, hasFilters })}
+        skeleton={<SkeletonTable rows={8} columns={4} />}
+        empty={<AttendanceEmpty />}
+        noResults={<NoResults message={t('attendance.list.emptyFiltered')} />}
+        content={
+          <DataTable
+            data={data}
+            columns={columns}
+            getRowKey={(r) => r.id}
+            renderCard={(r) => <DataTableCard row={r} columns={columns} titleColumnId="student" />}
+          />
+        }
+      />
     </div>
   )
 }
