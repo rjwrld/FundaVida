@@ -4,9 +4,9 @@ import { useStore } from '@/data/store'
 import type { TeacherFilters } from '@/data/api/teachers'
 import type { Teacher } from '@/types'
 import { makeEntityMutation } from './makeEntityMutation'
+import { TEACHERS_KEY } from './queryKeys'
 
-const TEACHERS_KEY = ['teachers'] as const
-const teacherKey = (id: string) => ['teachers', id] as const
+const teacherKey = (id: string) => [...TEACHERS_KEY, id] as const
 
 export function useTeachers(filters: TeacherFilters = {}) {
   const role = useStore((s) => s.role)
@@ -26,7 +26,6 @@ export function useTeacher(id: string) {
 
 export const useCreateTeacher = makeEntityMutation('createTeacher')({
   toastKey: 'toasts.teacherCreated',
-  invalidates: [TEACHERS_KEY],
 })
 
 export const useUpdateTeacher = makeEntityMutation('updateTeacher')<{
@@ -34,11 +33,9 @@ export const useUpdateTeacher = makeEntityMutation('updateTeacher')<{
   patch: Partial<Teacher>
 }>({
   toastKey: 'toasts.teacherUpdated',
-  invalidates: ({ id }) => [TEACHERS_KEY, teacherKey(id)],
   args: ({ id, patch }) => [id, patch],
 })
 
 export const useDeleteTeacher = makeEntityMutation('deleteTeacher')({
   toastKey: 'toasts.teacherDeleted',
-  invalidates: [TEACHERS_KEY],
 })

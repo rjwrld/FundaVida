@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/data/api'
 import { useStore } from '@/data/store'
+import { PROGRAMS_KEY } from './queryKeys'
 
-const PROGRAMS_KEY = ['programs'] as const
-const programKey = (id: string) => ['programs', id] as const
+const programKey = (id: string) => [...PROGRAMS_KEY, id] as const
 
 // Role is captured in the queryKey so cache entries per role are isolated, the
 // same pattern as useCourses. Programs are org-wide ('all' for every role), so
