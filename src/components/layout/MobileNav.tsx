@@ -24,6 +24,20 @@ export function MobileNav() {
     setOpen(false)
   }, [pathname])
 
+  // The hamburger hides at md (the desktop sidebar takes over), but an already-open
+  // drawer would survive a resize past the breakpoint and float over the desktop
+  // layout with no way to reopen its trigger. Close it the moment the viewport
+  // crosses md. 768px mirrors Tailwind's md, the same breakpoint as the trigger's
+  // md:hidden.
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)')
+    const onChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setOpen(false)
+    }
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
   if (!role) return null
 
   return (
@@ -42,7 +56,7 @@ export function MobileNav() {
       <SheetContent
         side="left"
         aria-describedby={undefined}
-        className="w-72 max-w-[85vw] border-border/60 bg-muted/20 p-0"
+        className="w-72 max-w-[85vw] border-border/60 p-0"
       >
         <SheetTitle className="sr-only">{t('sidebar.navAriaLabel')}</SheetTitle>
         <NavSections role={role} className="flex-1 px-3 py-5" onNavigate={() => setOpen(false)} />
