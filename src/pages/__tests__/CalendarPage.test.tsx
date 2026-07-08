@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -174,25 +174,21 @@ describe('<CalendarPage />', () => {
     expect(screen.getByText('June 2026')).toBeInTheDocument()
   })
 
-  it('tapping a day in month mode shows that day’s session cards (ADR-0038)', async () => {
+  it('tapping a day in month mode navigates the week canvas to that week (ADR-0044)', async () => {
     useStore.getState().setRole('admin')
     renderPage()
 
     await screen.findAllByText('Matemáticas')
     fireEvent.click(screen.getByRole('button', { name: 'Month' }))
+    // Month is a navigator: no day-detail panel below the grid anymore.
+    expect(screen.queryByRole('heading', { name: 'Sessions' })).not.toBeInTheDocument()
 
-    // June 15 (today, a Mon/Wed session) is selected on mount → its card shows below,
-    // panel copy is "Course · Session N" (SessionCard), not the old flat entry text.
-    const panel = screen.getByRole('heading', { name: 'Sessions' }).closest('div')
-    expect(panel).not.toBeNull()
-    if (panel) {
-      expect(await within(panel).findByText('Matemáticas')).toBeInTheDocument()
-      expect(within(panel).getByText('5')).toBeInTheDocument()
-    }
-
-    // A day with no session (neither course meets on Saturday) shows the empty-day copy.
-    fireEvent.click(screen.getByRole('button', { name: /Saturday, June 20, 2026/ }))
-    expect(screen.getByText('No sessions on this day.')).toBeInTheDocument()
+    // Tapping a day swaps to Week view positioned on that week.
+    fireEvent.click(screen.getByRole('button', { name: /Monday, June 15, 2026/ }))
+    expect(screen.queryByText('June 2026')).not.toBeInTheDocument()
+    expect((await screen.findAllByText('Matemáticas')).length).toBeGreaterThan(0)
+    // The week canvas's navigation is back (Today / prev / next).
+    expect(screen.getByRole('button', { name: 'Today' })).toBeInTheDocument()
   })
 
   it('shows an empty state when the viewer has no scoped courses', async () => {

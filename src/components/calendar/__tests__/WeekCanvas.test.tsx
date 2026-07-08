@@ -47,7 +47,7 @@ describe('<WeekCanvas />', () => {
     useStore.getState().setLocale('en')
   })
 
-  it('renders seven day-columns Mon through Sun with weekday + date headers', () => {
+  it('renders Monday–Friday workweek columns with short weekday + date headers', () => {
     renderCanvas(
       <WeekCanvas
         courses={[makeCourse()]}
@@ -58,8 +58,28 @@ describe('<WeekCanvas />', () => {
       />
     )
 
-    expect(screen.getByText('Monday')).toBeInTheDocument()
-    expect(screen.getByText('Sunday')).toBeInTheDocument()
+    expect(screen.getByText('Mon')).toBeInTheDocument()
+    expect(screen.getByText('Fri')).toBeInTheDocument()
+    // The mon/wed course never meets on the weekend, so those columns are dropped.
+    expect(screen.queryByText('Sat')).not.toBeInTheDocument()
+    expect(screen.queryByText('Sun')).not.toBeInTheDocument()
+  })
+
+  it('surfaces a weekend column only when it carries a session', () => {
+    const satCourse = makeCourse({ id: 'cou-sat', meetingDays: ['sat'] as Weekday[] })
+    renderCanvas(
+      <WeekCanvas
+        courses={[satCourse]}
+        weekOf={NOW}
+        onWeekChange={vi.fn()}
+        linkToMark={false}
+        statusFor={() => 'none'}
+      />
+    )
+
+    expect(screen.getByText('Sat')).toBeInTheDocument()
+    // Sunday still has no session, so it stays hidden.
+    expect(screen.queryByText('Sun')).not.toBeInTheDocument()
   })
 
   it('renders a session card in the correct day column', () => {
@@ -74,22 +94,7 @@ describe('<WeekCanvas />', () => {
     )
 
     // The mon/wed course meets twice in the week of June 17 (Mon 15 + Wed 17).
-    expect(screen.getAllByText('Matemáticas Primaria (jun)')).toHaveLength(2)
-  })
-
-  it('renders empty day-columns quietly for days with no sessions', () => {
-    renderCanvas(
-      <WeekCanvas
-        courses={[makeCourse()]}
-        weekOf={NOW}
-        onWeekChange={vi.fn()}
-        linkToMark={false}
-        statusFor={() => 'none'}
-      />
-    )
-
-    // Tuesday/Thu/Fri/Sat/Sun have no session; only Mon + Wed carry a card.
-    expect(screen.getAllByText('Matemáticas Primaria (jun)')).toHaveLength(2)
+    expect(screen.getAllByText('Matemáticas Primaria')).toHaveLength(2)
   })
 
   it('shows the empty-week message when scoped courses have no sessions this week', () => {
@@ -104,6 +109,29 @@ describe('<WeekCanvas />', () => {
     )
 
     expect(screen.getByText('No sessions this week.')).toBeInTheDocument()
+  })
+
+  it('an empty week names the nearest session and jumps to its week', () => {
+    const onWeekChange = vi.fn()
+    // A July week — the June term has ended, so this week is empty but the
+    // nearest prior session (Mon Jun 29) is still on the page.
+    renderCanvas(
+      <WeekCanvas
+        courses={[makeCourse()]}
+        weekOf={new Date(2026, 6, 6)}
+        onWeekChange={onWeekChange}
+        linkToMark={false}
+        statusFor={() => 'none'}
+      />
+    )
+
+    expect(screen.getByText('No sessions this week.')).toBeInTheDocument()
+    expect(screen.getByText(/Matemáticas Primaria · Mon Jun 29/)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Jump to that week/ }))
+    expect(onWeekChange).toHaveBeenCalledTimes(1)
+    const call = onWeekChange.mock.calls.at(0)
+    if (call) expect(isoDay(2026, 5, 29)).toContain((call[0] as Date).getDate().toString())
   })
 
   it('calls onWeekChange with the previous week when Previous is clicked', () => {

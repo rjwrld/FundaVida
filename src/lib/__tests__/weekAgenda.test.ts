@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { isSameDay, startOfDay } from 'date-fns'
-import { sessionsOnDay, startOfWeekMonday, weekAgendaDays } from '../weekAgenda'
+import {
+  nearestSessionsAround,
+  startOfWeekMonday,
+  visibleWorkweekDays,
+  weekAgendaDays,
+} from '../weekAgenda'
 import type { Course } from '@/types/domain'
 
 describe('weekAgenda', () => {
@@ -106,29 +111,66 @@ describe('weekAgenda', () => {
       const days = weekAgendaDays([], new Date(2026, 5, 17))
       expect(days.every((d) => d.sessions.length === 0)).toBe(true)
     })
+
+    it('tags each Session with its Course total (the n/total denominator)', () => {
+      const days = weekAgendaDays([courseMonWed], new Date(2026, 5, 17))
+      // June (Mon+Wed, Jun 1–30) has 9 meeting days total.
+      const mondaySession = days.at(0)?.sessions.at(0)
+      expect(mondaySession?.total).toBe(9)
+    })
   })
 
-  describe('sessionsOnDay', () => {
-    it('returns the sessions falling on the given day, tagged with their Course', () => {
-      const sessions = sessionsOnDay([courseMonWed], new Date(2026, 5, 17))
-      expect(sessions).toHaveLength(1)
-      const session = sessions.at(0)
-      expect(session).toBeDefined()
-      if (session) {
-        expect(session.course.id).toBe('course-1')
-        expect(session.ordinal).toBe(6)
+  describe('visibleWorkweekDays', () => {
+    it('keeps Monday–Friday and drops empty weekend columns', () => {
+      const days = weekAgendaDays([courseMonWed], new Date(2026, 5, 17))
+      const visible = visibleWorkweekDays(days)
+      expect(visible).toHaveLength(5)
+      expect(isSameDay(visible.at(0)?.date ?? new Date(0), new Date(2026, 5, 15))).toBe(true) // Mon
+      expect(isSameDay(visible.at(4)?.date ?? new Date(0), new Date(2026, 5, 19))).toBe(true) // Fri
+    })
+
+    it('surfaces a weekend column when it actually carries a Session', () => {
+      const satCourse: Course = {
+        ...courseMonWed,
+        id: 'course-sat',
+        meetingDays: ['sat'],
       }
+      const days = weekAgendaDays([satCourse], new Date(2026, 5, 17))
+      const visible = visibleWorkweekDays(days)
+      // Mon–Fri (5) + the occupied Saturday.
+      expect(visible).toHaveLength(6)
+      expect(isSameDay(visible.at(5)?.date ?? new Date(0), new Date(2026, 5, 20))).toBe(true) // Sat
     })
 
-    it('returns an empty array for a day with no sessions', () => {
-      const sessions = sessionsOnDay([courseMonWed], new Date(2026, 5, 16)) // Tuesday
-      expect(sessions).toEqual([])
+    it('drops an empty Sunday even when Saturday is present', () => {
+      const satCourse: Course = { ...courseMonWed, id: 'course-sat', meetingDays: ['sat'] }
+      const visible = visibleWorkweekDays(weekAgendaDays([satCourse], new Date(2026, 5, 17)))
+      expect(visible.some((d) => isSameDay(d.date, new Date(2026, 5, 21)))).toBe(false) // Sun
+    })
+  })
+
+  describe('nearestSessionsAround', () => {
+    const weekStart = new Date(2026, 6, 6) // Mon Jul 6 — a week with no sessions (term ends Jun 30)
+    const weekEnd = new Date(2026, 6, 12) // Sun Jul 12
+
+    it('names the nearest Session before and after an empty week', () => {
+      const { prev, next } = nearestSessionsAround([courseMonWed], weekStart, weekEnd)
+      // Latest Session before Jul 6 is the term's last meeting day (Mon Jun 29).
+      expect(prev?.courseId).toBe('course-1')
+      expect(isSameDay(startOfDay(new Date(prev?.date ?? 0)), new Date(2026, 5, 29))).toBe(true)
+      // Nothing after the term ends.
+      expect(next).toBeNull()
     })
 
-    it('sorts multiple same-day sessions by ordinal', () => {
-      const otherCourse: Course = { ...courseMonWed, id: 'course-2', name: 'History 101' }
-      const sessions = sessionsOnDay([courseMonWed, otherCourse], new Date(2026, 5, 17))
-      expect(sessions.map((s) => s.course.id)).toEqual(['course-1', 'course-2'])
+    it('finds the next Session when the displayed week is before the term', () => {
+      const before = new Date(2026, 4, 4) // early May, before the June term
+      const { prev, next } = nearestSessionsAround([courseMonWed], before, new Date(2026, 4, 10))
+      expect(prev).toBeNull()
+      expect(isSameDay(startOfDay(new Date(next?.date ?? 0)), new Date(2026, 5, 1))).toBe(true)
+    })
+
+    it('returns nulls when no Courses have Sessions', () => {
+      expect(nearestSessionsAround([], weekStart, weekEnd)).toEqual({ prev: null, next: null })
     })
   })
 })

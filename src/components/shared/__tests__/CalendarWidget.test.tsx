@@ -71,4 +71,26 @@ describe('<CalendarWidget />', () => {
     expect(cell).toHaveAttribute('data-has-event', 'true')
     expect(cell.querySelector('[data-event-bar]')).not.toBeNull()
   })
+
+  it('scales the event bar with the day’s session count (density)', () => {
+    const selected = new Date(2026, 3, 1)
+    // Three sessions on Apr 10, one on Apr 13.
+    const events = [
+      new Date(2026, 3, 10),
+      new Date(2026, 3, 10),
+      new Date(2026, 3, 10),
+      new Date(2026, 3, 13),
+    ]
+    render(<CalendarWidget selected={selected} events={events} />)
+    const busy = screen
+      .getByRole('button', { name: /april 10, 2026/i })
+      .querySelector('[data-event-bar]')
+    const quiet = screen
+      .getByRole('button', { name: /april 13, 2026/i })
+      .querySelector('[data-event-bar]')
+    expect(busy?.getAttribute('data-event-count')).toBe('3')
+    expect(quiet?.getAttribute('data-event-count')).toBe('1')
+    // The busier day's bar is wider than the quiet day's.
+    expect(busy?.className).not.toEqual(quiet?.className)
+  })
 })

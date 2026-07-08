@@ -6,7 +6,7 @@ import { CalendarWidget } from '@/components/shared/CalendarWidget'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { AgendaSidebar } from '@/components/calendar/AgendaSidebar'
 import { WeekCanvas, type CalendarViewMode } from '@/components/calendar/WeekCanvas'
-import { SessionCard, type SessionCardStatus } from '@/components/calendar/SessionCard'
+import { type SessionCardStatus } from '@/components/calendar/SessionCard'
 import { Button } from '@/components/ui/button'
 import { useStore } from '@/data/store'
 import {
@@ -20,16 +20,17 @@ import {
 import { buildAgenda } from '@/lib/agenda'
 import { clock } from '@/lib/clock'
 import { resolveQueries } from '@/lib/resolveQueries'
-import { isSessionMarked, isSessionRecordable } from '@/lib/sessions'
-import { sessionsOnDay } from '@/lib/weekAgenda'
-import { useDaySessions } from '@/hooks/useDaySessions'
+import { effectiveSessions, isSessionMarked, isSessionRecordable } from '@/lib/sessions'
 import { cn } from '@/lib/utils'
 
 /**
- * The role-divergent week agenda (ADR-0038): `WeekCanvas` (7 day-columns of
- * SessionCards) + `AgendaSidebar` (role-conditioned buckets from `buildAgenda`).
- * Week is the default view; a Week|Month toggle switches to `CalendarWidget`
- * (month mode). Rides the existing Courses scope — no new permission, no
+ * The role-divergent calendar (ADR-0044). Week is the default: a workweek
+ * `WeekCanvas` beside a role-conditioned `AgendaSidebar`. The Week|Month toggle
+ * swaps in `CalendarWidget` as a *navigator* — density-scaled marks whose day-tap
+ * jumps the week canvas onto that week (no second day-detail view). Responsive is
+ * a ladder with one render path: at `lg+` the sidebar-plus-canvas split; below,
+ * the sidebar compresses to a one-row banner above the canvas with the full
+ * buckets following. Rides the existing Courses scope — no new permission, no
  * `RoleGate` (ADR-0010/0013).
  */
 export function CalendarPage() {
@@ -56,11 +57,6 @@ export function CalendarPage() {
     certificatesQuery,
     sessionExceptionsQuery,
   ])
-
-  const { selected, setSelected, events } = useDaySessions(
-    gate.isPending ? [] : gate.data[0],
-    gate.isPending ? [] : gate.data[5]
-  )
 
   if (!role) return null
 
@@ -89,8 +85,11 @@ export function CalendarPage() {
   // Teachers and admins act on Sessions (mark attendance); students/tcu view only.
   const linkToMark = role === 'admin' || role === 'teacher'
   const now = clock.today()
-  // Month mode's day-detail panel (ADR-0038: "tap a day → its cards").
-  const daySessions = sessionsOnDay(courses, selected, sessionExceptions)
+
+  // One Date per scoped Session — the density the month navigator scales its marks by.
+  const events = courses.flatMap((course) =>
+    effectiveSessions(course, sessionExceptions).map((session) => parseISO(session.date))
+  )
 
   const agenda = buildAgenda({
     role,
@@ -117,6 +116,12 @@ export function CalendarPage() {
     }
     // tcu: read-only schedule, no attendance access at all (ADR-0036).
     return 'none'
+  }
+
+  // A month-day tap is a navigator move: land the week canvas on that day's week.
+  const handleMonthSelect = (day: Date) => {
+    setWeekOf(day)
+    setView('week')
   }
 
   return (
@@ -154,12 +159,14 @@ export function CalendarPage() {
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
-        <aside className="rounded-xl border border-border bg-card p-5 lg:order-1">
-          <AgendaSidebar agenda={agenda} />
-        </aside>
-        <div className="lg:order-2">
-          {view === 'week' ? (
+      {view === 'week' ? (
+        <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[300px_minmax(0,1fr)]">
+          {/* Below lg: the one-row action banner rides first, above the canvas. */}
+          <div className="lg:hidden">
+            <AgendaSidebar agenda={agenda} variant="banner" />
+          </div>
+          {/* The canvas is the hero at every width (lg: right column). */}
+          <div className="lg:order-2">
             <WeekCanvas
               courses={courses}
               sessionExceptions={sessionExceptions}
@@ -168,36 +175,15 @@ export function CalendarPage() {
               linkToMark={linkToMark}
               statusFor={statusFor}
             />
-          ) : (
-            <div className="space-y-4">
-              <CalendarWidget selected={selected} events={events} onSelect={setSelected} />
-              <div
-                aria-label={t('calendar.panelTitle')}
-                className="rounded-xl border border-border bg-card p-5"
-              >
-                <h3 className="font-display text-base text-foreground">
-                  {t('calendar.panelTitle')}
-                </h3>
-                {daySessions.length === 0 ? (
-                  <p className="mt-3 text-sm text-muted-foreground">{t('calendar.emptyDay')}</p>
-                ) : (
-                  <div className="mt-3 flex flex-col gap-2">
-                    {daySessions.map((session) => (
-                      <SessionCard
-                        key={`${session.courseId}-${session.date}`}
-                        course={session.course}
-                        session={session}
-                        status={statusFor(session.courseId, session.date)}
-                        linkToMark={linkToMark}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          </div>
+          {/* Full buckets: lg left column; below lg they follow the canvas. */}
+          <aside className="rounded-xl border border-border bg-card p-5 lg:order-1">
+            <AgendaSidebar agenda={agenda} variant="full" />
+          </aside>
         </div>
-      </div>
+      ) : (
+        <CalendarWidget events={events} onSelect={handleMonthSelect} />
+      )}
     </div>
   )
 }
