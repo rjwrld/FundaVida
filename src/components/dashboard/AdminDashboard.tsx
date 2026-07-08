@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { GraduationCap, HeartHandshake } from 'lucide-react'
-import { WelcomeBanner } from '@/components/shared/WelcomeBanner'
 import { type UpcomingItem } from '@/components/shared/UpcomingList'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useDashboardStats } from '@/hooks/api/useDashboardStats'
@@ -54,22 +53,12 @@ export function AdminDashboard() {
     return items.slice(0, 4)
   }, [enrollments, grades, courses, programs, stats.recentTcu, t])
 
-  const greetingName = t('roles.admin.label')
-
   // Admin sees every Sede's Courses; the sidebar calendar marks their Session days.
   // Hero: Org Health Stats (total students, active courses, certs, tcu hours)
   // Supporting: role-scoped, actionable cards — each reads a scoped hook, never
   // the raw store (issue #155), and links to where the work gets done.
   return (
     <DashboardShell upcoming={upcoming}>
-      <motion.div variants={fadeUp} transition={transitionDefaults}>
-        <WelcomeBanner
-          eyebrow={t('dashboard.welcome.eyebrow')}
-          greeting={t('dashboard.welcome.greeting', { name: greetingName })}
-          context={t('dashboard.welcome.context')}
-        />
-      </motion.div>
-
       {/* Hero: Org Health Stats */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <StatRow

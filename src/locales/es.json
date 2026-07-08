@@ -599,11 +599,6 @@
     "upcoming": {
       "gradePending": "Calificación pendiente: {{course}}",
       "tcuLogged": "TCU registrado: {{title}}"
-    },
-    "welcome": {
-      "context": "Así van tus sedes hoy.",
-      "eyebrow": "Hoy",
-      "greeting": "Hola, {{name}} 👋"
     }
   },
   "demoBanner": {

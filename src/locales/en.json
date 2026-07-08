@@ -592,11 +592,6 @@
     "upcoming": {
       "gradePending": "Grade pending: {{course}}",
       "tcuLogged": "TCU logged: {{title}}"
-    },
-    "welcome": {
-      "context": "Here's how your campuses are doing today.",
-      "eyebrow": "Today",
-      "greeting": "Hola, {{name}} 👋"
     }
   },
   "demoBanner": {
