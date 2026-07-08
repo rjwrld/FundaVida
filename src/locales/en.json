@@ -490,7 +490,10 @@
   },
   "dashboard": {
     "announcements": {
-      "composeEntry": "Post an announcement",
+      "compose": {
+        "heading": "Post an announcement",
+        "selectCourse": "Choose a course"
+      },
       "empty": "No announcements yet.",
       "title": "Announcements",
       "unknownCourse": "A course"

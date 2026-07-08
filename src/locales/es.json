@@ -496,7 +496,10 @@
   },
   "dashboard": {
     "announcements": {
-      "composeEntry": "Publicar un anuncio",
+      "compose": {
+        "heading": "Publicar un anuncio",
+        "selectCourse": "Elige un curso"
+      },
       "empty": "Aún no hay anuncios.",
       "title": "Anuncios",
       "unknownCourse": "Un curso"

@@ -2,15 +2,12 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
+import { AnnouncementComposer } from '@/components/announcements/AnnouncementComposer'
 import { NoResults } from '@/components/shared/NoResults'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { useCreateAnnouncement, useDeleteAnnouncement } from '@/hooks/api'
+import { useDeleteAnnouncement } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import type { Announcement, Course } from '@/types'
-
-/** Matches the store's guard and the compose validation copy. */
-const BODY_MAX = 2000
 
 interface CourseAnnouncementsSectionProps {
   course: Course
@@ -44,21 +41,8 @@ export function CourseAnnouncementsSection({
 }: CourseAnnouncementsSectionProps) {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
-  const createAnnouncement = useCreateAnnouncement()
   const deleteAnnouncement = useDeleteAnnouncement()
-  const [body, setBody] = useState('')
   const [pendingDelete, setPendingDelete] = useState<Announcement | null>(null)
-
-  const trimmed = body.trim()
-  const canSubmit = trimmed.length > 0 && !createAnnouncement.isPending
-
-  const submit = () => {
-    if (!canSubmit) return
-    createAnnouncement.mutate(
-      { courseId: course.id, body: trimmed },
-      { onSuccess: () => setBody('') }
-    )
-  }
 
   return (
     <section aria-labelledby="course-announcements-heading" className="space-y-3">
@@ -67,19 +51,8 @@ export function CourseAnnouncementsSection({
       </h2>
 
       {canManage && (
-        <div className="space-y-2 rounded-md border bg-card p-3">
-          <Textarea
-            value={body}
-            maxLength={BODY_MAX}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder={t('courses.detail.announcements.compose.placeholder')}
-            aria-label={t('courses.detail.announcements.compose.placeholder')}
-          />
-          <div className="flex justify-end">
-            <Button size="sm" onClick={submit} disabled={!canSubmit}>
-              {t('courses.detail.announcements.compose.post')}
-            </Button>
-          </div>
+        <div className="rounded-md border bg-card p-3">
+          <AnnouncementComposer courseId={course.id} />
         </div>
       )}
 
