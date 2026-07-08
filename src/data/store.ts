@@ -13,6 +13,7 @@ import type {
   AuditLogEntry,
   EmailCampaign,
   EmailFilter,
+  EmailAudience,
   Role,
   SessionException,
   SessionExceptionType,
@@ -23,6 +24,7 @@ import { emitCertificatesForClose, isPassingScore } from '@/lib/certificates'
 import { clock, setDemoEpoch } from '@/lib/clock'
 import { sessionChangeAnnouncementBody } from '@/lib/announcements'
 import { effectiveSessions, isSessionMarked, isSessionRecordable } from '@/lib/sessions'
+import { recipientEmails } from '@/lib/emailRecipients'
 import { isSameDay, parseISO, startOfDay } from 'date-fns'
 import { courseDisplayState, isOpenForEnrollment } from '@/lib/courseDisplayState'
 import { seedDemo } from './seed'
@@ -117,6 +119,7 @@ export interface StoreState {
     subject: string
     body: string
     filter: EmailFilter
+    audience: EmailAudience
     recipientIds: string[]
   }) => EmailCampaign
 }
@@ -1483,12 +1486,38 @@ export const useStore = create<StoreState>((set, get) => ({
   },
   sendEmailCampaign: (input) => {
     const existing = get()
-    assertCan(existing, 'create', 'bulkEmail')
+    // Re-check Course ownership on send (ADR-0009, ADR-0041): admin's `create`
+    // cell is unconditional, but a Teacher's is `courseOwned`, so a course-scoped
+    // send is only allowed on a Course they own. Resolve that Course from the
+    // filter and pass it as context — a Teacher sending to a Course they don't
+    // teach (or with any non-course filter) is rejected here, independent of the
+    // locked-down form. The form is defense-in-depth; this is the boundary.
+    const course =
+      input.filter.kind === 'course' && input.filter.value
+        ? existing.courses.find((c) => c.id === input.filter.value)
+        : undefined
+    assertCan(existing, 'create', 'bulkEmail', {
+      course,
+      userId: existing.currentUserId ?? undefined,
+    })
+    // A closed cohort is terminal (ADR-0024): no new class message on it, mirroring
+    // the announcement/session-exception guards. The UI hides the "Message the
+    // class" action on a closed Course; the store is the real boundary.
+    if (course?.status === 'closed') {
+      throw new Error(`cannot message course ${course.id}: it is closed`)
+    }
+    // The recipient count is over distinct emails, not Students (ADR-0041): an
+    // 'both' send to N Students reaches up to 2N addresses, deduped for shared
+    // Encargados. The stored recipientIds stay Student-typed (audit/traceability);
+    // the audience + roster reproduce the email list wherever the count is shown.
+    const recipientStudents = existing.students.filter((s) => input.recipientIds.includes(s.id))
+    const emailCount = recipientEmails(recipientStudents, input.audience).length
     const campaign: EmailCampaign = {
       id: nextId('cam', existing.emailCampaigns),
       subject: input.subject,
       body: input.body,
       filter: input.filter,
+      audience: input.audience,
       recipientIds: input.recipientIds,
       sentAt: clock.now().toISOString(),
       sentBy: existing.currentUserId ?? 'system',
@@ -1501,7 +1530,7 @@ export const useStore = create<StoreState>((set, get) => ({
         action: 'create',
         entity: 'emailCampaign',
         entityId: campaign.id,
-        summary: `Sent email "${campaign.subject}" to ${campaign.recipientIds.length} recipients`,
+        summary: `Sent email "${campaign.subject}" to ${emailCount} recipients`,
       },
     }))
     return campaign

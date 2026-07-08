@@ -126,7 +126,13 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     attendance: { view: true, mark: courseOwned },
     // A Teacher may approve TCU activities for trainees assigned to their courses (ADR-0017)
     tcu: { approve: teacherCanApproveTcuActivity },
-    bulkEmail: {},
+    // A Teacher may message the class of a Course they own (ADR-0041): both cells
+    // are `courseOwned`, so the context-free nav/route check stays denied (the
+    // Bulk Email nav item and /app/bulk-email route remain admin-only) while the
+    // in-Course "Message the class" action opens with the Course in context. The
+    // store re-checks ownership on send (ADR-0009) — this is the UI gate, not the
+    // boundary. Mirrors the `enrollments` view/create shape.
+    bulkEmail: { view: courseOwned, create: courseOwned },
     auditLog: {},
     // A Teacher posts to and deletes from the feed of Courses they own (ADR-0040):
     // both gate on the same `courseOwned` predicate as the session-exception write,
@@ -206,7 +212,9 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     certificates: 'ownCourses',
     attendance: 'ownCourses',
     tcu: 'assignedTrainees',
-    bulkEmail: 'none',
+    // A Teacher's campaign history is exactly the campaigns they sent (ADR-0041);
+    // 'own' filters emailCampaigns by sentBy in the scope layer. Admin stays 'all'.
+    bulkEmail: 'own',
     auditLog: 'none',
     // A Teacher's feed visibility is exactly their owned Courses (ADR-0040): the
     // token mirrors `courses: 'own'`, and applyScope routes it through the Courses

@@ -260,6 +260,7 @@ describe('audit log instrumentation', () => {
         subject: 'Welcome',
         body: 'Thanks for joining the demo program.',
         filter: { kind: 'all' },
+        audience: 'students',
         recipientIds: ['stu-1', 'stu-2'],
       })
       const after = useStore.getState().emailCampaigns
@@ -272,6 +273,7 @@ describe('audit log instrumentation', () => {
         subject: 'Reminders',
         body: 'A quick reminder about upcoming sessions.',
         filter: { kind: 'all' },
+        audience: 'students',
         recipientIds: ['stu-1', 'stu-2', 'stu-3'],
       })
       const log = useStore.getState().auditLog
@@ -289,6 +291,7 @@ describe('audit log instrumentation', () => {
         subject: 'Greetings',
         body: 'Just checking in on the cohort.',
         filter: { kind: 'all' },
+        audience: 'students',
         recipientIds: ['stu-1'],
       })
       const log = useStore.getState().auditLog

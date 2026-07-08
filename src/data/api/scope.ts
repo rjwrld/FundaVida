@@ -369,12 +369,16 @@ function applyAuditLogScope(_entries: AuditLogList, token: Scope, _userId: strin
 }
 
 function applyEmailCampaignsScope(
-  _campaigns: EmailCampaignList,
+  campaigns: EmailCampaignList,
   token: Scope,
-  _userId: string
+  userId: string
 ): EmailCampaignList {
-  // Email campaigns: no non-'all' tokens currently defined
   switch (token) {
+    case 'own': {
+      // A Teacher's campaign history is exactly the campaigns they sent (ADR-0041).
+      // 'all' (admin) is short-circuited in applyScope; every other role is 'none'.
+      return campaigns.filter((c) => c.sentBy === userId)
+    }
     default:
       return []
   }

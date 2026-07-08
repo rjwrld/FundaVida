@@ -102,13 +102,20 @@
     "title": "Audit logs"
   },
   "bulkEmail": {
+    "audience": {
+      "both": "Students & encargados",
+      "guardians": "Encargados",
+      "students": "Students"
+    },
     "compose": "Compose",
+    "demoNote": "Demo — no email leaves the browser.",
     "dimensions": {
       "course": "course",
       "program": "program",
       "province": "province"
     },
     "fields": {
+      "audience": "Audience",
       "body": "Body",
       "filter": "Recipient filter",
       "filterValue": "Filter value",
@@ -123,6 +130,7 @@
     },
     "history": {
       "columns": {
+        "audience": "Audience",
         "filter": "Filter",
         "recipients": "Recipients",
         "sentAt": "Sent",
@@ -130,6 +138,10 @@
       },
       "empty": "No campaigns sent yet.",
       "title": "Sent campaigns"
+    },
+    "messageClass": {
+      "description": "Send a message to the class of {{course}}. Choose whether it reaches students, their encargados, or both.",
+      "title": "Message the class"
     },
     "noRecipients": "No recipients match this filter.",
     "recipientCount_one": "{{count}} recipient will receive this email.",
@@ -345,6 +357,7 @@
         "removeConfirm": "Remove {{student}} from this course?"
       },
       "loading": "Loading…",
+      "messageClass": "Message the class",
       "readiness": {
         "attendance": {
           "fail_one": "{{count}} session unrecorded",

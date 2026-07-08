@@ -1,4 +1,4 @@
-import type { Course, EmailFilter, Enrollment, Student } from '@/types'
+import type { Course, EmailAudience, EmailFilter, Enrollment, Student } from '@/types'
 
 export interface RecipientInput {
   students: Student[]
@@ -29,4 +29,33 @@ export function resolveRecipients(filter: EmailFilter, input: RecipientInput): S
     return students.filter((s) => ids.has(s.id))
   }
   return []
+}
+
+/**
+ * Map resolved Students to the distinct email addresses a campaign reaches, given
+ * its audience (ADR-0041). This is the sibling step to `resolveRecipients` — that
+ * one stays Student-typed and unchanged; this one turns Students into emails:
+ *   - 'students'  → each Student's own email
+ *   - 'guardians' → each Student's Encargado's email
+ *   - 'both'      → both, per Student
+ *
+ * Emails are de-duplicated (siblings share one Encargado, so a 'guardians' or
+ * 'both' send reaches that adult once), preserving first-seen order. The result's
+ * length is the "recipient count" the preview and history rows show — emails, not
+ * Students, so 'both' is an honest count rather than 2× the roster.
+ */
+export function recipientEmails(students: Student[], audience: EmailAudience): string[] {
+  const seen = new Set<string>()
+  const emails: string[] = []
+  const push = (email: string) => {
+    if (!seen.has(email)) {
+      seen.add(email)
+      emails.push(email)
+    }
+  }
+  for (const student of students) {
+    if (audience === 'students' || audience === 'both') push(student.email)
+    if (audience === 'guardians' || audience === 'both') push(student.guardian.email)
+  }
+  return emails
 }

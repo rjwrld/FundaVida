@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { resolveRecipients } from '../emailRecipients'
+import { resolveRecipients, recipientEmails } from '../emailRecipients'
 import type { Student, Course, Enrollment } from '@/types'
 
 function iso() {
@@ -120,5 +120,25 @@ describe('resolveRecipients', () => {
   it('returns [] when value is missing for a filter that requires it', () => {
     const r = resolveRecipients({ kind: 'program' }, { students, courses, enrollments })
     expect(r).toEqual([])
+  })
+})
+
+describe('recipientEmails', () => {
+  it('audience=students maps to each Student own email', () => {
+    expect(recipientEmails(students, 'students')).toEqual(['a@fv.cr', 'b@fv.cr'])
+  })
+
+  it('audience=guardians maps to Encargado emails, de-duplicated', () => {
+    // Both fixture Students share one Encargado, so the guardian send reaches
+    // that adult once — the count is emails, not Students.
+    expect(recipientEmails(students, 'guardians')).toEqual(['enc@example.com'])
+  })
+
+  it('audience=both interleaves own + guardian emails, de-duplicated', () => {
+    expect(recipientEmails(students, 'both')).toEqual(['a@fv.cr', 'enc@example.com', 'b@fv.cr'])
+  })
+
+  it('returns [] for no students', () => {
+    expect(recipientEmails([], 'both')).toEqual([])
   })
 })

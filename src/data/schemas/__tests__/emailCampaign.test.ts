@@ -10,6 +10,7 @@ describe('emailCampaignSchema', () => {
       subject: 'Hello',
       body: 'This is a test message.',
       filterKind: 'all',
+      audience: 'students',
     })
     expect(result.success).toBe(true)
   })
@@ -19,6 +20,7 @@ describe('emailCampaignSchema', () => {
       subject: 'Hi',
       body: 'This is a test message.',
       filterKind: 'all',
+      audience: 'students',
     })
     expect(result.success).toBe(false)
     if (!result.success) {
@@ -45,6 +47,7 @@ describe('emailCampaignSchema', () => {
       subject: 'Hello',
       body: 'This is a test message.',
       filterKind: 'all',
+      audience: 'students',
     })
     expect(result.success).toBe(true)
   })
@@ -54,6 +57,7 @@ describe('emailCampaignSchema', () => {
       subject: 'Hello',
       body: 'This is a test message.',
       filterKind: 'program',
+      audience: 'students',
     })
     expect(result.success).toBe(false)
     if (!result.success) {
@@ -68,7 +72,25 @@ describe('emailCampaignSchema', () => {
       body: 'This is a test message.',
       filterKind: 'program',
       filterValue: 'something',
+      audience: 'both',
     })
     expect(result.success).toBe(true)
+  })
+
+  it('requires a valid audience (ADR-0041)', () => {
+    const missing = emailCampaignSchema.safeParse({
+      subject: 'Hello',
+      body: 'This is a test message.',
+      filterKind: 'all',
+    })
+    expect(missing.success).toBe(false)
+
+    const invalid = emailCampaignSchema.safeParse({
+      subject: 'Hello',
+      body: 'This is a test message.',
+      filterKind: 'all',
+      audience: 'everyone',
+    })
+    expect(invalid.success).toBe(false)
   })
 })

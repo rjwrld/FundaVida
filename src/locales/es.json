@@ -102,13 +102,20 @@
     "title": "Bitácora"
   },
   "bulkEmail": {
+    "audience": {
+      "both": "Estudiantes y encargados",
+      "guardians": "Encargados",
+      "students": "Estudiantes"
+    },
     "compose": "Redactar",
+    "demoNote": "Demo — ningún correo sale del navegador.",
     "dimensions": {
       "course": "curso",
       "program": "programa",
       "province": "provincia"
     },
     "fields": {
+      "audience": "Audiencia",
       "body": "Cuerpo",
       "filter": "Filtro de destinatarios",
       "filterValue": "Valor del filtro",
@@ -123,6 +130,7 @@
     },
     "history": {
       "columns": {
+        "audience": "Audiencia",
         "filter": "Filtro",
         "recipients": "Destinatarios",
         "sentAt": "Enviado",
@@ -130,6 +138,10 @@
       },
       "empty": "Aún no hay campañas enviadas.",
       "title": "Campañas enviadas"
+    },
+    "messageClass": {
+      "description": "Envía un mensaje a la clase de {{course}}. Elige si llega a los estudiantes, a sus encargados o a ambos.",
+      "title": "Mensaje a la clase"
     },
     "noRecipients": "Ningún destinatario coincide con el filtro.",
     "recipientCount_one": "{{count}} destinatario recibirá este correo.",
@@ -349,6 +361,7 @@
         "removeConfirm": "¿Quitar a {{student}} de este curso?"
       },
       "loading": "Cargando…",
+      "messageClass": "Mensaje a la clase",
       "readiness": {
         "attendance": {
           "fail_one": "{{count}} sesión sin registrar",
