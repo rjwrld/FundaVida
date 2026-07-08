@@ -3,6 +3,7 @@ import { enterAs } from './helpers/auth'
 import { pinDemoEpoch } from './helpers/clock'
 import { seedDemo } from '../src/data/seed'
 import { buildAgenda } from '../src/lib/agenda'
+import { calendarCardName } from '../src/lib/courseName'
 
 // Business time is pinned (ADR-0014) so the agenda derived below — and with it
 // the anchors asserted against the rendered page — is exact, not wall-time
@@ -41,8 +42,10 @@ test.describe('teacher dashboard agenda slice', () => {
     await pinDemoEpoch(page, EPOCH)
     await enterAs(page, 'teacher')
 
+    const displayName = calendarCardName({ name: first.courseName, sede: first.sede })
     const aside = page.getByRole('complementary', { name: 'Agenda' })
-    const row = aside.getByRole('link', { name: first.courseName }).first()
+    // The teacher slice is one deep-linked hero: "{n} sessions to mark — {course}".
+    const row = aside.getByRole('link', { name: displayName, exact: false }).first()
     await expect(row).toBeVisible()
     await expect(row).toHaveAttribute(
       'href',
@@ -79,8 +82,9 @@ test.describe('student dashboard agenda slice', () => {
     await pinDemoEpoch(page, EPOCH)
     await enterAs(page, 'student')
 
+    const displayName = calendarCardName({ name: row.courseName, sede: row.sede })
     const aside = page.getByRole('complementary', { name: 'Agenda' })
-    await expect(aside.getByText(row.courseName).first()).toBeVisible()
+    await expect(aside.getByText(displayName).first()).toBeVisible()
     await expect(aside.getByRole('link', { name: /open calendar/i })).toHaveAttribute(
       'href',
       '/app/calendar'

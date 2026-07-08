@@ -141,37 +141,51 @@
   },
   "calendar": {
     "card": {
-      "needsMarking": "Needs marking",
+      "markAttendance": "Mark attendance",
       "session": "Session"
     },
-    "emptyDay": "No sessions on this day.",
     "emptyWeek": "No sessions this week.",
+    "emptyWeekNext": "Next: {{session}}",
+    "emptyWeekPrev": "Previous: {{session}}",
+    "jumpToWeek": "Jump to that week",
     "next": "Next week",
     "noCourses": "No courses yet — sessions will appear here once you have one.",
-    "panelTitle": "Sessions",
     "previous": "Previous week",
     "sessionEntry": "{{course}} — Session {{ordinal}}",
     "sidebar": {
       "admin": {
+        "caughtUpBody": "Every active session is marked.",
         "coursesToClose_one": "{{count}} course ready to close",
         "coursesToClose_other": "{{count}} courses ready to close",
         "pulseTitle": "Operational pulse",
+        "review": "Review",
+        "toCloseLabel": "courses ready to close",
         "unmarked_one": "{{count}} session needs marking",
         "unmarked_other": "{{count}} sessions need marking",
-        "unmarkedNone": "All sessions marked"
+        "unmarkedLabel": "unmarked sessions in active courses",
+        "unmarkedNone": "All sessions marked",
+        "view": "View"
       },
       "student": {
         "attended": "{{present}}/{{total}} attended",
+        "bannerOnTrack": "{{onTrack}}/{{total}} courses on track",
         "certificateEarned": "Certificate earned",
         "certPending": "Certificate pending",
         "noSessionsRecorded": "No sessions recorded yet",
         "onTrack": "On track",
         "progressTitle": "My progress"
       },
+      "tcu": {
+        "bannerNext": "Next: {{course}}"
+      },
       "teacher": {
-        "empty": "Nothing needs marking",
+        "caughtUpBody": "Nothing pending in your courses.",
+        "caughtUpTitle": "All sessions marked",
+        "sessionsToMark_one": "{{count}} session to mark",
+        "sessionsToMark_other": "{{count}} sessions to mark",
         "worklistTitle": "Needs marking"
       },
+      "upcomingEmpty": "Nothing on deck.",
       "upcomingTitle": "Upcoming"
     },
     "subtitle": "Your scoped sessions at a glance.",

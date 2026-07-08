@@ -102,6 +102,19 @@ describe('buildAgenda', () => {
       expect(first?.date).toBeTruthy()
     })
 
+    it('groups the worklist by course: one row, a count, and the oldest-session deep link', () => {
+      const course = makeCourse('cou-1', { sede: 'Linda Vista' })
+      const agenda = buildAgenda(baseInput('teacher', [course]))
+      if (agenda.role !== 'teacher') return
+
+      expect(agenda.worklist).toHaveLength(1)
+      const group = agenda.worklist[0]
+      expect(group?.courseId).toBe('cou-1')
+      expect(group?.count).toBe(2)
+      // The oldest unmarked session (the first, ascending) is the deep-link target.
+      expect(group?.oldestDate).toBe(agenda.needsMarking[0]?.date)
+    })
+
     it('a session marked by any attendance record drops off the worklist', () => {
       const course = makeCourse('cou-1')
       const sessions = buildAgenda(baseInput('teacher', [course]))
@@ -252,6 +265,7 @@ describe('buildAgenda', () => {
       expect(agenda.progress).toEqual([
         {
           courseName: 'Course cou-1',
+          sede: 'Hatillo',
           present: 3,
           total: 4,
           onTrack: true,
@@ -281,7 +295,14 @@ describe('buildAgenda', () => {
       if (agenda.role !== 'student') return
 
       expect(agenda.progress).toEqual([
-        { courseName: 'Course cou-1', present: 0, total: 0, onTrack: true, certificate: null },
+        {
+          courseName: 'Course cou-1',
+          sede: 'Hatillo',
+          present: 0,
+          total: 0,
+          onTrack: true,
+          certificate: null,
+        },
       ])
     })
 

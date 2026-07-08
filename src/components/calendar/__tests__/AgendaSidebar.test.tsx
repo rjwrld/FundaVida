@@ -13,11 +13,11 @@ function isoDay(year: number, monthIndex: number, day: number): string {
   return new Date(year, monthIndex, day).toISOString()
 }
 
-function renderSidebar(agenda: RoleAgenda) {
+function renderSidebar(agenda: RoleAgenda, variant?: 'full' | 'banner') {
   return render(
     <I18nProvider>
       <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AgendaSidebar agenda={agenda} />
+        <AgendaSidebar agenda={agenda} variant={variant} />
       </MemoryRouter>
     </I18nProvider>
   )
@@ -30,29 +30,55 @@ describe('<AgendaSidebar />', () => {
   })
 
   describe('teacher', () => {
-    it('renders the needs-marking worklist as the hero, deep-linked to mark', () => {
+    it('renders a worklist grouped by course, deep-linked to the oldest unmarked session', () => {
       renderSidebar({
         role: 'teacher',
         upcoming: [],
-        needsMarking: [
+        needsMarking: [],
+        worklist: [
           {
             courseId: 'cou-A',
-            date: isoDay(2026, 5, 10),
-            ordinal: 3,
-            courseName: 'Matemáticas',
+            courseName: 'Matemáticas Primaria — Linda Vista (jun)',
             sede: 'Linda Vista',
+            count: 3,
+            oldestDate: isoDay(2026, 5, 10),
           },
         ],
       })
 
       expect(screen.getByText('Needs marking')).toBeInTheDocument()
-      const link = screen.getByRole('link', { name: /Matemáticas/ })
+      // De-suffixed course name + a grouped count, not a row-per-session wall.
+      const link = screen.getByRole('link', { name: /Matemáticas Primaria/ })
       expect(link.getAttribute('href')).toMatch(/\/app\/courses\/cou-A\/sessions\/.*\/mark/)
+      expect(screen.getByText('3 sessions to mark')).toBeInTheDocument()
     })
 
-    it('shows an empty-worklist message when nothing needs marking', () => {
-      renderSidebar({ role: 'teacher', upcoming: [], needsMarking: [] })
-      expect(screen.getByText('Nothing needs marking')).toBeInTheDocument()
+    it('shows a quiet caught-up state when the worklist is empty', () => {
+      renderSidebar({ role: 'teacher', upcoming: [], needsMarking: [], worklist: [] })
+      expect(screen.getByText('All sessions marked')).toBeInTheDocument()
+      expect(screen.getByText('Nothing pending in your courses.')).toBeInTheDocument()
+    })
+
+    it('banner variant compresses to the total sessions-to-mark, deep-linked', () => {
+      renderSidebar(
+        {
+          role: 'teacher',
+          upcoming: [],
+          needsMarking: [],
+          worklist: [
+            {
+              courseId: 'cou-A',
+              courseName: 'Matemáticas Primaria — Linda Vista (jun)',
+              sede: 'Linda Vista',
+              count: 3,
+              oldestDate: isoDay(2026, 5, 10),
+            },
+          ],
+        },
+        'banner'
+      )
+      const link = screen.getByRole('link', { name: /3 sessions to mark/ })
+      expect(link.getAttribute('href')).toMatch(/\/app\/courses\/cou-A\/sessions\/.*\/mark/)
     })
 
     it('renders the Upcoming bucket', () => {
@@ -62,13 +88,14 @@ describe('<AgendaSidebar />', () => {
           { courseId: 'cou-A', date: isoDay(2026, 5, 20), ordinal: 4, courseName: 'Matemáticas' },
         ],
         needsMarking: [],
+        worklist: [],
       })
       expect(screen.getByText('Upcoming')).toBeInTheDocument()
     })
   })
 
   describe('admin', () => {
-    it('renders a summarized operational pulse, not a per-session list', () => {
+    it('renders the operational pulse as deep-linked stat rows, not a per-session list', () => {
       renderSidebar({
         role: 'admin',
         upcoming: [],
@@ -76,17 +103,22 @@ describe('<AgendaSidebar />', () => {
       })
 
       expect(screen.getByText('Operational pulse')).toBeInTheDocument()
-      expect(screen.getByText('3 sessions need marking')).toBeInTheDocument()
-      expect(screen.getByText('2 courses ready to close')).toBeInTheDocument()
+      expect(screen.getByText('unmarked sessions in active courses')).toBeInTheDocument()
+      expect(screen.getByText('courses ready to close')).toBeInTheDocument()
+      const view = screen.getByRole('link', { name: /View/ })
+      expect(view.getAttribute('href')).toBe('/app/attendance')
+      const review = screen.getByRole('link', { name: /Review/ })
+      expect(review.getAttribute('href')).toBe('/app/courses')
     })
 
-    it('shows the all-marked message when unmarkedCount is zero', () => {
+    it('shows a quiet caught-up state when the pulse is zero', () => {
       renderSidebar({
         role: 'admin',
         upcoming: [],
         pulse: { unmarkedCount: 0, coursesToCloseCount: 0 },
       })
       expect(screen.getByText('All sessions marked')).toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: /View/ })).not.toBeInTheDocument()
     })
   })
 
@@ -98,6 +130,7 @@ describe('<AgendaSidebar />', () => {
         progress: [
           {
             courseName: 'Matemáticas',
+            sede: 'Linda Vista',
             present: 8,
             total: 10,
             onTrack: true,
@@ -117,6 +150,7 @@ describe('<AgendaSidebar />', () => {
         progress: [
           {
             courseName: 'Matemáticas',
+            sede: 'Linda Vista',
             present: 0,
             total: 0,
             onTrack: true,
@@ -136,6 +170,7 @@ describe('<AgendaSidebar />', () => {
         progress: [
           {
             courseName: 'Matemáticas',
+            sede: 'Linda Vista',
             present: 10,
             total: 10,
             onTrack: true,

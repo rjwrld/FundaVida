@@ -43,21 +43,37 @@ describe('<SessionCard />', () => {
     useStore.getState().setLocale('en')
   })
 
-  it('renders the short course title (Program + Level) and Sede · Session N meta', () => {
+  it('renders the de-suffixed card title (no cohort suffix) and Sede · Session n/total meta', () => {
+    renderCard(
+      <SessionCard
+        course={makeCourse()}
+        session={{ courseId: 'cou-A', date: isoDay(2026, 5, 1), ordinal: 7 }}
+        status="none"
+        total={16}
+      />
+    )
+
+    // Card title drops both the Sede and the "(jun)" cohort suffix.
+    expect(screen.getByText('Matemáticas Primaria')).toBeInTheDocument()
+    expect(screen.getByText(/Linda Vista/)).toBeInTheDocument()
+    // Meta shows the "n/total" fraction.
+    expect(screen.getByText('7/16')).toBeInTheDocument()
+  })
+
+  it('keeps the full canonical name in the tooltip / accessible name', () => {
     renderCard(
       <SessionCard
         course={makeCourse()}
         session={{ courseId: 'cou-A', date: isoDay(2026, 5, 1), ordinal: 1 }}
-        status="none"
+        status="needsMarking"
+        linkToMark
       />
     )
-
-    expect(screen.getByText('Matemáticas Primaria (jun)')).toBeInTheDocument()
-    expect(screen.getByText(/Linda Vista/)).toBeInTheDocument()
-    expect(screen.getByText(/1/)).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: 'Matemáticas Primaria — Linda Vista (jun)' })
+    expect(link).toHaveAttribute('title', 'Matemáticas Primaria — Linda Vista (jun)')
   })
 
-  it('shows a success badge for a present session', () => {
+  it('renders a student’s present verdict as one word, not a badge', () => {
     renderCard(
       <SessionCard
         course={makeCourse()}
@@ -68,7 +84,7 @@ describe('<SessionCard />', () => {
     expect(screen.getByText('Present')).toBeInTheDocument()
   })
 
-  it('shows a destructive badge for an absent session', () => {
+  it('renders an absent verdict word', () => {
     renderCard(
       <SessionCard
         course={makeCourse()}
@@ -79,7 +95,7 @@ describe('<SessionCard />', () => {
     expect(screen.getByText('Absent')).toBeInTheDocument()
   })
 
-  it('shows an info badge for an excused session', () => {
+  it('renders an excused verdict word', () => {
     renderCard(
       <SessionCard
         course={makeCourse()}
@@ -90,7 +106,7 @@ describe('<SessionCard />', () => {
     expect(screen.getByText('Excused')).toBeInTheDocument()
   })
 
-  it('shows a mono "needs marking" chip for a past unmarked session', () => {
+  it('shows a "Mark attendance" action row for a past unmarked teacher/admin session', () => {
     renderCard(
       <SessionCard
         course={makeCourse()}
@@ -99,7 +115,20 @@ describe('<SessionCard />', () => {
         linkToMark
       />
     )
-    expect(screen.getByText('Needs marking')).toBeInTheDocument()
+    expect(screen.getByText('Mark attendance')).toBeInTheDocument()
+  })
+
+  it('carries no action row on a marked-past or future teacher/admin card', () => {
+    renderCard(
+      <SessionCard
+        course={makeCourse()}
+        session={{ courseId: 'cou-A', date: isoDay(2026, 5, 1), ordinal: 1 }}
+        status="none"
+        linkToMark
+        time="future"
+      />
+    )
+    expect(screen.queryByText('Mark attendance')).not.toBeInTheDocument()
   })
 
   it('links a teacher/admin card to Mark Attendance when linkToMark is true', () => {

@@ -44,6 +44,19 @@ export interface NeedsMarkingSession extends Session {
   sede: Course['sede']
 }
 
+/**
+ * The teacher worklist grouped by Course (ADR-0044): one row per Course with a
+ * count and a deep link to the *oldest* unmarked Session's mark page — never a
+ * row-per-session wall. `oldestDate` is that deep-link target.
+ */
+export interface WorklistGroup {
+  courseId: string
+  courseName: string
+  sede: Course['sede']
+  count: number
+  oldestDate: string
+}
+
 export interface RoleAgendaBase {
   /** All upcoming Sessions across the scoped Courses, ascending. */
   upcoming: UpcomingSession[]
@@ -53,6 +66,8 @@ export interface TeacherAgenda extends RoleAgendaBase {
   role: 'teacher'
   /** Past recordable Sessions with zero attendance yet, ascending (oldest first). */
   needsMarking: NeedsMarkingSession[]
+  /** The same backlog grouped by Course for the sidebar worklist (ADR-0044). */
+  worklist: WorklistGroup[]
 }
 
 export interface AdminAgenda extends RoleAgendaBase {
@@ -77,6 +92,7 @@ export interface TcuAgenda extends RoleAgendaBase {
 /** The student's per-enrollment standing for the agenda sidebar. */
 export interface AgendaProgressRow {
   courseName: string
+  sede: Course['sede']
   present: number
   total: number
   onTrack: boolean
@@ -96,12 +112,15 @@ export function buildAgenda(input: BuildAgendaInput): RoleAgenda {
   const upcoming = upcomingSessions(courses, now, undefined, sessionExceptions)
 
   switch (role) {
-    case 'teacher':
+    case 'teacher': {
+      const marking = needsMarking(courses, attendance, now, sessionExceptions)
       return {
         role,
         upcoming,
-        needsMarking: needsMarking(courses, attendance, now, sessionExceptions),
+        needsMarking: marking,
+        worklist: groupWorklist(marking),
       }
+    }
     case 'admin':
       return {
         role,
@@ -126,6 +145,7 @@ export function buildAgenda(input: BuildAgendaInput): RoleAgenda {
           certificates,
         }).map((row) => ({
           courseName: row.course.name,
+          sede: row.course.sede,
           present: row.present,
           total: row.total,
           onTrack: row.total === 0 || row.present / row.total >= MIN_ATTENDANCE_RATE,
@@ -165,4 +185,30 @@ function needsMarking(
         .map((session) => ({ ...session, courseName: course.name, sede: course.sede }))
     )
     .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime())
+}
+
+/**
+ * Collapse the ascending {@link needsMarking} list into one {@link WorklistGroup}
+ * per Course (ADR-0044). Groups keep the input's ascending order, so the first
+ * Session seen for a Course is its oldest — that becomes the deep-link target —
+ * and the groups themselves stay ordered by their oldest Session (most overdue
+ * Course first).
+ */
+function groupWorklist(sessions: NeedsMarkingSession[]): WorklistGroup[] {
+  const groups = new Map<string, WorklistGroup>()
+  for (const session of sessions) {
+    const existing = groups.get(session.courseId)
+    if (existing) {
+      existing.count += 1
+    } else {
+      groups.set(session.courseId, {
+        courseId: session.courseId,
+        courseName: session.courseName,
+        sede: session.sede,
+        count: 1,
+        oldestDate: session.date,
+      })
+    }
+  }
+  return [...groups.values()]
 }

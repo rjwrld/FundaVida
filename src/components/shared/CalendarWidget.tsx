@@ -46,8 +46,17 @@ const DAY_LABELS = [
   { letter: 'S', full: 'Sunday' },
 ]
 
-function hasEventOn(day: Date, events: Date[]) {
-  return events.some((event) => isSameDay(event, day))
+function eventCountOn(day: Date, events: Date[]) {
+  return events.reduce((n, event) => (isSameDay(event, day) ? n + 1 : n), 0)
+}
+
+// The month is a navigator (ADR-0044): an event mark widens with the day's
+// Session count so the term's shape is legible at arm's length — replacing the
+// 2px/40%-opacity mark that rendered a busy day as none. Capped at 4 so a heavy
+// day never overruns the cell.
+const EVENT_BAR_WIDTH = ['w-1.5', 'w-2.5', 'w-3.5', 'w-4'] as const
+function eventBarWidth(count: number) {
+  return EVENT_BAR_WIDTH[Math.min(count, EVENT_BAR_WIDTH.length) - 1]
 }
 
 export function CalendarWidget({
@@ -118,7 +127,8 @@ export function CalendarWidget({
             const today = isSameDay(day, clock.today())
             const isSelected = selected ? isSameDay(day, selected) : false
             const selectedNotToday = isSelected && !today
-            const hasEvent = hasEventOn(day, events)
+            const eventCount = eventCountOn(day, events)
+            const hasEvent = eventCount > 0
 
             return (
               <button
@@ -164,12 +174,17 @@ export function CalendarWidget({
                     className="absolute bottom-1 left-1/2 h-0.5 w-3.5 -translate-x-1/2 rounded-full bg-primary"
                   />
                 ) : null}
-                {/* Events: thin quiet green bar — no dot. Today's own bar already marks it. */}
+                {/* Events: a green bar that widens with the day's Session count
+                    (ADR-0044). Today's own bar already marks it. */}
                 {hasEvent && !today ? (
                   <span
                     aria-hidden="true"
                     data-event-bar
-                    className="absolute bottom-1 left-1/2 h-0.5 w-2.5 -translate-x-1/2 rounded-full bg-primary/40"
+                    data-event-count={eventCount}
+                    className={cn(
+                      'absolute bottom-1 left-1/2 h-0.5 -translate-x-1/2 rounded-full bg-primary/70',
+                      eventBarWidth(eventCount)
+                    )}
                   />
                 ) : null}
               </button>

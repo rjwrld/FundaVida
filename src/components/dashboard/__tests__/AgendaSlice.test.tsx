@@ -8,6 +8,7 @@ import { useStore } from '@/data/store'
 import { api } from '@/data/api'
 import { delay } from '@/data/api/_delay'
 import { buildAgenda } from '@/lib/agenda'
+import { calendarCardName } from '@/lib/courseName'
 import { AgendaSlice } from '../AgendaSlice'
 import type { Course, Enrollment } from '@/types'
 
@@ -99,15 +100,18 @@ describe('<AgendaSlice />', () => {
       if (!first)
         throw new Error('seed should give the teacher persona at least one unmarked session')
       const expectedHref = `/app/courses/${first.courseId}/sessions/${first.date}/mark`
+      // The dashboard adopts the calendar's de-suffixed row language (ADR-0044).
+      const displayName = calendarCardName({ name: first.courseName, sede: first.sede })
 
       renderSlice()
 
-      // The worklist can hold several overdue sessions of the same course, so
-      // the course name alone is not a unique accessible name — assert on the
-      // exact per-session href instead.
-      await screen.findAllByText(first.courseName)
-      const links = screen.getAllByRole('link', { name: first.courseName })
-      expect(links.some((link) => link.getAttribute('href') === expectedHref)).toBe(true)
+      // The dashboard teases one deep-linked hero (ADR-0044): "{n} sessions to
+      // mark — {de-suffixed course}", linking to that course's oldest unmarked
+      // session's mark page.
+      const hero = await screen.findByRole('link', {
+        name: new RegExp(displayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+      })
+      expect(hero.getAttribute('href')).toBe(expectedHref)
     })
   })
 
@@ -134,7 +138,7 @@ describe('<AgendaSlice />', () => {
 
       renderSlice()
 
-      await screen.findByText(row.courseName)
+      await screen.findByText(calendarCardName({ name: row.courseName, sede: row.sede }))
     })
 
     it('shows "no sessions recorded yet" copy instead of an on-track verdict when total is 0', async () => {

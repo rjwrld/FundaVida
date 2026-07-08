@@ -13,10 +13,10 @@ import { useSessionExceptions } from '@/hooks/api/sessionExceptions'
 import { useStore } from '@/data/store'
 import { clock } from '@/lib/clock'
 import { resolveQueries } from '@/lib/resolveQueries'
-import { buildAgenda, type NeedsMarkingSession, type AgendaProgressRow } from '@/lib/agenda'
+import { buildAgenda, type WorklistGroup, type AgendaProgressRow } from '@/lib/agenda'
+import { calendarCardName } from '@/lib/courseName'
 import { useFormat } from '@/hooks/useFormat'
 
-const NEEDS_MARKING_LIMIT = 3
 const UPCOMING_LIMIT = 3
 
 /**
@@ -81,9 +81,7 @@ export function AgendaSlice() {
         </h3>
       </header>
 
-      {agenda.role === 'teacher' && (
-        <NeedsMarkingList sessions={agenda.needsMarking.slice(0, NEEDS_MARKING_LIMIT)} />
-      )}
+      {agenda.role === 'teacher' && <NeedsMarkingHero group={agenda.worklist[0]} />}
 
       {agenda.role === 'admin' && (
         <dl className="mb-4 grid grid-cols-2 gap-3">
@@ -129,7 +127,11 @@ export function AgendaSlice() {
   )
 }
 
-function NeedsMarkingList({ sessions }: { sessions: NeedsMarkingSession[] }) {
+// The teacher's single deep-linked hero fact (ADR-0044): the most-overdue Course
+// with its count, linking to that Course's oldest unmarked Session's mark page —
+// not the per-session wall the old dashboard slice showed. The full grouped
+// worklist lives on the calendar; the dashboard teases one row.
+function NeedsMarkingHero({ group }: { group: WorklistGroup | undefined }) {
   const { t } = useTranslation()
 
   return (
@@ -137,29 +139,21 @@ function NeedsMarkingList({ sessions }: { sessions: NeedsMarkingSession[] }) {
       <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {t('dashboard.rightPanel.needsMarkingTitle')}
       </h4>
-      {sessions.length === 0 ? (
+      {!group ? (
         <p className="text-sm text-muted-foreground">
           {t('dashboard.rightPanel.needsMarkingEmpty')}
         </p>
       ) : (
-        <ul className="flex flex-col divide-y divide-border/60">
-          {sessions.map((session) => (
-            <li key={`${session.courseId}-${session.date}`} className="py-2 first:pt-0 last:pb-0">
-              <Link
-                to={`/app/courses/${session.courseId}/sessions/${session.date}/mark`}
-                className="group flex items-center gap-2 rounded-md py-1"
-              >
-                <ClipboardCheck
-                  className="size-4 shrink-0 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
-                  {session.courseName}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <Link
+          to={`/app/courses/${group.courseId}/sessions/${group.oldestDate}/mark`}
+          className="group flex items-center gap-2 rounded-md py-1"
+        >
+          <ClipboardCheck className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
+            {t('calendar.sidebar.teacher.sessionsToMark', { count: group.count })} —{' '}
+            {calendarCardName({ name: group.courseName, sede: group.sede })}
+          </span>
+        </Link>
       )}
     </div>
   )
@@ -187,7 +181,7 @@ function ProgressList({
               className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0"
             >
               <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-                {row.courseName}
+                {calendarCardName({ name: row.courseName, sede: row.sede })}
               </span>
               {row.total === 0 ? (
                 <span className="shrink-0 text-xs text-muted-foreground">

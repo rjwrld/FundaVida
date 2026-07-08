@@ -142,39 +142,54 @@
   },
   "calendar": {
     "card": {
-      "needsMarking": "Falta registrar",
+      "markAttendance": "Registrar asistencia",
       "session": "Sesión"
     },
-    "emptyDay": "No hay sesiones este día.",
     "emptyWeek": "No hay sesiones esta semana.",
+    "emptyWeekNext": "Siguiente: {{session}}",
+    "emptyWeekPrev": "Anterior: {{session}}",
+    "jumpToWeek": "Ir a esa semana",
     "next": "Semana siguiente",
     "noCourses": "Aún no hay cursos — las sesiones aparecerán aquí cuando tengas uno.",
-    "panelTitle": "Sesiones",
     "previous": "Semana anterior",
     "sessionEntry": "{{course}} — Sesión {{ordinal}}",
     "sidebar": {
       "admin": {
+        "caughtUpBody": "Todas las sesiones activas están registradas.",
         "coursesToClose_one": "{{count}} curso listo para cerrar",
         "coursesToClose_many": "{{count}} cursos listos para cerrar",
         "coursesToClose_other": "{{count}} cursos listos para cerrar",
         "pulseTitle": "Pulso operativo",
+        "review": "Revisar",
+        "toCloseLabel": "cursos listos para cerrar",
         "unmarked_one": "{{count}} sesión sin registrar",
         "unmarked_many": "{{count}} sesiones sin registrar",
         "unmarked_other": "{{count}} sesiones sin registrar",
-        "unmarkedNone": "Todas las sesiones registradas"
+        "unmarkedLabel": "sesiones sin registrar en cursos activos",
+        "unmarkedNone": "Todas las sesiones registradas",
+        "view": "Ver"
       },
       "student": {
         "attended": "{{present}}/{{total}} asistidas",
+        "bannerOnTrack": "{{onTrack}}/{{total}} cursos al día",
         "certificateEarned": "Certificado obtenido",
         "certPending": "Certificado pendiente",
         "noSessionsRecorded": "Aún no hay sesiones registradas",
         "onTrack": "Al día",
         "progressTitle": "Mi progreso"
       },
+      "tcu": {
+        "bannerNext": "Siguiente: {{course}}"
+      },
       "teacher": {
-        "empty": "Nada por registrar",
+        "caughtUpBody": "No hay nada pendiente en tus cursos.",
+        "caughtUpTitle": "Todo registrado",
+        "sessionsToMark_one": "{{count}} sesión por registrar",
+        "sessionsToMark_many": "{{count}} sesiones por registrar",
+        "sessionsToMark_other": "{{count}} sesiones por registrar",
         "worklistTitle": "Falta registrar"
       },
+      "upcomingEmpty": "Nada por ahora.",
       "upcomingTitle": "Próximas"
     },
     "subtitle": "Tus sesiones de un vistazo.",
