@@ -33,7 +33,7 @@ export function useBrowseableCourse(id: string, enabled: boolean) {
   const role = useStore((s) => s.role)
   return useQuery({
     queryKey: [...COURSES_KEY, 'browseable', id, role],
-    queryFn: () => api.courses.get(id, 'openForEnrollment'),
+    queryFn: () => api.courses.get(id, 'browseable'),
     enabled: enabled && id.length > 0,
   })
 }

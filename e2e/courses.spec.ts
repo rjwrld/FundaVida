@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import { enterAs } from './helpers/auth'
 import { seedDemo } from '../src/data/seed'
 import { shortCourseName } from '../src/lib/courseName'
-import { isOpenForEnrollment } from '../src/lib/courseDisplayState'
+import { courseDisplayState, isOpenForEnrollment } from '../src/lib/courseDisplayState'
 
 // A clean browseable course for the student persona (stu-1, Linda Vista / primaria)
 // with no prior enrollment AND still open for enrollment (ADR-0042) — so the request
@@ -23,6 +23,19 @@ const cleanBrowseCourse = browseWorld.courses.find(
     !stu1Enrolled.has(c.id)
 )
 if (!cleanBrowseCourse) throw new Error('seed has no clean open browseable course for stu-1')
+
+// A published cohort at stu-1's Sede/level whose Term has already ended (ADR-0042):
+// still viewable (its "Term ended" badge shows) but no longer open for enrollment,
+// so it must NOT appear in the "Browse open courses" list (issue #257).
+const termEndedBrowseCourse = browseWorld.courses.find(
+  (c) =>
+    c.status === 'published' &&
+    courseDisplayState(c, browseNow) === 'termEnded' &&
+    c.sede === 'Linda Vista' &&
+    c.level === 'primaria' &&
+    !stu1Enrolled.has(c.id)
+)
+if (!termEndedBrowseCourse) throw new Error('seed has no Term-ended browseable course for stu-1')
 
 // A still-published, already-ended course owned by the teacher persona (tea-1) with
 // an approved Student. A Teacher may only grade an owned, ended, published cohort —
@@ -142,6 +155,29 @@ test('student requests a course and withdraws the request without reload (ADR-00
   // Back to the request state (again, no reload)
   await expect(withdrawButton).toBeHidden()
   await expect(requestButton).toBeVisible()
+})
+
+test('Browse list surfaces only open courses — a Term-ended cohort is hidden yet still viewable (ADR-0042, issue #257)', async ({
+  page,
+}) => {
+  await enterAs(page, 'student')
+  await page.getByRole('link', { name: 'Browse open courses' }).click()
+  await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
+
+  const table = page.getByRole('table')
+  // An open cohort lists (waits for the table to populate)…
+  await expect(table.getByRole('button', { name: cleanBrowseCourse.name })).toBeVisible()
+  // …but the Term-ended cohort — the list is literally titled "open courses" — does not.
+  await expect(table.getByRole('button', { name: termEndedBrowseCourse.name })).toHaveCount(0)
+
+  // Its detail nonetheless stays viewable: the badge shows and the request action
+  // is gone. View access must not collapse when the enrollment window closes.
+  await page.goto(`/app/courses/${termEndedBrowseCourse.id}`)
+  await expect(
+    page.getByRole('heading', { name: shortCourseName(termEndedBrowseCourse) })
+  ).toBeVisible()
+  await expect(page.getByText('Term ended')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Request a spot' })).toHaveCount(0)
 })
 
 test('student can re-request a course after withdrawing the prior request', async ({ page }) => {

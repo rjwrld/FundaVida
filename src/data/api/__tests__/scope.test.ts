@@ -127,7 +127,7 @@ describe('applyScope token short-circuits', () => {
   })
 })
 
-describe('courses openForEnrollment scope', () => {
+describe('courses browseable scope', () => {
   const student = makeStudent({ id: 'stu-1', sede: 'Linda Vista', educationalLevel: 'primaria' })
 
   it('keeps published, matching-sede, matching-level courses the student is not in', () => {
@@ -135,8 +135,26 @@ describe('courses openForEnrollment scope', () => {
       makeCourse({ id: 'open', status: 'published', sede: 'Linda Vista', level: 'primaria' }),
     ]
     const ctx = makeCtx({ currentUserId: 'stu-1', students: [student], courses })
-    const scoped = applyScope('courses', 'openForEnrollment', courses, ctx)
+    const scoped = applyScope('courses', 'browseable', courses, ctx)
     expect(scoped.map((c) => c.id)).toEqual(['open'])
+  })
+
+  it('keeps a Term-ended published course — view access is Term-agnostic (ADR-0042, issue #257)', () => {
+    // The browseable scope is the detail view-access seam, not the enrollment
+    // window: a Term-ended cohort stays viewable (its "Term ended" badge shows),
+    // and the Browse *list* — not this scope — drops it via isOpenForEnrollment.
+    const courses = [
+      makeCourse({
+        id: 'ended',
+        status: 'published',
+        sede: 'Linda Vista',
+        level: 'primaria',
+        term: { start: '2020-01-01', end: '2020-06-01' },
+      }),
+    ]
+    const ctx = makeCtx({ currentUserId: 'stu-1', students: [student], courses })
+    const scoped = applyScope('courses', 'browseable', courses, ctx)
+    expect(scoped.map((c) => c.id)).toEqual(['ended'])
   })
 
   it('excludes draft courses', () => {
@@ -144,7 +162,7 @@ describe('courses openForEnrollment scope', () => {
       makeCourse({ id: 'draft', status: 'draft', sede: 'Linda Vista', level: 'primaria' }),
     ]
     const ctx = makeCtx({ currentUserId: 'stu-1', students: [student], courses })
-    expect(applyScope('courses', 'openForEnrollment', courses, ctx)).toEqual([])
+    expect(applyScope('courses', 'browseable', courses, ctx)).toEqual([])
   })
 
   it('excludes courses at a different sede', () => {
@@ -152,7 +170,7 @@ describe('courses openForEnrollment scope', () => {
       makeCourse({ id: 'far', status: 'published', sede: 'Hatillo', level: 'primaria' }),
     ]
     const ctx = makeCtx({ currentUserId: 'stu-1', students: [student], courses })
-    expect(applyScope('courses', 'openForEnrollment', courses, ctx)).toEqual([])
+    expect(applyScope('courses', 'browseable', courses, ctx)).toEqual([])
   })
 
   it('excludes courses with a non-matching level (ADR-0020)', () => {
@@ -160,7 +178,7 @@ describe('courses openForEnrollment scope', () => {
       makeCourse({ id: 'sec', status: 'published', sede: 'Linda Vista', level: 'secundaria' }),
     ]
     const ctx = makeCtx({ currentUserId: 'stu-1', students: [student], courses })
-    expect(applyScope('courses', 'openForEnrollment', courses, ctx)).toEqual([])
+    expect(applyScope('courses', 'browseable', courses, ctx)).toEqual([])
   })
 
   it('excludes courses the student is already enrolled in or pending for (ADR-0016)', () => {
@@ -176,14 +194,14 @@ describe('courses openForEnrollment scope', () => {
       makeEnrollment({ courseId: 'withdrawn', status: 'withdrawn' }),
     ]
     const ctx = makeCtx({ currentUserId: 'stu-1', students: [student], courses, enrollments })
-    const scoped = applyScope('courses', 'openForEnrollment', courses, ctx)
+    const scoped = applyScope('courses', 'browseable', courses, ctx)
     expect(scoped.map((c) => c.id)).toEqual(['withdrawn'])
   })
 
   it('returns empty when the current user is not a known student', () => {
     const courses = [makeCourse({ sede: 'Linda Vista', level: 'primaria' })]
     const ctx = makeCtx({ currentUserId: 'ghost', students: [student], courses })
-    expect(applyScope('courses', 'openForEnrollment', courses, ctx)).toEqual([])
+    expect(applyScope('courses', 'browseable', courses, ctx)).toEqual([])
   })
 })
 

@@ -1,6 +1,8 @@
 import type { Course } from '@/types'
 import type { Scope } from '@/permissions'
 import { useStore } from '../store'
+import { clock } from '@/lib/clock'
+import { isOpenForEnrollment } from '@/lib/courseDisplayState'
 import { scopedGet, scopedList } from './scopedRead'
 import { delay } from './_delay'
 
@@ -9,11 +11,25 @@ export interface CourseFilters {
   sede?: string
   programId?: string
   scopeOverride?: Scope
+  /**
+   * Restrict a list to cohorts actually open for enrollment (ADR-0042, issue
+   * #257): a Term-ended (or draft/closed) published course is dropped. The Browse
+   * page opts in explicitly rather than the filter inferring intent from a scope
+   * token — the Term-agnostic `browseable` scope stays reusable for a plain
+   * view-access read that wants Term-ended courses too.
+   */
+  openOnly?: boolean
 }
 
 function applyFilters(courses: Course[], filters: CourseFilters): Course[] {
-  const { search, sede, programId } = filters
+  const { search, sede, programId, openOnly } = filters
+  // `openOnly` narrows the Term-agnostic `browseable` scope so a list titled
+  // "open courses" surfaces only enrollable cohorts, while `get` (which bypasses
+  // applyFilters) can still serve a Term-ended course's viewable detail. One
+  // term-end seam: `isOpenForEnrollment`, no re-derivation of the Term boundary.
+  const now = clock.now()
   return courses.filter((c) => {
+    if (openOnly && !isOpenForEnrollment(c, now)) return false
     if (search && !`${c.name} ${c.description}`.toLowerCase().includes(search.toLowerCase())) {
       return false
     }
