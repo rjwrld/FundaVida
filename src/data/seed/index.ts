@@ -823,11 +823,19 @@ function buildEmailCampaigns(
   const programName = PROGRAM_CATALOG.find((p) => p.id === programId)?.name ?? programId
   const province = firstStudent.province
 
+  // The teacher persona (tea-1) owns a Course they can message the class of
+  // (ADR-0041): seed one Teacher-authored, course-scoped campaign so their
+  // 'own'-scoped history is not empty and the guardian audience has a demo home.
+  const teacherId = `tea-${TEACHER_PERSONA_INDEX + 1}`
+  const teacherCourse = courses.find((c) => c.teacherId === teacherId)
+
   const specs: {
     id: string
     subject: string
     body: string
     filter: EmailCampaign['filter']
+    audience: EmailCampaign['audience']
+    sentBy: string
     weeksAgo: number
   }[] = [
     {
@@ -835,22 +843,42 @@ function buildEmailCampaigns(
       subject: 'Welcome to the new term',
       body: 'Hello students — our new term begins soon. Please review the schedule and confirm your attendance.',
       filter: { kind: 'all' },
+      audience: 'students',
+      sentBy: 'admin',
       weeksAgo: 6,
     },
     {
       id: 'cam-2',
       subject: `${programName} program: upcoming session`,
-      body: `${programName} students — a reminder about your upcoming sessions and what to bring.`,
+      body: `${programName} families — a reminder about your child's upcoming sessions and what to bring.`,
       filter: { kind: 'program', value: programId },
+      audience: 'both',
+      sentBy: 'admin',
       weeksAgo: 4,
     },
     {
       id: 'cam-3',
       subject: `${province}: holiday schedule`,
-      body: `Students in ${province} — please review the updated holiday schedule attached to the bulletin.`,
+      body: `Encargados in ${province} — please review the updated holiday schedule attached to the bulletin.`,
       filter: { kind: 'province', value: province },
+      audience: 'guardians',
+      sentBy: 'admin',
       weeksAgo: 2,
     },
+    // Teacher-authored class message, only present when the persona owns a Course.
+    ...(teacherCourse
+      ? [
+          {
+            id: 'cam-4',
+            subject: `${teacherCourse.name}: this week's class`,
+            body: `Students and families of ${teacherCourse.name} — a quick note about this week's session and materials.`,
+            filter: { kind: 'course' as const, value: teacherCourse.id },
+            audience: 'both' as const,
+            sentBy: teacherId,
+            weeksAgo: 1,
+          },
+        ]
+      : []),
   ]
 
   return specs.map((spec) => ({
@@ -858,9 +886,10 @@ function buildEmailCampaigns(
     subject: spec.subject,
     body: spec.body,
     filter: spec.filter,
+    audience: spec.audience,
     recipientIds: resolveRecipients(spec.filter, input).map((s) => s.id),
     sentAt: subWeeks(startOfDay(epoch), spec.weeksAgo).toISOString(),
-    sentBy: 'admin',
+    sentBy: spec.sentBy,
   }))
 }
 

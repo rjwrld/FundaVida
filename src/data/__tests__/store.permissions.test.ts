@@ -349,7 +349,75 @@ describe('store permission guards', () => {
   })
 
   describe('email campaign guards', () => {
-    it('teacher cannot send a bulk email campaign', () => {
+    it('teacher can send a course-scoped campaign to a Course they own', () => {
+      useStore.getState().setRole('teacher') // tea-1
+      const state = useStore.getState()
+      const ownCourse = state.courses.find(
+        (c) => c.teacherId === state.currentUserId && c.status === 'published'
+      )
+      if (!ownCourse) throw new Error('seed invariant: teacher persona owns no live Course')
+      const before = state.emailCampaigns.length
+
+      const campaign = useStore.getState().sendEmailCampaign({
+        subject: 'Class update',
+        body: 'A note for this week',
+        filter: { kind: 'course', value: ownCourse.id },
+        audience: 'both',
+        recipientIds: [],
+      })
+
+      expect(campaign.audience).toBe('both')
+      expect(campaign.sentBy).toBe(state.currentUserId)
+      expect(useStore.getState().emailCampaigns.length).toBe(before + 1)
+    })
+
+    it('teacher cannot send to a Course they do not own (ADR-0009 re-check)', () => {
+      useStore.getState().setRole('teacher') // tea-1
+      const state = useStore.getState()
+      const otherCourse = state.courses.find((c) => c.teacherId !== state.currentUserId)
+      if (!otherCourse) throw new Error('seed invariant: no Course owned by another teacher')
+      const auditLogLengthBefore = state.auditLog.length
+
+      expect(() => {
+        useStore.getState().sendEmailCampaign({
+          subject: 'Test',
+          body: 'Body',
+          filter: { kind: 'course', value: otherCourse.id },
+          audience: 'students',
+          recipientIds: [],
+        })
+      }).toThrow()
+
+      expect(useStore.getState().auditLog.length).toBe(auditLogLengthBefore)
+    })
+
+    it('cannot message a closed cohort (ADR-0024 terminal), even for its owner', () => {
+      useStore.getState().setRole('teacher') // tea-1
+      const state = useStore.getState()
+      const ownCourse = state.courses.find(
+        (c) => c.teacherId === state.currentUserId && c.status === 'published'
+      )
+      if (!ownCourse) throw new Error('seed invariant: teacher persona owns no live Course')
+      // Close it as admin, then attempt to message it back as its Teacher.
+      useStore.getState().setRole('admin')
+      useStore.getState().closeCourse(ownCourse.id)
+      useStore.getState().setRole('teacher')
+      const auditLogLengthBefore = useStore.getState().auditLog.length
+
+      expect(() => {
+        useStore.getState().sendEmailCampaign({
+          subject: 'Test',
+          body: 'Body',
+          filter: { kind: 'course', value: ownCourse.id },
+          audience: 'both',
+          recipientIds: [],
+        })
+      }).toThrow()
+
+      expect(useStore.getState().auditLog.length).toBe(auditLogLengthBefore)
+    })
+
+    it('teacher cannot send a broad (non-course) campaign — the form is locked to their Course', () => {
       useStore.getState().setRole('teacher')
       const auditLogLengthBefore = useStore.getState().auditLog.length
 
@@ -358,6 +426,7 @@ describe('store permission guards', () => {
           subject: 'Test',
           body: 'Body',
           filter: { kind: 'all' },
+          audience: 'students',
           recipientIds: [],
         })
       }).toThrow()

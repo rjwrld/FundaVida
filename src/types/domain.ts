@@ -289,11 +289,20 @@ export interface EmailFilter {
   value?: string
 }
 
+/**
+ * Who a campaign is addressed to (ADR-0041). `resolveRecipients` still resolves
+ * the target Students; the audience maps each to recipient emails — their own
+ * ('students'), their Encargado's ('guardians'), or both ('both'). Counts are
+ * over emails, not Students, so 'both' is not double-counting.
+ */
+export type EmailAudience = 'students' | 'guardians' | 'both'
+
 export interface EmailCampaign {
   id: string
   subject: string
   body: string
   filter: EmailFilter
+  audience: EmailAudience
   recipientIds: string[]
   sentAt: string
   sentBy: string

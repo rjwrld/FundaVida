@@ -631,6 +631,7 @@ describe('audit log characterization', () => {
         subject: 'Important Update',
         body: 'Please read this message',
         filter: { kind: 'all' },
+        audience: 'students',
         recipientIds: ['stu-1', 'stu-2', 'stu-3'],
       })
       store = useStore.getState()

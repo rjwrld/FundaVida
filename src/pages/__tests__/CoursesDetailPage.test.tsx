@@ -283,6 +283,115 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
   })
 })
 
+describe('<CoursesDetailPage /> — Message the class entry (ADR-0041)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  it('shows the owning Teacher a Message the class button', async () => {
+    const { publishedOwnCourse } = fixtures()
+    expect(publishedOwnCourse.teacherId).toBe('tea-1')
+    asRole('teacher')
+    renderPage(publishedOwnCourse.id)
+
+    expect(await screen.findByRole('button', { name: 'Message the class' })).toBeInTheDocument()
+  })
+
+  it('shows an admin the button on any live Course (unconditional create)', async () => {
+    const s = useStore.getState()
+    const otherCourse = req(
+      s.courses.find((c) => c.teacherId !== 'tea-1' && c.status === 'published'),
+      'seed: no live course owned by another teacher'
+    )
+    asRole('admin')
+    renderPage(otherCourse.id)
+
+    expect(await screen.findByRole('button', { name: 'Message the class' })).toBeInTheDocument()
+  })
+
+  it('denies a Teacher a Course they do not own — no button, no detail', async () => {
+    const s = useStore.getState()
+    const otherCourse = req(
+      s.courses.find((c) => c.teacherId !== 'tea-1'),
+      'seed: no course owned by another teacher'
+    )
+    asRole('teacher')
+    renderPage(otherCourse.id)
+
+    // A Teacher has no view scope on a Course they don't own: the page falls back
+    // to the deny view, so the button can't appear because the detail never does.
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('heading', { name: shortCourseName(otherCourse) })
+      ).not.toBeInTheDocument()
+    })
+    expect(screen.queryByRole('button', { name: 'Message the class' })).not.toBeInTheDocument()
+  })
+
+  it('never shows a Student the button', async () => {
+    const { gradedCourse } = fixtures()
+    asRole('student')
+    renderPage(gradedCourse.id)
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: shortCourseName(gradedCourse) })
+      ).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('button', { name: 'Message the class' })).not.toBeInTheDocument()
+  })
+
+  it('hides the button once the Course is closed (terminal cohort, ADR-0024)', async () => {
+    const { publishedOwnCourse } = fixtures()
+    asRole('admin')
+    useStore.getState().closeCourse(publishedOwnCourse.id)
+    asRole('teacher')
+    renderPage(publishedOwnCourse.id)
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: shortCourseName(publishedOwnCourse) })
+      ).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('button', { name: 'Message the class' })).not.toBeInTheDocument()
+  })
+
+  it('opens a compose dialog locked to the Course and sends an audience-scoped campaign', async () => {
+    const { publishedOwnCourse } = fixtures()
+    asRole('teacher')
+    const before = useStore.getState().emailCampaigns.length
+    renderPage(publishedOwnCourse.id)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Message the class' }))
+
+    const dialog = await screen.findByRole('dialog')
+    // Locked to the Course: no recipient-filter selector, but an audience picker.
+    expect(within(dialog).queryByText('Recipient filter')).not.toBeInTheDocument()
+    expect(within(dialog).getByText('Audience')).toBeInTheDocument()
+    // The demo disclaimer is present (nothing leaves the browser).
+    expect(within(dialog).getByText(/no email leaves the browser/i)).toBeInTheDocument()
+
+    fireEvent.change(within(dialog).getByLabelText('Subject'), {
+      target: { value: 'This week' },
+    })
+    fireEvent.change(within(dialog).getByLabelText('Body'), {
+      target: { value: 'A note for the whole class about materials.' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Send' }))
+
+    await waitFor(() => {
+      expect(useStore.getState().emailCampaigns.length).toBe(before + 1)
+    })
+    const sent = useStore.getState().emailCampaigns[0]
+    expect(sent?.filter).toEqual({ kind: 'course', value: publishedOwnCourse.id })
+    expect(sent?.sentBy).toBe('tea-1')
+  })
+})
+
 describe('<CoursesDetailPage /> — in-course certificates module (ADR-0024)', () => {
   beforeEach(() => {
     clearPersistedState()

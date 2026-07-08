@@ -54,6 +54,7 @@ describe('useSendEmailCampaign', () => {
       subject: 'Test Campaign',
       body: 'Test body',
       filter: { kind: 'all' as const },
+      audience: 'students' as const,
       recipientIds: ['stu-1', 'stu-2'],
     }
 
@@ -81,6 +82,7 @@ describe('useSendEmailCampaign', () => {
       subject: 'Test Campaign',
       body: 'Test body',
       filter: { kind: 'all' as const },
+      audience: 'students' as const,
       recipientIds: ['stu-1', 'stu-2'],
     }
 

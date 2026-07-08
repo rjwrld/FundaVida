@@ -140,6 +140,11 @@ t('bulkEmail.dimensions.program')
 t('bulkEmail.dimensions.province')
 t('bulkEmail.dimensions.course')
 
+// Keys referenced dynamically via t(`bulkEmail.audience.${audience}`) — compose picker + history rows
+t('bulkEmail.audience.students')
+t('bulkEmail.audience.guardians')
+t('bulkEmail.audience.both')
+
 // DashboardPage passes literal-string keys via an array — declare them so the parser sees them
 t('dashboard.teacher.myCourses')
 t('dashboard.teacher.nextSession')
