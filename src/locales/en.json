@@ -544,6 +544,7 @@
     "stats": {
       "activeCourses": "Active courses",
       "certificatesIssued": "Certificates issued",
+      "sectionTitle": "Organization health",
       "students": "Total students",
       "tcuHours": "TCU hours",
       "trendDown": "Decreased",
@@ -592,11 +593,6 @@
     "upcoming": {
       "gradePending": "Grade pending: {{course}}",
       "tcuLogged": "TCU logged: {{title}}"
-    },
-    "welcome": {
-      "context": "Here's how your campuses are doing today.",
-      "eyebrow": "Today",
-      "greeting": "Hola, {{name}} 👋"
     }
   },
   "demoBanner": {
