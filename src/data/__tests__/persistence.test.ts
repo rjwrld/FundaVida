@@ -31,9 +31,19 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v13 key', () => {
+  it('persists state under the v14 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v13:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v14:state')).not.toBeNull()
+  })
+
+  it('reseeds from a stale v13 snapshot and removes the stale v13 state key (ADR-0041)', () => {
+    // A returning v13 visitor's campaigns predate the `audience` field. The v14 key
+    // bump makes the snapshot stale; it is dropped so the app reseeds with
+    // audience-bearing campaigns rather than migrating a default in place.
+    window.localStorage.setItem('fundavida:v13:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v13:state')).toBeNull()
   })
 
   it('reseeds from a stale v12 snapshot and removes the stale v12 state key (ADR-0040)', () => {

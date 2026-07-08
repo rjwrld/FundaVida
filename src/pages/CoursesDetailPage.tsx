@@ -45,6 +45,7 @@ import { CourseSessionsSection } from '@/components/courses/CourseSessionsSectio
 import { CourseAnnouncementsSection } from '@/components/courses/CourseAnnouncementsSection'
 import { GradeDialog } from '@/components/courses/GradeDialog'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
+import { MessageClassDialog } from '@/components/courses/MessageClassDialog'
 import { CourseCertificatesSection } from '@/components/courses/CourseCertificatesSection'
 import { CourseStateBadge } from '@/components/courses/CourseStateBadge'
 import { shortCourseName } from '@/lib/courseName'
@@ -132,6 +133,7 @@ export function CoursesDetailPage() {
     studentName: string
   } | null>(null)
   const [confirmClose, setConfirmClose] = useState(false)
+  const [messageClassOpen, setMessageClassOpen] = useState(false)
 
   const canViewRoster = useCan('view', 'enrollments', { course: course || undefined })
   const canEdit = useCan('edit', 'courses')
@@ -151,6 +153,13 @@ export function CoursesDetailPage() {
   const canManageAnnouncements =
     useCan('create', 'announcements', { course: course || undefined }) &&
     course?.status !== 'closed'
+  // "Message the class" opens the shared campaign compose locked to this Course
+  // (ADR-0041): admin (unconditional) or the Course's own Teacher (courseOwned),
+  // and never on a closed cohort — the store rejects a closed send, so a live
+  // button beside a Finished badge would contradict itself (mirrors the Sessions
+  // and Announcements manage gates).
+  const canMessageClass =
+    useCan('create', 'bulkEmail', { course: course || undefined }) && course?.status !== 'closed'
 
   // Close-readiness derivation (issue #204), from the page's existing scoped
   // queries. ONE closeReadiness derivation feeds both the close-readiness
@@ -270,6 +279,11 @@ export function CoursesDetailPage() {
             {canClose && course.status === 'published' && (
               <Button variant="outline" onClick={() => setConfirmClose(true)}>
                 {t('courses.detail.close')}
+              </Button>
+            )}
+            {canMessageClass && (
+              <Button variant="outline" onClick={() => setMessageClassOpen(true)}>
+                {t('courses.detail.messageClass')}
               </Button>
             )}
           </>
@@ -599,6 +613,13 @@ export function CoursesDetailPage() {
         />
       )}
       <EnrollStudentDialog open={enrollOpen} onOpenChange={setEnrollOpen} courseId={course.id} />
+      {canMessageClass && (
+        <MessageClassDialog
+          open={messageClassOpen}
+          onOpenChange={setMessageClassOpen}
+          course={course}
+        />
+      )}
 
       <ConfirmDialog
         open={confirmClose}

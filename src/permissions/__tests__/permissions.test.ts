@@ -221,8 +221,11 @@ describe('Permissions Matrix', () => {
           enter: false,
         },
         bulkEmail: {
-          view: false,
-          create: false,
+          // Teacher may message the class of a Course they own (ADR-0041):
+          // context-free (nav/route) stays denied; the predicate opens with a
+          // Course in context. Verified in the predicate-with-context block below.
+          view: 'courseOwned',
+          create: 'courseOwned',
           edit: false,
           delete: false,
           approve: false,
@@ -799,6 +802,55 @@ describe('Permissions Matrix', () => {
         expect(can('teacher', 'view', 'enrollments', context)).toBe(false)
       })
 
+      it('teacher message class (bulkEmail create/view): true when course is owned', () => {
+        const context: PermissionContext = {
+          userId: 'teacher-1',
+          course: {
+            id: 'course-1',
+            name: 'Math 101',
+            description: 'Advanced calculus',
+            sede: 'Linda Vista',
+            programId: 'prog-1',
+            level: 'primaria',
+            status: 'published',
+            capacity: 20,
+            teacherId: 'teacher-1',
+            term: {
+              start: '2025-01-01T00:00:00.000Z',
+              end: '2025-06-01T00:00:00.000Z',
+            },
+            meetingDays: ['mon', 'wed'],
+            createdAt: '2025-01-01T00:00:00.000Z',
+          },
+        }
+        expect(can('teacher', 'create', 'bulkEmail', context)).toBe(true)
+        expect(can('teacher', 'view', 'bulkEmail', context)).toBe(true)
+      })
+
+      it('teacher message class (bulkEmail create): false when course is not owned', () => {
+        const context: PermissionContext = {
+          userId: 'teacher-1',
+          course: {
+            id: 'course-1',
+            name: 'Math 101',
+            description: 'Advanced calculus',
+            sede: 'Linda Vista',
+            programId: 'prog-1',
+            level: 'primaria',
+            status: 'published',
+            capacity: 20,
+            teacherId: 'teacher-2', // different teacher
+            term: {
+              start: '2025-01-01T00:00:00.000Z',
+              end: '2025-06-01T00:00:00.000Z',
+            },
+            meetingDays: ['mon', 'wed'],
+            createdAt: '2025-01-01T00:00:00.000Z',
+          },
+        }
+        expect(can('teacher', 'create', 'bulkEmail', context)).toBe(false)
+      })
+
       it('tcu log activity: true when activity traineeId matches userId', () => {
         const context: PermissionContext = {
           userId: 'tcu-user-1',
@@ -836,6 +888,9 @@ describe('Permissions Matrix', () => {
         expect(can('teacher', 'mark', 'attendance')).toBe(false)
         // teacher view enrollments without context
         expect(can('teacher', 'view', 'enrollments')).toBe(false)
+        // teacher message class (bulkEmail) without context — keeps the nav/route denied
+        expect(can('teacher', 'create', 'bulkEmail')).toBe(false)
+        expect(can('teacher', 'view', 'bulkEmail')).toBe(false)
         // teacher approve certificates without context
         expect(can('teacher', 'approve', 'certificates')).toBe(false)
         // tcu log without context
@@ -875,7 +930,7 @@ describe('Permissions Matrix', () => {
         certificates: 'ownCourses',
         attendance: 'ownCourses',
         tcu: 'assignedTrainees',
-        bulkEmail: 'none',
+        bulkEmail: 'own',
         auditLog: 'none',
         announcements: 'own',
       })

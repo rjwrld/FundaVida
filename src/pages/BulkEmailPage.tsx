@@ -1,18 +1,5 @@
 import { useMemo } from 'react'
-import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
 import {
@@ -23,72 +10,21 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  buildEmailCampaignSchema,
-  type EmailCampaignFormValues,
-} from '@/data/schemas/emailCampaign'
-import { resolveRecipients } from '@/lib/emailRecipients'
-import { useEmailCampaigns, useSendEmailCampaign } from '@/hooks/api'
+import { EmailCampaignForm } from '@/components/email/EmailCampaignForm'
+import { recipientEmails } from '@/lib/emailRecipients'
+import { useEmailCampaigns } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
-import type { EmailFilter, EmailFilterKind } from '@/types'
 
 export function BulkEmailPage() {
   const { t } = useTranslation()
   const { formatDateTime, formatNumber } = useFormat()
   const students = useStore((s) => s.students)
-  const courses = useStore((s) => s.courses)
   const programs = useStore((s) => s.programs)
-  const enrollments = useStore((s) => s.enrollments)
   const { data: history = [] } = useEmailCampaigns()
-  const send = useSendEmailCampaign()
-
-  const {
-    register,
-    handleSubmit,
-    watch,
-    reset,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<EmailCampaignFormValues>({
-    resolver: zodResolver(buildEmailCampaignSchema(t)),
-    defaultValues: { subject: '', body: '', filterKind: 'all' },
-  })
-
-  const filterKind = watch('filterKind')
-  const filterValue = watch('filterValue')
-
-  const filter: EmailFilter = useMemo(
-    () => ({ kind: filterKind, value: filterValue }),
-    [filterKind, filterValue]
-  )
-
-  const recipients = useMemo(
-    () => resolveRecipients(filter, { students, courses, enrollments }),
-    [filter, students, courses, enrollments]
-  )
 
   const programById = useMemo(() => new Map(programs.map((p) => [p.id, p])), [programs])
-  // Only Programs that actually have a cohort behind them are targetable; the
-  // filter stores the Program id (ADR-0015) while the option shows its name.
-  const programOptions = useMemo(() => {
-    const usedIds = Array.from(new Set(courses.map((c) => c.programId)))
-    return usedIds.map((id) => programById.get(id)).filter((p) => p !== undefined)
-  }, [courses, programById])
-  const provinceNames = useMemo(
-    () => Array.from(new Set(students.map((s) => s.province))).sort(),
-    [students]
-  )
-
-  async function onSubmit(values: EmailCampaignFormValues) {
-    await send.mutateAsync({
-      subject: values.subject,
-      body: values.body,
-      filter: { kind: values.filterKind, value: values.filterValue },
-      recipientIds: recipients.map((s) => s.id),
-    })
-    reset({ subject: '', body: '', filterKind: 'all', filterValue: undefined })
-  }
+  const studentById = useMemo(() => new Map(students.map((s) => [s.id, s])), [students])
 
   return (
     <div className="space-y-6">
@@ -99,90 +35,7 @@ export function BulkEmailPage() {
           <CardTitle>{t('bulkEmail.compose')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="subject">{t('bulkEmail.fields.subject')}</Label>
-              <Input id="subject" {...register('subject')} />
-              {errors.subject && (
-                <p className="text-sm text-destructive">{errors.subject.message}</p>
-              )}
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="body">{t('bulkEmail.fields.body')}</Label>
-              <Textarea id="body" rows={6} {...register('body')} />
-              {errors.body && <p className="text-sm text-destructive">{errors.body.message}</p>}
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="filterKind">{t('bulkEmail.fields.filter')}</Label>
-                <Select
-                  value={filterKind}
-                  onValueChange={(v) => {
-                    setValue('filterKind', v as EmailFilterKind)
-                    setValue('filterValue', undefined)
-                  }}
-                >
-                  <SelectTrigger id="filterKind">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('bulkEmail.filter.all')}</SelectItem>
-                    <SelectItem value="program">{t('bulkEmail.filter.program')}</SelectItem>
-                    <SelectItem value="province">{t('bulkEmail.filter.province')}</SelectItem>
-                    <SelectItem value="course">{t('bulkEmail.filter.course')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {filterKind !== 'all' && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="filterValue">{t('bulkEmail.fields.filterValue')}</Label>
-                  <Select
-                    value={filterValue ?? ''}
-                    onValueChange={(v) => setValue('filterValue', v)}
-                  >
-                    <SelectTrigger id="filterValue">
-                      <SelectValue
-                        placeholder={t('bulkEmail.filter.placeholder', {
-                          dimension: t(`bulkEmail.dimensions.${filterKind}`),
-                        })}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filterKind === 'program' &&
-                        programOptions.map((p) => (
-                          <SelectItem key={p.id} value={p.id}>
-                            {p.name}
-                          </SelectItem>
-                        ))}
-                      {filterKind === 'province' &&
-                        provinceNames.map((p) => (
-                          <SelectItem key={p} value={p}>
-                            {p}
-                          </SelectItem>
-                        ))}
-                      {filterKind === 'course' &&
-                        courses.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.filterValue && (
-                    <p className="text-sm text-destructive">{errors.filterValue.message}</p>
-                  )}
-                </div>
-              )}
-            </div>
-            <p aria-live="polite" className="text-sm text-muted-foreground">
-              {recipients.length === 0
-                ? t('bulkEmail.noRecipients')
-                : t('bulkEmail.recipientCount', { count: recipients.length })}
-            </p>
-            <Button type="submit" disabled={isSubmitting || recipients.length === 0}>
-              {isSubmitting ? t('bulkEmail.sending') : t('bulkEmail.submit')}
-            </Button>
-          </form>
+          <EmailCampaignForm />
         </CardContent>
       </Card>
 
@@ -199,6 +52,7 @@ export function BulkEmailPage() {
                 <TableRow>
                   <TableHead>{t('bulkEmail.history.columns.subject')}</TableHead>
                   <TableHead>{t('bulkEmail.history.columns.filter')}</TableHead>
+                  <TableHead>{t('bulkEmail.history.columns.audience')}</TableHead>
                   <TableHead className="text-right">
                     {t('bulkEmail.history.columns.recipients')}
                   </TableHead>
@@ -206,25 +60,33 @@ export function BulkEmailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {history.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell>{c.subject}</TableCell>
-                    <TableCell>
-                      {t(`bulkEmail.filter.${c.filter.kind}`)}
-                      {c.filter.value
-                        ? `: ${
-                            c.filter.kind === 'program'
-                              ? (programById.get(c.filter.value)?.name ?? c.filter.value)
-                              : c.filter.value
-                          }`
-                        : ''}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatNumber(c.recipientIds.length)}
-                    </TableCell>
-                    <TableCell>{formatDateTime(c.sentAt)}</TableCell>
-                  </TableRow>
-                ))}
+                {history.map((c) => {
+                  // The recipient count is over emails, not Students (ADR-0041):
+                  // reproduce the sent audience's email list from the stored
+                  // recipient Students.
+                  const recipientStudents = c.recipientIds
+                    .map((id) => studentById.get(id))
+                    .filter((s) => s !== undefined)
+                  const emailCount = recipientEmails(recipientStudents, c.audience).length
+                  return (
+                    <TableRow key={c.id}>
+                      <TableCell>{c.subject}</TableCell>
+                      <TableCell>
+                        {t(`bulkEmail.filter.${c.filter.kind}`)}
+                        {c.filter.value
+                          ? `: ${
+                              c.filter.kind === 'program'
+                                ? (programById.get(c.filter.value)?.name ?? c.filter.value)
+                                : c.filter.value
+                            }`
+                          : ''}
+                      </TableCell>
+                      <TableCell>{t(`bulkEmail.audience.${c.audience}`)}</TableCell>
+                      <TableCell className="text-right">{formatNumber(emailCount)}</TableCell>
+                      <TableCell>{formatDateTime(c.sentAt)}</TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           )}

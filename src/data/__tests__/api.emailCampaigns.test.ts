@@ -17,9 +17,15 @@ describe('emailCampaignsApi', () => {
     expect(result.length).toBeGreaterThan(0)
   })
 
-  it('returns empty for non-admin roles', async () => {
-    useStore.getState().setRole('teacher')
-    expect(await emailCampaignsApi.list()).toEqual([])
+  it('scopes teacher history to their own campaigns (ADR-0041)', async () => {
+    useStore.getState().setRole('teacher') // tea-1
+    const teacherId = useStore.getState().currentUserId
+    const result = await emailCampaignsApi.list()
+    expect(result.length).toBeGreaterThan(0)
+    expect(result.every((c) => c.sentBy === teacherId)).toBe(true)
+  })
+
+  it('returns empty for student and tcu roles (pinned none)', async () => {
     useStore.getState().setRole('student')
     expect(await emailCampaignsApi.list()).toEqual([])
     useStore.getState().setRole('tcu')
@@ -33,6 +39,7 @@ describe('emailCampaignsApi', () => {
       subject: 'Fresh',
       body: 'Body text for the new campaign',
       filter: { kind: 'all' },
+      audience: 'students',
       recipientIds: ['stu-1'],
     })
     const after = await emailCampaignsApi.list()

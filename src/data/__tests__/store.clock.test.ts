@@ -144,6 +144,7 @@ describe('store writes stamp timestamps from the clock, not wall-time (ADR-0014)
       subject: 'Hello',
       body: 'Body',
       filter: { kind: 'all' },
+      audience: 'students',
       recipientIds: [],
     })
     expect(campaign.sentAt).toBe(FROZEN_ISO)
