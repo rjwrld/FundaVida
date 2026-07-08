@@ -7,17 +7,21 @@ import { COURSE_LEVELS, COURSE_STATUSES } from '@/constants/course'
 // hand-mirroring it — the drift class that silently voided the pin when it lagged
 // (ADR-0039; the v3→v10 drift). A stale mirror not only no-ops the pin but sits in
 // the legacy purge list below, actively deleting the injected snapshot at boot.
-export const STATE_KEY = 'fundavida:v11:state'
+export const STATE_KEY = 'fundavida:v12:state'
 const ROLE_KEY = 'fundavida:v2:role'
 
 // Stale pre-v4 snapshot keys this layer owns. They are not migrated (ADR-0003,
 // ADR-0014): they are removed on first load so the app reseeds cleanly at a
 // fresh Demo Epoch instead of rehydrating an incoherent older world. The v3
 // state snapshot predates the Program entity and the new Course/Enrollment/TCU
-// fields (ADR-0015/0016/0017). The v11 key bump adds the persisted
-// `sessionExceptions` slice (ADR-0039): a v10 snapshot lacks it entirely, so the
-// world reseeds at a fresh Demo Epoch rather than rehydrating a Course whose
-// derived Sessions carry no overlay. It sits on top of v10's reworked Certificate
+// fields (ADR-0015/0016/0017). The v12 key bump reshapes the seed itself
+// (ADR-0044): the teacher/student/TCU personas gain in-progress cohorts and the
+// attendance top-up shifts the whole faker stream, so a v11 snapshot rehydrates
+// an older world where three of four personas land on an empty calendar week —
+// it must reseed, not migrate. (The shape is unchanged, so isValidSnapshot still
+// accepts a v11-shaped object; the key bump is what forces the reseed.) It sits
+// on top of v11's persisted `sessionExceptions` slice (ADR-0039), on top of
+// v10's reworked Certificate
 // model (ADR-0024): emitted on course-close, no pending/approved status,
 // `createdAt → issuedAt` — so a v9 cert's shape no longer validates. That sits on v9's
 // Spanish TCU service-activity titles (catalog data rendered raw, never via
@@ -45,6 +49,7 @@ const LEGACY_SNAPSHOT_KEYS = [
   'fundavida:v8:state',
   'fundavida:v9:state',
   'fundavida:v10:state',
+  'fundavida:v11:state',
 ]
 
 export type PersistedState = SeedSnapshot

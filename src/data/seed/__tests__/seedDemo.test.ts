@@ -2,7 +2,14 @@ import { describe, it, expect } from 'vitest'
 import { differenceInDays, isBefore, startOfDay, subDays } from 'date-fns'
 import { seedDemo } from '@/data/seed'
 import { dashboardStatDeltas, TRAILING_WINDOW_DAYS } from '@/lib/stats'
-import { findSession, sessionsFor } from '@/lib/sessions'
+import { courseDisplayState } from '@/lib/courseDisplayState'
+import {
+  effectiveSessions,
+  findSession,
+  isSessionMarked,
+  isSessionRecordable,
+  sessionsFor,
+} from '@/lib/sessions'
 import { resolveRecipients } from '@/lib/emailRecipients'
 import { PROGRAM_CATALOG } from '@/constants/programs'
 import { UNIVERSITIES } from '@/constants/university'
@@ -414,6 +421,25 @@ describe('seedDemo — one Sede binds Course, Teacher, Student (ADR-0011)', () =
     const stu1 = world.students.find((s) => s.id === 'stu-1')
     const tea1 = world.teachers.find((t) => t.id === 'tea-1')
     expect(stu1?.sede).toBe(tea1?.sede)
+  })
+
+  it('lands the student persona on a live week: stu-1 is approved in an in-progress Course (ADR-0044)', () => {
+    // Every persona must open the calendar onto a non-empty current week. stu-1
+    // auto-enrols (approved) in tea-1's live plan-10 cohort via the personaCourses
+    // path — no bespoke enrollment code. The Course's Term must contain the epoch.
+    const world = seedDemo(EPOCH)
+    const epochDay = startOfDay(EPOCH)
+    const courseById = new Map(world.courses.map((c) => [c.id, c]))
+
+    const liveApproved = world.enrollments.filter((e) => {
+      if (e.studentId !== 'stu-1' || e.status !== 'approved') return false
+      const course = courseById.get(e.courseId)
+      if (!course) return false
+      const start = startOfDay(new Date(course.term.start))
+      const end = startOfDay(new Date(course.term.end))
+      return start.getTime() <= epochDay.getTime() && epochDay.getTime() <= end.getTime()
+    })
+    expect(liveApproved.length).toBeGreaterThan(0)
   })
 
   it('assigns every Teacher and Student a known Sede', () => {
@@ -944,5 +970,64 @@ describe('seedDemo — Issue #113: seed overhaul (24 cohorts, CR names, Spanish 
     // Mix of both
     expect(approved.length).toBeGreaterThan(0)
     expect(pending.length).toBeGreaterThan(0)
+  })
+})
+
+describe('seedDemo — every persona lands on a live week (ADR-0044)', () => {
+  /** In-progress = published Course whose Term contains the epoch. */
+  const inProgress = (world: ReturnType<typeof seedDemo>) =>
+    world.courses.filter((c) => courseDisplayState(c, EPOCH) === 'inProgress')
+
+  it('gives the teacher persona (tea-1) two in-progress cohorts without changing the Course count', () => {
+    const world = seedDemo(EPOCH)
+    expect(world.courses).toHaveLength(24)
+    const tea1Live = inProgress(world).filter((c) => c.teacherId === 'tea-1')
+    expect(tea1Live.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('rebalances live cohorts to 2 per Sede (Linda Vista no longer starves)', () => {
+    const world = seedDemo(EPOCH)
+    const perSede = new Map<string, number>()
+    inProgress(world).forEach((c) => perSede.set(c.sede, (perSede.get(c.sede) ?? 0) + 1))
+    SEDES.forEach((sede) => expect(perSede.get(sede)).toBe(2))
+  })
+
+  it('pins the TCU persona (tcu-1) to an in-progress Course, at that Course’s Sede', () => {
+    const world = seedDemo(EPOCH)
+    const tcu1 = world.tcuTrainees.find((t) => t.id === 'tcu-1')
+    const course = world.courses.find((c) => c.id === tcu1?.courseId)
+    expect(course).toBeDefined()
+    if (!course) return
+    expect(courseDisplayState(course, EPOCH)).toBe('inProgress')
+    expect(tcu1?.sede).toBe(course.sede)
+  })
+
+  it('tops attendance up so active-Course unmarked Sessions read single digits', () => {
+    const world = seedDemo(EPOCH)
+    const unmarked = inProgress(world).flatMap((course) =>
+      effectiveSessions(course, world.sessionExceptions).filter(
+        (s) =>
+          isSessionRecordable(s, EPOCH) && !isSessionMarked(course.id, s.date, world.attendance)
+      )
+    )
+    expect(unmarked.length).toBeGreaterThan(0)
+    expect(unmarked.length).toBeLessThan(10)
+  })
+
+  it('leaves the golden-path just-ended Course and the close worklist intact', () => {
+    const world = seedDemo(EPOCH)
+    // The four term-ended published cohorts remain the close-readiness worklist.
+    const toClose = world.courses.filter(
+      (c) =>
+        c.status === 'published' && isBefore(startOfDay(new Date(c.term.end)), startOfDay(EPOCH))
+    )
+    expect(toClose).toHaveLength(4)
+    // The teacher persona still owns exactly one just-ended (ungraded) cohort.
+    const justEnded = world.courses.filter((c) => {
+      const end = startOfDay(new Date(c.term.end))
+      const days = differenceInDays(startOfDay(EPOCH), end)
+      return days >= 1 && days <= 14 && c.teacherId === 'tea-1'
+    })
+    expect(justEnded).toHaveLength(1)
   })
 })

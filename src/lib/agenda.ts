@@ -8,6 +8,7 @@ import type {
   SessionException,
 } from '@/types'
 import { parseISO } from 'date-fns'
+import { courseDisplayState } from './courseDisplayState'
 import { MIN_ATTENDANCE_RATE, coursesToClose } from './dashboard'
 import { buildStudentProgress } from './studentProgress'
 import {
@@ -138,8 +139,13 @@ export function buildAgenda(input: BuildAgendaInput): RoleAgenda {
 
 /**
  * Past recordable Sessions (ADR-0034 window) with zero attendance records
- * (the shared {@link isSessionMarked} rule), across all scoped Courses,
- * ascending by date — the most overdue Session first.
+ * (the shared {@link isSessionMarked} rule), ascending by date — the most
+ * overdue Session first.
+ *
+ * Scoped to *in-progress* Courses only (Term contains today, ADR-0044): a
+ * term-ended Course's unmarked backlog is close-readiness's business on the
+ * Courses page (it already blocks closing there), not an operational worklist
+ * that should read as abandonment on the calendar.
  */
 function needsMarking(
   courses: Course[],
@@ -148,6 +154,7 @@ function needsMarking(
   exceptions: SessionException[] = []
 ): NeedsMarkingSession[] {
   return courses
+    .filter((course) => courseDisplayState(course, now) === 'inProgress')
     .flatMap((course) =>
       effectiveSessions(course, exceptions)
         .filter(
