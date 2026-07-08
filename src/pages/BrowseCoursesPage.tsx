@@ -27,7 +27,7 @@ import type { CourseFilters } from '@/data/api/courses'
 export function BrowseCoursesPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const [filters, setFilters] = useState<CourseFilters>({ scopeOverride: 'openForEnrollment' })
+  const [filters, setFilters] = useState<CourseFilters>({ scopeOverride: 'browseable' })
   const { data = [], isLoading } = useCourses(filters)
   const programs = useStore((s) => s.programs)
   const enrollments = useStore((s) => s.enrollments)

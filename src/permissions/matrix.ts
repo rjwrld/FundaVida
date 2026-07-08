@@ -33,7 +33,7 @@ export type Scope =
   | 'ownCourses'
   | 'enrolledInOwnCourses'
   | 'enrolled'
-  | 'openForEnrollment'
+  | 'browseable'
   | 'self'
   | 'assignedTrainees'
   | 'assigned'

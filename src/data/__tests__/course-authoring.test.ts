@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useStore } from '@/data/store'
 import { api } from '@/data/api'
+import { clock } from '@/lib/clock'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
@@ -362,7 +363,7 @@ describe('Course authoring (ADR-0016)', () => {
   })
 
   describe('draft courses invisible to students', () => {
-    it('student does not see a draft course in browse (openForEnrollment scope)', async () => {
+    it('student does not see a draft course in browse (browseable scope)', async () => {
       useStore.getState().setRole('admin')
       const state = useStore.getState()
       const student = state.students[0]
@@ -389,11 +390,97 @@ describe('Course authoring (ADR-0016)', () => {
       // Student reads the browse list
       useStore.getState().setRole('student')
       const browseable = await api.courses.list({
-        scopeOverride: 'openForEnrollment',
+        scopeOverride: 'browseable',
       })
 
       // The draft should not appear
       expect(browseable).not.toContainEqual(expect.objectContaining({ name: 'Hidden Draft' }))
+    })
+  })
+
+  describe('Term-ended courses invisible in Browse (ADR-0042, issue #257)', () => {
+    it('excludes a Term-ended published course from the browse list but keeps an open one', async () => {
+      // The browse list is titled "open courses": a Term-ended cohort still shows a
+      // "Term ended" badge with no action, so it must not list. The `browseable`
+      // scope stays Term-agnostic (view access); the list narrows it via
+      // isOpenForEnrollment, so only Starts-soon / In-progress cohorts appear.
+      useStore.getState().setRole('admin')
+      const state = useStore.getState()
+      // stu-1 is the student persona whose Sede/level the browse scope keys off.
+      const student = state.students.find((s) => s.id === 'stu-1')
+      if (!student) throw new Error('expected stu-1 in demo')
+      const teacher = state.teachers.find((t) => t.sede === student.sede)
+      if (!teacher) throw new Error('expected a teacher at student sede')
+      const program = state.programs[0]
+      if (!program) throw new Error('expected a program in demo')
+
+      const now = clock.now()
+      const iso = (offsetDays: number) =>
+        new Date(now.getTime() + offsetDays * 24 * 3600 * 1000).toISOString()
+      const base = {
+        description: 'A cohort',
+        sede: student.sede,
+        programId: program.id,
+        level: student.educationalLevel,
+        status: 'published' as const,
+        capacity: 20,
+        teacherId: teacher.id,
+        meetingDays: ['mon' as const, 'wed' as const],
+      }
+
+      // A published cohort whose Term has already ended — viewable, not enrollable.
+      const ended = state.createCourse({
+        ...base,
+        name: 'Ended Cohort',
+        term: { start: iso(-60), end: iso(-1) },
+      })
+      // A published cohort currently in progress — open for enrollment.
+      const open = state.createCourse({
+        ...base,
+        name: 'Open Cohort',
+        term: { start: iso(-10), end: iso(30) },
+      })
+
+      useStore.getState().setRole('student')
+      const browseable = await api.courses.list({ scopeOverride: 'browseable' })
+      const ids = browseable.map((c) => c.id)
+
+      expect(ids).toContain(open.id)
+      expect(ids).not.toContain(ended.id)
+    })
+
+    it('still serves a Term-ended course via get — detail view access does not collapse', async () => {
+      // The seam split: the same Term-ended cohort dropped from the list above is
+      // still reachable by id, so a non-enrolled Student can open its detail (badge
+      // shown, request button hidden — ADR-0042).
+      useStore.getState().setRole('admin')
+      const state = useStore.getState()
+      const student = state.students.find((s) => s.id === 'stu-1')
+      if (!student) throw new Error('expected stu-1 in demo')
+      const teacher = state.teachers.find((t) => t.sede === student.sede)
+      if (!teacher) throw new Error('expected a teacher at student sede')
+      const program = state.programs[0]
+      if (!program) throw new Error('expected a program in demo')
+
+      const now = clock.now()
+      const iso = (offsetDays: number) =>
+        new Date(now.getTime() + offsetDays * 24 * 3600 * 1000).toISOString()
+      const ended = state.createCourse({
+        name: 'Ended Cohort',
+        description: 'A cohort',
+        sede: student.sede,
+        programId: program.id,
+        level: student.educationalLevel,
+        status: 'published',
+        capacity: 20,
+        teacherId: teacher.id,
+        term: { start: iso(-60), end: iso(-1) },
+        meetingDays: ['mon', 'wed'],
+      })
+
+      useStore.getState().setRole('student')
+      const viewed = await api.courses.get(ended.id, 'browseable')
+      expect(viewed?.id).toBe(ended.id)
     })
   })
 })

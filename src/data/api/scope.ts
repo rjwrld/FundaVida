@@ -227,9 +227,13 @@ function applyCoursesScope(
       }
       return courses.filter((c) => c.id === trainee.courseId)
     }
-    case 'openForEnrollment': {
-      // Published, upcoming courses at the student's Sede with matching level,
-      // excluding already enrolled/pending courses (ADR-0016).
+    case 'browseable': {
+      // The courses a Student may VIEW the detail of: published, at their Sede,
+      // matching level, not already enrolled/pending (ADR-0016). Deliberately
+      // Term-agnostic — a Term-ended cohort stays viewable (its "Term ended" badge
+      // shows, only the request action drops, ADR-0042). The Browse *list* narrows
+      // this to actually-open cohorts via `isOpenForEnrollment` at the api layer
+      // (issue #257); the enrollment window is the list's concern, not view access.
       const student = ctx.students.find((s) => s.id === userId)
       if (!student) {
         return []
