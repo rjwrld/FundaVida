@@ -31,15 +31,25 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v12 key', () => {
+  it('persists state under the v13 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v12:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v13:state')).not.toBeNull()
+  })
+
+  it('reseeds from a stale v12 snapshot and removes the stale v12 state key (ADR-0040)', () => {
+    // A returning v12 visitor's snapshot predates the announcements slice. The v13
+    // key bump makes it stale; it is dropped so the app reseeds with a feed rather
+    // than rehydrating a store whose announcements slice is undefined.
+    window.localStorage.setItem('fundavida:v12:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v12:state')).toBeNull()
   })
 
   it('reseeds from a stale v11 snapshot and removes the stale v11 state key (ADR-0044)', () => {
     // A returning v11 visitor's snapshot carries the pre-liveliness seed (three of
-    // four personas land on an empty week). The v12 key bump makes it stale; it is
-    // dropped so the app reseeds at the new live-week world rather than migrating.
+    // four personas land on an empty week). A later key bump makes it stale; it is
+    // dropped so the app reseeds at the new world rather than migrating.
     window.localStorage.setItem('fundavida:v11:state', JSON.stringify(seedDemo(new Date())))
 
     expect(loadPersistedState()).toBeNull()
@@ -138,6 +148,13 @@ describe('persistence', () => {
   it('rejects a snapshot lacking the sessionExceptions slice (pre-v11 reseeds, ADR-0039)', () => {
     const snapshot = seedDemo(new Date()) as unknown as Record<string, unknown>
     delete snapshot.sessionExceptions
+    savePersistedState(snapshot as never)
+    expect(loadPersistedState()).toBeNull()
+  })
+
+  it('rejects a snapshot lacking the announcements slice (pre-v13 reseeds, ADR-0040)', () => {
+    const snapshot = seedDemo(new Date()) as unknown as Record<string, unknown>
+    delete snapshot.announcements
     savePersistedState(snapshot as never)
     expect(loadPersistedState()).toBeNull()
   })

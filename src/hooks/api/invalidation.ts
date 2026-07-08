@@ -12,6 +12,7 @@ import {
   TCU_KEY,
   ATTENDANCE_KEY,
   SESSION_EXCEPTIONS_KEY,
+  ANNOUNCEMENTS_KEY,
   AUDIT_LOG_KEY,
   EMAIL_CAMPAIGNS_KEY,
 } from './queryKeys'
@@ -60,6 +61,12 @@ export const SLICE_TO_KEYS: Record<StoreSliceName, QueryKey[]> = {
   tcuActivities: [TCU_KEY, TRAINEES_KEY],
   attendance: [ATTENDANCE_KEY],
   sessionExceptions: [SESSION_EXCEPTIONS_KEY, COURSES_KEY, ATTENDANCE_KEY],
+  // Announcements are self-invalidating (identity). The CoursesDetailPage feed
+  // reads under ['announcements'], as will the dashboard feed once ADR-0043 lands
+  // — one prefix covers every such reader (the #87 completeness class). The
+  // session-change auto-post writes this slice too, so a cancel/reschedule
+  // refreshes the feed with no extra mapping (ADR-0040).
+  announcements: [ANNOUNCEMENTS_KEY],
   auditLog: [AUDIT_LOG_KEY],
   emailCampaigns: [EMAIL_CAMPAIGNS_KEY],
 }

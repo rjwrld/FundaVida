@@ -308,6 +308,22 @@
       "withdrawButton": "Withdraw request"
     },
     "detail": {
+      "announcements": {
+        "compose": {
+          "placeholder": "Share an update with the class…",
+          "post": "Post"
+        },
+        "deleteConfirm": {
+          "description": "This removes the post from the course feed. There is no undo.",
+          "title": "Delete announcement?"
+        },
+        "deleteNamed": "Delete announcement from {{date}}",
+        "empty": "No announcements yet.",
+        "heading": "Announcements",
+        "kind": {
+          "sessionChange": "Schedule change"
+        }
+      },
       "certificates": {
         "empty": "Certificates appear here once this course is closed."
       },
@@ -976,6 +992,8 @@
     }
   },
   "toasts": {
+    "announcementDeleted": "Announcement deleted",
+    "announcementPosted": "Announcement posted",
     "campaignSent": "Campaign sent successfully.",
     "courseClosed": "Course closed.",
     "courseCreated": "Course created.",

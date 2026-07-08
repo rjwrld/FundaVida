@@ -11,6 +11,7 @@ import { attendanceApi } from './attendance'
 import { sessionExceptionsApi } from './sessionExceptions'
 import { auditLogApi } from './auditLog'
 import { emailCampaignsApi } from './emailCampaigns'
+import { announcementsApi } from './announcements'
 
 export const api = {
   students: studentsApi,
@@ -26,4 +27,5 @@ export const api = {
   sessionExceptions: sessionExceptionsApi,
   auditLog: auditLogApi,
   emailCampaigns: emailCampaignsApi,
+  announcements: announcementsApi,
 }

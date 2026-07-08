@@ -312,6 +312,22 @@
       "withdrawButton": "Retirar solicitud"
     },
     "detail": {
+      "announcements": {
+        "compose": {
+          "placeholder": "Comparte una novedad con la clase…",
+          "post": "Publicar"
+        },
+        "deleteConfirm": {
+          "description": "Esto quita la publicación del muro del curso. No se puede deshacer.",
+          "title": "¿Eliminar anuncio?"
+        },
+        "deleteNamed": "Eliminar anuncio del {{date}}",
+        "empty": "Aún no hay anuncios.",
+        "heading": "Anuncios",
+        "kind": {
+          "sessionChange": "Cambio de horario"
+        }
+      },
       "certificates": {
         "empty": "Los certificados aparecen aquí cuando se cierra este curso."
       },
@@ -985,6 +1001,8 @@
     }
   },
   "toasts": {
+    "announcementDeleted": "Anuncio eliminado",
+    "announcementPosted": "Anuncio publicado",
     "campaignSent": "Campaña enviada correctamente.",
     "courseClosed": "Curso cerrado.",
     "courseCreated": "Curso creado.",

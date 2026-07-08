@@ -118,6 +118,16 @@ describe('Permissions Matrix', () => {
           log: false,
           enter: false,
         },
+        announcements: {
+          view: true,
+          create: true,
+          edit: false,
+          delete: true,
+          approve: false,
+          mark: false,
+          log: false,
+          enter: false,
+        },
       },
       teacher: {
         programs: {
@@ -230,6 +240,16 @@ describe('Permissions Matrix', () => {
           log: false,
           enter: false,
         },
+        announcements: {
+          view: true,
+          create: 'courseOwned',
+          edit: false,
+          delete: 'courseOwned',
+          approve: false,
+          mark: false,
+          log: false,
+          enter: false,
+        },
       },
       student: {
         programs: {
@@ -336,6 +356,16 @@ describe('Permissions Matrix', () => {
         },
         auditLog: {
           view: false,
+          create: false,
+          edit: false,
+          delete: false,
+          approve: false,
+          mark: false,
+          log: false,
+          enter: false,
+        },
+        announcements: {
+          view: true,
           create: false,
           edit: false,
           delete: false,
@@ -457,6 +487,16 @@ describe('Permissions Matrix', () => {
           log: false,
           enter: false,
         },
+        announcements: {
+          view: true,
+          create: false,
+          edit: false,
+          delete: false,
+          approve: false,
+          mark: false,
+          log: false,
+          enter: false,
+        },
       },
     }
 
@@ -474,6 +514,7 @@ describe('Permissions Matrix', () => {
       'tcu',
       'bulkEmail',
       'auditLog',
+      'announcements',
     ]
     const actions: Action[] = [
       'view',
@@ -818,6 +859,7 @@ describe('Permissions Matrix', () => {
         tcu: 'all',
         bulkEmail: 'all',
         auditLog: 'all',
+        announcements: 'all',
       })
     })
 
@@ -835,6 +877,7 @@ describe('Permissions Matrix', () => {
         tcu: 'assignedTrainees',
         bulkEmail: 'none',
         auditLog: 'none',
+        announcements: 'own',
       })
     })
 
@@ -855,6 +898,7 @@ describe('Permissions Matrix', () => {
         tcu: 'none',
         bulkEmail: 'none',
         auditLog: 'none',
+        announcements: 'enrolled',
       })
     })
 
@@ -884,6 +928,7 @@ describe('Permissions Matrix', () => {
         tcu: 'self',
         bulkEmail: 'none',
         auditLog: 'none',
+        announcements: 'assigned',
       })
     })
   })

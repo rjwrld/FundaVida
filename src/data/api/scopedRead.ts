@@ -57,6 +57,11 @@ const RESOURCE_READ = {
   // Session exceptions ride the Courses scope token (ADR-0039): visibility is
   // "the exceptions of the Courses you can see", not a new permission resource.
   sessionExceptions: { scopeKey: 'courses', slice: 'sessionExceptions' },
+  // Announcements are a real permission resource (create/delete, ADR-0040), so
+  // they carry their own scope token — but that token mirrors the Courses one per
+  // role and applyScope routes it through applyCoursesScope, so the feed audience
+  // is always exactly the Course's audience.
+  announcements: { scopeKey: 'announcements', slice: 'announcements' },
 } satisfies { [R in keyof ScopeFilters]: { scopeKey: Resource; slice: SliceKeyFor<R> } }
 
 /**

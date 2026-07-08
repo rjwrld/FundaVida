@@ -16,10 +16,12 @@ import type {
   Role,
   SessionException,
   SessionExceptionType,
+  Announcement,
 } from '@/types'
 import { can, type Action, type Resource, type PermissionContext } from '@/permissions'
 import { emitCertificatesForClose, isPassingScore } from '@/lib/certificates'
 import { clock, setDemoEpoch } from '@/lib/clock'
+import { sessionChangeAnnouncementBody } from '@/lib/announcements'
 import { effectiveSessions, isSessionMarked, isSessionRecordable } from '@/lib/sessions'
 import { isSameDay, parseISO, startOfDay } from 'date-fns'
 import { courseDisplayState, isOpenForEnrollment } from '@/lib/courseDisplayState'
@@ -58,6 +60,7 @@ export interface StoreState {
   tcuActivities: TcuActivity[]
   attendance: AttendanceRecord[]
   sessionExceptions: SessionException[]
+  announcements: Announcement[]
   auditLog: AuditLogEntry[]
   emailCampaigns: EmailCampaign[]
   role: Role | null
@@ -108,6 +111,8 @@ export interface StoreState {
     newDate?: string
     note?: string
   }) => SessionException
+  createAnnouncement: (input: { courseId: string; body: string }) => Announcement
+  deleteAnnouncement: (id: string) => void
   sendEmailCampaign: (input: {
     subject: string
     body: string
@@ -166,12 +171,31 @@ export function withAudit(
   set: (fn: (state: StoreState) => Partial<StoreState>) => void,
   recipe: (state: StoreState) => { next: Partial<StoreState>; audit: AuditDescriptor }
 ): void {
-  set((state) => {
+  withAudits(set, (state) => {
     const { next, audit } = recipe(state)
-    return {
-      ...next,
-      auditLog: [makeAuditEntry(state, audit), ...state.auditLog],
+    return { next, audits: [audit] }
+  })
+}
+
+/**
+ * The multi-entry sibling of {@link withAudit}: one mutation that legitimately
+ * records more than one audit event (ADR-0040's session-change auto-post writes a
+ * `session` and an `announcement` entry in the same store action). Entries are
+ * stamped in order against a running log so each gets a distinct, monotonically
+ * fresh id — the reason a naive two-call `makeAuditEntry` would collide. The last
+ * descriptor lands on top (newest-first), matching the single-entry case.
+ */
+export function withAudits(
+  set: (fn: (state: StoreState) => Partial<StoreState>) => void,
+  recipe: (state: StoreState) => { next: Partial<StoreState>; audits: AuditDescriptor[] }
+): void {
+  set((state) => {
+    const { next, audits } = recipe(state)
+    let auditLog = state.auditLog
+    for (const audit of audits) {
+      auditLog = [makeAuditEntry({ ...state, auditLog }, audit), ...auditLog]
     }
+    return { ...next, auditLog }
   })
 }
 
@@ -199,6 +223,7 @@ function initialState(): Pick<
   | 'tcuActivities'
   | 'attendance'
   | 'sessionExceptions'
+  | 'announcements'
   | 'auditLog'
   | 'emailCampaigns'
   | 'role'
@@ -228,6 +253,7 @@ function initialState(): Pick<
     tcuActivities: snapshot.tcuActivities,
     attendance: snapshot.attendance,
     sessionExceptions: snapshot.sessionExceptions,
+    announcements: snapshot.announcements,
     auditLog: snapshot.auditLog,
     emailCampaigns: snapshot.emailCampaigns,
     role,
@@ -1345,22 +1371,115 @@ export const useStore = create<StoreState>((set, get) => ({
       ...(input.note !== undefined ? { note: input.note } : {}),
       createdAt: clock.now().toISOString(),
     }
-    // ADR-0039 pairs this action with an auto-posted system Announcement
-    // (ADR-0040). That rides this same store action when the announcements slice
-    // lands (issue #250) — the seam is this single mutation, deliberately not
-    // stubbed here.
+    // ADR-0039 pairs this deviation with an auto-posted `sessionChange`
+    // Announcement (ADR-0040), composed into THIS same store action: one mutation
+    // yields the exception, the announcement, and both audit entries — never a
+    // second round-trip a caller could forget. No second assertCan: the writer
+    // already cleared `edit courses` + ownership above, which is exactly the
+    // audience allowed to post to the Course feed (announcements: courseOwned).
+    // The announcement shares the exception's `createdAt`, and its body is derived
+    // in the store's active locale so a schedule change is never typed twice.
+    withAudits(set, (state) => {
+      const announcement: Announcement = {
+        id: nextId('ann', state.announcements),
+        courseId: input.courseId,
+        body: sessionChangeAnnouncementBody(state.locale, exception),
+        kind: 'sessionChange',
+        createdAt: exception.createdAt,
+      }
+      return {
+        next: {
+          sessionExceptions: [...state.sessionExceptions, exception],
+          announcements: [...state.announcements, announcement],
+        },
+        audits: [
+          {
+            action: 'create',
+            entity: 'session',
+            entityId: exception.id,
+            summary: sessionExceptionSummary(course, exception),
+          },
+          {
+            action: 'create',
+            entity: 'announcement',
+            entityId: announcement.id,
+            summary: `Auto-posted session-change announcement ${announcement.id} for ${course.name}`,
+          },
+        ],
+      }
+    })
+    return exception
+  },
+  createAnnouncement: (input) => {
+    const state = get()
+    const course = state.courses.find((c) => c.id === input.courseId)
+    if (!course) {
+      throw new Error(`cannot post announcement: unknown course ${input.courseId}`)
+    }
+    // Writers are the Course's own Teacher (courseOwned) or admin (ADR-0040):
+    // assertCan throws on a violation before anything is written (ADR-0009). A
+    // Student has no create cell, so this is the store boundary that stops a
+    // Student ever posting, independent of any UI gate.
+    assertCan(state, 'create', 'announcements', {
+      course,
+      userId: state.currentUserId ?? undefined,
+    })
+    // A closed cohort is terminal (ADR-0024): no new feed activity, mirroring the
+    // session-exception guard. The UI hides the compose box; the store is the real
+    // boundary.
+    if (course.status === 'closed') {
+      throw new Error(`cannot post announcement to course ${input.courseId}: it is closed`)
+    }
+    const body = input.body.trim()
+    if (body.length === 0) {
+      throw new Error('cannot post an empty announcement')
+    }
+    const announcement: Announcement = {
+      id: nextId('ann', state.announcements),
+      courseId: input.courseId,
+      body,
+      kind: 'manual',
+      createdAt: clock.now().toISOString(),
+    }
     withAudit(set, (state) => ({
       next: {
-        sessionExceptions: [...state.sessionExceptions, exception],
+        announcements: [...state.announcements, announcement],
       },
       audit: {
         action: 'create',
-        entity: 'session',
-        entityId: exception.id,
-        summary: sessionExceptionSummary(course, exception),
+        entity: 'announcement',
+        entityId: announcement.id,
+        summary: `Posted announcement ${announcement.id} to ${course.name}`,
       },
     }))
-    return exception
+    return announcement
+  },
+  deleteAnnouncement: (id) => {
+    const state = get()
+    const target = state.announcements.find((a) => a.id === id)
+    if (!target) return
+    const course = state.courses.find((c) => c.id === target.courseId)
+    if (!course) {
+      throw new Error(`cannot delete announcement ${id}: unknown course ${target.courseId}`)
+    }
+    // Deleting is teacher-own/admin (ADR-0040) — the same ownership gate as posting.
+    // There is no edit: a correction is a new post, so removal is the only mutation
+    // of an existing post.
+    assertCan(state, 'delete', 'announcements', {
+      course,
+      userId: state.currentUserId ?? undefined,
+    })
+    withAudit(set, (state) => ({
+      next: {
+        announcements: state.announcements.filter((a) => a.id !== id),
+      },
+      audit: {
+        action: 'delete',
+        entity: 'announcement',
+        entityId: id,
+        summary: `Deleted announcement ${id} from ${course.name}`,
+      },
+    }))
   },
   sendEmailCampaign: (input) => {
     const existing = get()
@@ -1406,6 +1525,7 @@ const persistSnapshot = debounce((state: StoreState) => {
     tcuActivities: state.tcuActivities,
     attendance: state.attendance,
     sessionExceptions: state.sessionExceptions,
+    announcements: state.announcements,
     auditLog: state.auditLog,
     emailCampaigns: state.emailCampaigns,
   })
