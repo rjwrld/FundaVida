@@ -222,6 +222,30 @@ export interface SessionException {
   createdAt: string
 }
 
+/**
+ * How an {@link Announcement} came to exist (ADR-0040): `'manual'` is a Teacher
+ * (or admin) typing into the Course feed; `'sessionChange'` is auto-posted by the
+ * session-exception mutation (ADR-0039) so a schedule change is never typed twice.
+ */
+export type AnnouncementKind = 'manual' | 'sessionChange'
+
+/**
+ * A course-scoped feed post (ADR-0040): its audience is exactly the Course's
+ * roster (admin all, the Course's Teacher, enrolled Students, the assigned TCU
+ * volunteer — the same visibility as the Course itself, read through the scope
+ * seam). `body` is free content, never passed through t(): a `'manual'` post is
+ * whatever the Teacher typed; a `'sessionChange'` post is a sentence derived from
+ * the exception in the store's active locale at post time. There is no edit — a
+ * correction is a new post — so the audit story stays append-only.
+ */
+export interface Announcement {
+  id: string
+  courseId: string
+  body: string
+  kind: AnnouncementKind
+  createdAt: string
+}
+
 export type AuditAction =
   | 'create'
   | 'update'
@@ -246,6 +270,7 @@ export type AuditEntity =
   | 'emailCampaign'
   | 'tcuActivity'
   | 'session'
+  | 'announcement'
 
 export interface AuditLogEntry {
   id: string

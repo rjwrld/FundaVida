@@ -13,6 +13,7 @@ import type {
   TcuActivity,
   TcuTrainee,
   SessionException,
+  Announcement,
 } from '@/types'
 
 /**
@@ -71,6 +72,7 @@ type EmailCampaignList = EmailCampaign[]
 type TcuList = TcuActivity[]
 type TraineeList = TcuTrainee[]
 type SessionExceptionList = SessionException[]
+type AnnouncementList = Announcement[]
 
 /**
  * Apply a scope token to a list of items.
@@ -131,6 +133,13 @@ export function applyScope<T extends keyof ScopeFilters>(
         userId,
         ctx
       ) as ScopeFilters[T]
+    case 'announcements':
+      return applyAnnouncementsScope(
+        items as AnnouncementList,
+        token,
+        userId,
+        ctx
+      ) as ScopeFilters[T]
     default:
       // Unhandled resource: default to 'none'
       return [] as ScopeFilters[T]
@@ -151,6 +160,7 @@ export interface ScopeFilters {
   tcu: TcuList
   trainees: TraineeList
   sessionExceptions: SessionExceptionList
+  announcements: AnnouncementList
 }
 
 function applyProgramsScope(_programs: ProgramList, token: Scope): ProgramList {
@@ -411,6 +421,23 @@ function applySessionExceptionsScope(
     applyCoursesScope(ctx.courses, token, userId, ctx).map((c) => c.id)
   )
   return exceptions.filter((e) => visibleCourseIds.has(e.courseId))
+}
+
+function applyAnnouncementsScope(
+  announcements: AnnouncementList,
+  token: Scope,
+  userId: string,
+  ctx: ScopeContext
+): AnnouncementList {
+  // A feed post inherits its Course's visibility exactly (ADR-0040), the same way
+  // a session exception does (ADR-0039): a viewer sees the announcements of
+  // precisely the Courses they can see. Reuse the Courses scope rather than
+  // re-deriving the visible set, so a post can never leak on a Course the viewer
+  // can't read. ('all'/'none' are short-circuited in applyScope before this runs.)
+  const visibleCourseIds = new Set(
+    applyCoursesScope(ctx.courses, token, userId, ctx).map((c) => c.id)
+  )
+  return announcements.filter((a) => visibleCourseIds.has(a.courseId))
 }
 
 function applyTraineesScope(

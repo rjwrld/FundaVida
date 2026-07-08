@@ -26,6 +26,7 @@ import type {
   AuditLogEntry,
   EmailCampaign,
   SessionException,
+  Announcement,
   Weekday,
 } from '@/types'
 import { sessionsFor, isSessionRecordable } from '@/lib/sessions'
@@ -61,6 +62,7 @@ export interface SeedSnapshot {
   tcuActivities: TcuActivity[]
   attendance: AttendanceRecord[]
   sessionExceptions: SessionException[]
+  announcements: Announcement[]
   auditLog: AuditLogEntry[]
   emailCampaigns: EmailCampaign[]
 }
@@ -1037,6 +1039,49 @@ function buildSessionExceptions(epoch: Date, courses: Course[]): SessionExceptio
   ]
 }
 
+// A couple of manual announcements per live cohort so no feed is empty on first
+// load (ADR-0040). Only `inProgress` Courses get them — a startsSoon cohort has no
+// class yet and an ended/closed one is history. Bodies are Spanish catalog-style
+// content (like Course descriptions, never passed through t()); createdAt is
+// staggered within the past week so the newest-first feed has a natural order.
+// Runs after every faker draw with a fixed body pool (no RNG), so the seed's
+// counts and stream are unshifted.
+const ANNOUNCEMENT_BODIES = [
+  'Recuerden traer su cuaderno de trabajo a la próxima sesión.',
+  'Excelente participación esta semana. ¡Sigamos así!',
+  'Repasaremos los temas de la última clase antes de continuar.',
+]
+
+function buildAnnouncements(epoch: Date, courses: Course[]): Announcement[] {
+  const epochDay = startOfDay(epoch)
+  const announcements: Announcement[] = []
+  let seq = 1
+
+  courses
+    .filter((course) => courseDisplayState(course, epoch) === 'inProgress')
+    .forEach((course) => {
+      // Two posts per live Course, dated 5 and 2 days ago (both within the Term,
+      // never future). The body pool cycles by Course index so adjacent cohorts
+      // don't read identically.
+      const bodies = [
+        ANNOUNCEMENT_BODIES[seq % ANNOUNCEMENT_BODIES.length] ?? ANNOUNCEMENT_BODIES[0],
+        ANNOUNCEMENT_BODIES[(seq + 1) % ANNOUNCEMENT_BODIES.length] ?? ANNOUNCEMENT_BODIES[1],
+      ]
+      ;[5, 2].forEach((daysAgo, i) => {
+        announcements.push({
+          id: `ann-${seq}`,
+          courseId: course.id,
+          body: bodies[i] as string,
+          kind: 'manual',
+          createdAt: subDays(epochDay, daysAgo).toISOString(),
+        })
+        seq += 1
+      })
+    })
+
+  return announcements
+}
+
 export function seedDemo(epoch: Date): SeedSnapshot {
   faker.seed(42)
 
@@ -1145,6 +1190,7 @@ export function seedDemo(epoch: Date): SeedSnapshot {
     tcuActivities,
     attendance,
     sessionExceptions: buildSessionExceptions(epoch, courses),
+    announcements: buildAnnouncements(epoch, courses),
     auditLog,
     emailCampaigns,
   }

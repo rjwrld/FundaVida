@@ -200,6 +200,8 @@ t('toasts.campaignSent')
 t('toasts.tcuActivityLogged')
 t('toasts.tcuActivityApproved')
 t('toasts.sessionExceptionCreated')
+t('toasts.announcementPosted')
+t('toasts.announcementDeleted')
 
 // Keys referenced dynamically via t(`enrollments.status.${enrollment.status}`)
 t('enrollments.status.approved')
