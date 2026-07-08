@@ -44,13 +44,9 @@ describe('<DashboardPage /> (admin)', () => {
     useStore.getState().setLocale('en')
   })
 
-  it('renders the welcome banner greeting with the admin name', () => {
+  it('leads with the four stat-row labels — no welcome banner (issue #273)', () => {
     renderDashboard()
-    expect(screen.getByRole('heading', { name: /hola, admin/i })).toBeInTheDocument()
-  })
-
-  it('renders all four stat-row labels', () => {
-    renderDashboard()
+    expect(screen.queryByRole('heading', { name: /hola,/i })).not.toBeInTheDocument()
     expect(screen.getByText('Total students')).toBeInTheDocument()
     expect(screen.getByText('Active courses')).toBeInTheDocument()
     expect(screen.getByText('Certificates issued')).toBeInTheDocument()

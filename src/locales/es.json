@@ -551,6 +551,7 @@
     "stats": {
       "activeCourses": "Cursos activos",
       "certificatesIssued": "Certificados emitidos",
+      "sectionTitle": "Estado de la organización",
       "students": "Total de estudiantes",
       "tcuHours": "Horas TCU",
       "trendDown": "Disminuyó",
@@ -599,11 +600,6 @@
     "upcoming": {
       "gradePending": "Calificación pendiente: {{course}}",
       "tcuLogged": "TCU registrado: {{title}}"
-    },
-    "welcome": {
-      "context": "Así van tus sedes hoy.",
-      "eyebrow": "Hoy",
-      "greeting": "Hola, {{name}} 👋"
     }
   },
   "demoBanner": {

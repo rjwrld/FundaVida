@@ -15,14 +15,21 @@ export function AppHeader() {
   const { setOpen } = useCommandPaletteContext()
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border/60 bg-background/85 px-4 backdrop-blur-md md:px-6">
-      <div className="flex min-w-0 items-center gap-3">
-        <MobileNav />
-        <BrandLockup />
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-border/60 bg-background/85 px-4 backdrop-blur-md md:gap-4 md:px-6">
+      <div className="flex flex-1 items-center gap-3">
+        {/*
+          The brand cluster is shrink-0 so it can never be crushed to zero
+          width and painted over by the right-hand controls (#271); under
+          extreme pressure the row overflows right instead. Breadcrumbs keep
+          their own min-w-0 and truncate.
+        */}
+        <div className="flex shrink-0 items-center gap-3">
+          <MobileNav />
+          <BrandLockup />
+        </div>
         <div aria-hidden className="hidden h-5 w-px bg-border/60 sm:block" />
         <Breadcrumbs />
       </div>
-      <div className="flex-1" />
       <Button
         type="button"
         variant="ghost"
@@ -46,7 +53,7 @@ export function AppHeader() {
       >
         <Search className="size-4" />
       </Button>
-      <div className="flex items-center gap-1.5">
+      <div className="flex shrink-0 items-center gap-1.5">
         <DemoBadge />
         <ThemeToggle />
         <LanguageToggle variant="header" />

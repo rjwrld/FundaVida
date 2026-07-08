@@ -44,6 +44,23 @@ describe('<RoleSwitcher />', () => {
     expect(screen.getByRole('button', { name: /role: teacher/i })).toBeInTheDocument()
   })
 
+  it('exposes the role via the trigger accessible name and renders a compact role icon', () => {
+    // The compact (below-md) variant hides the text label to reclaim header
+    // width (#271), so the role must survive as the button's accessible name
+    // and the icon affordance must be present regardless of viewport.
+    useStore.getState().setRole('admin')
+    render(
+      <I18nProvider>
+        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <RoleSwitcher />
+        </MemoryRouter>
+      </I18nProvider>
+    )
+    const trigger = screen.getByRole('button', { name: /role: admin/i })
+    expect(trigger).toHaveAttribute('aria-label', 'Role: Admin')
+    expect(trigger.querySelector('svg')).not.toBeNull()
+  })
+
   it('opens the dropdown, swaps roles, and navigates to /app', async () => {
     const user = userEvent.setup()
     useStore.getState().setRole('admin')
