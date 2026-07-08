@@ -3,9 +3,10 @@ import type { AttendanceRecord, Course, Enrollment, Grade, SessionException } fr
 import { type Session, effectiveSessions, isSessionMarked, isSessionRecordable } from './sessions'
 
 /**
- * True when the Course's Term has ended: term.end strictly before `now`.
- * Same predicate as {@link coursesToClose} in dashboard.ts, exposed per-course
- * so the close flow can gate on it (#204).
+ * True when the Course's Term has ended: term.end strictly before `now`. The one
+ * term-end seam — {@link coursesToClose} (dashboard.ts) and `courseDisplayState`'s
+ * `termEnded` branch (ADR-0042) both call this, so the "Term ended" badge, the
+ * enrollment gate, and the close worklist can never disagree.
  */
 export function isTermEnded(course: Course, now: Date): boolean {
   return isBefore(parseISO(course.term.end), now)

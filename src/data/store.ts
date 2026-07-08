@@ -22,6 +22,7 @@ import { emitCertificatesForClose, isPassingScore } from '@/lib/certificates'
 import { clock, setDemoEpoch } from '@/lib/clock'
 import { effectiveSessions, isSessionMarked, isSessionRecordable } from '@/lib/sessions'
 import { isSameDay, parseISO, startOfDay } from 'date-fns'
+import { courseDisplayState, isOpenForEnrollment } from '@/lib/courseDisplayState'
 import { seedDemo } from './seed'
 import { debounce } from './debounce'
 import {
@@ -672,6 +673,16 @@ export const useStore = create<StoreState>((set, get) => ({
         `cannot enroll student ${studentId} (${student.educationalLevel}) in course ${courseId} (${course.level}): Level mismatch`
       )
     }
+    // A Course accepts enrollments only while Starts soon / In progress (ADR-0042):
+    // a Term-ended (or draft/closed) Course is rejected, same term-end seal as the
+    // close worklist. Mid-Term joins stay allowed. The Browse UI hides the request
+    // button as defense-in-depth.
+    const enrollNow = clock.now()
+    if (!isOpenForEnrollment(course, enrollNow)) {
+      throw new Error(
+        `cannot enroll student ${studentId} in course ${courseId}: not open for enrollment (${courseDisplayState(course, enrollNow)})`
+      )
+    }
     // A Teacher/admin direct-enroll lands straight in 'approved' (ADR-0016); the
     // current user is the deciding actor. Student self-enroll into 'pending'
     // arrives with that workflow in a later slice.
@@ -738,6 +749,15 @@ export const useStore = create<StoreState>((set, get) => ({
     if (course.level !== student.educationalLevel) {
       throw new Error(
         `cannot request enrollment for student ${studentId} (${student.educationalLevel}) in course ${courseId} (${course.level}): Level mismatch`
+      )
+    }
+    // Requests are accepted only while the Course is Starts soon / In progress
+    // (ADR-0042) and rejected once the Term has ended (or for draft/closed) — the
+    // same term-end seal as the close worklist. Mid-Term joins stay allowed.
+    const requestNow = clock.now()
+    if (!isOpenForEnrollment(course, requestNow)) {
+      throw new Error(
+        `cannot request enrollment for student ${studentId} in course ${courseId}: not open for enrollment (${courseDisplayState(course, requestNow)})`
       )
     }
     const now = clock.now().toISOString()

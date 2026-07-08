@@ -2,24 +2,27 @@ import { test, expect } from '@playwright/test'
 import { enterAs } from './helpers/auth'
 import { seedDemo } from '../src/data/seed'
 import { shortCourseName } from '../src/lib/courseName'
+import { isOpenForEnrollment } from '../src/lib/courseDisplayState'
 
 // A clean browseable course for the student persona (stu-1, Linda Vista / primaria)
-// with no prior enrollment — so the request flow below is a fresh request, not a
-// re-request of stu-1's seeded rejected/withdrawn cohorts. Derived from the seed
-// (faker.seed(42), epoch-independent structure; the floating month matches the app
+// with no prior enrollment AND still open for enrollment (ADR-0042) — so the request
+// flow below is a fresh request that the term-end gate accepts and the Request button
+// renders. Derived from the seed (faker.seed(42); the floating month matches the app
 // because both seed at wall-time).
 const browseWorld = seedDemo(new Date())
+const browseNow = new Date()
 const stu1Enrolled = new Set(
   browseWorld.enrollments.filter((e) => e.studentId === 'stu-1').map((e) => e.courseId)
 )
 const cleanBrowseCourse = browseWorld.courses.find(
   (c) =>
     c.status === 'published' &&
+    isOpenForEnrollment(c, browseNow) &&
     c.sede === 'Linda Vista' &&
     c.level === 'primaria' &&
     !stu1Enrolled.has(c.id)
 )
-if (!cleanBrowseCourse) throw new Error('seed has no clean browseable course for stu-1')
+if (!cleanBrowseCourse) throw new Error('seed has no clean open browseable course for stu-1')
 
 // A still-published, already-ended course owned by the teacher persona (tea-1) with
 // an approved Student. A Teacher may only grade an owned, ended, published cohort —
@@ -146,7 +149,9 @@ test('student can re-request a course after withdrawing the prior request', asyn
   await page.getByRole('link', { name: 'Browse open courses' }).click()
   await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
 
-  await page.getByRole('table').getByRole('button').first().click()
+  // Open the clean, still-open browseable course so the Request button renders
+  // (a Term-ended course would hide it — ADR-0042).
+  await page.getByRole('table').getByRole('button', { name: cleanBrowseCourse.name }).click()
 
   // Request a spot, then withdraw it — leaving a withdrawn enrollment on record.
   const requestButton = page.getByRole('button', { name: 'Request a spot' })

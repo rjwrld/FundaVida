@@ -1,8 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import { subDays } from 'date-fns'
 import { useStore } from '../store'
 import { clearPersistedCurrentUser, clearPersistedRole, clearPersistedState } from '../persistence'
 import { SEDES } from '@/constants/sede'
 import { sessionsFor } from '@/lib/sessions'
+import { clock } from '@/lib/clock'
+import { isOpenForEnrollment } from '@/lib/courseDisplayState'
 
 describe('useStore', () => {
   beforeEach(() => {
@@ -337,8 +340,13 @@ describe('enrollment referential integrity', () => {
 
   it('enrollStudent succeeds when the student and course share a Sede', () => {
     useStore.getState().setRole('admin')
-    const course = useStore.getState().courses[0]
-    if (!course) throw new Error('expected at least one seeded course')
+    // A Course open for enrollment (ADR-0042) — a closed/ended one would be
+    // rejected by the term-end gate, which is a separate test's concern.
+    const now = clock.now()
+    const course = useStore
+      .getState()
+      .courses.find((c) => c.status === 'published' && isOpenForEnrollment(c, now))
+    if (!course) throw new Error('expected an open published seeded course')
     const enrolledIds = new Set(
       useStore
         .getState()
@@ -356,6 +364,44 @@ describe('enrollment referential integrity', () => {
     const enrollment = useStore.getState().enrollStudent(sameSede.id, course.id)
     expect(enrollment.courseId).toBe(course.id)
     expect(useStore.getState().enrollments.length).toBe(before + 1)
+  })
+
+  it('enrollStudent rejects a Course whose Term has ended (ADR-0042)', () => {
+    useStore.getState().setRole('admin')
+    const course = useStore.getState().courses.find((c) => c.status === 'published')
+    if (!course) throw new Error('expected a published seeded course')
+    const now = clock.now()
+    // Seal the Term in the past so the display state is "Term ended".
+    useStore.setState((s) => ({
+      courses: s.courses.map((c) =>
+        c.id === course.id
+          ? {
+              ...c,
+              term: { start: subDays(now, 30).toISOString(), end: subDays(now, 1).toISOString() },
+            }
+          : c
+      ),
+    }))
+    // A same-Sede, same-level, unenrolled student so the gate (not the Sede/level
+    // guards, which run first) is what rejects.
+    const enrolledIds = new Set(
+      useStore
+        .getState()
+        .enrollments.filter((e) => e.courseId === course.id)
+        .map((e) => e.studentId)
+    )
+    const student = useStore
+      .getState()
+      .students.find(
+        (s) =>
+          s.sede === course.sede && s.educationalLevel === course.level && !enrolledIds.has(s.id)
+      )
+    if (!student) throw new Error('expected an unenrolled same-Sede/level student')
+    const before = useStore.getState().enrollments.length
+    expect(() => useStore.getState().enrollStudent(student.id, course.id)).toThrow(
+      /not open for enrollment/
+    )
+    expect(useStore.getState().enrollments.length).toBe(before)
   })
 })
 

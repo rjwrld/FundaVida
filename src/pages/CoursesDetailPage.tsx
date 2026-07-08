@@ -36,13 +36,15 @@ import { useFormat } from '@/hooks/useFormat'
 import { effectiveSessions, findSession } from '@/lib/sessions'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
+import { isOpenForEnrollment } from '@/lib/courseDisplayState'
 import { clock } from '@/lib/clock'
-import type { AttendanceStatus, CourseStatus } from '@/types'
+import type { AttendanceStatus } from '@/types'
 import { CloseReadinessChecklist } from '@/components/courses/CloseReadinessChecklist'
 import { CourseSessionsSection } from '@/components/courses/CourseSessionsSection'
 import { GradeDialog } from '@/components/courses/GradeDialog'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
 import { CourseCertificatesSection } from '@/components/courses/CourseCertificatesSection'
+import { CourseStateBadge } from '@/components/courses/CourseStateBadge'
 import { shortCourseName } from '@/lib/courseName'
 
 interface GradingTarget {
@@ -55,12 +57,6 @@ function statusVariant(status: AttendanceStatus): 'success' | 'destructive' | 'i
   if (status === 'present') return 'success'
   if (status === 'absent') return 'destructive'
   return 'info'
-}
-
-function courseStatusVariant(status: CourseStatus): 'success' | 'secondary' | 'warning' {
-  if (status === 'published') return 'success'
-  if (status === 'closed') return 'secondary'
-  return 'warning'
 }
 
 export function CoursesDetailPage() {
@@ -292,9 +288,7 @@ export function CoursesDetailPage() {
             </p>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">{t('courses.form.fields.status')}:</span>
-              <Badge variant={courseStatusVariant(course.status)} data-testid="course-status-badge">
-                {t(`courses.status.${course.status}`)}
-              </Badge>
+              <CourseStateBadge course={course} data-testid="course-status-badge" />
             </div>
             <p>
               <span className="text-muted-foreground">{t('courses.form.fields.capacity')}:</span>{' '}
@@ -499,7 +493,11 @@ export function CoursesDetailPage() {
         </section>
       )}
 
-      {!canViewRoster && isBrowseable && (
+      {/* The request surface hides once the Term has ended (ADR-0042): the store
+          rejects the mutation, so a live button beside a "Term ended" badge would
+          contradict itself. The course stays viewable (badge visible) — only the
+          request action drops. */}
+      {!canViewRoster && isBrowseable && isOpenForEnrollment(course, clock.now()) && (
         <section className="space-y-3">
           <h2 className="text-lg font-semibold tracking-tight">
             {t('courses.browse.requestSection')}

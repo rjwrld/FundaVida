@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { NoResults } from '@/components/shared/NoResults'
-import { Badge } from '@/components/ui/badge'
+import { CourseStateBadge } from '@/components/courses/CourseStateBadge'
 import {
   Table,
   TableBody,
@@ -80,9 +80,7 @@ export function ProgramsDetailPage() {
                     <TableCell>{t(`courses.level.${c.level}`)}</TableCell>
                     <TableCell>{c.sede}</TableCell>
                     <TableCell>
-                      <Badge variant="neutral" className="text-xs">
-                        {t(`courses.status.${c.status}`)}
-                      </Badge>
+                      <CourseStateBadge course={c} className="text-xs" />
                     </TableCell>
                   </TableRow>
                 ))}

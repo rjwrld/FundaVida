@@ -1,7 +1,7 @@
-import { isBefore, parseISO } from 'date-fns'
 import type { AttendanceRecord, Course, Enrollment, Grade, Student } from '@/types'
 import { SEDES, type Sede } from '@/constants/sede'
 import { PASSING_SCORE } from './certificates'
+import { isTermEnded } from './closeReadiness'
 
 /** Attendance below this present-rate marks a Student at-risk. */
 export const MIN_ATTENDANCE_RATE = 0.6
@@ -20,7 +20,7 @@ export interface AtRiskStudent {
  * `draft` and still-running cohorts are not yet closeable.
  */
 export function coursesToClose(courses: Course[], now: Date): Course[] {
-  return courses.filter((c) => c.status === 'published' && isBefore(parseISO(c.term.end), now))
+  return courses.filter((c) => c.status === 'published' && isTermEnded(c, now))
 }
 
 /**

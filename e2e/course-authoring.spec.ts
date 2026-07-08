@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { addDays, format, subDays } from 'date-fns'
 import { enterAs } from './helpers/auth'
 import { seedDemo } from '../src/data/seed'
 import { STATE_KEY } from '../src/data/persistence'
@@ -25,8 +26,13 @@ async function fillCourseForm(
   await page.getByRole('combobox', { name: 'Level' }).click()
   await page.getByRole('option', { name: opts.level, exact: true }).click()
   await page.getByLabel('Capacity').fill(opts.capacity)
-  await page.getByLabel('Term start').fill('2026-07-01')
-  await page.getByLabel('Term end').fill('2026-08-31')
+  // Term dates are relative to the (unpinned) wall-clock the app boots against, so
+  // a created course lands "In progress" deterministically — the derived display
+  // state (ADR-0042) would otherwise flip with the calendar. Yesterday → +90d
+  // straddles now with margin on both sides.
+  const today = new Date()
+  await page.getByLabel('Term start').fill(format(subDays(today, 1), 'yyyy-MM-dd'))
+  await page.getByLabel('Term end').fill(format(addDays(today, 90), 'yyyy-MM-dd'))
   await page.getByLabel('Monday', { exact: true }).check()
   await page.getByRole('button', { name: 'Save' }).click()
 }
@@ -51,9 +57,10 @@ test('teacher creates an own-Sede draft and publishes it (ADR-0016)', async ({ p
   await expect(row).toBeVisible()
   await expect(row.getByTestId('course-status-draft')).toContainText('Draft')
 
-  // Publishing it flips the badge without a reload.
+  // Publishing it flips the badge without a reload — a published, mid-Term course
+  // reads "In progress" via the derived display state (ADR-0042).
   await row.getByTestId('publish-button').click()
-  await expect(row.getByTestId('course-status-published')).toContainText('Published')
+  await expect(row.getByTestId('course-status-published')).toContainText('In progress')
 })
 
 test('teacher closes a published course from its detail page (ADR-0024)', async ({ page }) => {
@@ -88,9 +95,9 @@ test('teacher closes a published course from its detail page (ADR-0024)', async 
     )
     .toBe('closed')
 
-  // …the overview reflects it via the status badge, and the close action is gone
-  // (closed is terminal).
-  await expect(page.getByTestId('course-status-badge')).toHaveText('Closed')
+  // …the overview reflects it via the display-state badge (a closed cohort reads
+  // "Finished", ADR-0042), and the close action is gone (closed is terminal).
+  await expect(page.getByTestId('course-status-badge')).toHaveText('Finished')
   await expect(page.getByRole('button', { name: 'Close course' })).toBeHidden()
 })
 

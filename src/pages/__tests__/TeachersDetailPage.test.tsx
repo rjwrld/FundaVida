@@ -90,8 +90,8 @@ describe('<TeachersDetailPage />', () => {
     const link = await screen.findByRole('link', { name: shortCourseName(course) })
     expect(link).toHaveAttribute('href', `/app/courses/${course.id}`)
     const row = req(link.closest('tr') ?? undefined, 'course row missing')
-    // Closed Course (it has an emitted certificate) → the "Closed" status label.
-    expect(within(row).getByText('Closed')).toBeInTheDocument()
+    // Closed Course (it has an emitted certificate) → the "Finished" display state (ADR-0042).
+    expect(within(row).getByText('Finished')).toBeInTheDocument()
   })
 
   it('shows the approved-enrollment roster count per course', async () => {

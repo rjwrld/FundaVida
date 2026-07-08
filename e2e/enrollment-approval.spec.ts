@@ -13,15 +13,16 @@ const EPOCH = new Date('2026-06-01T12:00:00.000Z')
 const EPOCH_ISO = EPOCH.toISOString()
 
 // Deterministic anchors probed from the seed:
-// cou-12 is a published primaria cohort at Linda Vista, taught by tea-4, capacity
-// 30, with several students already approved. stu-1 (Linda Vista/primaria) has no
-// prior cou-12 enrollment, so a fresh 'pending' request is valid and lands in
-// tea-4's approval queue. (cou-8 — the prior anchor — became a *closed* completed
-// cohort under ADR-0024, so it is no longer browseable.) The student and course
-// names are derived from the seed so the spec follows it rather than hardcoding.
+// cou-24 is a published primaria cohort at Linda Vista taught by tea-4, still open
+// for enrollment (Starts soon, its Term hasn't ended — ADR-0042), with several
+// students already approved. stu-1 (Linda Vista/primaria) has no prior cou-24
+// enrollment, so a fresh 'pending' request is valid, is accepted by the term-end
+// gate, and lands in tea-4's approval queue. (cou-12 — the prior anchor — is now
+// Term-ended relative to this epoch, so its request button is hidden.) The student
+// and course names are derived from the seed so the spec follows it.
 const TEACHER_ID = 'tea-4'
 const STUDENT_ID = 'stu-1'
-const COURSE_ID = 'cou-12'
+const COURSE_ID = 'cou-24'
 const PENDING_ID = 'enr-e2e-pending'
 
 const seedSnapshot = seedDemo(EPOCH)
@@ -148,7 +149,7 @@ test.describe('enrollment approval workflow', () => {
   })
 
   test('approve is disabled with a reason when the course is at capacity', async ({ page }) => {
-    // cou-12 already has approved enrollments; capping capacity at 1 makes it full.
+    // cou-24 already has approved enrollments; capping capacity at 1 makes it full.
     const snapshot = snapshotWithPending((snap) => {
       const course = snap.courses.find((c) => c.id === COURSE_ID)
       if (!course) throw new Error(`${COURSE_ID} missing from seed`)
