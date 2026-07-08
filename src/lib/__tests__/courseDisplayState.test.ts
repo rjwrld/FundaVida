@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { addDays, startOfDay } from 'date-fns'
 import type { Course, CourseStatus } from '@/types'
-import { courseDisplayState, isOpenForEnrollment } from '../courseDisplayState'
+import { courseDisplayState, isOpenForEnrollment, isLiveCohort } from '../courseDisplayState'
 import { coursesToClose } from '../dashboard'
 
 // Term bounds built the proper way: startOfDay(local Date) → toISOString() (ADR-0001).
@@ -115,5 +115,24 @@ describe('isOpenForEnrollment', () => {
       const state = courseDisplayState(c, now)
       expect(isOpenForEnrollment(c, now)).toBe(state === 'startsSoon' || state === 'inProgress')
     }
+  })
+})
+
+describe('isLiveCohort', () => {
+  it('is true for every non-closed lifecycle value, false for closed', () => {
+    expect(isLiveCohort(makeCourse({ status: 'draft' }))).toBe(true)
+    expect(isLiveCohort(makeCourse({ status: 'published' }))).toBe(true)
+    expect(isLiveCohort(makeCourse({ status: 'closed' }))).toBe(false)
+  })
+
+  it('ignores the clock — liveness is the stored lifecycle, not Term dates', () => {
+    // A published cohort whose Term has ended is still "live" (edits/posts allowed);
+    // only the close ceremony ends it. That axis is isOpenForEnrollment, not this one.
+    expect(isLiveCohort(makeCourse({ status: 'published' }))).toBe(true)
+  })
+
+  it('treats a nullish Course (still-loading detail read) as not live', () => {
+    expect(isLiveCohort(null)).toBe(false)
+    expect(isLiveCohort(undefined)).toBe(false)
   })
 })

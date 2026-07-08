@@ -36,6 +36,23 @@ export function courseDisplayState(course: Course, now: Date): CourseDisplayStat
 }
 
 /**
+ * Whether a cohort is still live — not lifecycle-terminal. The complement of the
+ * `'closed'` terminal state (ADR-0024): a Course reaches `'closed'` only through
+ * the close ceremony, and once there it takes no new sessions, announcements, or
+ * sends. This is the shared predicate behind every "only while the cohort is open"
+ * UI gate (edit/manage sessions, compose announcements, Message the class), so the
+ * one rule lives in one place instead of a scattered `status !== 'closed'` idiom.
+ *
+ * A nullish Course (a still-loading detail read) is not live — callers pair this
+ * with a permission check that is already false without a Course, so the guard
+ * never stands alone. Time-based liveness (Term-ended) is a separate axis —
+ * {@link isOpenForEnrollment} — not this stored-lifecycle one.
+ */
+export function isLiveCohort(course: Pick<Course, 'status'> | null | undefined): boolean {
+  return course != null && course.status !== 'closed'
+}
+
+/**
  * True when a Course accepts new enrollments (ADR-0042): only while it is
  * `startsSoon` or `inProgress`. Mid-Term joins are allowed (community-center
  * reality; attendance math tolerates missing early Sessions); a Term-ended,
