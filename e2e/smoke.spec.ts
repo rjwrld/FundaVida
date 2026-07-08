@@ -12,7 +12,7 @@ test.describe('smoke', () => {
     await page.goto('/')
     await page.getByRole('button', { name: 'Enter as admin' }).first().click()
     await expect(page).toHaveURL(/\/app$/)
-    await expect(page.getByRole('heading', { name: /hola, admin/i })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /signed in as/i })).toBeVisible()
   })
 
   test('unknown route renders 404 with a back link', async ({ page }) => {
