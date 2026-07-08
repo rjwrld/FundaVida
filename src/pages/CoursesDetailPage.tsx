@@ -37,7 +37,7 @@ import { useFormat } from '@/hooks/useFormat'
 import { effectiveSessions, findSession } from '@/lib/sessions'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
-import { isOpenForEnrollment } from '@/lib/courseDisplayState'
+import { isOpenForEnrollment, isLiveCohort } from '@/lib/courseDisplayState'
 import { clock } from '@/lib/clock'
 import type { AttendanceStatus } from '@/types'
 import { CloseReadinessChecklist } from '@/components/courses/CloseReadinessChecklist'
@@ -146,20 +146,19 @@ export function CoursesDetailPage() {
   // Cancel/reschedule/add Sessions ride the `edit courses` permission + ownership
   // (ADR-0039): the Course's own Teacher or admin, on a non-closed cohort.
   const canManageSessions =
-    useCan('edit', 'courses', { course: course || undefined }) && course?.status !== 'closed'
+    useCan('edit', 'courses', { course: course || undefined }) && isLiveCohort(course)
   // Compose/delete on the feed rides the announcements create permission
   // (teacher-own + admin, ADR-0040) and closes on a terminal cohort, mirroring the
   // Sessions manage gate. A scoped reader without it still sees the list.
   const canManageAnnouncements =
-    useCan('create', 'announcements', { course: course || undefined }) &&
-    course?.status !== 'closed'
+    useCan('create', 'announcements', { course: course || undefined }) && isLiveCohort(course)
   // "Message the class" opens the shared campaign compose locked to this Course
   // (ADR-0041): admin (unconditional) or the Course's own Teacher (courseOwned),
   // and never on a closed cohort — the store rejects a closed send, so a live
   // button beside a Finished badge would contradict itself (mirrors the Sessions
   // and Announcements manage gates).
   const canMessageClass =
-    useCan('create', 'bulkEmail', { course: course || undefined }) && course?.status !== 'closed'
+    useCan('create', 'bulkEmail', { course: course || undefined }) && isLiveCohort(course)
 
   // Close-readiness derivation (issue #204), from the page's existing scoped
   // queries. ONE closeReadiness derivation feeds both the close-readiness
@@ -271,7 +270,7 @@ export function CoursesDetailPage() {
             <Button variant="outline" onClick={() => navigate('/app/courses')}>
               {t('common.actions.backToHome')}
             </Button>
-            {canEdit && course.status !== 'closed' && (
+            {canEdit && isLiveCohort(course) && (
               <Button onClick={() => navigate(`/app/courses?edit=${course.id}`)}>
                 {t('courses.detail.edit')}
               </Button>

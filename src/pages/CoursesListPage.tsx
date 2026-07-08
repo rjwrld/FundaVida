@@ -16,6 +16,7 @@ import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
 import { listViewState } from '@/lib/listViewState'
+import { isLiveCohort } from '@/lib/courseDisplayState'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
@@ -122,7 +123,7 @@ export function CoursesListPage() {
             editLabel={t('common.actions.editItem', { name: c.name })}
             deleteLabel={t('common.actions.deleteItem', { name: c.name })}
             publishLabel={t('courses.list.publishButton', { name: c.name })}
-            onEdit={canEdit && c.status !== 'closed' ? () => openEdit(c.id) : undefined}
+            onEdit={canEdit && isLiveCohort(c) ? () => openEdit(c.id) : undefined}
             onDelete={canDelete ? () => setPendingDelete(c) : undefined}
             onPublish={canPublish ? () => publishCourse.mutate({ courseId: c.id }) : undefined}
           />
