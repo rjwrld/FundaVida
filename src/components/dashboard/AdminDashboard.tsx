@@ -59,8 +59,11 @@ export function AdminDashboard() {
   // the raw store (issue #155), and links to where the work gets done.
   return (
     <DashboardShell upcoming={upcoming}>
-      {/* Hero: Org Health Stats */}
+      {/* Hero: Org Health Stats. The sr-only heading gives the lead section an
+          accessible name (the removed WelcomeBanner used to be the h2 bridging
+          the PageHeader h1 to the h3 cards) and keeps heading order valid. */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
+        <h2 className="sr-only">{t('dashboard.stats.sectionTitle')}</h2>
         <StatRow
           totalStudents={stats.totalStudents}
           activeCourses={stats.activeCourses}

@@ -551,6 +551,7 @@
     "stats": {
       "activeCourses": "Cursos activos",
       "certificatesIssued": "Certificados emitidos",
+      "sectionTitle": "Estado de la organización",
       "students": "Total de estudiantes",
       "tcuHours": "Horas TCU",
       "trendDown": "Disminuyó",

@@ -544,6 +544,7 @@
     "stats": {
       "activeCourses": "Active courses",
       "certificatesIssued": "Certificates issued",
+      "sectionTitle": "Organization health",
       "students": "Total students",
       "tcuHours": "TCU hours",
       "trendDown": "Decreased",
