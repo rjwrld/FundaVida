@@ -121,19 +121,20 @@ describe('<DashboardPage /> (teacher)', () => {
     useStore.getState().setLocale('en')
   })
 
-  it('renders at least three meaningful role-scoped widgets', () => {
+  it('renders at least three meaningful role-scoped widgets', async () => {
     renderDashboard()
-    // Teacher dashboard now shows: enrollment requests (hero), next sessions to mark (hero),
-    // my courses (supporting), and courses to close (supporting)
-    expect(screen.getByText(/my courses/i)).toBeInTheDocument()
+    // Worklist-first (ADR-0043): needs-marking + courses-to-close + own courses,
+    // with next-sessions and the announcements feed as supporting reads.
+    expect((await screen.findAllByText(/needs marking/i)).length).toBeGreaterThan(0)
     expect(screen.getByText(/next sessions to mark/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/my courses/i).length).toBeGreaterThan(0)
   })
 
-  it('shows only courses the teacher owns (scoped by own)', () => {
+  it('shows only courses the teacher owns (scoped by own)', async () => {
     renderDashboard()
 
-    // Teacher should see a courses stat card showing their owned courses count
-    expect(screen.getByText(/my courses/i)).toBeInTheDocument()
+    // The own-courses list (with display-state badges) reads the scoped query.
+    expect(await screen.findByRole('heading', { name: 'My courses' })).toBeInTheDocument()
   })
 
   it('does not show the placeholder panel for teacher', () => {
@@ -162,18 +163,18 @@ describe('<DashboardPage /> (student)', () => {
     useStore.getState().setLocale('en')
   })
 
-  it('renders the student role-scoped widgets', () => {
+  it('renders the student role-scoped widgets', async () => {
     renderDashboard()
-    // Student dashboard should show: my courses and my attendance rate
-    expect(screen.getByText(/my courses/i)).toBeInTheDocument()
-    expect(screen.getByText(/attendance rate/i)).toBeInTheDocument()
+    // Content-first (ADR-0043): the My-courses roll-up table and the announcements feed.
+    expect(screen.getByRole('heading', { name: 'My courses' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /announcements/i })).toBeInTheDocument()
   })
 
   it('shows only courses the student is enrolled in (scoped by enrolled)', () => {
     renderDashboard()
 
-    // Student should see a courses stat card showing their enrolled courses count
-    expect(screen.getByText(/my courses/i)).toBeInTheDocument()
+    // The My-courses roll-up reads the enrolled-scoped progress queries.
+    expect(screen.getByRole('heading', { name: 'My courses' })).toBeInTheDocument()
   })
 
   it('does not show the placeholder panel for student', () => {

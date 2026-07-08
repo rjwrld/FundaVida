@@ -19,16 +19,15 @@ const meName = `${me.firstName} ${me.lastName}`
 const passingGrade = world.grades.find((g) => g.studentId === 'stu-1' && g.score >= 70)
 if (!passingGrade) throw new Error('seed: stu-1 has no passing grade')
 
-test('a student reaches their self-service profile from the dashboard (#166)', async ({ page }) => {
+test('a student reaches their self-service profile from the nav (#166, ADR-0043)', async ({
+  page,
+}) => {
   await enterAs(page, 'student')
 
-  // The dashboard exposes a My profile entry point… (scoped to main: the sidebar
-  // carries a second "My profile" link since the Account nav section, and an
-  // unscoped locator trips strict mode)
-  await page
-    .getByRole('main')
-    .getByRole('link', { name: /my profile/i })
-    .click()
+  // The dashboard's My-profile shortcut card is gone (ADR-0043); the Account nav
+  // section now carries the entry point (ADR-0010). It's the only "My profile"
+  // link on the page, so an unscoped locator is unambiguous.
+  await page.getByRole('link', { name: /my profile/i }).click()
   await expect(page).toHaveURL(/\/app\/me$/)
 
   // …landing on the read-only hub: identity + guardian, read through self-scoped

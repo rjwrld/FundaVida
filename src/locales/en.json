@@ -468,6 +468,7 @@
     },
     "list": {
       "addButton": "Add course",
+      "browseButton": "Browse open courses",
       "columns": {
         "actions": "Actions",
         "name": "Name",
@@ -488,6 +489,12 @@
     }
   },
   "dashboard": {
+    "announcements": {
+      "composeEntry": "Post an announcement",
+      "empty": "No announcements yet.",
+      "title": "Announcements",
+      "unknownCourse": "A course"
+    },
     "atRisk": {
       "empty": "No students need attention right now.",
       "more_one": "+{{count}} more",
@@ -542,13 +549,15 @@
       "vsLastMonth": "vs last month"
     },
     "student": {
-      "attendanceRate": "Attendance rate this month",
-      "browseDescription": "Explore and request a spot in open courses at your campus.",
-      "browseOpenCourses": "Browse open courses",
-      "myCourses": "My courses",
-      "myProfile": "My profile",
-      "myProfileDescription": "See your enrollments, attendance, grades, and certificates in one place.",
-      "nextClass": "Next class"
+      "table": {
+        "attendance": "Attendance",
+        "course": "Course",
+        "empty": "You're not enrolled in any courses yet.",
+        "grade": "Grade",
+        "schedule": "Schedule",
+        "state": "Status",
+        "title": "My courses"
+      }
     },
     "tcu": {
       "assignedCourse": "Your course",
@@ -564,14 +573,17 @@
       "sedeLabel": "Campus"
     },
     "teacher": {
-      "createCourseButton": "Create a course",
-      "createCourseDescription": "Offer a new course to students at your campus.",
-      "createCourseTitle": "Author a course",
       "markAttendance": "Mark",
-      "myCourses": "My courses",
-      "nextSession": "Next upcoming session",
+      "needsMarking": {
+        "empty": "Nothing needs marking. You're all caught up.",
+        "title": "Needs marking"
+      },
       "nextSessions": "Next sessions to mark",
-      "noUpcomingSessions": "No upcoming sessions to mark."
+      "noUpcomingSessions": "No upcoming sessions to mark.",
+      "ownCourses": {
+        "empty": "You don't have any courses yet.",
+        "title": "My courses"
+      }
     },
     "title": "Signed in as {{role}}",
     "upcoming": {

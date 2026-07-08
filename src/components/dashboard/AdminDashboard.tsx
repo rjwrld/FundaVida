@@ -12,6 +12,7 @@ import { CoursesToClose } from './CoursesToClose'
 import { CertsThisEpoch } from './CertsThisEpoch'
 import { AtRiskStudents } from './AtRiskStudents'
 import { EnrollmentFunnelBySede } from './EnrollmentFunnelBySede'
+import { DashboardAnnouncementsFeed } from './DashboardAnnouncementsFeed'
 import { DashboardShell } from './DashboardShell'
 
 export function AdminDashboard() {
@@ -90,6 +91,7 @@ export function AdminDashboard() {
         <CertsThisEpoch />
         <AtRiskStudents />
         <EnrollmentFunnelBySede />
+        <DashboardAnnouncementsFeed />
       </motion.div>
     </DashboardShell>
   )
