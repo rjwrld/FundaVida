@@ -8,6 +8,7 @@ import { gradesApi } from './grades'
 import { certificatesApi } from './certificates'
 import { tcuApi } from './tcu'
 import { attendanceApi } from './attendance'
+import { sessionExceptionsApi } from './sessionExceptions'
 import { auditLogApi } from './auditLog'
 import { emailCampaignsApi } from './emailCampaigns'
 
@@ -22,6 +23,7 @@ export const api = {
   certificates: certificatesApi,
   tcu: tcuApi,
   attendance: attendanceApi,
+  sessionExceptions: sessionExceptionsApi,
   auditLog: auditLogApi,
   emailCampaigns: emailCampaignsApi,
 }

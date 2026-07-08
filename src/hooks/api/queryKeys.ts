@@ -18,5 +18,6 @@ export const CERTIFICATES_KEY = ['certificates'] as const
 export const TRAINEES_KEY = ['trainees'] as const
 export const TCU_KEY = ['tcu'] as const
 export const ATTENDANCE_KEY = ['attendance'] as const
+export const SESSION_EXCEPTIONS_KEY = ['sessionExceptions'] as const
 export const AUDIT_LOG_KEY = ['auditLog'] as const
 export const EMAIL_CAMPAIGNS_KEY = ['emailCampaigns'] as const

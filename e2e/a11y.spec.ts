@@ -1,9 +1,9 @@
 import { test, expect, type Page } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { seedDemo } from '../src/data/seed'
+import { STATE_KEY } from '../src/data/persistence'
 
 // Storage keys must match src/data/persistence.ts.
-const STATE_KEY = 'fundavida:v10:state'
 const ROLE_KEY = 'fundavida:v2:role'
 const USER_KEY = 'fundavida:v2:current-user'
 

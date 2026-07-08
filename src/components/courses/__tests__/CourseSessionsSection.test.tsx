@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { useStore } from '@/data/store'
 import { CourseSessionsSection } from '@/components/courses/CourseSessionsSection'
@@ -84,21 +85,24 @@ const readiness: CloseReadiness = {
 }
 
 function renderSection(props: Partial<React.ComponentProps<typeof CourseSessionsSection>> = {}) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
-    <I18nProvider>
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <CourseSessionsSection
-          course={course}
-          sessions={sessions}
-          today={TODAY}
-          canMark
-          readiness={readiness}
-          attendance={attendance}
-          enrolledCount={10}
-          {...props}
-        />
-      </MemoryRouter>
-    </I18nProvider>
+    <QueryClientProvider client={client}>
+      <I18nProvider>
+        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <CourseSessionsSection
+            course={course}
+            sessions={sessions}
+            today={TODAY}
+            canMark
+            readiness={readiness}
+            attendance={attendance}
+            enrolledCount={10}
+            {...props}
+          />
+        </MemoryRouter>
+      </I18nProvider>
+    </QueryClientProvider>
   )
 }
 
@@ -203,5 +207,29 @@ describe('<CourseSessionsSection />', () => {
   it('shows the empty state when the Course derives no Sessions', () => {
     renderSection({ sessions: [] })
     expect(screen.getByText('No sessions scheduled for this course.')).toBeInTheDocument()
+  })
+
+  describe('manage controls (ADR-0039 write surface)', () => {
+    it('hides Add/Reschedule/Cancel from a viewer without canManageSessions', () => {
+      renderSection({ canManageSessions: false })
+      expect(screen.queryByRole('button', { name: 'Add session' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /^Reschedule/ })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /^Cancel/ })).not.toBeInTheDocument()
+    })
+
+    it('gives a manager an Add button and per-Upcoming Reschedule/Cancel controls', () => {
+      renderSection({ canManageSessions: true })
+      expect(screen.getByRole('button', { name: 'Add session' })).toBeInTheDocument()
+      // Only the strictly-future (Upcoming) rows carry management actions; Today
+      // keeps its mark action, never a cancel.
+      const upcoming = screen.getByRole('list', { name: 'Upcoming' })
+      const rescheduleButtons = within(upcoming).getAllByRole('button', { name: /^Reschedule — / })
+      expect(rescheduleButtons.length).toBeGreaterThan(0)
+      expect(within(upcoming).getAllByRole('button', { name: /^Cancel — / }).length).toBe(
+        rescheduleButtons.length
+      )
+      const today = screen.getByRole('list', { name: 'Today' })
+      expect(within(today).queryByRole('button', { name: /^Cancel — / })).not.toBeInTheDocument()
+    })
   })
 })

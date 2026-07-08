@@ -1,10 +1,10 @@
 import { test, expect, type Page } from '@playwright/test'
 import { seedDemo } from '../src/data/seed'
+import { STATE_KEY } from '../src/data/persistence'
 import { shortCourseName } from '../src/lib/courseName'
 import { weekAgendaDays } from '../src/lib/weekAgenda'
 
 // Storage keys must match src/data/persistence.ts.
-const STATE_KEY = 'fundavida:v10:state'
 const ROLE_KEY = 'fundavida:v2:role'
 const USER_KEY = 'fundavida:v2:current-user'
 

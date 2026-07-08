@@ -25,6 +25,7 @@ import type {
   AttendanceStatus,
   AuditLogEntry,
   EmailCampaign,
+  SessionException,
   Weekday,
 } from '@/types'
 import { sessionsFor } from '@/lib/sessions'
@@ -58,6 +59,7 @@ export interface SeedSnapshot {
   tcuTrainees: TcuTrainee[]
   tcuActivities: TcuActivity[]
   attendance: AttendanceRecord[]
+  sessionExceptions: SessionException[]
   auditLog: AuditLogEntry[]
   emailCampaigns: EmailCampaign[]
 }
@@ -929,6 +931,53 @@ function buildTcuActivities(epoch: Date, trainees: TcuTrainee[], courses: Course
  * 24 Course cohorts from 16 templates (ADR-0015-0017).
  * 9 Teachers (3 per Sede), 84 Students (28 per Sede), 15 TCU Volunteers.
  */
+/**
+ * A small overlay of Session deviations (ADR-0039) so the calendar and the
+ * Sessions surface demonstrate cancel/reschedule without manual setup. Both land
+ * on the teacher persona's upcoming cohort — every Session is future, so they
+ * satisfy the store's future-only + attendance-free guards. Deterministic (no
+ * faker draw), so the RNG sequence and every seeded count are unchanged.
+ */
+function buildSessionExceptions(epoch: Date, courses: Course[]): SessionException[] {
+  const epochDay = startOfDay(epoch)
+  const demoCourse = courses.find(
+    (c) =>
+      c.teacherId === `tea-${TEACHER_PERSONA_INDEX + 1}` &&
+      startOfDay(new Date(c.term.start)) > epochDay
+  )
+  if (!demoCourse) return []
+
+  const sessions = sessionsFor(demoCourse)
+  const toCancel = sessions[1]
+  const toReschedule = sessions[3]
+  if (!toCancel || !toReschedule) return []
+
+  // A day after the base Session: never a Meeting Day for this cohort's pattern,
+  // so the reschedule target never collides with another effective Session.
+  const rescheduledTo = addDays(startOfDay(new Date(toReschedule.date)), 1).toISOString()
+  const createdAt = subDays(epochDay, 1).toISOString()
+
+  return [
+    {
+      id: 'sxc-1',
+      courseId: demoCourse.id,
+      type: 'cancelled',
+      date: toCancel.date,
+      note: 'Feriado',
+      createdAt,
+    },
+    {
+      id: 'sxc-2',
+      courseId: demoCourse.id,
+      type: 'rescheduled',
+      date: toReschedule.date,
+      newDate: rescheduledTo,
+      note: 'Aula no disponible',
+      createdAt,
+    },
+  ]
+}
+
 export function seedDemo(epoch: Date): SeedSnapshot {
   faker.seed(42)
 
@@ -1036,6 +1085,7 @@ export function seedDemo(epoch: Date): SeedSnapshot {
     tcuTrainees,
     tcuActivities,
     attendance,
+    sessionExceptions: buildSessionExceptions(epoch, courses),
     auditLog,
     emailCampaigns,
   }

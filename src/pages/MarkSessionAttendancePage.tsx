@@ -19,9 +19,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
-import { useCourses, useEnrollments, useMarkSessionAttendance, useStudents } from '@/hooks/api'
+import {
+  useCourses,
+  useEnrollments,
+  useMarkSessionAttendance,
+  useSessionExceptions,
+  useStudents,
+} from '@/hooks/api'
 import { resolveQueries } from '@/lib/resolveQueries'
-import { isSessionRecordable, sessionsFor } from '@/lib/sessions'
+import { effectiveSessions, isSessionRecordable } from '@/lib/sessions'
 import { clock } from '@/lib/clock'
 import { useFormat } from '@/hooks/useFormat'
 import { can } from '@/permissions'
@@ -37,12 +43,19 @@ export function MarkSessionAttendancePage() {
   const coursesQuery = useCourses()
   const studentsQuery = useStudents()
   const enrollmentsQuery = useEnrollments()
+  const sessionExceptionsQuery = useSessionExceptions({ courseId: courseId ?? '' })
   const { data: courses = [] } = coursesQuery
   const { data: students = [] } = studentsQuery
   const { data: enrollments = [] } = enrollmentsQuery
+  const { data: sessionExceptions = [] } = sessionExceptionsQuery
   const markSessionMutation = useMarkSessionAttendance()
 
-  const { isPending: isLoading } = resolveQueries([coursesQuery, studentsQuery, enrollmentsQuery])
+  const { isPending: isLoading } = resolveQueries([
+    coursesQuery,
+    studentsQuery,
+    enrollmentsQuery,
+    sessionExceptionsQuery,
+  ])
 
   // Compute page state from params and data
   const { course, session, sessions, isMarkable, enrolledStudents, isValid, error } =
@@ -73,8 +86,10 @@ export function MarkSessionAttendancePage() {
         }
       }
 
-      // Find the session
-      const allSessions = sessionsFor(foundCourse)
+      // Find the session on the composed seam (ADR-0039): attendance validity
+      // reads `effectiveSessions`, so a cancelled date is refused (it is not in
+      // the list) while a rescheduled/extra date is accepted.
+      const allSessions = effectiveSessions(foundCourse, sessionExceptions)
       const foundSession = allSessions.find(
         (s) => new Date(s.date).toISOString() === new Date(sessionDate).toISOString()
       )
@@ -129,7 +144,7 @@ export function MarkSessionAttendancePage() {
         isValid: true,
         error: null,
       }
-    }, [courseId, sessionDate, courses, enrollments, students])
+    }, [courseId, sessionDate, courses, enrollments, students, sessionExceptions])
 
   // Whether the current role may mark THIS course's attendance, derived from the
   // matrix with course context (ADR-0010): admin always, the owning teacher via

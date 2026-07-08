@@ -1,13 +1,21 @@
-import type { AttendanceRecord, Certificate, Course, Enrollment, Grade, Role } from '@/types'
+import type {
+  AttendanceRecord,
+  Certificate,
+  Course,
+  Enrollment,
+  Grade,
+  Role,
+  SessionException,
+} from '@/types'
 import { parseISO } from 'date-fns'
 import { MIN_ATTENDANCE_RATE, coursesToClose } from './dashboard'
 import { buildStudentProgress } from './studentProgress'
 import {
   type Session,
   type UpcomingSession,
+  effectiveSessions,
   isSessionMarked,
   isSessionRecordable,
-  sessionsFor,
   upcomingSessions,
 } from './sessions'
 
@@ -24,6 +32,8 @@ export interface BuildAgendaInput {
   grades: Grade[]
   enrollments: Enrollment[]
   certificates: Certificate[]
+  /** The Session exceptions overlay (ADR-0039). Omit for no overlay. */
+  sessionExceptions?: SessionException[]
   now: Date
 }
 
@@ -80,18 +90,23 @@ export type RoleAgenda = TeacherAgenda | AdminAgenda | StudentAgenda | TcuAgenda
  * derivations bottom out in {@link sessionsFor}, which already absorbs them.
  */
 export function buildAgenda(input: BuildAgendaInput): RoleAgenda {
-  const { role, courses, attendance, grades, enrollments, certificates, now } = input
-  const upcoming = upcomingSessions(courses, now)
+  const { role, courses, attendance, grades, enrollments, certificates, sessionExceptions, now } =
+    input
+  const upcoming = upcomingSessions(courses, now, undefined, sessionExceptions)
 
   switch (role) {
     case 'teacher':
-      return { role, upcoming, needsMarking: needsMarking(courses, attendance, now) }
+      return {
+        role,
+        upcoming,
+        needsMarking: needsMarking(courses, attendance, now, sessionExceptions),
+      }
     case 'admin':
       return {
         role,
         upcoming,
         pulse: {
-          unmarkedCount: needsMarking(courses, attendance, now).length,
+          unmarkedCount: needsMarking(courses, attendance, now, sessionExceptions).length,
           coursesToCloseCount: coursesToClose(courses, now).length,
         },
       }
@@ -129,11 +144,12 @@ export function buildAgenda(input: BuildAgendaInput): RoleAgenda {
 function needsMarking(
   courses: Course[],
   attendance: AttendanceRecord[],
-  now: Date
+  now: Date,
+  exceptions: SessionException[] = []
 ): NeedsMarkingSession[] {
   return courses
     .flatMap((course) =>
-      sessionsFor(course)
+      effectiveSessions(course, exceptions)
         .filter(
           (session) =>
             isSessionRecordable(session, now) &&

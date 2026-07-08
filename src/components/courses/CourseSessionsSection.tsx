@@ -1,9 +1,17 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { isSameDay, parseISO } from 'date-fns'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NoResults } from '@/components/shared/NoResults'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import {
+  SessionExceptionDialog,
+  type SessionExceptionMode,
+} from '@/components/courses/SessionExceptionDialog'
 import { useFormat } from '@/hooks/useFormat'
+import { useCreateSessionException } from '@/hooks/api'
 import { isSessionRecordable, isSessionUpcoming, type Session } from '@/lib/sessions'
 import type { CloseReadiness } from '@/lib/closeReadiness'
 import type { AttendanceRecord, Course } from '@/types'
@@ -38,6 +46,12 @@ interface CourseSessionsSectionProps {
   attendance: AttendanceRecord[]
   /** Roster size: the denominator in "{present}/{total} present". */
   enrolledCount: number
+  /**
+   * Whether the current user may cancel/reschedule/add Sessions (ADR-0039):
+   * the Course's own Teacher or admin (`edit courses` + ownership). A viewer
+   * without it sees the same groups with no management controls.
+   */
+  canManageSessions?: boolean
 }
 
 /**
@@ -55,9 +69,13 @@ export function CourseSessionsSection({
   readiness,
   attendance,
   enrolledCount,
+  canManageSessions = false,
 }: CourseSessionsSectionProps) {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
+  const createException = useCreateSessionException()
+  const [cancelTarget, setCancelTarget] = useState<Session | null>(null)
+  const [manageMode, setManageMode] = useState<SessionExceptionMode | null>(null)
 
   const sessionLabel = (session: Session) =>
     `${t('attendance.list.session', { ordinal: String(session.ordinal) } as Record<
@@ -113,20 +131,57 @@ export function CourseSessionsSection({
     </Button>
   )
 
+  // Only strictly-future Sessions can be cancelled/rescheduled — the store
+  // rejects today/past, so a manager sees these controls on Upcoming rows only
+  // (ADR-0039). Reschedule opens the date form; Cancel is a one-click confirm.
+  const manageAction = (session: Session) =>
+    canManageSessions ? (
+      <>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setManageMode({ kind: 'reschedule', date: session.date })}
+          aria-label={t('courses.detail.sessions.manage.rescheduleNamed', {
+            session: sessionLabel(session),
+          })}
+        >
+          {t('courses.detail.sessions.manage.reschedule')}
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setCancelTarget(session)}
+          aria-label={t('courses.detail.sessions.manage.cancelNamed', {
+            session: sessionLabel(session),
+          })}
+        >
+          {t('courses.detail.sessions.manage.cancel')}
+        </Button>
+      </>
+    ) : undefined
+
   return (
     <section aria-labelledby="course-sessions-heading" className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 id="course-sessions-heading" className="text-lg font-semibold tracking-tight">
           {t('courses.detail.sessions.heading')}
         </h2>
-        {showVerdicts && (
-          <p className="font-mono text-xs tabular-nums text-muted-foreground">
-            {t('courses.detail.sessions.summary', {
-              recorded: recorded.length,
-              needsAttendance: needsAttendance.length,
-            })}
-          </p>
-        )}
+        <div className="flex items-center gap-3">
+          {showVerdicts && (
+            <p className="font-mono text-xs tabular-nums text-muted-foreground">
+              {t('courses.detail.sessions.summary', {
+                recorded: recorded.length,
+                needsAttendance: needsAttendance.length,
+              })}
+            </p>
+          )}
+          {canManageSessions && (
+            <Button size="sm" variant="outline" onClick={() => setManageMode({ kind: 'extra' })}>
+              <Plus className="size-4" aria-hidden="true" />
+              {t('courses.detail.sessions.manage.add')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {sessions.length === 0 ? (
@@ -162,7 +217,11 @@ export function CourseSessionsSection({
           {upcoming.length > 0 && (
             <SessionGroup label={t('courses.detail.sessions.groups.upcoming')}>
               {upcoming.slice(0, UPCOMING_VISIBLE).map((session) => (
-                <SessionRow key={session.date} label={sessionLabel(session)} />
+                <SessionRow
+                  key={session.date}
+                  label={sessionLabel(session)}
+                  action={manageAction(session)}
+                />
               ))}
               {upcoming.length > UPCOMING_VISIBLE && (
                 <li>
@@ -174,7 +233,11 @@ export function CourseSessionsSection({
                     </summary>
                     <ul className="mt-2 space-y-2">
                       {upcoming.slice(UPCOMING_VISIBLE).map((session) => (
-                        <SessionRow key={session.date} label={sessionLabel(session)} />
+                        <SessionRow
+                          key={session.date}
+                          label={sessionLabel(session)}
+                          action={manageAction(session)}
+                        />
                       ))}
                     </ul>
                   </details>
@@ -222,6 +285,40 @@ export function CourseSessionsSection({
             <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
           )}
         </div>
+      )}
+
+      {canManageSessions && (
+        <>
+          <SessionExceptionDialog
+            open={manageMode !== null}
+            onOpenChange={(o) => !o && setManageMode(null)}
+            courseId={course.id}
+            mode={manageMode}
+          />
+          <ConfirmDialog
+            open={cancelTarget !== null}
+            title={t('courses.detail.sessions.manage.cancelConfirmTitle')}
+            description={
+              cancelTarget
+                ? t('courses.detail.sessions.manage.cancelConfirmDescription', {
+                    session: sessionLabel(cancelTarget),
+                  })
+                : undefined
+            }
+            confirmLabel={t('courses.detail.sessions.manage.cancelConfirm')}
+            destructive
+            onConfirm={() => {
+              if (cancelTarget) {
+                createException.mutate({
+                  courseId: course.id,
+                  type: 'cancelled',
+                  date: cancelTarget.date,
+                })
+              }
+            }}
+            onOpenChange={(o) => !o && setCancelTarget(null)}
+          />
+        </>
       )}
     </section>
   )

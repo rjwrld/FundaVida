@@ -10,6 +10,7 @@ import { useAttendance } from '@/hooks/api/attendance'
 import { useCourses } from '@/hooks/api/courses'
 import { useEnrollments } from '@/hooks/api/enrollments'
 import { useGrades } from '@/hooks/api/grades'
+import { useSessionExceptions } from '@/hooks/api/sessionExceptions'
 import { useFormat } from '@/hooks/useFormat'
 
 /**
@@ -26,22 +27,24 @@ export function CoursesToClose() {
   const { data: enrollments } = useEnrollments()
   const { data: grades } = useGrades()
   const { data: attendance } = useAttendance()
+  const { data: sessionExceptions } = useSessionExceptions()
 
   const closeable = useMemo(() => coursesToClose(courses, clock.now()), [courses])
 
-  // Same derivation as the detail page's checklist (#204), so the two verdicts
-  // agree by construction. Null until all three record queries resolve — an
-  // empty grades/attendance window would misread as "ready".
+  // Same derivation as the detail page's checklist (#204), over the SAME composed
+  // seam (ADR-0039: close-readiness reads effectiveSessions), so the two verdicts
+  // agree by construction. Null until all record queries resolve — an empty
+  // grades/attendance/exceptions window would misread as "ready".
   const readinessById = useMemo(() => {
-    if (!enrollments || !grades || !attendance) return null
+    if (!enrollments || !grades || !attendance || !sessionExceptions) return null
     const now = clock.now()
     return new Map(
       closeable.map((course) => [
         course.id,
-        closeReadiness({ course, enrollments, grades, attendance, now }),
+        closeReadiness({ course, enrollments, grades, attendance, sessionExceptions, now }),
       ])
     )
-  }, [closeable, enrollments, grades, attendance])
+  }, [closeable, enrollments, grades, attendance, sessionExceptions])
 
   return (
     <article className="flex h-full flex-col rounded-lg border border-border bg-card p-5">

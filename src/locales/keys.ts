@@ -118,6 +118,7 @@ t('auditLog.entities.certificate')
 t('auditLog.entities.attendance')
 t('auditLog.entities.tcu')
 t('auditLog.entities.emailCampaign')
+t('auditLog.entities.session')
 
 // Keys referenced dynamically via t(`auditLog.filter.${action}`) in the filter dropdown
 t('auditLog.filter.create')
@@ -198,6 +199,7 @@ t('toasts.gradeDeleted')
 t('toasts.campaignSent')
 t('toasts.tcuActivityLogged')
 t('toasts.tcuActivityApproved')
+t('toasts.sessionExceptionCreated')
 
 // Keys referenced dynamically via t(`enrollments.status.${enrollment.status}`)
 t('enrollments.status.approved')

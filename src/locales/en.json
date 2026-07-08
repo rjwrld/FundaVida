@@ -80,6 +80,7 @@
       "emailCampaign": "Email",
       "enrollment": "Enrollment",
       "grade": "Grade",
+      "session": "Session",
       "student": "Student",
       "tcu": "TCU",
       "teacher": "Teacher"
@@ -351,6 +352,22 @@
           "upcoming": "Upcoming"
         },
         "heading": "Sessions",
+        "manage": {
+          "add": "Add session",
+          "addTitle": "Add extra session",
+          "cancel": "Cancel",
+          "cancelConfirm": "Cancel session",
+          "cancelConfirmDescription": "{{session}} will be removed from the schedule. Attendance and close-readiness totals won't count it.",
+          "cancelConfirmTitle": "Cancel this session?",
+          "cancelNamed": "Cancel — {{session}}",
+          "dateLabel": "Date",
+          "newDateLabel": "New date",
+          "noteLabel": "Note (optional)",
+          "reschedule": "Reschedule",
+          "rescheduleFrom": "Moving the session on {{date}}.",
+          "rescheduleNamed": "Reschedule — {{session}}",
+          "rescheduleTitle": "Reschedule session"
+        },
         "mark": "Mark attendance",
         "markNamed": "Mark attendance — {{session}}",
         "present": "{{present}}/{{total}} present",
@@ -959,6 +976,7 @@
     "gradeDeleted": "Grade deleted.",
     "gradeSaved": "Grade saved.",
     "requestWithdrawn": "Request withdrawn.",
+    "sessionExceptionCreated": "Session updated",
     "studentCreated": "Student created.",
     "studentDeleted": "Student deleted.",
     "studentUpdated": "Student updated.",

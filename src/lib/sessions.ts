@@ -1,5 +1,11 @@
 import { eachDayOfInterval, getDay, isSameDay, parseISO, startOfDay } from 'date-fns'
-import { type AttendanceRecord, type Course, WEEKDAYS, type Weekday } from '@/types/domain'
+import {
+  type AttendanceRecord,
+  type Course,
+  type SessionException,
+  WEEKDAYS,
+  type Weekday,
+} from '@/types/domain'
 
 export interface Session {
   courseId: string
@@ -54,6 +60,64 @@ export function sessionsFor(course: Course): Session[] {
   })
 
   return sessions
+}
+
+/** Local-midnight ISO anchor, matching how {@link sessionsFor} stamps base dates. */
+function anchor(date: string): string {
+  return startOfDay(parseISO(date)).toISOString()
+}
+
+/**
+ * The composed Sessions seam (ADR-0039): the base derivation {@link sessionsFor}
+ * with a Course's stored {@link SessionException} overlay applied *last*. This is
+ * the single function every Session consumer — the Sessions surface (ADR-0037),
+ * the calendar/agenda (ADR-0038), attendance validity, and close-readiness
+ * (ADR-0034) — reads, so one edit reaches every surface. `sessionsFor` itself
+ * stays untouched (ADR-0001).
+ *
+ * The overlay: `'cancelled'` drops the base Session naming that `date`,
+ * `'rescheduled'` moves it to `newDate`, and `'extra'` inserts a Session on a date
+ * the base derivation never produced. Everything is matched by same-day comparison
+ * and the result is re-sorted ascending with ordinals renumbered 1..M by
+ * chronological position — the same contract `sessionsFor` gives. Because every
+ * store-enforced overlay operation is future-only (ADR-0009), the past prefix of
+ * the list (and its recorded attendance) is never renumbered.
+ *
+ * Pure and total: exceptions for other Courses are ignored, and a `'cancelled'` /
+ * `'rescheduled'` `date` that names no base Session is a no-op.
+ */
+export function effectiveSessions(course: Course, exceptions: SessionException[] = []): Session[] {
+  const base = sessionsFor(course)
+  const own = exceptions.filter((e) => e.courseId === course.id)
+  if (own.length === 0) {
+    return base
+  }
+
+  const cancelled = own.filter((e) => e.type === 'cancelled')
+  const rescheduled = own.filter((e) => e.type === 'rescheduled')
+  const extra = own.filter((e) => e.type === 'extra')
+
+  const dates: string[] = []
+  for (const session of base) {
+    const sessionDate = parseISO(session.date)
+    if (cancelled.some((c) => isSameDay(parseISO(c.date), sessionDate))) {
+      continue
+    }
+    const move = rescheduled.find((r) => isSameDay(parseISO(r.date), sessionDate))
+    dates.push(move?.newDate ? anchor(move.newDate) : session.date)
+  }
+  for (const e of extra) {
+    dates.push(anchor(e.date))
+  }
+
+  return dates
+    .map((date) => startOfDay(parseISO(date)))
+    .sort((a, b) => a.getTime() - b.getTime())
+    .map((day, index) => ({
+      courseId: course.id,
+      date: day.toISOString(),
+      ordinal: index + 1,
+    }))
 }
 
 /**
@@ -120,11 +184,15 @@ export function isSessionMarked(
 export function upcomingSessions(
   courses: Course[],
   today: Date,
-  limit?: number
+  limit?: number,
+  exceptions: SessionException[] = []
 ): UpcomingSession[] {
   const sessions = courses
     .flatMap((course) =>
-      sessionsFor(course).map((session) => ({ ...session, courseName: course.name }))
+      effectiveSessions(course, exceptions).map((session) => ({
+        ...session,
+        courseName: course.name,
+      }))
     )
     .filter((session) => isSessionUpcoming(session, today))
     .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime())

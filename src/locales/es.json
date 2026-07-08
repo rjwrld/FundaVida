@@ -80,6 +80,7 @@
       "emailCampaign": "Correo",
       "enrollment": "Matrícula",
       "grade": "Calificación",
+      "session": "Sesión",
       "student": "Estudiante",
       "tcu": "TCU",
       "teacher": "Docente"
@@ -356,6 +357,22 @@
           "upcoming": "Próximas"
         },
         "heading": "Sesiones",
+        "manage": {
+          "add": "Agregar sesión",
+          "addTitle": "Agregar sesión adicional",
+          "cancel": "Cancelar",
+          "cancelConfirm": "Cancelar sesión",
+          "cancelConfirmDescription": "{{session}} se eliminará del calendario. No contará en los totales de asistencia ni en la preparación para el cierre.",
+          "cancelConfirmTitle": "¿Cancelar esta sesión?",
+          "cancelNamed": "Cancelar — {{session}}",
+          "dateLabel": "Fecha",
+          "newDateLabel": "Nueva fecha",
+          "noteLabel": "Nota (opcional)",
+          "reschedule": "Reprogramar",
+          "rescheduleFrom": "Moviendo la sesión del {{date}}.",
+          "rescheduleNamed": "Reprogramar — {{session}}",
+          "rescheduleTitle": "Reprogramar sesión"
+        },
         "mark": "Marcar asistencia",
         "markNamed": "Marcar asistencia — {{session}}",
         "present": "{{present}}/{{total}} presentes",
@@ -967,6 +984,7 @@
     "gradeDeleted": "Calificación eliminada.",
     "gradeSaved": "Calificación guardada.",
     "requestWithdrawn": "Solicitud retirada.",
+    "sessionExceptionCreated": "Sesión actualizada",
     "studentCreated": "Estudiante creado.",
     "studentDeleted": "Estudiante eliminado.",
     "studentUpdated": "Estudiante actualizado.",

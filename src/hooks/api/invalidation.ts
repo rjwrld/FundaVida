@@ -11,6 +11,7 @@ import {
   TRAINEES_KEY,
   TCU_KEY,
   ATTENDANCE_KEY,
+  SESSION_EXCEPTIONS_KEY,
   AUDIT_LOG_KEY,
   EMAIL_CAMPAIGNS_KEY,
 } from './queryKeys'
@@ -37,6 +38,11 @@ export type StoreSliceName = {
  *  - `tcuActivities` maps to `['tcu']` (name mismatch) and also `['trainees']`,
  *    because trainee hour rollups derive from activities.
  *  - `tcuTrainees` maps to `['trainees']` (name mismatch).
+ *  - `sessionExceptions` also invalidates `['courses']` and `['attendance']`: every
+ *    Session surface (calendar, agenda, the Sessions section, close-readiness)
+ *    composes `effectiveSessions` over the Course + attendance reads, so an
+ *    exception write makes those derived reads stale without touching their own
+ *    slices (ADR-0039, the #87 invalidation-completeness class).
  *
  * Only list-key prefixes appear here; React Query's default fuzzy matching then
  * covers every detail, scoped, and derived-child key (`['courses', id, role]`,
@@ -53,6 +59,7 @@ export const SLICE_TO_KEYS: Record<StoreSliceName, QueryKey[]> = {
   tcuTrainees: [TRAINEES_KEY],
   tcuActivities: [TCU_KEY, TRAINEES_KEY],
   attendance: [ATTENDANCE_KEY],
+  sessionExceptions: [SESSION_EXCEPTIONS_KEY, COURSES_KEY, ATTENDANCE_KEY],
   auditLog: [AUDIT_LOG_KEY],
   emailCampaigns: [EMAIL_CAMPAIGNS_KEY],
 }

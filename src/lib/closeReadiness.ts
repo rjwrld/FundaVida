@@ -1,6 +1,6 @@
 import { isBefore, parseISO } from 'date-fns'
-import type { AttendanceRecord, Course, Enrollment, Grade } from '@/types'
-import { type Session, isSessionMarked, isSessionRecordable, sessionsFor } from './sessions'
+import type { AttendanceRecord, Course, Enrollment, Grade, SessionException } from '@/types'
+import { type Session, effectiveSessions, isSessionMarked, isSessionRecordable } from './sessions'
 
 /**
  * True when the Course's Term has ended: term.end strictly before `now`. The one
@@ -18,6 +18,13 @@ export interface CloseReadinessInput {
   enrollments: Enrollment[]
   grades: Grade[]
   attendance: AttendanceRecord[]
+  /**
+   * The Course's Session exceptions (ADR-0039). The unrecorded-sessions check
+   * composes over `effectiveSessions`, so a cancelled Session leaves the
+   * expected-session count (never penalizing the cohort), a rescheduled Session is
+   * counted at its new date, and an extra Session is included. Omit for no overlay.
+   */
+  sessionExceptions?: SessionException[]
   /** The clock — callers pass it so this module stays pure. */
   now: Date
 }
@@ -47,7 +54,7 @@ export interface CloseReadiness {
  * missing.
  */
 export function closeReadiness(input: CloseReadinessInput): CloseReadiness {
-  const { course, enrollments, grades, attendance, now } = input
+  const { course, enrollments, grades, attendance, sessionExceptions, now } = input
 
   const gradedStudentIds = new Set(
     grades.filter((g) => g.courseId === course.id).map((g) => g.studentId)
@@ -59,7 +66,7 @@ export function closeReadiness(input: CloseReadinessInput): CloseReadiness {
   )
   const ungradedStudentIds = [...approvedStudentIds].filter((id) => !gradedStudentIds.has(id))
 
-  const unrecordedSessions = sessionsFor(course).filter((session) => {
+  const unrecordedSessions = effectiveSessions(course, sessionExceptions).filter((session) => {
     // Only past/recordable sessions can be missing attendance — the one
     // session-window boundary (ADR-0034). `now` is compared at day granularity.
     if (!isSessionRecordable(session, now)) return false
