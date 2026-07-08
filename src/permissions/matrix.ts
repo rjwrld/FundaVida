@@ -26,6 +26,7 @@ export type Resource =
   | 'tcu'
   | 'bulkEmail'
   | 'auditLog'
+  | 'announcements'
 
 export type Scope =
   | 'all'
@@ -102,6 +103,8 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     tcu: { view: true, log: true, approve: true },
     bulkEmail: { view: true, create: true },
     auditLog: { view: true },
+    // Admin may post to and delete from any Course's feed (ADR-0040).
+    announcements: { view: true, create: true, delete: true },
   },
   teacher: {
     programs: { view: true },
@@ -125,6 +128,11 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     tcu: { approve: teacherCanApproveTcuActivity },
     bulkEmail: {},
     auditLog: {},
+    // A Teacher posts to and deletes from the feed of Courses they own (ADR-0040):
+    // both gate on the same `courseOwned` predicate as the session-exception write,
+    // so the auto-post rides an authorization the writer already holds. `view: true`
+    // opens the read for the feed section; the scope token narrows it to own Courses.
+    announcements: { view: true, create: courseOwned, delete: courseOwned },
   },
   student: {
     programs: { view: true },
@@ -141,6 +149,9 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     tcu: {},
     bulkEmail: {},
     auditLog: {},
+    // A Student reads the feed of Courses they are enrolled in but never posts
+    // (ADR-0040): no create/delete cell.
+    announcements: { view: true },
   },
   tcu: {
     // A TCU Trainee is not enrolled in Courses and no tcu surface reads the
@@ -157,6 +168,10 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     tcu: { view: true, log: canLogTcuActivity },
     bulkEmail: {},
     auditLog: {},
+    // A TCU volunteer reads the feed of their assigned Course (surfaced on the
+    // dashboard, ADR-0043) but never posts (ADR-0040). The Courses route/nav stay
+    // hidden; the scope token governs the read, not the route (ADR-0036).
+    announcements: { view: true },
   },
 }
 
@@ -179,6 +194,7 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     tcu: 'all',
     bulkEmail: 'all',
     auditLog: 'all',
+    announcements: 'all',
   },
   teacher: {
     programs: 'all',
@@ -192,6 +208,10 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     tcu: 'assignedTrainees',
     bulkEmail: 'none',
     auditLog: 'none',
+    // A Teacher's feed visibility is exactly their owned Courses (ADR-0040): the
+    // token mirrors `courses: 'own'`, and applyScope routes it through the Courses
+    // scope so the two can never diverge.
+    announcements: 'own',
   },
   student: {
     programs: 'all',
@@ -210,6 +230,9 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     tcu: 'none',
     bulkEmail: 'none',
     auditLog: 'none',
+    // A Student reads the feed of the Courses they are enrolled in (ADR-0040):
+    // mirrors `courses: 'enrolled'`, routed through the Courses scope.
+    announcements: 'enrolled',
   },
   tcu: {
     // The read seam closes alongside the UI gate (ADR-0035): with no tcu surface
@@ -231,6 +254,9 @@ const scopeMatrix: Record<Role, Record<Resource, Scope>> = {
     tcu: 'self',
     bulkEmail: 'none',
     auditLog: 'none',
+    // The volunteer's feed is the single assigned Course's (ADR-0040): mirrors
+    // `courses: 'assigned'`, routed through the Courses scope.
+    announcements: 'assigned',
   },
 }
 
@@ -307,5 +333,6 @@ function allScopesNone(): Record<Resource, Scope> {
     tcu: 'none',
     bulkEmail: 'none',
     auditLog: 'none',
+    announcements: 'none',
   }
 }

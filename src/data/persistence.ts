@@ -7,20 +7,20 @@ import { COURSE_LEVELS, COURSE_STATUSES } from '@/constants/course'
 // hand-mirroring it — the drift class that silently voided the pin when it lagged
 // (ADR-0039; the v3→v10 drift). A stale mirror not only no-ops the pin but sits in
 // the legacy purge list below, actively deleting the injected snapshot at boot.
-export const STATE_KEY = 'fundavida:v12:state'
+export const STATE_KEY = 'fundavida:v13:state'
 const ROLE_KEY = 'fundavida:v2:role'
 
 // Stale pre-v4 snapshot keys this layer owns. They are not migrated (ADR-0003,
 // ADR-0014): they are removed on first load so the app reseeds cleanly at a
 // fresh Demo Epoch instead of rehydrating an incoherent older world. The v3
 // state snapshot predates the Program entity and the new Course/Enrollment/TCU
-// fields (ADR-0015/0016/0017). The v12 key bump reshapes the seed itself
-// (ADR-0044): the teacher/student/TCU personas gain in-progress cohorts and the
-// attendance top-up shifts the whole faker stream, so a v11 snapshot rehydrates
-// an older world where three of four personas land on an empty calendar week —
-// it must reseed, not migrate. (The shape is unchanged, so isValidSnapshot still
-// accepts a v11-shaped object; the key bump is what forces the reseed.) It sits
-// on top of v11's persisted `sessionExceptions` slice (ADR-0039), on top of
+// fields (ADR-0015/0016/0017). The v13 key bump adds the persisted `announcements`
+// slice (ADR-0040): a v12 snapshot lacks it, so isValidSnapshot rejects it below
+// and the world reseeds rather than rehydrating a store with an undefined feed
+// slice. It sits on top of v12's live-week seed reshape (ADR-0044): the
+// teacher/student/TCU personas gained in-progress cohorts and the attendance
+// top-up shifted the whole faker stream. That sat on top of v11's persisted
+// `sessionExceptions` slice (ADR-0039), on top of
 // v10's reworked Certificate
 // model (ADR-0024): emitted on course-close, no pending/approved status,
 // `createdAt → issuedAt` — so a v9 cert's shape no longer validates. That sits on v9's
@@ -50,6 +50,7 @@ const LEGACY_SNAPSHOT_KEYS = [
   'fundavida:v9:state',
   'fundavida:v10:state',
   'fundavida:v11:state',
+  'fundavida:v12:state',
 ]
 
 export type PersistedState = SeedSnapshot
@@ -95,7 +96,10 @@ function isValidSnapshot(value: unknown): value is PersistedState {
     !Array.isArray(v.emailCampaigns) ||
     // The v11 slice (ADR-0039): a v10 snapshot lacks it, so it fails here and the
     // world reseeds rather than rehydrating Sessions with no overlay.
-    !Array.isArray(v.sessionExceptions)
+    !Array.isArray(v.sessionExceptions) ||
+    // The v13 slice (ADR-0040): a v12 snapshot lacks the feed, so it fails here
+    // and the world reseeds rather than rehydrating a store with no announcements.
+    !Array.isArray(v.announcements)
   ) {
     return false
   }

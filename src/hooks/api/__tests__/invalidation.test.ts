@@ -69,6 +69,9 @@ describe('writeSetInvalidations', () => {
     },
     // auditLog is an ordinary slice — always in the diff for a withAudit mutation.
     { name: 'auditLog (always, via withAudit)', written: 'auditLog', expected: [['auditLog']] },
+    // Announcements are self-invalidating; one prefix covers the course-detail feed
+    // and the dashboard feed (ADR-0040).
+    { name: 'announcements (identity)', written: 'announcements', expected: [['announcements']] },
   ]
 
   for (const { name, written, expected } of cases) {

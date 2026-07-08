@@ -29,6 +29,7 @@ import {
   useRequestEnrollment,
   useWithdrawEnrollmentRequest,
   useSessionExceptions,
+  useAnnouncements,
 } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
 import { useStore } from '@/data/store'
@@ -41,6 +42,7 @@ import { clock } from '@/lib/clock'
 import type { AttendanceStatus } from '@/types'
 import { CloseReadinessChecklist } from '@/components/courses/CloseReadinessChecklist'
 import { CourseSessionsSection } from '@/components/courses/CourseSessionsSection'
+import { CourseAnnouncementsSection } from '@/components/courses/CourseAnnouncementsSection'
 import { GradeDialog } from '@/components/courses/GradeDialog'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
 import { CourseCertificatesSection } from '@/components/courses/CourseCertificatesSection'
@@ -113,9 +115,11 @@ export function CoursesDetailPage() {
   const gradesQuery = useGrades({ courseId: id ?? '' })
   const attendanceQuery = useAttendance({ courseId: id ?? '' })
   const sessionExceptionsQuery = useSessionExceptions({ courseId: id ?? '' })
+  const announcementsQuery = useAnnouncements({ courseId: id ?? '' })
   const { data: scopedGrades = [] } = gradesQuery
   const { data: ownAttendance = [] } = attendanceQuery
   const { data: sessionExceptions = [] } = sessionExceptionsQuery
+  const { data: announcements = [] } = announcementsQuery
   const unenroll = useUnenrollStudent()
   const requestEnrollment = useRequestEnrollment()
   const withdrawRequest = useWithdrawEnrollmentRequest()
@@ -141,6 +145,12 @@ export function CoursesDetailPage() {
   // (ADR-0039): the Course's own Teacher or admin, on a non-closed cohort.
   const canManageSessions =
     useCan('edit', 'courses', { course: course || undefined }) && course?.status !== 'closed'
+  // Compose/delete on the feed rides the announcements create permission
+  // (teacher-own + admin, ADR-0040) and closes on a terminal cohort, mirroring the
+  // Sessions manage gate. A scoped reader without it still sees the list.
+  const canManageAnnouncements =
+    useCan('create', 'announcements', { course: course || undefined }) &&
+    course?.status !== 'closed'
 
   // Close-readiness derivation (issue #204), from the page's existing scoped
   // queries. ONE closeReadiness derivation feeds both the close-readiness
@@ -320,6 +330,18 @@ export function CoursesDetailPage() {
         enrolledCount={courseEnrollments.length}
         canManageSessions={canManageSessions}
       />
+
+      {/* The feed is visible to every scoped role with access to this Course — the
+          roster audience (teacher/admin) and enrolled Students (ADR-0040). A
+          browsing, not-yet-enrolled Student has no feed scope, so it stays hidden. */}
+      {(canViewRoster || isEnrolled) && (
+        <CourseAnnouncementsSection
+          course={course}
+          announcements={announcements}
+          canManage={canManageAnnouncements}
+          isLoading={announcementsQuery.isPending}
+        />
+      )}
 
       {canViewRoster && (
         <Fragment>

@@ -44,6 +44,7 @@ function seedControlled(over: { attendance?: AttendanceRecord[] } = {}) {
     courses: [course],
     teachers: [teacher],
     sessionExceptions: [],
+    announcements: [],
     attendance: over.attendance ?? [],
     auditLog: [],
     role: 'admin',
@@ -105,9 +106,58 @@ describe('createSessionException', () => {
         type: 'cancelled',
         date: iso(2026, 2, 6),
       })
-      const entry = useStore.getState().auditLog[0]
+      const entry = useStore.getState().auditLog.find((e) => e.entity === 'session')
       expect(entry?.entity).toBe('session')
       expect(entry?.entityId).toBeDefined()
+    })
+  })
+
+  // ADR-0040: a session change auto-posts a `sessionChange` Announcement in the
+  // SAME store action — one mutation ⇒ exception + announcement + two audit
+  // entries, never a second round-trip.
+  describe('auto-posts a sessionChange announcement (ADR-0040)', () => {
+    it('adds one announcement to the course feed on cancel', () => {
+      const before = useStore.getState().announcements.length
+      useStore.getState().createSessionException({
+        courseId: 'cou-1',
+        type: 'cancelled',
+        date: iso(2026, 2, 6),
+      })
+      const anns = useStore.getState().announcements
+      expect(anns).toHaveLength(before + 1)
+      const posted = anns[anns.length - 1]
+      expect(posted?.kind).toBe('sessionChange')
+      expect(posted?.courseId).toBe('cou-1')
+      expect(posted?.body.length).toBeGreaterThan(0)
+    })
+
+    it('writes BOTH a session and an announcement audit entry in the one mutation', () => {
+      useStore.setState({ auditLog: [] })
+      useStore.getState().createSessionException({
+        courseId: 'cou-1',
+        type: 'rescheduled',
+        date: iso(2026, 2, 9),
+        newDate: iso(2026, 2, 10),
+      })
+      const log = useStore.getState().auditLog
+      expect(log.filter((e) => e.entity === 'session')).toHaveLength(1)
+      expect(log.filter((e) => e.entity === 'announcement')).toHaveLength(1)
+      // Distinct log ids — the second entry must not collide with the first.
+      expect(new Set(log.map((e) => e.id)).size).toBe(log.length)
+    })
+
+    it('does not post when a guard throws (no exception ⇒ no announcement)', () => {
+      const before = useStore.getState().announcements.length
+      try {
+        useStore.getState().createSessionException({
+          courseId: 'cou-1',
+          type: 'cancelled',
+          date: iso(2026, 2, 2), // past — rejected
+        })
+      } catch {
+        /* expected */
+      }
+      expect(useStore.getState().announcements).toHaveLength(before)
     })
   })
 
