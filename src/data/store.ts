@@ -724,7 +724,7 @@ export const useStore = create<StoreState>((set, get) => ({
     const { enrollments, students, courses } = state
     const existing = enrollments.find((e) => e.studentId === studentId && e.courseId === courseId)
     // An active request (approved or pending) short-circuits — re-requesting is a
-    // no-op. A rejected/withdrawn record does NOT: the openForEnrollment scope lets
+    // no-op. A rejected/withdrawn record does NOT: the browseable scope lets
     // such courses reappear in Browse, so re-pend the same record below rather than
     // returning the stale decision (which silently no-ops the request).
     if (existing && (existing.status === 'approved' || existing.status === 'pending')) {
