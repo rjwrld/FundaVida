@@ -156,13 +156,35 @@ describe('buildAgenda', () => {
       if (agenda.role !== 'teacher') return
       expect(agenda.upcoming.map((s) => s.ordinal)).toEqual([3, 4])
     })
+
+    it('never lists an ended Course’s past unmarked sessions (active-only, ADR-0044)', () => {
+      // A term-ended Course carries past unmarked Sessions, but that backlog is
+      // close-readiness's business on the Courses page — the calendar worklist
+      // shows only in-progress Courses (Term contains today). A startsSoon Course
+      // has no past Sessions and is likewise absent.
+      const ended = makeCourse('cou-ended', {
+        term: {
+          start: startOfDay(subDays(NOW, 21)).toISOString(),
+          end: startOfDay(subDays(NOW, 7)).toISOString(),
+        },
+      })
+      const live = makeCourse('cou-live')
+      const agenda = buildAgenda(baseInput('teacher', [ended, live]))
+      if (agenda.role !== 'teacher') return
+
+      // Only cou-live's two past Mondays; none of cou-ended's.
+      expect(agenda.needsMarking.every((s) => s.courseId === 'cou-live')).toBe(true)
+      expect(agenda.needsMarking).toHaveLength(2)
+    })
   })
 
   describe('admin', () => {
-    it('summarizes the pulse: unmarked-session count across courses plus courses ready to close', () => {
-      // cou-1 runs around NOW: 2 past unmarked Mondays. cou-ended's term is
-      // fully past (published + ended → ready to close) with 2 more past
-      // unmarked Mondays: Jun 1 + Jun 8.
+    it('summarizes the pulse: unmarked Sessions in in-progress Courses only, plus courses ready to close', () => {
+      // cou-1 runs around NOW (in-progress): 2 past unmarked Mondays. cou-ended's
+      // term is fully past (published + ended → ready to close) with 2 more past
+      // unmarked Mondays — but those belong to close-readiness, not the calendar
+      // pulse (ADR-0044), so the count is 2, not 4. The ended Course still counts
+      // toward coursesToClose.
       const ended = makeCourse('cou-ended', {
         term: {
           start: startOfDay(subDays(NOW, 21)).toISOString(),
@@ -173,7 +195,7 @@ describe('buildAgenda', () => {
 
       expect(agenda.role).toBe('admin')
       if (agenda.role !== 'admin') return
-      expect(agenda.pulse).toEqual({ unmarkedCount: 4, coursesToCloseCount: 1 })
+      expect(agenda.pulse).toEqual({ unmarkedCount: 2, coursesToCloseCount: 1 })
     })
 
     it('marked sessions and non-closeable courses leave the pulse at zero', () => {

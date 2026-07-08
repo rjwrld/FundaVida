@@ -31,9 +31,19 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v11 key', () => {
+  it('persists state under the v12 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v11:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v12:state')).not.toBeNull()
+  })
+
+  it('reseeds from a stale v11 snapshot and removes the stale v11 state key (ADR-0044)', () => {
+    // A returning v11 visitor's snapshot carries the pre-liveliness seed (three of
+    // four personas land on an empty week). The v12 key bump makes it stale; it is
+    // dropped so the app reseeds at the new live-week world rather than migrating.
+    window.localStorage.setItem('fundavida:v11:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v11:state')).toBeNull()
   })
 
   it('reseeds from a stale v2 snapshot and removes the stale v2 state key (ADR-0014)', () => {

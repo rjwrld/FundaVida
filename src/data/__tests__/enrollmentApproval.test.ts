@@ -26,23 +26,28 @@ describe('enrollment approval mutations', () => {
 
   describe('approveEnrollment', () => {
     it('moves a pending enrollment to approved and sets decidedBy/decidedAt', () => {
-      // Student requests enrollment
-      useStore.getState().setRole('student')
       const state = useStore.getState()
       const teacher = getTeacher()
-      const student = getStudent()
 
-      // Get a course owned by the teacher at the same sede as the student
+      // A course the teacher owns that is open for enrollment (ADR-0042), plus an
+      // eligible student not already enrolled in it — so the request is a genuine
+      // fresh pending, independent of the personas' seeded (all-approved) state.
+      const now = clock.now()
       const course = state.courses.find(
-        (c) => c.teacherId === teacher.id && c.sede === student.sede
+        (c) => c.teacherId === teacher.id && isOpenForEnrollment(c, now)
       )
-
-      if (!course) {
-        // Skip if no suitable course exists
-        return
-      }
+      if (!course) return
+      const enrolledIds = new Set(
+        state.enrollments.filter((e) => e.courseId === course.id).map((e) => e.studentId)
+      )
+      const student = state.students.find(
+        (s) =>
+          s.sede === course.sede && s.educationalLevel === course.level && !enrolledIds.has(s.id)
+      )
+      if (!student) return
 
       // Create a pending enrollment (student requests)
+      useStore.getState().setRole('student')
       const enrollment = useStore.getState().requestEnrollment(student.id, course.id)
       expect(enrollment.status).toBe('pending')
 

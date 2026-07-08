@@ -28,7 +28,8 @@ import type {
   SessionException,
   Weekday,
 } from '@/types'
-import { sessionsFor } from '@/lib/sessions'
+import { sessionsFor, isSessionRecordable } from '@/lib/sessions'
+import { courseDisplayState } from '@/lib/courseDisplayState'
 import { emitCertificatesForClose } from '@/lib/certificates'
 import { resolveRecipients } from '@/lib/emailRecipients'
 import { PROGRAM_CATALOG } from '@/constants/programs'
@@ -216,14 +217,20 @@ function planCourses(epoch: Date): CoursePlan[] {
       termEnd: addWeeks(day, 7),
     },
     {
+      // Reassigned to the teacher persona (tea-1) so it lands on their live week
+      // (ADR-0044). NOT a new plan entry — the Course count and faker RNG stream
+      // stay stable. tue/thu, secundaria; runs at tea-1's Sede (Linda Vista).
       role: 'in-progress',
-      teacherIndex: 3,
+      teacherIndex: 0,
       termStart: subWeeks(day, 7),
       termEnd: addWeeks(day, 5),
     },
     {
+      // Reassigned to the teacher persona (tea-1) for the same reason (ADR-0044).
+      // mon/wed/fri, primaria — so the student persona (stu-1, primaria, same
+      // Sede) auto-enrols in it via the existing personaCourses path.
       role: 'in-progress',
-      teacherIndex: 4,
+      teacherIndex: 0,
       termStart: subWeeks(day, 2),
       termEnd: addWeeks(day, 10),
     },
@@ -490,7 +497,14 @@ function buildEnrollments(epoch: Date, students: Student[], courses: Course[]): 
     const isRecentJoiner = si >= students.length - RECENT_JOINER_COUNT
     let courseIds: string[]
     if (si === 0) {
-      courseIds = personaCourses
+      // The persona (stu-1) enrols in tea-1's cohorts — but only those matching
+      // stu-1's Level (ADR-0020). tea-1 now owns an in-progress secundaria cohort
+      // (ADR-0044); the unfiltered list would place the primaria persona in a
+      // wrong-level Course, which the store's enroll guard would reject.
+      courseIds = personaCourses.filter((id) => {
+        const c = courseById.get(id)
+        return c ? isEligible(c) : false
+      })
     } else if (isRecentJoiner) {
       // Recent joiners only sign up for cohorts that have not started yet, so
       // they never accrue attendance or grades dated before they existed.
@@ -518,21 +532,30 @@ function buildEnrollments(epoch: Date, students: Student[], courses: Course[]): 
       if (enrolledAt > epochDay) enrolledAt = epochDay
       const enrolledAtIso = enrolledAt.toISOString()
 
-      // Most enrollments are approved; a few (15-20%) are pending/rejected/withdrawn
+      // Most enrollments are approved; a few (15-20%) are pending/rejected/withdrawn.
       let status: EnrollmentStatus = 'approved'
       let decidedBy: string | undefined = 'admin'
       let decidedAt: string | undefined = enrolledAtIso
+      // The roll always advances so the status stream (and thus the RNG-free
+      // status distribution) for every non-persona Student is unchanged. The
+      // persona (stu-1) is exempt: as the golden-path protagonist it must be
+      // approved in its live cohort (ADR-0044) and its just-ended runway
+      // (ADR-0024), not left to the lottery — a shift in its course list would
+      // otherwise flip the live enrolment to withdrawn and strand it on an empty
+      // calendar week.
       const statusRoll = statusCounter++ % 20
-      if (statusRoll === 0) status = 'pending'
-      if (statusRoll === 1) {
-        status = 'rejected'
-        decidedBy = 'admin'
-        decidedAt = addDays(new Date(enrolledAtIso), 3).toISOString()
-      }
-      if (statusRoll === 2) {
-        status = 'withdrawn'
-        decidedBy = student.id
-        decidedAt = addDays(new Date(enrolledAtIso), 5).toISOString()
+      if (si !== 0) {
+        if (statusRoll === 0) status = 'pending'
+        if (statusRoll === 1) {
+          status = 'rejected'
+          decidedBy = 'admin'
+          decidedAt = addDays(new Date(enrolledAtIso), 3).toISOString()
+        }
+        if (statusRoll === 2) {
+          status = 'withdrawn'
+          decidedBy = student.id
+          decidedAt = addDays(new Date(enrolledAtIso), 5).toISOString()
+        }
       }
 
       enrollments.push({
@@ -559,16 +582,37 @@ function pickAttendanceStatus(): AttendanceStatus {
 }
 
 /**
+ * The Sessions of a Course that seed attendance is recorded for (ADR-0001,
+ * ADR-0044). In-progress Courses (Term contains the epoch) are the calendar's
+ * live worklist, so every recordable Session is marked *except the most recent
+ * one* — leaving a single fresh class to mark per active Course, the "well-run
+ * school with a little left to do" story instead of an all-time backlog. Every
+ * other Course keeps the historic pattern: the ten most recent strictly-past
+ * Sessions (a term-ended Course's older gaps stay unmarked, which is
+ * close-readiness's business, not the calendar's).
+ */
+function markedSessionsFor(course: Course, epoch: Date): ReturnType<typeof sessionsFor> {
+  const sessions = sessionsFor(course)
+  if (courseDisplayState(course, epoch) === 'inProgress') {
+    const recordable = sessions.filter((s) => isSessionRecordable(s, epoch))
+    return recordable.slice(0, Math.max(0, recordable.length - 1))
+  }
+  const epochDay = startOfDay(epoch)
+  return sessions
+    .filter((s) => startOfDay(new Date(s.date)).getTime() < epochDay.getTime())
+    .slice(-10)
+}
+
+/**
  * Attendance is recorded per derived Session (ADR-0001): for every enrollment,
- * the most recent past Sessions of its Course. Records bind to real Sessions by
- * construction, so an attendance date can never land where no class met.
+ * the Sessions {@link markedSessionsFor} selects. Records bind to real Sessions
+ * by construction, so an attendance date can never land where no class met.
  */
 function buildAttendance(
   epoch: Date,
   enrollments: Enrollment[],
   courses: Course[]
 ): AttendanceRecord[] {
-  const epochDay = startOfDay(epoch)
   const courseById = new Map(courses.map((c) => [c.id, c]))
   const records: AttendanceRecord[] = []
   let counter = 0
@@ -576,10 +620,7 @@ function buildAttendance(
   enrollments.forEach((enrollment) => {
     const course = courseById.get(enrollment.courseId)
     if (!course) return
-    const pastSessions = sessionsFor(course).filter(
-      (s) => startOfDay(new Date(s.date)).getTime() < epochDay.getTime()
-    )
-    pastSessions.slice(-10).forEach((session) => {
+    markedSessionsFor(course, epoch).forEach((session) => {
       records.push({
         id: `att-${(counter += 1)}`,
         courseId: enrollment.courseId,
@@ -852,6 +893,24 @@ function buildTcuTrainees(epoch: Date, courses: Course[]): TcuTrainee[] {
       createdAt: subDays(epoch, faker.number.int({ min: 30, max: 210 })).toISOString(),
     })
   })
+
+  // Pin the TCU persona to an in-progress Course so it lands on a live week
+  // (ADR-0044). The unconstrained faker roll lands wherever — here it hit an
+  // ended cohort, leaving tcu-1 with an empty calendar. We derive the target
+  // (the teacher persona's live tue/thu cohort, plan-9) and override courseId +
+  // sede *after* the selection above, so the RNG stream — and every other
+  // trainee's assignment — is byte-for-byte unchanged.
+  const persona = trainees.find((t) => t.id === TCU_PERSONA_ID)
+  const liveTeacherCohort = courses.find(
+    (c) =>
+      c.teacherId === `tea-${TEACHER_PERSONA_INDEX + 1}` &&
+      courseDisplayState(c, epoch) === 'inProgress' &&
+      c.meetingDays.includes('tue')
+  )
+  if (persona && liveTeacherCohort) {
+    persona.courseId = liveTeacherCohort.id
+    persona.sede = liveTeacherCohort.sede
+  }
 
   return trainees
 }
