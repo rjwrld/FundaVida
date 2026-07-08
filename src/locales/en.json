@@ -363,6 +363,13 @@
       "title": "Course",
       "unassignedTeacher": "Unassigned"
     },
+    "displayState": {
+      "draft": "Draft",
+      "finished": "Finished",
+      "inProgress": "In progress",
+      "startsSoon": "Starts soon",
+      "termEnded": "Term ended"
+    },
     "empty": {
       "body": "Create your first course to start tracking enrollments and grades.",
       "cta": "Add course",

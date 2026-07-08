@@ -368,6 +368,13 @@
       "title": "Curso",
       "unassignedTeacher": "Sin asignar"
     },
+    "displayState": {
+      "draft": "Borrador",
+      "finished": "Finalizado",
+      "inProgress": "En curso",
+      "startsSoon": "Por iniciar",
+      "termEnded": "Término finalizado"
+    },
     "empty": {
       "body": "Crea el primer curso para empezar a registrar matrículas y notas.",
       "cta": "Agregar curso",

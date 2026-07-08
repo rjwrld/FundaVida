@@ -1,6 +1,29 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useStore } from '../store'
 import { clearPersistedCurrentUser, clearPersistedRole, clearPersistedState } from '../persistence'
+import { clock } from '@/lib/clock'
+import { isOpenForEnrollment } from '@/lib/courseDisplayState'
+
+/**
+ * An open (Starts soon / In progress) published Course paired with a same-Sede,
+ * same-level Student not yet enrolled — the precondition for a successful
+ * enrollStudent (the ADR-0042 gate + ADR-0011/0020 guards).
+ */
+function openEnrollablePair() {
+  const now = clock.now()
+  const state = useStore.getState()
+  for (const course of state.courses) {
+    if (course.status !== 'published' || !isOpenForEnrollment(course, now)) continue
+    const student = state.students.find(
+      (s) =>
+        s.sede === course.sede &&
+        s.educationalLevel === course.level &&
+        !state.enrollments.some((e) => e.studentId === s.id && e.courseId === course.id)
+    )
+    if (student) return { student, course }
+  }
+  throw new Error('seed has no open enrollable (student, course) pair')
+}
 
 describe('audit log characterization', () => {
   beforeEach(() => {
@@ -501,20 +524,9 @@ describe('audit log characterization', () => {
 
   describe('enrollStudent audit entry', () => {
     it('appends audit entry with correct action, entity, entityId, and summary', () => {
-      let store = useStore.getState()
-      const student = store.students[0]
-      const course = store.courses[0]
-      if (!student || !course) throw new Error('no student or course in seed')
-      // Unenroll if already enrolled to start fresh
-      const existingEnrollment = store.enrollments.find(
-        (e) => e.studentId === student.id && e.courseId === course.id
-      )
-      if (existingEnrollment) {
-        store.unenrollStudent(existingEnrollment.id)
-        store = useStore.getState()
-      }
-      const enrollment = store.enrollStudent(student.id, course.id)
-      store = useStore.getState()
+      const { student, course } = openEnrollablePair()
+      const enrollment = useStore.getState().enrollStudent(student.id, course.id)
+      const store = useStore.getState()
       expect(store.auditLog[0]?.action).toBe('enroll')
       expect(store.auditLog[0]?.entity).toBe('enrollment')
       expect(store.auditLog[0]?.entityId).toBe(enrollment.id)
@@ -522,23 +534,11 @@ describe('audit log characterization', () => {
     })
 
     it('does not append duplicate audit entry if already enrolled', () => {
-      let store = useStore.getState()
-      const student = store.students[0]
-      const course = store.courses[0]
-      if (!student || !course) throw new Error('no student or course in seed')
-      const existingEnrollment = store.enrollments.find(
-        (e) => e.studentId === student.id && e.courseId === course.id
-      )
-      if (existingEnrollment) {
-        store.unenrollStudent(existingEnrollment.id)
-        store = useStore.getState()
-      }
-      store.enrollStudent(student.id, course.id)
-      store = useStore.getState()
-      const logLengthAfterFirst = store.auditLog.length
-      store.enrollStudent(student.id, course.id)
-      store = useStore.getState()
-      expect(store.auditLog.length).toBe(logLengthAfterFirst)
+      const { student, course } = openEnrollablePair()
+      useStore.getState().enrollStudent(student.id, course.id)
+      const logLengthAfterFirst = useStore.getState().auditLog.length
+      useStore.getState().enrollStudent(student.id, course.id)
+      expect(useStore.getState().auditLog.length).toBe(logLengthAfterFirst)
     })
   })
 

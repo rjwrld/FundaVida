@@ -21,6 +21,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { CoursesEmpty } from '@/components/empty-states/CoursesEmpty'
 import { CourseFormDialog } from '@/components/courses/CourseFormDialog'
+import { CourseStateBadge } from '@/components/courses/CourseStateBadge'
 import { useCourses, useDeleteCourse, usePublishCourse } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
 import { can } from '@/permissions'
@@ -98,18 +99,10 @@ export function CoursesListPage() {
     {
       id: 'status',
       header: t('courses.list.columns.status'),
-      cell: (c) => (
-        <span
-          className={`text-xs font-medium px-2 py-1 rounded ${
-            c.status === 'published'
-              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-          }`}
-          data-testid={`course-status-${c.status}`}
-        >
-          {t(`courses.status.${c.status}`)}
-        </span>
-      ),
+      // The derived display state (ADR-0042), rendered through the one shared
+      // badge. The testid stays keyed on the stored status so row-scoped test
+      // hooks (e2e) keep resolving.
+      cell: (c) => <CourseStateBadge course={c} data-testid={`course-status-${c.status}`} />,
     },
   ]
   if (canActOnRows) {

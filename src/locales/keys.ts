@@ -73,6 +73,13 @@ t('courses.status.draft')
 t('courses.status.published')
 t('courses.status.closed')
 
+// Keys referenced dynamically via t(`courses.displayState.${state}`) in CourseStateBadge (ADR-0042)
+t('courses.displayState.draft')
+t('courses.displayState.startsSoon')
+t('courses.displayState.inProgress')
+t('courses.displayState.termEnded')
+t('courses.displayState.finished')
+
 // Keys referenced via t('courses.list.columns.status') and t('courses.list.publishButton')
 t('courses.list.columns.status')
 t('courses.list.publishButton')

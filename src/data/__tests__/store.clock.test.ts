@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import { addDays, subDays } from 'date-fns'
 import { useStore } from '../store'
 import { clearPersistedCurrentUser, clearPersistedRole, clearPersistedState } from '../persistence'
 import { clock, setDemoEpoch } from '@/lib/clock'
@@ -52,6 +53,23 @@ describe('store writes stamp timestamps from the clock, not wall-time (ADR-0014)
       .getState()
       .courses.find((c) => c.sede === 'Linda Vista' && c.status === 'published')
     if (!course) throw new Error('seed: no published Linda Vista course')
+    // The clock is frozen far in the future (FROZEN); the seed's ~real-time Term
+    // would read as "Term ended", tripping the enrollment gate (ADR-0042). Re-anchor
+    // this course's Term around FROZEN so it is open for enrollment — orthogonal to
+    // the timestamp-stamping these tests actually assert.
+    useStore.setState((s) => ({
+      courses: s.courses.map((c) =>
+        c.id === course.id
+          ? {
+              ...c,
+              term: {
+                start: subDays(FROZEN, 30).toISOString(),
+                end: addDays(FROZEN, 30).toISOString(),
+              },
+            }
+          : c
+      ),
+    }))
     return course.id
   }
 

@@ -1,13 +1,49 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import { subDays } from 'date-fns'
 import { useStore } from '../store'
 import { clearPersistedState, clearPersistedRole, clearPersistedCurrentUser } from '../persistence'
 import { applyScope } from '../api/scope'
 import { api } from '../api'
+import { clock } from '@/lib/clock'
+import { isOpenForEnrollment } from '@/lib/courseDisplayState'
+import type { Student } from '@/types'
 
 function getStudent() {
   const student = useStore.getState().students[0]
   if (!student) throw new Error('No student in seed')
   return student
+}
+
+/**
+ * A published Course at the Student's Sede + level, in the open enrollment window
+ * (ADR-0042), that the Student holds no enrollment record for at all. This is the
+ * shared precondition for the request flow tests: the allowed-window regression,
+ * the re-pend/withdraw/short-circuit cases (which need a fresh course), and the
+ * rejection cases (which mutate this course into a closed window).
+ */
+function findOpenRequestableCourse(student: Student) {
+  const now = clock.now()
+  const course = useStore
+    .getState()
+    .courses.find(
+      (c) =>
+        c.status === 'published' &&
+        c.sede === student.sede &&
+        c.level === student.educationalLevel &&
+        isOpenForEnrollment(c, now) &&
+        !useStore
+          .getState()
+          .enrollments.some((e) => e.studentId === student.id && e.courseId === c.id)
+    )
+  if (!course) throw new Error('seed has no open requestable course at the student Sede + level')
+  return course
+}
+
+/** Overwrite one Course in the store (test-only staging of a display state). */
+function patchCourse(courseId: string, patch: Partial<import('@/types').Course>) {
+  useStore.setState((s) => ({
+    courses: s.courses.map((c) => (c.id === courseId ? { ...c, ...patch } : c)),
+  }))
 }
 
 describe('enrollment request mutations', () => {
@@ -19,39 +55,68 @@ describe('enrollment request mutations', () => {
   })
 
   describe('requestEnrollment', () => {
-    it('creates a pending enrollment when student requests a course', () => {
+    it('creates a pending enrollment when student requests an open course (mid-Term allowed)', () => {
       useStore.getState().setRole('student')
-      const state = useStore.getState()
       const student = getStudent()
 
-      // Find a browseable course
-      const browseableCourse = state.courses.find(
-        (c) =>
-          c.status === 'published' &&
-          c.sede === student.sede &&
-          c.level === student.educationalLevel &&
-          !student.enrolledCourseIds.includes(c.id)
-      )
+      // Requests are accepted while the Course is Starts soon / In progress
+      // (ADR-0042); this doubles as the allowed-window regression guard.
+      const browseableCourse = findOpenRequestableCourse(student)
+      const initialEnrollmentCount = useStore.getState().enrollments.length
+      const enrollment = useStore.getState().requestEnrollment(student.id, browseableCourse.id)
 
-      expect(browseableCourse).toBeDefined()
+      expect(enrollment).toBeDefined()
+      expect(enrollment.studentId).toBe(student.id)
+      expect(enrollment.courseId).toBe(browseableCourse.id)
+      expect(enrollment.status).toBe('pending')
+      expect(enrollment.requestedAt).toBeDefined()
+      expect(enrollment.decidedBy).toBeUndefined()
+      expect(enrollment.decidedAt).toBeUndefined()
 
-      expect(browseableCourse).toBeDefined()
-      if (browseableCourse) {
-        const initialEnrollmentCount = state.enrollments.length
-        const enrollment = useStore.getState().requestEnrollment(student.id, browseableCourse.id)
+      const newState = useStore.getState()
+      expect(newState.enrollments.length).toBe(initialEnrollmentCount + 1)
+    })
 
-        expect(enrollment).toBeDefined()
-        expect(enrollment.studentId).toBe(student.id)
-        expect(enrollment.courseId).toBe(browseableCourse.id)
-        expect(enrollment.status).toBe('pending')
-        expect(enrollment.requestedAt).toBeDefined()
-        expect(enrollment.decidedBy).toBeUndefined()
-        expect(enrollment.decidedAt).toBeUndefined()
+    describe('term-end enrollment gate (ADR-0042)', () => {
+      it('rejects a request once the Course Term has ended', () => {
+        useStore.getState().setRole('student')
+        const student = getStudent()
+        const course = findOpenRequestableCourse(student)
+        const now = clock.now()
+        // Seal the Term in the past — same Sede + level, so the gate (not the
+        // Sede/level guards, which run first) is what rejects.
+        patchCourse(course.id, {
+          term: { start: subDays(now, 30).toISOString(), end: subDays(now, 1).toISOString() },
+        })
 
-        // Check that enrollment was added
-        const newState = useStore.getState()
-        expect(newState.enrollments.length).toBe(initialEnrollmentCount + 1)
-      }
+        const before = useStore.getState().enrollments.length
+        expect(() => useStore.getState().requestEnrollment(student.id, course.id)).toThrow(
+          /not open for enrollment/
+        )
+        expect(useStore.getState().enrollments.length).toBe(before)
+      })
+
+      it('rejects a request against a draft Course', () => {
+        useStore.getState().setRole('student')
+        const student = getStudent()
+        const course = findOpenRequestableCourse(student)
+        patchCourse(course.id, { status: 'draft' })
+
+        expect(() => useStore.getState().requestEnrollment(student.id, course.id)).toThrow(
+          /not open for enrollment/
+        )
+      })
+
+      it('rejects a request against a closed Course', () => {
+        useStore.getState().setRole('student')
+        const student = getStudent()
+        const course = findOpenRequestableCourse(student)
+        patchCourse(course.id, { status: 'closed' })
+
+        expect(() => useStore.getState().requestEnrollment(student.id, course.id)).toThrow(
+          /not open for enrollment/
+        )
+      })
     })
 
     it('throws when student tries to request a course at different sede', () => {
@@ -95,17 +160,7 @@ describe('enrollment request mutations', () => {
       const state = useStore.getState()
       const student = getStudent()
 
-      const browseableCourse = state.courses.find(
-        (c) =>
-          c.status === 'published' &&
-          c.sede === student.sede &&
-          c.level === student.educationalLevel &&
-          !student.enrolledCourseIds.includes(c.id)
-      )
-
-      if (!browseableCourse) {
-        return
-      }
+      const browseableCourse = findOpenRequestableCourse(student)
 
       const initialAuditCount = state.auditLog.length
       useStore.getState().requestEnrollment(student.id, browseableCourse.id)
@@ -122,16 +177,7 @@ describe('enrollment request mutations', () => {
 
       // Any course the student can browse; admin rejects (unconditional approve),
       // which decouples the test from teacher↔course ownership.
-      const course = useStore
-        .getState()
-        .courses.find(
-          (c) =>
-            c.status === 'published' &&
-            c.sede === student.sede &&
-            c.level === student.educationalLevel &&
-            !student.enrolledCourseIds.includes(c.id)
-        )
-      if (!course) return
+      const course = findOpenRequestableCourse(student)
 
       // Student requests; admin rejects.
       useStore.getState().setRole('student')
@@ -161,16 +207,7 @@ describe('enrollment request mutations', () => {
     it('re-pends the same record after a withdrawal', () => {
       useStore.getState().setRole('student')
       const student = getStudent()
-      const course = useStore
-        .getState()
-        .courses.find(
-          (c) =>
-            c.status === 'published' &&
-            c.sede === student.sede &&
-            c.level === student.educationalLevel &&
-            !student.enrolledCourseIds.includes(c.id)
-        )
-      if (!course) return
+      const course = findOpenRequestableCourse(student)
 
       const requested = useStore.getState().requestEnrollment(student.id, course.id)
       useStore.getState().withdrawEnrollmentRequest(requested.id)
@@ -188,16 +225,7 @@ describe('enrollment request mutations', () => {
 
     it('short-circuits (no-op) when an approved enrollment already exists', () => {
       const student = getStudent()
-      const course = useStore
-        .getState()
-        .courses.find(
-          (c) =>
-            c.status === 'published' &&
-            c.sede === student.sede &&
-            c.level === student.educationalLevel &&
-            !student.enrolledCourseIds.includes(c.id)
-        )
-      if (!course) return
+      const course = findOpenRequestableCourse(student)
 
       // Build an approved enrollment: student requests, admin approves.
       useStore.getState().setRole('student')
@@ -221,47 +249,26 @@ describe('enrollment request mutations', () => {
   describe('withdrawEnrollmentRequest', () => {
     it('changes pending enrollment status to withdrawn', () => {
       useStore.getState().setRole('student')
-      const state = useStore.getState()
       const student = getStudent()
 
-      const browseableCourse = state.courses.find(
-        (c) =>
-          c.status === 'published' &&
-          c.sede === student.sede &&
-          c.level === student.educationalLevel &&
-          !student.enrolledCourseIds.includes(c.id)
-      )
+      const browseableCourse = findOpenRequestableCourse(student)
 
-      expect(browseableCourse).toBeDefined()
-      if (browseableCourse) {
-        // Create a pending enrollment
-        const enrollment = useStore.getState().requestEnrollment(student.id, browseableCourse.id)
+      // Create a pending enrollment
+      const enrollment = useStore.getState().requestEnrollment(student.id, browseableCourse.id)
 
-        // Withdraw it
-        useStore.getState().withdrawEnrollmentRequest(enrollment.id)
+      // Withdraw it
+      useStore.getState().withdrawEnrollmentRequest(enrollment.id)
 
-        const newState = useStore.getState()
-        const updatedEnrollment = newState.enrollments.find((e) => e.id === enrollment.id)
-        expect(updatedEnrollment?.status).toBe('withdrawn')
-      }
+      const newState = useStore.getState()
+      const updatedEnrollment = newState.enrollments.find((e) => e.id === enrollment.id)
+      expect(updatedEnrollment?.status).toBe('withdrawn')
     })
 
     it('emits an audit entry when request is withdrawn', () => {
       useStore.getState().setRole('student')
-      const state = useStore.getState()
       const student = getStudent()
 
-      const browseableCourse = state.courses.find(
-        (c) =>
-          c.status === 'published' &&
-          c.sede === student.sede &&
-          c.level === student.educationalLevel &&
-          !student.enrolledCourseIds.includes(c.id)
-      )
-
-      if (!browseableCourse) {
-        return
-      }
+      const browseableCourse = findOpenRequestableCourse(student)
 
       const enrollment = useStore.getState().requestEnrollment(student.id, browseableCourse.id)
       const initialAuditCount = useStore.getState().auditLog.length
