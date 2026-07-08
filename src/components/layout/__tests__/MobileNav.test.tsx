@@ -90,6 +90,19 @@ describe('<MobileNav />', () => {
     expect(screen.queryByRole('link', { name: 'Courses' })).not.toBeInTheDocument()
   })
 
+  // The drawer's job on a phone is navigation; the pinned NeedHelpCard used to
+  // eat ~150px and push the last nav sections behind the scroll edge (#272). It
+  // stays on the desktop AppSidebar, not here.
+  it('does not render the Need-help card in the drawer', async () => {
+    const user = userEvent.setup()
+    useStore.getState().setRole('admin')
+    renderMobileNav()
+
+    await user.click(screen.getByRole('button', { name: /open navigation/i }))
+
+    expect(screen.queryByText('Need help?')).not.toBeInTheDocument()
+  })
+
   // The sheet's own bg-background used to be overridden by a translucent
   // bg-muted/20 (tailwind-merge keeps the caller's class), rendering the
   // drawer see-through over the page content.
