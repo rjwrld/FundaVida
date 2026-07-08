@@ -124,6 +124,9 @@ test('student requests a course and withdraws the request without reload (ADR-00
   page,
 }) => {
   await enterAs(page, 'student')
+  // The dashboard's browse shortcut card is gone (ADR-0043); the browse-and-request
+  // entry now lives on the Courses page.
+  await page.goto('/app/courses')
   await page.getByRole('link', { name: 'Browse open courses' }).click()
   await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
 
@@ -161,6 +164,7 @@ test('Browse list surfaces only open courses — a Term-ended cohort is hidden y
   page,
 }) => {
   await enterAs(page, 'student')
+  await page.goto('/app/courses')
   await page.getByRole('link', { name: 'Browse open courses' }).click()
   await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
 
@@ -182,6 +186,7 @@ test('Browse list surfaces only open courses — a Term-ended cohort is hidden y
 
 test('student can re-request a course after withdrawing the prior request', async ({ page }) => {
   await enterAs(page, 'student')
+  await page.goto('/app/courses')
   await page.getByRole('link', { name: 'Browse open courses' }).click()
   await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
 

@@ -4,74 +4,62 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
 import { setDemoEpoch } from '@/lib/clock'
+import { useStore } from '@/data/store'
+import {
+  clearPersistedCurrentUser,
+  clearPersistedRole,
+  clearPersistedState,
+} from '@/data/persistence'
 import { StudentDashboard } from '../StudentDashboard'
 
-describe('StudentDashboard — hero + supporting layout', () => {
-  const EPOCH = new Date('2026-06-23T15:30:00.000Z')
-  let queryClient: QueryClient
+const EPOCH = new Date('2026-06-23T15:30:00.000Z')
 
+function renderDashboard() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(
+    <I18nProvider>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <StudentDashboard />
+        </MemoryRouter>
+      </QueryClientProvider>
+    </I18nProvider>
+  )
+}
+
+describe('StudentDashboard — content-first (ADR-0043)', () => {
   beforeEach(() => {
     setDemoEpoch(EPOCH)
-    queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    })
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('student')
+    useStore.getState().setLocale('en')
   })
 
-  it('renders next class as hero widget', () => {
-    const { container } = render(
-      <I18nProvider>
-        <QueryClientProvider client={queryClient}>
-          <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <StudentDashboard />
-          </MemoryRouter>
-        </QueryClientProvider>
-      </I18nProvider>
-    )
-    // Student hero: next class (next course session).
-    // Should appear in the dashboard.
-    expect(container).toBeInTheDocument()
+  it('leads with the My-courses roll-up and the announcements feed', async () => {
+    renderDashboard()
+    // The self-view roll-up table (buildStudentProgress) heads the surface…
+    expect(screen.getByRole('heading', { name: 'My courses' })).toBeInTheDocument()
+    // …and the enrolled-Courses announcements feed resolves in below it.
+    expect(await screen.findByRole('heading', { name: /announcements/i })).toBeInTheDocument()
   })
 
-  it('renders browse open courses link', () => {
-    render(
-      <I18nProvider>
-        <QueryClientProvider client={queryClient}>
-          <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <StudentDashboard />
-          </MemoryRouter>
-        </QueryClientProvider>
-      </I18nProvider>
-    )
-    // Student hero: link to browse open courses (from #116).
-    expect(screen.getByText(/browse/i)).toBeInTheDocument()
+  it('drops the retired navigation shortcut cards', () => {
+    renderDashboard()
+    // Browse / My profile shortcut cards were deleted (the sidebar and Account nav
+    // carry those jobs, ADR-0010/0043).
+    expect(screen.queryByText(/browse open courses/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /my profile/i })).not.toBeInTheDocument()
+    expect(screen.queryByText(/attendance rate this month/i)).not.toBeInTheDocument()
   })
 
-  it('renders a My profile link to /app/me (#166)', () => {
-    render(
-      <I18nProvider>
-        <QueryClientProvider client={queryClient}>
-          <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <StudentDashboard />
-          </MemoryRouter>
-        </QueryClientProvider>
-      </I18nProvider>
-    )
-    const link = screen.getByRole('link', { name: /my profile/i })
-    expect(link).toHaveAttribute('href', '/app/me')
-  })
-
-  it('renders my courses and attendance rate as supporting stats', () => {
-    render(
-      <I18nProvider>
-        <QueryClientProvider client={queryClient}>
-          <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <StudentDashboard />
-          </MemoryRouter>
-        </QueryClientProvider>
-      </I18nProvider>
-    )
-    // Supporting: my courses, attendance rate this month.
-    expect(screen.getByText(/my courses/i)).toBeInTheDocument()
-    expect(screen.getByText(/attendance rate/i)).toBeInTheDocument()
+  it("never shows another role's worklist (no teacher needs-marking)", async () => {
+    renderDashboard()
+    await screen.findByRole('heading', { name: /announcements/i })
+    // The student surface is divergent: it carries no teacher/admin worklist.
+    expect(screen.queryByText(/needs marking/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /courses to close/i })).not.toBeInTheDocument()
   })
 })

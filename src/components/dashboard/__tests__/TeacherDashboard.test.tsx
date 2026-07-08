@@ -4,60 +4,58 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
 import { setDemoEpoch } from '@/lib/clock'
+import { useStore } from '@/data/store'
+import {
+  clearPersistedCurrentUser,
+  clearPersistedRole,
+  clearPersistedState,
+} from '@/data/persistence'
 import { TeacherDashboard } from '../TeacherDashboard'
 
-describe('TeacherDashboard — hero + supporting layout', () => {
-  const EPOCH = new Date('2026-06-23T15:30:00.000Z')
-  let queryClient: QueryClient
+const EPOCH = new Date('2026-06-23T15:30:00.000Z')
 
+function renderDashboard() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(
+    <I18nProvider>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <TeacherDashboard />
+        </MemoryRouter>
+      </QueryClientProvider>
+    </I18nProvider>
+  )
+}
+
+describe('TeacherDashboard — worklist-first (ADR-0043)', () => {
   beforeEach(() => {
     setDemoEpoch(EPOCH)
-    queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    })
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('teacher')
+    useStore.getState().setLocale('en')
   })
 
-  it('renders enrollment approvals queue as hero widget when pending', () => {
-    const { container } = render(
-      <I18nProvider>
-        <QueryClientProvider client={queryClient}>
-          <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <TeacherDashboard />
-          </MemoryRouter>
-        </QueryClientProvider>
-      </I18nProvider>
-    )
-    // Teacher hero: enrollment approvals queue (reuse from #115).
-    // Will only render if there are pending enrollments.
-    expect(container).toBeInTheDocument()
+  it('leads with the needs-marking worklist and courses-to-close', async () => {
+    renderDashboard()
+    // Marking is the most time-sensitive job, so it heads the surface (ADR-0044).
+    expect((await screen.findAllByText(/needs marking/i)).length).toBeGreaterThan(0)
+    expect(screen.getByRole('heading', { name: /courses to close/i })).toBeInTheDocument()
   })
 
-  it('renders next sessions list with mark attendance links', () => {
-    const { container } = render(
-      <I18nProvider>
-        <QueryClientProvider client={queryClient}>
-          <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <TeacherDashboard />
-          </MemoryRouter>
-        </QueryClientProvider>
-      </I18nProvider>
-    )
-    // Teacher hero: next sessions to mark (real list, not just a 0/1 counter).
-    // The component should render without errors.
-    expect(container).toBeInTheDocument()
+  it('carries the supporting reads: upcoming sessions, own courses, announcements', async () => {
+    renderDashboard()
+    expect(screen.getByRole('heading', { name: /next sessions to mark/i })).toBeInTheDocument()
+    // Own courses list (with display-state badges) + the announcements feed.
+    expect(await screen.findByRole('heading', { name: /announcements/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: 'My courses' }).length).toBeGreaterThan(0)
   })
 
-  it('renders create course CTA', () => {
-    render(
-      <I18nProvider>
-        <QueryClientProvider client={queryClient}>
-          <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <TeacherDashboard />
-          </MemoryRouter>
-        </QueryClientProvider>
-      </I18nProvider>
-    )
-    // Teacher should see the "Create a course" button.
-    expect(screen.getByText(/create a course/i)).toBeInTheDocument()
+  it('drops the retired "Author a course" prompt card', () => {
+    renderDashboard()
+    expect(screen.queryByText(/author a course/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /create a course/i })).not.toBeInTheDocument()
   })
 })

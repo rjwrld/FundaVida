@@ -15,6 +15,7 @@ import { tcuHoursByStatus, TCU_TARGET_HOURS } from '@/lib/tcuHours'
 import { clock } from '@/lib/clock'
 import { useFormat } from '@/hooks/useFormat'
 import { TcuActivityList } from './TcuActivityList'
+import { DashboardAnnouncementsFeed } from './DashboardAnnouncementsFeed'
 import { DashboardShell } from './DashboardShell'
 
 export function TcuDashboard() {
@@ -145,6 +146,11 @@ export function TcuDashboard() {
           format={(v) => `${v}h`}
           icon={<Clock className="size-4" aria-hidden="true" />}
         />
+      </motion.div>
+
+      {/* Supporting: the assigned Course's announcements (ADR-0040/0043). */}
+      <motion.div variants={fadeUp} transition={transitionDefaults}>
+        <DashboardAnnouncementsFeed courseId={assignedCourse?.id} />
       </motion.div>
 
       {/* Supporting: Recent Activities List */}

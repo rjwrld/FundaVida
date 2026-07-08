@@ -172,6 +172,8 @@ test.describe('enrollment approval workflow', () => {
     // Start from a clean seed (no pre-seeded pending) and drive the full UI.
     await seedAndEnter(page, seedDemo(EPOCH), 'student', STUDENT_ID)
 
+    // The browse-and-request entry lives on the Courses page now (ADR-0043).
+    await page.goto('/app/courses')
     await page.getByRole('link', { name: 'Browse open courses' }).click()
     await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
 
