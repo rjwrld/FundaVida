@@ -2,6 +2,8 @@
 
 _Accepted (design grilling 2026-07-07). Sequences after 0039–0042 — it is their display surface._
 
+> **Implementation note (2026-07-08, #252).** The Teacher bullet's "pending Certificate approvals (ADR-0019)" is stale: ADR-0024 removed Certificate approval entirely (closing a Course emits its Certificates already downloadable — no pending state, no `approve` action). A Teacher's real remaining approval worklists are the enrollment-request queue and the TCU-hours queue, so the dashboard leads with those instead. The rest of the spec shipped as written.
+
 The Student, Teacher, and TCU dashboards are mostly navigation shortcut cards ("Browse open courses", "My profile") — duplicating what the sidebar already derives (ADR-0010), and the profile card's job moved into the nav (Account section). Each dashboard becomes a role-divergent, live-data surface, extending to dashboards what ADR-0038 established for the calendar: divergence lives in data and composition, not in new permissions. Everything below reads existing seams — agenda buckets (ADR-0038), `buildStudentProgress` (ADR-0032), close-readiness (ADR-0024/0034), announcements (ADR-0040), display state (ADR-0042). No new stored state.
 
 - **Student** — announcements feed across enrolled Courses; this-week agenda slice; and a **My courses table** (`buildStudentProgress` rows: Course, schedule, display-state badge, attendance %, grade, each row linking to the Course). The table answers "how am I doing where" in one glance — the roll-up ADR-0032 named Student Progress, now on the landing surface. `/app/courses` keeps its browse-and-request job; the dashboard table is the self view, so the two don't overlap.
