@@ -11,20 +11,25 @@ export interface CourseFilters {
   sede?: string
   programId?: string
   scopeOverride?: Scope
+  /**
+   * Restrict a list to cohorts actually open for enrollment (ADR-0042, issue
+   * #257): a Term-ended (or draft/closed) published course is dropped. The Browse
+   * page opts in explicitly rather than the filter inferring intent from a scope
+   * token — the Term-agnostic `browseable` scope stays reusable for a plain
+   * view-access read that wants Term-ended courses too.
+   */
+  openOnly?: boolean
 }
 
 function applyFilters(courses: Course[], filters: CourseFilters): Course[] {
-  const { search, sede, programId, scopeOverride } = filters
-  // The Browse *list* (BrowseCoursesPage, `browseable` scope) surfaces only
-  // cohorts actually open for enrollment (ADR-0042, issue #257): a Term-ended (or
-  // draft/closed) published course must not appear in a list literally titled
-  // "open courses". This narrows the Term-agnostic `browseable` scope — which
-  // stays wide so `get` can still serve a Term-ended course's viewable detail
-  // (the single-record path bypasses applyFilters). One term-end seam:
-  // `isOpenForEnrollment`, no re-derivation of the Term boundary here.
+  const { search, sede, programId, openOnly } = filters
+  // `openOnly` narrows the Term-agnostic `browseable` scope so a list titled
+  // "open courses" surfaces only enrollable cohorts, while `get` (which bypasses
+  // applyFilters) can still serve a Term-ended course's viewable detail. One
+  // term-end seam: `isOpenForEnrollment`, no re-derivation of the Term boundary.
   const now = clock.now()
   return courses.filter((c) => {
-    if (scopeOverride === 'browseable' && !isOpenForEnrollment(c, now)) return false
+    if (openOnly && !isOpenForEnrollment(c, now)) return false
     if (search && !`${c.name} ${c.description}`.toLowerCase().includes(search.toLowerCase())) {
       return false
     }
