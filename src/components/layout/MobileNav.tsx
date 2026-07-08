@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { NavSections } from '@/components/layout/NavSections'
-import { NeedHelpCard } from '@/components/layout/NeedHelpCard'
 import { useStore } from '@/data/store'
 
 // The mobile complement to the desktop AppSidebar: a hamburger (visible md:hidden,
@@ -60,7 +59,6 @@ export function MobileNav() {
       >
         <SheetTitle className="sr-only">{t('sidebar.navAriaLabel')}</SheetTitle>
         <NavSections role={role} className="flex-1 px-3 py-5" onNavigate={() => setOpen(false)} />
-        <NeedHelpCard />
       </SheetContent>
     </Sheet>
   )
