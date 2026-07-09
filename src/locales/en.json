@@ -154,6 +154,10 @@
     },
     "recipientCount_one": "{{count}} recipient will receive this email.",
     "recipientCount_other": "{{count}} recipients will receive this email.",
+    "sender": {
+      "admin": "Administration",
+      "system": "System"
+    },
     "sending": "Sending…",
     "submit": "Send",
     "subtitle": "Draft a message, pick recipients, send (simulated).",
