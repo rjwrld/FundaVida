@@ -31,9 +31,19 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v14 key', () => {
+  it('persists state under the v15 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v14:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v15:state')).not.toBeNull()
+  })
+
+  it('reseeds from a stale v14 snapshot and removes the stale v14 state key (ADR-0045)', () => {
+    // A returning v14 visitor's outbox is in English. The snapshot is structurally
+    // valid — only the key bump makes it stale — so it is dropped and the world
+    // reseeds with the Spanish campaign bodies.
+    window.localStorage.setItem('fundavida:v14:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v14:state')).toBeNull()
   })
 
   it('reseeds from a stale v13 snapshot and removes the stale v13 state key (ADR-0041)', () => {

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { resolveRecipients, recipientEmails } from '../emailRecipients'
-import type { Student, Course, Enrollment } from '@/types'
+import type { TFunction } from 'i18next'
+import { resolveRecipients, recipientEmails, emailFilterLabel } from '../emailRecipients'
+import type { Program, Student, Course, Enrollment } from '@/types'
 
 function iso() {
   return new Date().toISOString()
@@ -140,5 +141,40 @@ describe('recipientEmails', () => {
 
   it('returns [] for no students', () => {
     expect(recipientEmails([], 'both')).toEqual([])
+  })
+})
+
+describe('emailFilterLabel', () => {
+  // A stand-in for i18next: echoes the key so the assertions read as key shapes.
+  const t = ((key: string) => key) as unknown as TFunction
+  const programs: Program[] = [{ id: 'pro-1', name: 'Robótica', description: '' }]
+
+  it('names the filter kind for the value-less "all" filter', () => {
+    expect(emailFilterLabel({ kind: 'all' }, programs, t)).toBe('bulkEmail.filter.all')
+  })
+
+  it('resolves a program filter to the Program name, never its id', () => {
+    expect(emailFilterLabel({ kind: 'program', value: 'pro-1' }, programs, t)).toBe(
+      'bulkEmail.filter.program: Robótica'
+    )
+  })
+
+  it('falls back to the raw value when the Program is gone', () => {
+    expect(emailFilterLabel({ kind: 'program', value: 'pro-9' }, programs, t)).toBe(
+      'bulkEmail.filter.program: pro-9'
+    )
+  })
+
+  it('appends the raw value for province and course filters', () => {
+    expect(emailFilterLabel({ kind: 'province', value: 'San José' }, programs, t)).toBe(
+      'bulkEmail.filter.province: San José'
+    )
+    expect(emailFilterLabel({ kind: 'course', value: 'cou-1' }, programs, t)).toBe(
+      'bulkEmail.filter.course: cou-1'
+    )
+  })
+
+  it('omits the suffix when a non-"all" filter has no value yet (a half-filled draft)', () => {
+    expect(emailFilterLabel({ kind: 'program' }, programs, t)).toBe('bulkEmail.filter.program')
   })
 })

@@ -840,8 +840,15 @@ function buildEmailCampaigns(
   }[] = [
     {
       id: 'cam-1',
-      subject: 'Welcome to the new term',
-      body: 'Hello students — our new term begins soon. Please review the schedule and confirm your attendance.',
+      subject: 'Bienvenidos al nuevo trimestre',
+      body: `Estimadas y estimados estudiantes:
+
+Con mucha alegría les damos la bienvenida al nuevo trimestre. Las clases inician la próxima semana en las tres sedes y ya pueden consultar el horario completo desde su perfil en la plataforma.
+
+Les pedimos confirmar su asistencia antes del viernes. Si necesitan cambiar de horario o tienen alguna dificultad para asistir, escríbannos y buscamos una solución juntos.
+
+Nos vemos pronto,
+Equipo FundaVida`,
       filter: { kind: 'all' },
       audience: 'students',
       sentBy: 'admin',
@@ -849,8 +856,14 @@ function buildEmailCampaigns(
     },
     {
       id: 'cam-2',
-      subject: `${programName} program: upcoming session`,
-      body: `${programName} families — a reminder about your child's upcoming sessions and what to bring.`,
+      subject: `Programa ${programName}: próximas sesiones`,
+      body: `Familias del programa ${programName}:
+
+Les recordamos que las sesiones de este mes continúan según el horario habitual. Cada estudiante debe traer su cuaderno de apuntes y, de ser posible, una botella de agua.
+
+Las personas encargadas pueden acompañar a sus hijas e hijos el primer día. Aprovechamos para agradecerles el compromiso que han mostrado con la asistencia.
+
+Cualquier consulta, con gusto la atendemos.`,
       filter: { kind: 'program', value: programId },
       audience: 'both',
       sentBy: 'admin',
@@ -858,8 +871,14 @@ function buildEmailCampaigns(
     },
     {
       id: 'cam-3',
-      subject: `${province}: holiday schedule`,
-      body: `Encargados in ${province} — please review the updated holiday schedule attached to the bulletin.`,
+      subject: `Horario de feriados en ${province}`,
+      body: `Estimadas personas encargadas:
+
+Les compartimos el horario actualizado de feriados para la provincia de ${province}. Los días feriados no habrá lecciones y las sesiones se reponen la semana siguiente en el mismo horario.
+
+Agradecemos revisar el calendario junto con sus hijas e hijos para que nadie se presente en un día sin clases.
+
+Muchas gracias por su atención.`,
       filter: { kind: 'province', value: province },
       audience: 'guardians',
       sentBy: 'admin',
@@ -870,8 +889,14 @@ function buildEmailCampaigns(
       ? [
           {
             id: 'cam-4',
-            subject: `${teacherCourse.name}: this week's class`,
-            body: `Students and families of ${teacherCourse.name} — a quick note about this week's session and materials.`,
+            subject: `${teacherCourse.name}: la clase de esta semana`,
+            body: `Estudiantes y familias del curso ${teacherCourse.name}:
+
+Esta semana trabajaremos en el proyecto final del módulo, así que la asistencia es especialmente importante. Quienes falten a la sesión tendrán que ponerse al día por su cuenta.
+
+Por favor traigan los materiales que utilizamos la clase pasada. Si alguien perdió los suyos, avísenme con anticipación y los reponemos desde la sede.
+
+Un saludo cordial.`,
             filter: { kind: 'course' as const, value: teacherCourse.id },
             audience: 'both' as const,
             sentBy: teacherId,

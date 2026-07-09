@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -11,7 +11,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { EmailCampaignForm } from '@/components/email/EmailCampaignForm'
-import { recipientEmails } from '@/lib/emailRecipients'
+import { EmailPreviewDialog } from '@/components/email/EmailPreviewDialog'
+import { emailFilterLabel, recipientEmails } from '@/lib/emailRecipients'
 import { useEmailCampaigns } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
@@ -22,9 +23,27 @@ export function BulkEmailPage() {
   const students = useStore((s) => s.students)
   const programs = useStore((s) => s.programs)
   const { data: history = [] } = useEmailCampaigns()
+  const [openedId, setOpenedId] = useState<string | null>(null)
 
-  const programById = useMemo(() => new Map(programs.map((p) => [p.id, p])), [programs])
   const studentById = useMemo(() => new Map(students.map((s) => [s.id, s])), [students])
+
+  // The recipient count is over emails, not Students (ADR-0041): reproduce each
+  // sent audience's email list from the stored recipient Students.
+  const rows = useMemo(
+    () =>
+      history.map((campaign) => {
+        const recipientStudents = campaign.recipientIds
+          .map((id) => studentById.get(id))
+          .filter((s) => s !== undefined)
+        return {
+          campaign,
+          emailCount: recipientEmails(recipientStudents, campaign.audience).length,
+        }
+      }),
+    [history, studentById]
+  )
+
+  const opened = rows.find((row) => row.campaign.id === openedId)
 
   return (
     <div className="space-y-6">
@@ -44,7 +63,7 @@ export function BulkEmailPage() {
           <CardTitle>{t('bulkEmail.history.title')}</CardTitle>
         </CardHeader>
         <CardContent>
-          {history.length === 0 ? (
+          {rows.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t('bulkEmail.history.empty')}</p>
           ) : (
             <Table>
@@ -60,38 +79,44 @@ export function BulkEmailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {history.map((c) => {
-                  // The recipient count is over emails, not Students (ADR-0041):
-                  // reproduce the sent audience's email list from the stored
-                  // recipient Students.
-                  const recipientStudents = c.recipientIds
-                    .map((id) => studentById.get(id))
-                    .filter((s) => s !== undefined)
-                  const emailCount = recipientEmails(recipientStudents, c.audience).length
-                  return (
-                    <TableRow key={c.id}>
-                      <TableCell>{c.subject}</TableCell>
-                      <TableCell>
-                        {t(`bulkEmail.filter.${c.filter.kind}`)}
-                        {c.filter.value
-                          ? `: ${
-                              c.filter.kind === 'program'
-                                ? (programById.get(c.filter.value)?.name ?? c.filter.value)
-                                : c.filter.value
-                            }`
-                          : ''}
-                      </TableCell>
-                      <TableCell>{t(`bulkEmail.audience.${c.audience}`)}</TableCell>
-                      <TableCell className="text-right">{formatNumber(emailCount)}</TableCell>
-                      <TableCell>{formatDateTime(c.sentAt)}</TableCell>
-                    </TableRow>
-                  )
-                })}
+                {rows.map(({ campaign, emailCount }) => (
+                  <TableRow key={campaign.id}>
+                    <TableCell>
+                      {/* The subject opens the sent artifact (ADR-0045). No new
+                          route and no new permission — it rides `bulkEmail` view. */}
+                      <button
+                        type="button"
+                        onClick={() => setOpenedId(campaign.id)}
+                        className="text-left font-medium underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      >
+                        {campaign.subject}
+                      </button>
+                    </TableCell>
+                    <TableCell>{emailFilterLabel(campaign.filter, programs, t)}</TableCell>
+                    <TableCell>{t(`bulkEmail.audience.${campaign.audience}`)}</TableCell>
+                    <TableCell className="text-right">{formatNumber(emailCount)}</TableCell>
+                    <TableCell>{formatDateTime(campaign.sentAt)}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           )}
         </CardContent>
       </Card>
+
+      {opened && (
+        <EmailPreviewDialog
+          open
+          onOpenChange={(next) => !next && setOpenedId(null)}
+          subject={opened.campaign.subject}
+          body={opened.campaign.body}
+          filter={opened.campaign.filter}
+          audience={opened.campaign.audience}
+          recipientCount={opened.emailCount}
+          sender={opened.campaign.sentBy}
+          sentAt={opened.campaign.sentAt}
+        />
+      )}
     </div>
   )
 }
