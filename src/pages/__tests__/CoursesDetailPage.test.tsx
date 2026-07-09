@@ -482,13 +482,52 @@ describe('<CoursesDetailPage /> — Sent messages card (ADR-0046)', () => {
     expect(screen.queryByRole('button', { name: campaign.subject })).not.toBeInTheDocument()
   })
 
-  it('shows an empty state on a Course nobody has messaged', async () => {
+  // "the card shows on every Course the viewer may see, empty-state included"
+  // (ADR-0046) — for BOTH audiences the view permission admits, not just the teacher.
+  it.each(['teacher', 'admin'] as const)(
+    'shows %s an empty state on a Course nobody has messaged',
+    async (role) => {
+      const { publishedOwnCourse } = fixtures()
+      asRole(role)
+      renderPage(publishedOwnCourse.id)
+
+      expect(await screen.findByRole('heading', { name: 'Sent messages' })).toBeInTheDocument()
+      expect(await screen.findByText('No messages sent to this class yet.')).toBeInTheDocument()
+    }
+  )
+
+  it('lands a freshly sent class message in the card, with no reload', async () => {
     const { publishedOwnCourse } = fixtures()
     asRole('teacher')
     renderPage(publishedOwnCourse.id)
 
-    expect(await screen.findByRole('heading', { name: 'Sent messages' })).toBeInTheDocument()
+    // Nothing targets this live cohort yet — cam-4 was sent to the closed one.
     expect(await screen.findByText('No messages sent to this class yet.')).toBeInTheDocument()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Message the class' }))
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.change(within(dialog).getByLabelText('Subject'), {
+      target: { value: 'Materiales de esta semana' },
+    })
+    fireEvent.change(within(dialog).getByLabelText('Body'), {
+      target: { value: 'Traigan su cuaderno de apuntes.' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Send' }))
+
+    // The card shares EMAIL_CAMPAIGNS_KEY with the admin history, so the write-set
+    // invalidation sendEmailCampaign already emits refreshes it for free — no new
+    // `invalidates` entry, and no reload (ADR-0029, ADR-0046). That "free" refresh
+    // is only free while the keys stay prefix-compatible: make the invalidation
+    // `exact`, and this row never arrives.
+    await waitFor(
+      () => {
+        expect(
+          screen.getByRole('button', { name: 'Materiales de esta semana' })
+        ).toBeInTheDocument()
+      },
+      { timeout: 4000 }
+    )
+    expect(screen.queryByText('No messages sent to this class yet.')).not.toBeInTheDocument()
   })
 
   it('sits beside the compose action, above the overview and the feed', async () => {
