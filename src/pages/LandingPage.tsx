@@ -11,7 +11,7 @@ import { ThemeToggle } from '@/components/shared/ThemeToggle'
 export function LandingPage() {
   return (
     <main className="relative">
-      <div className="absolute right-6 top-6 z-50 flex items-center gap-1 rounded-md border bg-background/90 p-1 backdrop-blur">
+      <div className="absolute right-6 top-6 z-50 flex items-center gap-1 rounded-md border bg-background/90 p-1 backdrop-blur-sm">
         <LanguageToggle />
         <ThemeToggle />
       </div>

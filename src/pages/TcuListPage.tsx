@@ -234,7 +234,7 @@ export function TcuListPage() {
                       <TableCell>{formatDate(a.date)}</TableCell>
                       <TableCell>
                         <span
-                          className={`text-xs font-medium px-2 py-1 rounded ${
+                          className={`text-xs font-medium px-2 py-1 rounded-sm ${
                             a.status === 'approved'
                               ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                               : a.status === 'pending'

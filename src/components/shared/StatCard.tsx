@@ -59,7 +59,7 @@ export function StatCard({
       )}
       {...props}
     >
-      <div className="flex min-h-[2.25rem] items-start justify-between gap-3">
+      <div className="flex min-h-9 items-start justify-between gap-3">
         <span className="text-[12px] uppercase tracking-[0.08em] text-muted-foreground">
           {label}
         </span>

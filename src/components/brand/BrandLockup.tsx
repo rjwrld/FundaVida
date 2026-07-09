@@ -25,7 +25,7 @@ export function BrandLockup({
       aria-label="FundaVida"
       onClick={onClick}
       className={cn(
-        'flex shrink-0 items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        'flex shrink-0 items-center gap-2 rounded-md focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         className
       )}
     >

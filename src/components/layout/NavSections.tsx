@@ -23,7 +23,7 @@ export function NavSections({
       <div className="space-y-6">
         {groups.map((group) => (
           <section key={group.section}>
-            <h3 className="px-3 pb-1.5 text-[11px] font-medium uppercase leading-tight tracking-[0.08em] text-muted-foreground/70">
+            <h3 className="px-3 pb-1.5 text-[11px] font-medium uppercase leading-tight tracking-[0.08em] text-muted-foreground">
               {t(`nav.sections.${group.section}`)}
             </h3>
             <ul className="space-y-0.5">
@@ -64,7 +64,7 @@ function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
               'size-4 shrink-0 transition-colors',
               isActive
                 ? 'text-primary-foreground'
-                : 'text-muted-foreground/70 group-hover:text-foreground'
+                : 'text-muted-foreground group-hover:text-foreground'
             )}
           />
           <span className="truncate">{t(item.labelKey)}</span>

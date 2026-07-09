@@ -21,7 +21,7 @@ export function WelcomePage() {
 
   return (
     <main className="relative min-h-screen bg-background">
-      <div className="absolute right-6 top-6 z-50 flex items-center gap-1 rounded-md border bg-background/90 p-1 backdrop-blur">
+      <div className="absolute right-6 top-6 z-50 flex items-center gap-1 rounded-md border bg-background/90 p-1 backdrop-blur-sm">
         <LanguageToggle />
         <ThemeToggle />
       </div>
@@ -47,7 +47,7 @@ export function WelcomePage() {
               key={r.value}
               type="button"
               onClick={() => choose(r.value)}
-              className="group flex flex-col gap-1 rounded-lg border bg-card p-5 text-left transition-colors hover:border-brand-green-500 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="group flex flex-col gap-1 rounded-lg border bg-card p-5 text-left transition-colors hover:border-brand-green-500 hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <span className="flex items-center justify-between gap-2">
                 <span className="font-display text-lg text-foreground">{t(r.labelKey)}</span>

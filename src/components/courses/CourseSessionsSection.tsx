@@ -226,7 +226,7 @@ export function CourseSessionsSection({
               {upcoming.length > UPCOMING_VISIBLE && (
                 <li>
                   <details className="group">
-                    <summary className="cursor-pointer list-none rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    <summary className="cursor-pointer list-none rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring">
                       {t('courses.detail.sessions.showMore', {
                         n: upcoming.length - UPCOMING_VISIBLE,
                       })}
@@ -249,7 +249,7 @@ export function CourseSessionsSection({
           {/* Recorded — collapsed; each row shows its present-count and a Review action. */}
           {showVerdicts && recorded.length > 0 && (
             <details className="group">
-              <summary className="cursor-pointer list-none text-sm font-semibold tracking-tight text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <summary className="cursor-pointer list-none text-sm font-semibold tracking-tight text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring">
                 {`${t('courses.detail.sessions.groups.recorded')} · ${recorded.length}`}
               </summary>
               <ul

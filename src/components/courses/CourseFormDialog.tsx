@@ -162,7 +162,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
           <Label htmlFor="sede">{t('courses.form.fields.sede')}</Label>
           {isTeacher ? (
             <div
-              className="rounded border border-input bg-muted px-3 py-2 text-sm"
+              className="rounded-sm border border-input bg-muted px-3 py-2 text-sm"
               data-testid="sede-locked"
             >
               {watch('sede')}
@@ -309,7 +309,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
         <Label htmlFor="teacherId">{t('courses.form.fields.teacherId')}</Label>
         {isTeacher && !isEdit ? (
           <div
-            className="rounded border border-input bg-muted px-3 py-2 text-sm"
+            className="rounded-sm border border-input bg-muted px-3 py-2 text-sm"
             data-testid="teacher-locked"
           >
             {currentTeacher && fullName(currentTeacher)}
