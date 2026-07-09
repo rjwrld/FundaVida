@@ -1,5 +1,4 @@
 import type { TFunction } from 'i18next'
-import { shortCourseName } from '@/lib/courseName'
 import type { Course, EmailAudience, EmailFilter, Enrollment, Program, Student } from '@/types'
 
 export interface RecipientInput {
@@ -45,6 +44,11 @@ export interface EmailFilterNames {
  * the history table and the preview dialog's chrome both need it. A `province`
  * filter already stores the place name, and `all` targets nothing.
  *
+ * The Course resolves to the canonical `course.name`, Sede segment and all — not
+ * `shortCourseName`. Bulk email is a Sede-less, cross-Sede admin surface (ADR-0021),
+ * so the bare display name collides: the three "Alfabetización Primaria (ene 2026)"
+ * cohorts differ only by the Sede that stripping would drop.
+ *
  * An id whose entity is gone falls through to the raw value: a campaign is a
  * historical record and outlives the Program or Course it was sent to.
  */
@@ -59,8 +63,7 @@ export function emailFilterLabel(
   if (filter.kind === 'program') {
     target = programs.find((p) => p.id === filter.value)?.name ?? filter.value
   } else if (filter.kind === 'course') {
-    const course = courses.find((c) => c.id === filter.value)
-    target = course ? shortCourseName(course) : filter.value
+    target = courses.find((c) => c.id === filter.value)?.name ?? filter.value
   }
   return `${kind}: ${target}`
 }

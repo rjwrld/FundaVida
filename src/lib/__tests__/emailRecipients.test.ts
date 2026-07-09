@@ -76,6 +76,23 @@ const courses: Course[] = [
     meetingDays: ['tue'],
     createdAt: iso(),
   },
+  // cou-1's Sede sibling: the same cohort taught at another Sede, so the two
+  // names differ only in the `— {Sede}` segment. No enrollments, so it is inert
+  // to `resolveRecipients` and exists to pin the label collision (ADR-0021).
+  {
+    id: 'cou-3',
+    name: 'Baking — Hatillo',
+    description: '',
+    sede: 'Hatillo',
+    programId: 'prog-1',
+    level: 'primaria',
+    status: 'published',
+    capacity: 20,
+    teacherId: 'tea-1',
+    term: { start: iso(), end: iso() },
+    meetingDays: ['wed'],
+    createdAt: iso(),
+  },
 ]
 const enrollments: Enrollment[] = [
   {
@@ -166,10 +183,22 @@ describe('emailFilterLabel', () => {
     )
   })
 
-  it('resolves a course filter to the short Course name, never its id', () => {
+  it('resolves a course filter to the Course name, never its id', () => {
+    // The canonical name, Sede segment kept: bulk email is a cross-Sede admin
+    // surface, so `shortCourseName` here would collide the per-Sede cohorts
+    // that share a Program, Level, and term month (ADR-0021).
     expect(emailFilterLabel({ kind: 'course', value: 'cou-1' }, names, t)).toBe(
-      'bulkEmail.filter.course: Baking'
+      'bulkEmail.filter.course: Baking — Linda Vista'
     )
+  })
+
+  it('keeps two Sede siblings distinguishable', () => {
+    // The regression this surface actually cares about: stripping the Sede would
+    // render both cohorts as "Baking", and the reader could not tell which Sede
+    // the campaign reached.
+    const linda = emailFilterLabel({ kind: 'course', value: 'cou-1' }, names, t)
+    const hatillo = emailFilterLabel({ kind: 'course', value: 'cou-3' }, names, t)
+    expect(linda).not.toBe(hatillo)
   })
 
   it('falls back to the raw value when the Course is gone', () => {
