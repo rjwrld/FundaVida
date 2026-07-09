@@ -51,6 +51,7 @@ export function EmailPreviewDialog({
   const { t, i18n } = useTranslation()
   const { formatDateTime, formatNumber } = useFormat()
   const programs = useStore((s) => s.programs)
+  const courses = useStore((s) => s.courses)
 
   const html = useMemo(
     () =>
@@ -65,7 +66,10 @@ export function EmailPreviewDialog({
 
   const chrome: { label: string; value: string }[] = [
     ...(sender ? [{ label: t('bulkEmail.preview.sender'), value: sender }] : []),
-    { label: t('bulkEmail.history.columns.filter'), value: emailFilterLabel(filter, programs, t) },
+    {
+      label: t('bulkEmail.history.columns.filter'),
+      value: emailFilterLabel(filter, { programs, courses }, t),
+    },
     { label: t('bulkEmail.history.columns.audience'), value: t(`bulkEmail.audience.${audience}`) },
     {
       label: t('bulkEmail.history.columns.recipients'),

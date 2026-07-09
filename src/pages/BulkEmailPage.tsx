@@ -22,6 +22,7 @@ export function BulkEmailPage() {
   const { formatDateTime, formatNumber } = useFormat()
   const students = useStore((s) => s.students)
   const programs = useStore((s) => s.programs)
+  const courses = useStore((s) => s.courses)
   const { data: history = [] } = useEmailCampaigns()
   const [openedId, setOpenedId] = useState<string | null>(null)
 
@@ -92,7 +93,9 @@ export function BulkEmailPage() {
                         {campaign.subject}
                       </button>
                     </TableCell>
-                    <TableCell>{emailFilterLabel(campaign.filter, programs, t)}</TableCell>
+                    <TableCell>
+                      {emailFilterLabel(campaign.filter, { programs, courses }, t)}
+                    </TableCell>
                     <TableCell>{t(`bulkEmail.audience.${campaign.audience}`)}</TableCell>
                     <TableCell className="text-right">{formatNumber(emailCount)}</TableCell>
                     <TableCell>{formatDateTime(campaign.sentAt)}</TableCell>

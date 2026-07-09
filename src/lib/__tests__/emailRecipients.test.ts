@@ -50,7 +50,7 @@ const students: Student[] = [
 const courses: Course[] = [
   {
     id: 'cou-1',
-    name: 'Baking',
+    name: 'Baking — Linda Vista',
     description: '',
     sede: 'Linda Vista',
     programId: 'prog-1',
@@ -74,6 +74,23 @@ const courses: Course[] = [
     teacherId: 'tea-1',
     term: { start: iso(), end: iso() },
     meetingDays: ['tue'],
+    createdAt: iso(),
+  },
+  // cou-1's Sede sibling: the same cohort taught at another Sede, so the two
+  // names differ only in the `— {Sede}` segment. No enrollments, so it is inert
+  // to `resolveRecipients` and exists to pin the label collision (ADR-0021).
+  {
+    id: 'cou-3',
+    name: 'Baking — Hatillo',
+    description: '',
+    sede: 'Hatillo',
+    programId: 'prog-1',
+    level: 'primaria',
+    status: 'published',
+    capacity: 20,
+    teacherId: 'tea-1',
+    term: { start: iso(), end: iso() },
+    meetingDays: ['wed'],
     createdAt: iso(),
   },
 ]
@@ -148,33 +165,55 @@ describe('emailFilterLabel', () => {
   // A stand-in for i18next: echoes the key so the assertions read as key shapes.
   const t = ((key: string) => key) as unknown as TFunction
   const programs: Program[] = [{ id: 'pro-1', name: 'Robótica', description: '' }]
+  const names = { programs, courses }
 
   it('names the filter kind for the value-less "all" filter', () => {
-    expect(emailFilterLabel({ kind: 'all' }, programs, t)).toBe('bulkEmail.filter.all')
+    expect(emailFilterLabel({ kind: 'all' }, names, t)).toBe('bulkEmail.filter.all')
   })
 
   it('resolves a program filter to the Program name, never its id', () => {
-    expect(emailFilterLabel({ kind: 'program', value: 'pro-1' }, programs, t)).toBe(
+    expect(emailFilterLabel({ kind: 'program', value: 'pro-1' }, names, t)).toBe(
       'bulkEmail.filter.program: Robótica'
     )
   })
 
   it('falls back to the raw value when the Program is gone', () => {
-    expect(emailFilterLabel({ kind: 'program', value: 'pro-9' }, programs, t)).toBe(
+    expect(emailFilterLabel({ kind: 'program', value: 'pro-9' }, names, t)).toBe(
       'bulkEmail.filter.program: pro-9'
     )
   })
 
-  it('appends the raw value for province and course filters', () => {
-    expect(emailFilterLabel({ kind: 'province', value: 'San José' }, programs, t)).toBe(
-      'bulkEmail.filter.province: San José'
+  it('resolves a course filter to the Course name, never its id', () => {
+    // The canonical name, Sede segment kept: bulk email is a cross-Sede admin
+    // surface, so `shortCourseName` here would collide the per-Sede cohorts
+    // that share a Program, Level, and term month (ADR-0021).
+    expect(emailFilterLabel({ kind: 'course', value: 'cou-1' }, names, t)).toBe(
+      'bulkEmail.filter.course: Baking — Linda Vista'
     )
-    expect(emailFilterLabel({ kind: 'course', value: 'cou-1' }, programs, t)).toBe(
-      'bulkEmail.filter.course: cou-1'
+  })
+
+  it('keeps two Sede siblings distinguishable', () => {
+    // The regression this surface actually cares about: stripping the Sede would
+    // render both cohorts as "Baking", and the reader could not tell which Sede
+    // the campaign reached.
+    const linda = emailFilterLabel({ kind: 'course', value: 'cou-1' }, names, t)
+    const hatillo = emailFilterLabel({ kind: 'course', value: 'cou-3' }, names, t)
+    expect(linda).not.toBe(hatillo)
+  })
+
+  it('falls back to the raw value when the Course is gone', () => {
+    expect(emailFilterLabel({ kind: 'course', value: 'cou-9' }, names, t)).toBe(
+      'bulkEmail.filter.course: cou-9'
+    )
+  })
+
+  it('appends the raw value for a province filter, which is already a place name', () => {
+    expect(emailFilterLabel({ kind: 'province', value: 'San José' }, names, t)).toBe(
+      'bulkEmail.filter.province: San José'
     )
   })
 
   it('omits the suffix when a non-"all" filter has no value yet (a half-filled draft)', () => {
-    expect(emailFilterLabel({ kind: 'program' }, programs, t)).toBe('bulkEmail.filter.program')
+    expect(emailFilterLabel({ kind: 'program' }, names, t)).toBe('bulkEmail.filter.program')
   })
 })
