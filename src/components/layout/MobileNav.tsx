@@ -65,7 +65,7 @@ export function MobileNav() {
             while already on /app (no pathname change to auto-close on). */}
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/60 px-4">
           <BrandLockup wordmark="always" onClick={() => setOpen(false)} />
-          <SheetClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+          <SheetClose>
             <X className="size-4" />
             <span className="sr-only">{t('common.actions.close')}</span>
           </SheetClose>
