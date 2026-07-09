@@ -7,7 +7,7 @@ import { COURSE_LEVELS, COURSE_STATUSES } from '@/constants/course'
 // hand-mirroring it — the drift class that silently voided the pin when it lagged
 // (ADR-0039; the v3→v10 drift). A stale mirror not only no-ops the pin but sits in
 // the legacy purge list below, actively deleting the injected snapshot at boot.
-export const STATE_KEY = 'fundavida:v14:state'
+export const STATE_KEY = 'fundavida:v15:state'
 const ROLE_KEY = 'fundavida:v2:role'
 
 // Stale pre-v4 snapshot keys this layer owns. They are not migrated (ADR-0003,
@@ -36,8 +36,12 @@ const ROLE_KEY = 'fundavida:v2:role'
 // so they are deliberately left untouched. The v2 role, current-user, and locale
 // keys are unchanged by this slice and stay in use.
 //
-// The v14 key bump adds the `audience` field to every EmailCampaign (ADR-0041):
-// a v13 campaign lacks it, so rather than defaulting it in place (migrate) the
+// The v15 key bump rewrites the seeded campaign subjects and bodies as the Spanish
+// emails a Costa Rican non-profit actually sends (ADR-0045). A v14 snapshot is
+// *structurally* valid — the copy is just strings — so isValidSnapshot cannot
+// reject it: only the key bump gets a returning visitor off an English outbox.
+// It sits on v14's `audience` field on every EmailCampaign (ADR-0041): a v13
+// campaign lacks it, so rather than defaulting it in place (migrate) the
 // world reseeds with audience-bearing campaigns (reseed-never-migrate, ADR-0003).
 const LEGACY_SNAPSHOT_KEYS = [
   'fundavida:v1:state',
@@ -56,6 +60,7 @@ const LEGACY_SNAPSHOT_KEYS = [
   'fundavida:v11:state',
   'fundavida:v12:state',
   'fundavida:v13:state',
+  'fundavida:v14:state',
 ]
 
 export type PersistedState = SeedSnapshot

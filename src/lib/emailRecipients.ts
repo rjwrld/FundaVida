@@ -1,4 +1,5 @@
-import type { Course, EmailAudience, EmailFilter, Enrollment, Student } from '@/types'
+import type { TFunction } from 'i18next'
+import type { Course, EmailAudience, EmailFilter, Enrollment, Program, Student } from '@/types'
 
 export interface RecipientInput {
   students: Student[]
@@ -29,6 +30,22 @@ export function resolveRecipients(filter: EmailFilter, input: RecipientInput): S
     return students.filter((s) => ids.has(s.id))
   }
   return []
+}
+
+/**
+ * Describe a campaign's recipient filter for a reader: the filter kind, plus the
+ * thing it targets. A program filter stores a Program id (ADR-0015), so it is
+ * resolved to the Program's name here — the one place that translation lives, now
+ * that the history table and the preview dialog's chrome both need it.
+ */
+export function emailFilterLabel(filter: EmailFilter, programs: Program[], t: TFunction): string {
+  const kind = t(`bulkEmail.filter.${filter.kind}`)
+  if (!filter.value) return kind
+  const target =
+    filter.kind === 'program'
+      ? (programs.find((p) => p.id === filter.value)?.name ?? filter.value)
+      : filter.value
+  return `${kind}: ${target}`
 }
 
 /**

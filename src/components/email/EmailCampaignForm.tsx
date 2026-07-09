@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -17,6 +17,7 @@ import {
   buildEmailCampaignSchema,
   type EmailCampaignFormValues,
 } from '@/data/schemas/emailCampaign'
+import { EmailPreviewDialog } from '@/components/email/EmailPreviewDialog'
 import { recipientEmails, resolveRecipients } from '@/lib/emailRecipients'
 import { useSendEmailCampaign } from '@/hooks/api'
 import { useStore } from '@/data/store'
@@ -46,6 +47,7 @@ export function EmailCampaignForm({ lockedCourse, onSent, submitFullWidth }: Pro
   const programs = useStore((s) => s.programs)
   const enrollments = useStore((s) => s.enrollments)
   const send = useSendEmailCampaign()
+  const [previewOpen, setPreviewOpen] = useState(false)
 
   // The empty form: locked to the Course on the teacher's per-Course path, or an
   // open filter on the admin's broad surface. Used for both initial defaults and
@@ -73,6 +75,11 @@ export function EmailCampaignForm({ lockedCourse, onSent, submitFullWidth }: Pro
   const filterKind = watch('filterKind')
   const filterValue = watch('filterValue')
   const audience = watch('audience')
+  const subject = watch('subject')
+  const body = watch('body')
+
+  // There is no document to render until both halves exist (ADR-0045).
+  const canPreview = subject.trim().length > 0 && body.trim().length > 0
 
   const filter: EmailFilter = useMemo(
     () => ({ kind: filterKind, value: filterValue }),
@@ -217,13 +224,37 @@ export function EmailCampaignForm({ lockedCourse, onSent, submitFullWidth }: Pro
           leaves the browser (ADR-0041). */}
       <p className="text-xs text-muted-foreground">{t('bulkEmail.demoNote')}</p>
 
-      <Button
-        type="submit"
-        disabled={isSubmitting || emailCount === 0}
-        className={submitFullWidth ? 'w-full' : undefined}
-      >
-        {isSubmitting ? t('bulkEmail.sending') : t('bulkEmail.submit')}
-      </Button>
+      <div className={submitFullWidth ? 'flex gap-2' : 'flex flex-wrap gap-2'}>
+        <Button
+          type="submit"
+          disabled={isSubmitting || emailCount === 0}
+          className={submitFullWidth ? 'flex-1' : undefined}
+        >
+          {isSubmitting ? t('bulkEmail.sending') : t('bulkEmail.submit')}
+        </Button>
+        {/* Same dialog, same generator as the history row — what you preview is
+            what the outbox will render (ADR-0045). */}
+        <Button
+          type="button"
+          variant="outline"
+          disabled={!canPreview}
+          onClick={() => setPreviewOpen(true)}
+        >
+          {t('bulkEmail.preview.open')}
+        </Button>
+      </div>
+
+      {previewOpen && (
+        <EmailPreviewDialog
+          open
+          onOpenChange={setPreviewOpen}
+          subject={subject}
+          body={body}
+          filter={filter}
+          audience={audience}
+          recipientCount={emailCount}
+        />
+      )}
     </form>
   )
 }

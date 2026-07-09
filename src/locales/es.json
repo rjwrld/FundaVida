@@ -144,6 +144,14 @@
       "title": "Mensaje a la clase"
     },
     "noRecipients": "Ningún destinatario coincide con el filtro.",
+    "preview": {
+      "description": "El correo renderizado, tal como lo reciben sus destinatarios.",
+      "disclaimer": "Demostración — esta campaña fue simulada. No se envió ningún correo.",
+      "frameTitle": "Correo renderizado",
+      "open": "Vista previa",
+      "sender": "Remitente",
+      "title": "Vista previa del correo"
+    },
     "recipientCount_one": "{{count}} destinatario recibirá este correo.",
     "recipientCount_many": "{{count}} destinatarios recibirán este correo.",
     "recipientCount_other": "{{count}} destinatarios recibirán este correo.",

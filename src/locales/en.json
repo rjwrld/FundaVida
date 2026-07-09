@@ -144,6 +144,14 @@
       "title": "Message the class"
     },
     "noRecipients": "No recipients match this filter.",
+    "preview": {
+      "description": "The rendered email, exactly as its recipients receive it.",
+      "disclaimer": "Demo — this campaign was simulated. No email was actually sent.",
+      "frameTitle": "Rendered email",
+      "open": "Preview",
+      "sender": "Sender",
+      "title": "Email preview"
+    },
     "recipientCount_one": "{{count}} recipient will receive this email.",
     "recipientCount_other": "{{count}} recipients will receive this email.",
     "sending": "Sending…",
