@@ -50,7 +50,7 @@ const students: Student[] = [
 const courses: Course[] = [
   {
     id: 'cou-1',
-    name: 'Baking',
+    name: 'Baking — Linda Vista',
     description: '',
     sede: 'Linda Vista',
     programId: 'prog-1',
@@ -148,33 +148,43 @@ describe('emailFilterLabel', () => {
   // A stand-in for i18next: echoes the key so the assertions read as key shapes.
   const t = ((key: string) => key) as unknown as TFunction
   const programs: Program[] = [{ id: 'pro-1', name: 'Robótica', description: '' }]
+  const names = { programs, courses }
 
   it('names the filter kind for the value-less "all" filter', () => {
-    expect(emailFilterLabel({ kind: 'all' }, programs, t)).toBe('bulkEmail.filter.all')
+    expect(emailFilterLabel({ kind: 'all' }, names, t)).toBe('bulkEmail.filter.all')
   })
 
   it('resolves a program filter to the Program name, never its id', () => {
-    expect(emailFilterLabel({ kind: 'program', value: 'pro-1' }, programs, t)).toBe(
+    expect(emailFilterLabel({ kind: 'program', value: 'pro-1' }, names, t)).toBe(
       'bulkEmail.filter.program: Robótica'
     )
   })
 
   it('falls back to the raw value when the Program is gone', () => {
-    expect(emailFilterLabel({ kind: 'program', value: 'pro-9' }, programs, t)).toBe(
+    expect(emailFilterLabel({ kind: 'program', value: 'pro-9' }, names, t)).toBe(
       'bulkEmail.filter.program: pro-9'
     )
   })
 
-  it('appends the raw value for province and course filters', () => {
-    expect(emailFilterLabel({ kind: 'province', value: 'San José' }, programs, t)).toBe(
-      'bulkEmail.filter.province: San José'
+  it('resolves a course filter to the short Course name, never its id', () => {
+    expect(emailFilterLabel({ kind: 'course', value: 'cou-1' }, names, t)).toBe(
+      'bulkEmail.filter.course: Baking'
     )
-    expect(emailFilterLabel({ kind: 'course', value: 'cou-1' }, programs, t)).toBe(
-      'bulkEmail.filter.course: cou-1'
+  })
+
+  it('falls back to the raw value when the Course is gone', () => {
+    expect(emailFilterLabel({ kind: 'course', value: 'cou-9' }, names, t)).toBe(
+      'bulkEmail.filter.course: cou-9'
+    )
+  })
+
+  it('appends the raw value for a province filter, which is already a place name', () => {
+    expect(emailFilterLabel({ kind: 'province', value: 'San José' }, names, t)).toBe(
+      'bulkEmail.filter.province: San José'
     )
   })
 
   it('omits the suffix when a non-"all" filter has no value yet (a half-filled draft)', () => {
-    expect(emailFilterLabel({ kind: 'program' }, programs, t)).toBe('bulkEmail.filter.program')
+    expect(emailFilterLabel({ kind: 'program' }, names, t)).toBe('bulkEmail.filter.program')
   })
 })

@@ -1,4 +1,5 @@
 import type { TFunction } from 'i18next'
+import { shortCourseName } from '@/lib/courseName'
 import type { Course, EmailAudience, EmailFilter, Enrollment, Program, Student } from '@/types'
 
 export interface RecipientInput {
@@ -32,19 +33,35 @@ export function resolveRecipients(filter: EmailFilter, input: RecipientInput): S
   return []
 }
 
+export interface EmailFilterNames {
+  programs: Program[]
+  courses: Course[]
+}
+
 /**
  * Describe a campaign's recipient filter for a reader: the filter kind, plus the
- * thing it targets. A program filter stores a Program id (ADR-0015), so it is
- * resolved to the Program's name here — the one place that translation lives, now
- * that the history table and the preview dialog's chrome both need it.
+ * thing it targets. The `program` and `course` filters store ids (ADR-0015), so
+ * they are resolved to names here — the one place that translation lives, now that
+ * the history table and the preview dialog's chrome both need it. A `province`
+ * filter already stores the place name, and `all` targets nothing.
+ *
+ * An id whose entity is gone falls through to the raw value: a campaign is a
+ * historical record and outlives the Program or Course it was sent to.
  */
-export function emailFilterLabel(filter: EmailFilter, programs: Program[], t: TFunction): string {
+export function emailFilterLabel(
+  filter: EmailFilter,
+  { programs, courses }: EmailFilterNames,
+  t: TFunction
+): string {
   const kind = t(`bulkEmail.filter.${filter.kind}`)
   if (!filter.value) return kind
-  const target =
-    filter.kind === 'program'
-      ? (programs.find((p) => p.id === filter.value)?.name ?? filter.value)
-      : filter.value
+  let target = filter.value
+  if (filter.kind === 'program') {
+    target = programs.find((p) => p.id === filter.value)?.name ?? filter.value
+  } else if (filter.kind === 'course') {
+    const course = courses.find((c) => c.id === filter.value)
+    target = course ? shortCourseName(course) : filter.value
+  }
   return `${kind}: ${target}`
 }
 
