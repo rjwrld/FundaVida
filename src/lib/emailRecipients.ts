@@ -7,6 +7,7 @@ import type {
   Enrollment,
   Program,
   Student,
+  Teacher,
 } from '@/types'
 
 export interface RecipientInput {
@@ -74,6 +75,34 @@ export function emailFilterLabel(
     target = courses.find((c) => c.id === filter.value)?.name ?? filter.value
   }
   return `${kind}: ${target}`
+}
+
+export interface CampaignSenderNames {
+  teachers: Teacher[]
+}
+
+/**
+ * Name the user a campaign was sent by, for a reader — `EmailCampaign.sentBy` is
+ * a `currentUserId`, and the app's user ids are not names.
+ *
+ * `sentBy` is not uniformly an entity id, so an id → name lookup is not enough.
+ * `admin` and the `system` send-time fallback are **sentinels**: no record carries
+ * either as an id, so both resolve to a localized label rather than to nothing. A
+ * Teacher id resolves to that Teacher's name.
+ *
+ * An id whose Teacher is gone falls through to the raw value, exactly as
+ * `emailFilterLabel` reasons about a deleted Course: a campaign is a historical
+ * record and outlives the person who sent it.
+ */
+export function campaignSenderLabel(
+  sentBy: string,
+  { teachers }: CampaignSenderNames,
+  t: TFunction
+): string {
+  if (sentBy === 'admin') return t('bulkEmail.sender.admin')
+  if (sentBy === 'system') return t('bulkEmail.sender.system')
+  const teacher = teachers.find((x) => x.id === sentBy)
+  return teacher ? `${teacher.firstName} ${teacher.lastName}` : sentBy
 }
 
 /**

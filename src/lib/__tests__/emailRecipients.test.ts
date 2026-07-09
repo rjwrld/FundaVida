@@ -4,9 +4,11 @@ import {
   resolveRecipients,
   recipientEmails,
   emailFilterLabel,
+  campaignSenderLabel,
   sentRecipientCount,
 } from '../emailRecipients'
-import type { Program, Student, Course, Enrollment } from '@/types'
+import { seedDemo } from '@/data/seed'
+import type { Program, Student, Course, Enrollment, Teacher } from '@/types'
 
 function iso() {
   return new Date().toISOString()
@@ -166,9 +168,10 @@ describe('recipientEmails', () => {
   })
 })
 
+// A stand-in for i18next: echoes the key so the assertions read as key shapes.
+const t = ((key: string) => key) as unknown as TFunction
+
 describe('emailFilterLabel', () => {
-  // A stand-in for i18next: echoes the key so the assertions read as key shapes.
-  const t = ((key: string) => key) as unknown as TFunction
   const programs: Program[] = [{ id: 'pro-1', name: 'Robótica', description: '' }]
   const names = { programs, courses }
 
@@ -220,6 +223,52 @@ describe('emailFilterLabel', () => {
 
   it('omits the suffix when a non-"all" filter has no value yet (a half-filled draft)', () => {
     expect(emailFilterLabel({ kind: 'program' }, names, t)).toBe('bulkEmail.filter.program')
+  })
+})
+
+describe('campaignSenderLabel', () => {
+  const teachers: Teacher[] = [
+    {
+      id: 'tea-1',
+      firstName: 'Jessica',
+      lastName: 'Marin',
+      email: 'jessica@fv.cr',
+      sede: 'Linda Vista',
+      province: 'San José',
+      canton: '',
+      courseIds: ['cou-1'],
+      createdAt: iso(),
+    },
+  ]
+  const names = { teachers }
+
+  it('resolves a Teacher id to their name, never the id', () => {
+    expect(campaignSenderLabel('tea-1', names, t)).toBe('Jessica Marin')
+  })
+
+  it('names the "admin" sentinel, which is no entity id', () => {
+    expect(campaignSenderLabel('admin', names, t)).toBe('bulkEmail.sender.admin')
+  })
+
+  it('names the "system" sentinel, the sender fallback for an absent user', () => {
+    expect(campaignSenderLabel('system', names, t)).toBe('bulkEmail.sender.system')
+  })
+
+  it('falls back to the raw value when the Teacher is gone', () => {
+    // A campaign is a historical record and outlives the Teacher who sent it,
+    // exactly as `emailFilterLabel` reasons about a deleted Course.
+    expect(campaignSenderLabel('tea-9', names, t)).toBe('tea-9')
+  })
+
+  it('no seeded campaign renders a raw user id or a bare sentinel', () => {
+    const snapshot = seedDemo(new Date('2026-06-23T12:00:00.000Z'))
+    expect(snapshot.emailCampaigns.length).toBeGreaterThan(0)
+    for (const campaign of snapshot.emailCampaigns) {
+      const label = campaignSenderLabel(campaign.sentBy, { teachers: snapshot.teachers }, t)
+      expect(label).not.toMatch(/^tea-\d+$/)
+      expect(label).not.toBe('admin')
+      expect(label).not.toBe('system')
+    }
   })
 })
 
