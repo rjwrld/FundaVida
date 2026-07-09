@@ -2,6 +2,8 @@ import { test, expect, type Page } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { seedDemo } from '../src/data/seed'
 import { STATE_KEY } from '../src/data/persistence'
+import type { Role } from '../src/types'
+import { USER_ID_FOR_ROLE } from './helpers/auth'
 
 // Storage keys must match src/data/persistence.ts.
 const ROLE_KEY = 'fundavida:v2:role'
@@ -43,7 +45,7 @@ async function scan(page: Page) {
 }
 
 /** Seed the demo store and sign in as the given role before navigating. */
-async function seedAndEnter(page: Page, role: 'admin' | 'teacher' | 'student', userId: string) {
+async function seedAndEnter(page: Page, role: Role, userId: string) {
   await page.goto('/')
   await page.evaluate(
     ({ stateKey, state, roleKey, role, userKey, userId }) => {
@@ -73,8 +75,28 @@ test.describe('accessibility (axe)', () => {
     expect(results.violations).toEqual([])
   })
 
+  // /app is a different surface per role — each role composes its own cards, so
+  // a violation on one hides on the others. Scanning admin alone let the same
+  // heading-order skip the admin StatRow fixed sit latent on the other three
+  // (issue #278), so every role gets scanned.
+  const roles: Role[] = ['admin', 'teacher', 'student', 'tcu']
+
+  for (const role of roles) {
+    test(`${role} dashboard has no violations`, async ({ page }) => {
+      await seedAndEnter(page, role, USER_ID_FOR_ROLE[role])
+      await page.goto('/app')
+      await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
+      // Skeletons are the role="status" elements labelled "Loading…" (the Pager's
+      // live region is one too, and it never clears). None survives a settled
+      // dashboard, so waiting them out scans the loaded cards, not placeholders.
+      await expect(page.locator('[role="status"][aria-label^="Loading"]')).toHaveCount(0)
+      const results = await scan(page)
+      expect(results.violations).toEqual([])
+    })
+  }
+
+  // Admin-only list surfaces.
   const authed: { name: string; path: string }[] = [
-    { name: 'admin dashboard', path: '/app' },
     { name: 'students list', path: '/app/students' },
     { name: 'courses list', path: '/app/courses' },
     { name: 'grades list', path: '/app/grades' },

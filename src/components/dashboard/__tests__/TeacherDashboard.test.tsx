@@ -53,6 +53,12 @@ describe('TeacherDashboard — worklist-first (ADR-0043)', () => {
     expect(screen.getAllByRole('heading', { name: 'My courses' }).length).toBeGreaterThan(0)
   })
 
+  it('opens the main column with an h2, bridging the PageHeader h1 to the h3 cards', async () => {
+    renderDashboard()
+    const headings = await screen.findAllByRole('heading')
+    expect(headings[0]?.tagName).toBe('H2')
+  })
+
   it('drops the retired "Author a course" prompt card', () => {
     renderDashboard()
     expect(screen.queryByText(/author a course/i)).not.toBeInTheDocument()

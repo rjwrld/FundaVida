@@ -6,7 +6,8 @@ type Role = 'admin' | 'teacher' | 'student' | 'tcu'
 const ROLE_KEY = 'fundavida:v2:role'
 const CURRENT_USER_KEY = 'fundavida:v2:current-user'
 
-const USER_ID_FOR_ROLE: Record<Role, string> = {
+/** The demo persona each role signs in as. */
+export const USER_ID_FOR_ROLE: Record<Role, string> = {
   admin: 'admin',
   teacher: 'tea-1',
   student: 'stu-1',

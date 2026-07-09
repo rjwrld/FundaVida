@@ -37,7 +37,7 @@ export function TcuDashboard() {
     // Mirror the loaded happy-path layout — course card, three stat cards, and
     // the activity list — so resolving the gate doesn't shift the page.
     return (
-      <DashboardShell>
+      <DashboardShell sectionTitle={t('dashboard.tcu.sectionTitle')}>
         <div className="grid grid-cols-1 gap-6">
           <SkeletonCard lines={4} />
           <SkeletonStatCard />
@@ -72,7 +72,7 @@ export function TcuDashboard() {
     : ''
 
   return (
-    <DashboardShell>
+    <DashboardShell sectionTitle={t('dashboard.tcu.sectionTitle')}>
       {/* Hero: the assigned Course — where the volunteer serves (ADR-0036). */}
       {assignedCourse && (
         <motion.div variants={fadeUp} transition={transitionDefaults}>

@@ -44,6 +44,12 @@ describe('AdminDashboard — hero + supporting layout', () => {
     expect(screen.getByText(/active courses/i)).toBeInTheDocument()
   })
 
+  it('opens the main column with an h2, bridging the PageHeader h1 to the h3 cards', async () => {
+    renderDashboard()
+    const headings = await screen.findAllByRole('heading')
+    expect(headings[0]?.tagName).toBe('H2')
+  })
+
   it('renders the actionable supporting cards (courses to close, certs, at-risk, funnel)', () => {
     renderDashboard()
     expect(screen.getByText(/courses to close/i)).toBeInTheDocument()
