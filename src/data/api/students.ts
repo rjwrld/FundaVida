@@ -1,4 +1,5 @@
 import type { Student } from '@/types'
+import { fullName } from '@/lib/personName'
 import { scopedGet, scopedList } from './scopedRead'
 
 export interface StudentFilters {
@@ -10,10 +11,7 @@ export interface StudentFilters {
 function applyFilters(students: Student[], filters: StudentFilters): Student[] {
   const { search, sede, educationalLevel } = filters
   return students.filter((s) => {
-    if (
-      search &&
-      !`${s.firstName} ${s.lastName} ${s.email}`.toLowerCase().includes(search.toLowerCase())
-    ) {
+    if (search && !`${fullName(s)} ${s.email}`.toLowerCase().includes(search.toLowerCase())) {
       return false
     }
     if (sede && s.sede !== sede) return false

@@ -4,6 +4,7 @@ import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/
 import { useEnrollments, useApproveEnrollment, useRejectEnrollment } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import { useStore } from '@/data/store'
+import { fullName } from '@/lib/personName'
 
 interface PendingRow {
   id: string
@@ -56,7 +57,7 @@ export function EnrollmentApprovalQueue() {
     ).length
     return {
       id: enrollment.id,
-      studentName: `${student?.firstName ?? ''} ${student?.lastName ?? ''}`.trim(),
+      studentName: student ? fullName(student) : '',
       courseName: course?.name ?? '',
       requestedAt: enrollment.requestedAt,
       isAtCapacity: Boolean(course && approvedCount >= course.capacity),

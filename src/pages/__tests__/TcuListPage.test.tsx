@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
+import { fullName } from '@/lib/personName'
 import { TcuListPage } from '@/pages/TcuListPage'
 import { api } from '@/data/api'
 import { delay } from '@/data/api/_delay'
@@ -56,7 +57,7 @@ describe('<TcuListPage /> — roster multi-query gate (ADR-0030)', () => {
     useStore.getState().setRole('admin')
     const trainee = useStore.getState().tcuTrainees[0]
     if (!trainee) throw new Error('seed: no TCU trainees')
-    const traineeName = `${trainee.firstName} ${trainee.lastName}`
+    const traineeName = fullName(trainee)
 
     // Hold trainees open well past activities so the window where the OLD
     // activities-only gate would paint the table with blank names is wide and
@@ -99,7 +100,7 @@ describe('<TcuListPage /> — roster multi-query gate (ADR-0030)', () => {
     if (!trainee) throw new Error('seed: no TCU trainees')
 
     renderPage()
-    await screen.findAllByText(`${trainee.firstName} ${trainee.lastName}`)
+    await screen.findAllByText(fullName(trainee))
 
     const roster = rosterTable()
     if (!roster) throw new Error('roster table not found')

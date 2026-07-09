@@ -26,6 +26,7 @@ import { useTcuActivities, useTcuTrainees, useApproveTcuActivity } from '@/hooks
 import { listViewState } from '@/lib/listViewState'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { tcuHoursByStatus, TCU_TARGET_HOURS } from '@/lib/tcuHours'
+import { fullName } from '@/lib/personName'
 import { useFormat } from '@/hooks/useFormat'
 import { useStore } from '@/data/store'
 import { LogTcuActivityDialog } from '@/components/tcu/LogTcuActivityDialog'
@@ -96,9 +97,7 @@ export function TcuListPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">{t('tcu.dashboard.progress')}</p>
-              <p className="text-xs text-muted-foreground">
-                {selfTrainee.firstName} {selfTrainee.lastName}
-              </p>
+              <p className="text-xs text-muted-foreground">{fullName(selfTrainee)}</p>
             </div>
             <div className="text-right">
               <p className="font-mono text-lg tabular-nums">
@@ -142,9 +141,7 @@ export function TcuListPage() {
                         {formatNumber(a.hours)}
                       </TableCell>
                       <TableCell>{formatDate(a.date)}</TableCell>
-                      <TableCell>
-                        {trainee?.firstName} {trainee?.lastName}
-                      </TableCell>
+                      <TableCell>{trainee && fullName(trainee)}</TableCell>
                       <TableCell className="text-right space-x-2">
                         <Button
                           size="sm"
@@ -197,7 +194,7 @@ export function TcuListPage() {
               <SelectItem value="any">{t('tcu.list.filters.anyTrainee')}</SelectItem>
               {trainees.map((t) => (
                 <SelectItem key={t.id} value={t.id}>
-                  {t.firstName} {t.lastName}
+                  {fullName(t)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -248,9 +245,7 @@ export function TcuListPage() {
                           {t(`tcu.list.status.${a.status}`)}
                         </span>
                       </TableCell>
-                      <TableCell>
-                        {trainee?.firstName} {trainee?.lastName}
-                      </TableCell>
+                      <TableCell>{trainee && fullName(trainee)}</TableCell>
                     </TableRow>
                   )
                 })}

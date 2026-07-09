@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 import { enterAs } from './helpers/auth'
 import { seedDemo } from '../src/data/seed'
+import { fullName } from '../src/lib/personName'
 
 // Deterministic anchors from the seed (faker.seed(42), epoch-independent). The app
 // reseeds fresh at real wall-time, so the structural graph here matches what the
@@ -50,7 +51,7 @@ const revocableIds = passingApprovedIds(revocableCourse.id)
 const REVOCABLE_CERT_COUNT = revocableIds.length
 const revokedStudent = world.students.find((s) => s.id === revocableIds[0])
 if (!revokedStudent) throw new Error('expected a passing approved student')
-const revokedStudentName = `${revokedStudent.firstName} ${revokedStudent.lastName}`
+const revokedStudentName = fullName(revokedStudent)
 
 async function openCertificatePreview(page: Page) {
   await enterAs(page, 'admin')

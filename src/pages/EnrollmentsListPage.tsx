@@ -30,6 +30,7 @@ import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { can } from '@/permissions'
 import { shortCourseName } from '@/lib/courseName'
+import { fullName } from '@/lib/personName'
 import { SEDES } from '@/constants/sede'
 import type { Course, Enrollment, EnrollmentStatus, Student, Teacher } from '@/types'
 
@@ -109,7 +110,7 @@ export function EnrollmentsListPage() {
       if (statusFilter !== 'active' && statusFilter !== 'all' && e.status !== statusFilter) {
         return false
       }
-      if (q && !`${student.firstName} ${student.lastName}`.toLowerCase().includes(q)) return false
+      if (q && !fullName(student).toLowerCase().includes(q)) return false
       return true
     })
   }, [enrollments, courseById, studentById, sedeFilter, statusFilter, query])
@@ -325,9 +326,7 @@ function CourseEnrollmentGroup({
         <div className="min-w-0">
           <span className="text-sm font-medium">{shortCourseName(course)}</span>
           {teacher && (
-            <span className="ml-2 text-xs text-muted-foreground">
-              {teacher.firstName} {teacher.lastName}
-            </span>
+            <span className="ml-2 text-xs text-muted-foreground">{fullName(teacher)}</span>
           )}
         </div>
         {coursePending > 0 && (
@@ -340,7 +339,7 @@ function CourseEnrollmentGroup({
         {pagination.pageItems.map((e) => {
           const student = studentById.get(e.studentId)
           if (!student) return null
-          const name = `${student.firstName} ${student.lastName}`
+          const name = fullName(student)
           return (
             <li key={e.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5">
               <span className="min-w-0 flex-1 truncate text-sm">{name}</span>

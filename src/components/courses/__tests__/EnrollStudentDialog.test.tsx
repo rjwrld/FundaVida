@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
+import { fullName } from '@/lib/personName'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
 import { useStore } from '@/data/store'
 import {
@@ -56,7 +57,7 @@ describe('<EnrollStudentDialog /> Sede scoping (ADR-0011)', () => {
     // Student names can repeat across the pool, so compare the offered options
     // to the same-Sede students as a sorted multiset rather than keying by name.
     const optionNames = options.map((opt) => opt.textContent ?? '').sort()
-    const sameSedeNames = sameSede.map((s) => `${s.firstName} ${s.lastName}`).sort()
+    const sameSedeNames = sameSede.map((s) => fullName(s)).sort()
     expect(optionNames).toEqual(sameSedeNames)
   })
 })

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ArrowRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { atRiskStudents, type AtRiskReason } from '@/lib/dashboard'
+import { fullName } from '@/lib/personName'
 import { useStudents } from '@/hooks/api/students'
 import { useGrades } from '@/hooks/api/grades'
 import { useAttendance } from '@/hooks/api/attendance'
@@ -52,7 +53,7 @@ export function AtRiskStudents() {
                   className="group flex items-center justify-between gap-3 rounded-md py-1"
                 >
                   <span className="min-w-0 truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
-                    {student.firstName} {student.lastName}
+                    {fullName(student)}
                   </span>
                   <div className="flex shrink-0 flex-wrap justify-end gap-1">
                     {reasons.map((reason) => (

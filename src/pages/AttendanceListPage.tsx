@@ -20,6 +20,7 @@ import { useAttendance, useCourses, useStudents } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { findSession } from '@/lib/sessions'
+import { fullName } from '@/lib/personName'
 import type { AttendanceFilters } from '@/data/api/attendance'
 import type { AttendanceRecord, AttendanceStatus } from '@/types'
 
@@ -74,7 +75,7 @@ export function AttendanceListPage() {
             header: t('attendance.list.columns.student'),
             cell: (r: AttendanceRecord) => {
               const s = students.find((x) => x.id === r.studentId)
-              return `${s?.firstName ?? ''} ${s?.lastName ?? ''}`.trim()
+              return s ? fullName(s) : ''
             },
           },
         ]
@@ -119,7 +120,7 @@ export function AttendanceListPage() {
               <SelectItem value="any">{t('attendance.list.filters.anyStudent')}</SelectItem>
               {students.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
-                  {s.firstName} {s.lastName}
+                  {fullName(s)}
                 </SelectItem>
               ))}
             </SelectContent>

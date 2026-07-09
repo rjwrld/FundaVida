@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select'
 import { useLogTcuActivity, useTcuTrainees } from '@/hooks/api'
 import { clock } from '@/lib/clock'
+import { fullName } from '@/lib/personName'
 import { useStore } from '@/data/store'
 import { buildTcuActivitySchema, type TcuActivityFormValues } from '@/data/schemas/tcuActivity'
 
@@ -101,7 +102,7 @@ export function LogTcuActivityDialog({ open, onClose }: Props) {
                 <SelectContent>
                   {trainees.map((trainee) => (
                     <SelectItem key={trainee.id} value={trainee.id}>
-                      {trainee.firstName} {trainee.lastName}
+                      {fullName(trainee)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -109,9 +110,7 @@ export function LogTcuActivityDialog({ open, onClose }: Props) {
             </div>
           )}
           {!isAdmin && currentTrainee && (
-            <p className="text-muted-foreground">
-              {currentTrainee.firstName} {currentTrainee.lastName}
-            </p>
+            <p className="text-muted-foreground">{fullName(currentTrainee)}</p>
           )}
           <div className="space-y-1.5">
             <Label htmlFor="title">{t('tcu.form.titleLabel')}</Label>

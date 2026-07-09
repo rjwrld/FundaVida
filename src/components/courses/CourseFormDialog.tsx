@@ -22,6 +22,7 @@ import { COURSE_LEVELS, COURSE_STATUSES } from '@/constants/course'
 import { SEDES } from '@/constants/sede'
 import { WEEKDAYS, type Weekday } from '@/types/domain'
 import { useStore } from '@/data/store'
+import { fullName } from '@/lib/personName'
 
 interface CourseFormProps {
   courseId?: string
@@ -311,7 +312,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
             className="rounded border border-input bg-muted px-3 py-2 text-sm"
             data-testid="teacher-locked"
           >
-            {currentTeacher && `${currentTeacher.firstName} ${currentTeacher.lastName}`}
+            {currentTeacher && fullName(currentTeacher)}
           </div>
         ) : (
           <Select
@@ -336,7 +337,7 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
                 .filter((teacher) => teacher.sede === watch('sede'))
                 .map((teacher) => (
                   <SelectItem key={teacher.id} value={teacher.id}>
-                    {teacher.firstName} {teacher.lastName}
+                    {fullName(teacher)}
                   </SelectItem>
                 ))}
             </SelectContent>

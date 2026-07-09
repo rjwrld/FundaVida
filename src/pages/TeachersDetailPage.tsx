@@ -17,6 +17,7 @@ import { useCertificates, useCourses, useEnrollments, useGrades, useTeacher } fr
 import { resolveQueries } from '@/lib/resolveQueries'
 import { useFormat } from '@/hooks/useFormat'
 import { shortCourseName } from '@/lib/courseName'
+import { fullName } from '@/lib/personName'
 
 export function TeachersDetailPage() {
   const { t } = useTranslation()
@@ -77,7 +78,7 @@ export function TeachersDetailPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow={t('teachers.detail.title')}
-        title={`${teacher.firstName} ${teacher.lastName}`}
+        title={fullName(teacher)}
         description={teacher.email}
         action={
           <>

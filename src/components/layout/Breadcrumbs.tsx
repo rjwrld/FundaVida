@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ChevronRight } from 'lucide-react'
 import { NAV_ITEMS } from '@/constants/nav'
 import { useStudents, useTeachers, usePrograms, useCourses } from '@/hooks/api'
+import { fullName } from '@/lib/personName'
 
 interface Crumb {
   label: string
@@ -37,11 +38,11 @@ function useEntityNameResolver() {
       (id: string): string | null => {
         if (id.startsWith('stu-')) {
           const e = students?.find((x) => x.id === id)
-          return e ? `${e.firstName} ${e.lastName}` : null
+          return e ? fullName(e) : null
         }
         if (id.startsWith('tea-')) {
           const e = teachers?.find((x) => x.id === id)
-          return e ? `${e.firstName} ${e.lastName}` : null
+          return e ? fullName(e) : null
         }
         if (id.startsWith('prog-')) {
           return programs?.find((x) => x.id === id)?.name ?? null

@@ -9,6 +9,7 @@ import type {
   Student,
   Teacher,
 } from '@/types'
+import { fullName } from './personName'
 
 export interface RecipientInput {
   students: Student[]
@@ -102,7 +103,7 @@ export function campaignSenderLabel(
   if (sentBy === 'admin') return t('bulkEmail.sender.admin')
   if (sentBy === 'system') return t('bulkEmail.sender.system')
   const teacher = teachers.find((x) => x.id === sentBy)
-  return teacher ? `${teacher.firstName} ${teacher.lastName}` : sentBy
+  return teacher ? fullName(teacher) : sentBy
 }
 
 /**

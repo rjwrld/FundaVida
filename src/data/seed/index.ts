@@ -33,6 +33,7 @@ import { sessionsFor, isSessionRecordable } from '@/lib/sessions'
 import { courseDisplayState } from '@/lib/courseDisplayState'
 import { emitCertificatesForClose } from '@/lib/certificates'
 import { resolveRecipients } from '@/lib/emailRecipients'
+import { fullName } from '@/lib/personName'
 import { PROGRAM_CATALOG } from '@/constants/programs'
 import { UNIVERSITIES, type University } from '@/constants/university'
 import { SEDES, type Sede } from '@/constants/sede'
@@ -750,7 +751,7 @@ function buildAuditLog(input: {
       entity: 'teacher',
       entityId: t.id,
       timestamp: t.createdAt,
-      summary: `Created teacher ${t.firstName} ${t.lastName}`,
+      summary: `Created teacher ${fullName(t)}`,
     })
   )
   students.forEach((s) =>
@@ -760,7 +761,7 @@ function buildAuditLog(input: {
       entity: 'student',
       entityId: s.id,
       timestamp: s.createdAt,
-      summary: `Created student ${s.firstName} ${s.lastName}`,
+      summary: `Created student ${fullName(s)}`,
     })
   )
   courses.forEach((c) =>

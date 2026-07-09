@@ -50,6 +50,7 @@ import { MessageClassDialog } from '@/components/courses/MessageClassDialog'
 import { CourseCertificatesSection } from '@/components/courses/CourseCertificatesSection'
 import { CourseStateBadge } from '@/components/courses/CourseStateBadge'
 import { shortCourseName } from '@/lib/courseName'
+import { fullName } from '@/lib/personName'
 
 interface GradingTarget {
   studentId: string
@@ -329,9 +330,7 @@ export function CoursesDetailPage() {
             </p>
             <p>
               <span className="text-muted-foreground">{t('courses.form.fields.teacherId')}:</span>{' '}
-              {teacher
-                ? `${teacher.firstName} ${teacher.lastName}`
-                : t('courses.detail.unassignedTeacher')}
+              {teacher ? fullName(teacher) : t('courses.detail.unassignedTeacher')}
             </p>
           </CardContent>
         </Card>
@@ -405,7 +404,7 @@ export function CoursesDetailPage() {
                       <TableRow key={e.id}>
                         <TableCell>
                           <Link to={`/app/students/${student.id}`} className="hover:underline">
-                            {student.firstName} {student.lastName}
+                            {fullName(student)}
                           </Link>
                         </TableCell>
                         <TableCell>
@@ -422,7 +421,7 @@ export function CoursesDetailPage() {
                                 onClick={() =>
                                   setGradingTarget({
                                     studentId: student.id,
-                                    studentName: `${student.firstName} ${student.lastName}`,
+                                    studentName: fullName(student),
                                     initialScore: grade?.score,
                                   })
                                 }
@@ -437,7 +436,7 @@ export function CoursesDetailPage() {
                                 onClick={() =>
                                   setPendingUnenroll({
                                     id: e.id,
-                                    studentName: `${student.firstName} ${student.lastName}`,
+                                    studentName: fullName(student),
                                   })
                                 }
                               >
@@ -467,9 +466,7 @@ export function CoursesDetailPage() {
                     key={volunteer.id}
                     className="flex flex-col rounded-md border bg-card px-3 py-2 text-sm"
                   >
-                    <span className="font-medium text-foreground">
-                      {volunteer.firstName} {volunteer.lastName}
-                    </span>
+                    <span className="font-medium text-foreground">{fullName(volunteer)}</span>
                     {/* University is a Spanish proper noun, never passed through t() (ADR-0017). */}
                     <span className="text-muted-foreground">{volunteer.university}</span>
                   </li>

@@ -8,6 +8,7 @@ import { useStore } from '@/data/store'
 import { useCertificates } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
+import { fullName } from '@/lib/personName'
 import type { Student } from '@/types'
 
 interface CardItem {
@@ -32,7 +33,7 @@ export function StudentCertificatesSection({ student }: { student: Student }) {
   const courses = useStore((s) => s.courses)
   const programs = useStore((s) => s.programs)
   const { data: certificates = [] } = useCertificates({ studentId: student.id })
-  const studentName = `${student.firstName} ${student.lastName}`
+  const studentName = fullName(student)
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [dataUrl, setDataUrl] = useState<string | null>(null)

@@ -13,6 +13,7 @@ import { EditGradeDialog } from '@/components/grades/EditGradeDialog'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
 import { listViewState } from '@/lib/listViewState'
+import { fullName } from '@/lib/personName'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
@@ -52,7 +53,7 @@ export function GradesListPage() {
   const rowInfo = (g: Grade) => {
     const s = students.find((x) => x.id === g.studentId)
     const c = courses.find((x) => x.id === g.courseId)
-    const studentName = `${s?.firstName ?? ''} ${s?.lastName ?? ''}`.trim()
+    const studentName = s ? fullName(s) : ''
     const courseName = c?.name ?? ''
     const label = [studentName, courseName].filter(Boolean).join(' — ') || '—'
     return { studentName, courseName, label }
@@ -126,7 +127,7 @@ export function GradesListPage() {
               <SelectItem value="any">{t('grades.list.filters.anyStudent')}</SelectItem>
               {students.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
-                  {s.firstName} {s.lastName}
+                  {fullName(s)}
                 </SelectItem>
               ))}
             </SelectContent>

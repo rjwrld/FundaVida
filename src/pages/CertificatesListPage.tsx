@@ -26,6 +26,7 @@ import { useCertificates } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
+import { fullName } from '@/lib/personName'
 
 interface CardItem {
   id: string
@@ -77,7 +78,7 @@ export function CertificatesListPage() {
       if (!student || !course) continue
       result.push({
         id: cert.id,
-        studentName: `${student.firstName} ${student.lastName}`,
+        studentName: fullName(student),
         courseId: cert.courseId,
         courseName: course.name,
         programName: programById.get(course.programId)?.name ?? '',

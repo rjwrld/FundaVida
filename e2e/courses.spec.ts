@@ -3,6 +3,7 @@ import { enterAs } from './helpers/auth'
 import { seedDemo } from '../src/data/seed'
 import { shortCourseName } from '../src/lib/courseName'
 import { courseDisplayState, isOpenForEnrollment } from '../src/lib/courseDisplayState'
+import { fullName } from '../src/lib/personName'
 
 // A clean browseable course for the student persona (stu-1, Linda Vista / primaria)
 // with no prior enrollment AND still open for enrollment (ADR-0042) — so the request
@@ -106,9 +107,7 @@ test('course detail shows the derived Sessions surface and assigned Volunteers (
   const volunteersSection = page
     .locator('section')
     .filter({ has: page.getByRole('heading', { name: 'Volunteers' }) })
-  await expect(
-    volunteersSection.getByText(`${seedVolunteer.firstName} ${seedVolunteer.lastName}`)
-  ).toBeVisible()
+  await expect(volunteersSection.getByText(fullName(seedVolunteer))).toBeVisible()
 })
 
 test('list renders in Spanish when locale is ES', async ({ page }) => {

@@ -32,6 +32,7 @@ import type { CourseFilters } from '@/data/api/courses'
 import type { Course } from '@/types'
 import { useStore } from '@/data/store'
 import { shortCourseName } from '@/lib/courseName'
+import { fullName } from '@/lib/personName'
 
 export function CoursesListPage() {
   const { t } = useTranslation()
@@ -66,7 +67,7 @@ export function CoursesListPage() {
 
   const teacherName = (teacherId: string) => {
     const teacher = teachers.find((x) => x.id === teacherId)
-    return teacher ? `${teacher.firstName} ${teacher.lastName}` : teacherId
+    return teacher ? fullName(teacher) : teacherId
   }
   const programName = (programId: string) =>
     programs.find((p) => p.id === programId)?.name ?? programId

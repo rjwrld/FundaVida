@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import { enterAs } from './helpers/auth'
 import { seedDemo } from '../src/data/seed'
 import { shortCourseName } from '../src/lib/courseName'
+import { fullName } from '../src/lib/personName'
 
 // Deterministic anchors from the seed (faker.seed(42)). The first emitted
 // Certificate anchors a closed Course; its Teacher is therefore guaranteed an
@@ -13,7 +14,7 @@ const anchorCourse = world.courses.find((c) => c.id === anchorCert.courseId)
 if (!anchorCourse) throw new Error('seed: certificate course missing')
 const anchorTeacher = world.teachers.find((t) => t.id === anchorCourse.teacherId)
 if (!anchorTeacher) throw new Error('seed: course teacher missing')
-const anchorTeacherName = `${anchorTeacher.firstName} ${anchorTeacher.lastName}`
+const anchorTeacherName = fullName(anchorTeacher)
 
 test('admin sees a teacher profile with per-course stats (ADR-0012 scope seam)', async ({
   page,

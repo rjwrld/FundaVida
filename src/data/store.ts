@@ -25,6 +25,7 @@ import { clock, setDemoEpoch } from '@/lib/clock'
 import { sessionChangeAnnouncementBody } from '@/lib/announcements'
 import { effectiveSessions, isSessionMarked, isSessionRecordable } from '@/lib/sessions'
 import { recipientEmails } from '@/lib/emailRecipients'
+import { fullName } from '@/lib/personName'
 import { isSameDay, parseISO, startOfDay } from 'date-fns'
 import { courseDisplayState, isOpenForEnrollment } from '@/lib/courseDisplayState'
 import { seedDemo } from './seed'
@@ -374,7 +375,7 @@ export const useStore = create<StoreState>((set, get) => ({
         action: 'create',
         entity: 'student',
         entityId: student.id,
-        summary: `Created student ${student.firstName} ${student.lastName}`,
+        summary: `Created student ${fullName(student)}`,
       },
     }))
     return student
@@ -625,7 +626,7 @@ export const useStore = create<StoreState>((set, get) => ({
         action: 'create',
         entity: 'teacher',
         entityId: teacher.id,
-        summary: `Created teacher ${teacher.firstName} ${teacher.lastName}`,
+        summary: `Created teacher ${fullName(teacher)}`,
       },
     }))
     return teacher
@@ -1185,7 +1186,7 @@ export const useStore = create<StoreState>((set, get) => ({
         action: 'approve',
         entity: 'tcuActivity',
         entityId: activityId,
-        summary: `${decision === 'approved' ? 'Approved' : 'Rejected'} TCU activity ${activityId} for ${trainee.firstName} ${trainee.lastName}`,
+        summary: `${decision === 'approved' ? 'Approved' : 'Rejected'} TCU activity ${activityId} for ${fullName(trainee)}`,
       },
     }))
     return updated

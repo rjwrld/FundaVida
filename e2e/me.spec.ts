@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { enterAs } from './helpers/auth'
 import { seedDemo } from '../src/data/seed'
+import { fullName } from '../src/lib/personName'
 
 // Storage keys must match src/data/persistence.ts (the ES path sets them directly
 // because the new landing only exposes "Enter as admin").
@@ -14,7 +15,7 @@ const LOCALE_KEY = 'fundavida:v2:locale'
 const world = seedDemo(new Date())
 const me = world.students.find((s) => s.id === 'stu-1')
 if (!me) throw new Error('seed: stu-1 missing')
-const meName = `${me.firstName} ${me.lastName}`
+const meName = fullName(me)
 // A passing Grade (>=70) stu-1 holds proves the per-course progress treatment.
 const passingGrade = world.grades.find((g) => g.studentId === 'stu-1' && g.score >= 70)
 if (!passingGrade) throw new Error('seed: stu-1 has no passing grade')
