@@ -16,6 +16,7 @@ import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
 import { listViewState } from '@/lib/listViewState'
+import { fullName } from '@/lib/personName'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
@@ -49,10 +50,10 @@ export function StudentsListPage() {
       id: 'name',
       header: t('students.list.columns.name'),
       sortable: true,
-      sortAccessor: (s) => `${s.firstName} ${s.lastName}`,
+      sortAccessor: (s) => fullName(s),
       cell: (s) => (
         <Link to={`/app/students/${s.id}`} className="hover:underline">
-          {`${s.firstName} ${s.lastName}`}
+          {fullName(s)}
         </Link>
       ),
     },
@@ -80,7 +81,7 @@ export function StudentsListPage() {
       header: t('students.list.columns.actions'),
       align: 'right',
       cell: (s) => {
-        const name = `${s.firstName} ${s.lastName}`
+        const name = fullName(s)
         return (
           <RowActions
             editLabel={t('common.actions.editItem', { name })}

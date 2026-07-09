@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { useStore } from '@/data/store'
+import { fullName } from '@/lib/personName'
 import { useEnrollStudent } from '@/hooks/api'
 
 interface Props {
@@ -68,7 +69,7 @@ export function EnrollStudentDialog({ open, onOpenChange, courseId }: Props) {
             <SelectContent>
               {eligible.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
-                  {s.firstName} {s.lastName}
+                  {fullName(s)}
                 </SelectItem>
               ))}
             </SelectContent>

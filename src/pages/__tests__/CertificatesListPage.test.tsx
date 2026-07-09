@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
+import { fullName } from '@/lib/personName'
 import { CertificatesListPage } from '@/pages/CertificatesListPage'
 import { useStore } from '@/data/store'
 import {
@@ -95,7 +96,7 @@ describe('<CertificatesListPage />', () => {
     // The preview must be real DOM so it renders without a native PDF viewer
     // (a bare <iframe> blob shows blank in headless/embedded browsers).
     const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).getByText(`${student.firstName} ${student.lastName}`)).toBeInTheDocument()
+    expect(within(dialog).getByText(fullName(student))).toBeInTheDocument()
     expect(within(dialog).getByText(/certificate of completion/i)).toBeInTheDocument()
   })
 
@@ -146,7 +147,7 @@ describe('<CertificatesListPage />', () => {
 
     const previews = await screen.findAllByRole('button', { name: /open preview/i })
     expect(previews).toHaveLength(1)
-    expect(screen.queryByText(`${classmate.firstName} ${classmate.lastName}`)).toBeNull()
+    expect(screen.queryByText(fullName(classmate))).toBeNull()
   })
 
   it('filters the gallery by course', async () => {

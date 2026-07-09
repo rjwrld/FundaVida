@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test'
 import { seedDemo } from '../src/data/seed'
 import { STATE_KEY } from '../src/data/persistence'
 import { shortCourseName } from '../src/lib/courseName'
+import { fullName } from '../src/lib/personName'
 
 // Storage keys must match src/data/persistence.ts.
 const ROLE_KEY = 'fundavida:v2:role'
@@ -28,7 +29,7 @@ const PENDING_ID = 'enr-e2e-pending'
 const seedSnapshot = seedDemo(EPOCH)
 const seedStudent = seedSnapshot.students.find((s) => s.id === STUDENT_ID)
 if (!seedStudent) throw new Error(`seed must include ${STUDENT_ID}`)
-const STUDENT_NAME = `${seedStudent.firstName} ${seedStudent.lastName}`
+const STUDENT_NAME = fullName(seedStudent)
 const seedCourse = seedSnapshot.courses.find((c) => c.id === COURSE_ID)
 if (!seedCourse) throw new Error(`seed must include ${COURSE_ID}`)
 // The approval queue and browse list show the full (unique) name; the courses

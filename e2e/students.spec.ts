@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { enterAs } from './helpers/auth'
 import { seedDemo } from '../src/data/seed'
+import { fullName } from '../src/lib/personName'
 
 // Deterministic anchors from the seed (faker.seed(42), epoch-independent — the app
 // reseeds at real wall-time but the structural graph matches, ADR-0002). The first
@@ -11,7 +12,7 @@ const anchorCert = world.certificates[0]
 if (!anchorCert) throw new Error('seed has no emitted certificate')
 const certStudent = world.students.find((s) => s.id === anchorCert.studentId)
 if (!certStudent) throw new Error('seed: certificate student missing')
-const certStudentName = `${certStudent.firstName} ${certStudent.lastName}`
+const certStudentName = fullName(certStudent)
 // A Student other than the logged-in student persona (stu-1), to prove a Student
 // cannot reach another Student's profile.
 const otherStudent = world.students.find((s) => s.id !== 'stu-1')
@@ -85,7 +86,7 @@ test('a student cannot open another student’s profile (self-only, ADR-0012)', 
   await expect(page).toHaveURL(/\/app$/)
   await expect(
     page.getByRole('heading', {
-      name: `${otherStudent.firstName} ${otherStudent.lastName}`,
+      name: fullName(otherStudent),
     })
   ).toHaveCount(0)
 })

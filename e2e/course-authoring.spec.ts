@@ -3,6 +3,7 @@ import { addDays, format, subDays } from 'date-fns'
 import { enterAs } from './helpers/auth'
 import { seedDemo } from '../src/data/seed'
 import { STATE_KEY } from '../src/data/persistence'
+import { fullName } from '../src/lib/personName'
 
 // Deterministic anchors from the seed (faker.seed(42), epoch-independent):
 // tea-1 is the teacher persona at Linda Vista; stu-1 is a Linda Vista / primaria
@@ -11,7 +12,7 @@ import { STATE_KEY } from '../src/data/persistence'
 // seed rather than hardcoding a person.
 const teacherPersona = seedDemo(new Date()).teachers[0]
 if (!teacherPersona) throw new Error('seed must include a teacher persona (tea-1)')
-const TEACHER_NAME = `${teacherPersona.firstName} ${teacherPersona.lastName}`
+const TEACHER_NAME = fullName(teacherPersona)
 const TEACHER_SEDE = teacherPersona.sede
 
 /** Fill the teacher create-course form (Sede + teacher are locked, status hidden). */

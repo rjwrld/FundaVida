@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { formatGrade, formatPercent } from '@/lib/format'
 import { shortCourseName } from '@/lib/courseName'
+import { fullName } from '@/lib/personName'
 import { MeProfilePage } from '@/pages/MeProfilePage'
 import { useStore } from '@/data/store'
 import {
@@ -72,7 +73,7 @@ describe('<MeProfilePage /> (#166)', () => {
 
     expect(
       await screen.findByRole('heading', {
-        name: `${student.firstName} ${student.lastName}`,
+        name: fullName(student),
       })
     ).toBeInTheDocument()
     expect(screen.getByText(student.sede)).toBeInTheDocument()
@@ -123,7 +124,7 @@ describe('<MeProfilePage /> (#166)', () => {
     const { student } = self()
     renderMe()
 
-    await screen.findByRole('heading', { name: `${student.firstName} ${student.lastName}` })
+    await screen.findByRole('heading', { name: fullName(student) })
     expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
   })

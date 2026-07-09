@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { seedDemo } from '../src/data/seed'
 import { isOpenForEnrollment } from '../src/lib/courseDisplayState'
+import { fullName } from '../src/lib/personName'
 
 // A published Linda Vista / primaria cohort still open for enrollment (ADR-0042) —
 // matches the new student the chain creates (campus Linda Vista, default level
@@ -24,7 +25,7 @@ test('admin runs the full chain: create student, enroll, grade, close, certifica
   const suffix = Date.now()
   const firstName = `E2EChain${suffix}`
   const lastName = 'Tester'
-  const fullName = `${firstName} ${lastName}`
+  const studentName = fullName({ firstName, lastName })
 
   await page.goto('/')
   await page.getByRole('button', { name: 'Enter as admin' }).first().click()
@@ -69,20 +70,20 @@ test('admin runs the full chain: create student, enroll, grade, close, certifica
   await page.getByRole('button', { name: 'Enroll student' }).click()
   await expect(page.getByRole('heading', { name: 'Enroll student' })).toBeVisible()
   await page.getByRole('combobox', { name: 'Student' }).click()
-  await page.getByRole('option', { name: fullName }).click()
+  await page.getByRole('option', { name: studentName }).click()
   await page.getByRole('button', { name: 'Enroll', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Enroll student' })).toBeHidden()
 
-  const studentRow = page.getByRole('row').filter({ hasText: fullName })
+  const studentRow = page.getByRole('row').filter({ hasText: studentName })
   await expect(studentRow).toBeVisible()
 
   await studentRow.getByRole('button', { name: 'Grade' }).click()
-  await expect(page.getByRole('heading', { name: `Grade ${fullName}` })).toBeVisible()
+  await expect(page.getByRole('heading', { name: `Grade ${studentName}` })).toBeVisible()
   await page.getByLabel('Score').fill('95')
   await page.getByRole('button', { name: 'Save grade' }).click()
-  await expect(page.getByRole('heading', { name: `Grade ${fullName}` })).toBeHidden()
+  await expect(page.getByRole('heading', { name: `Grade ${studentName}` })).toBeHidden()
 
-  await expect(page.getByRole('row').filter({ hasText: fullName })).toContainText('95')
+  await expect(page.getByRole('row').filter({ hasText: studentName })).toContainText('95')
 
   // Closing the Course emits a downloadable Certificate for every passing Student,
   // all at once (ADR-0024) — there is no separate approval step.

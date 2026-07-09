@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { formatDate, formatGrade, formatPercent } from '@/lib/format'
 import { shortCourseName } from '@/lib/courseName'
+import { fullName } from '@/lib/personName'
 import { StudentsDetailPage } from '@/pages/StudentsDetailPage'
 import { api } from '@/data/api'
 import { delay } from '@/data/api/_delay'
@@ -210,7 +211,7 @@ describe('<StudentsDetailPage /> — scope seam (ADR-0012)', () => {
 
     expect(
       await screen.findByRole('heading', {
-        name: `${rosterStudent.firstName} ${rosterStudent.lastName}`,
+        name: fullName(rosterStudent),
       })
     ).toBeInTheDocument()
   })
@@ -224,7 +225,7 @@ describe('<StudentsDetailPage /> — scope seam (ADR-0012)', () => {
     expect(await screen.findByRole('link', { name: /back to home/i })).toBeInTheDocument()
     expect(
       screen.queryByRole('heading', {
-        name: `${outsideStudent.firstName} ${outsideStudent.lastName}`,
+        name: fullName(outsideStudent),
       })
     ).not.toBeInTheDocument()
   })

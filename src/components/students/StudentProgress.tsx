@@ -20,6 +20,7 @@ import { StudentCertificatesSection } from '@/components/students/StudentCertifi
 import { useFormat } from '@/hooks/useFormat'
 import { shortCourseName } from '@/lib/courseName'
 import { isPassingScore } from '@/lib/certificates'
+import { fullName } from '@/lib/personName'
 import type { StudentProgressRow } from '@/lib/studentProgress'
 import type { Student } from '@/types'
 
@@ -53,7 +54,7 @@ export function StudentProgress({ student, rows, eyebrow, action }: StudentProgr
     <div className="space-y-6">
       <PageHeader
         eyebrow={eyebrow}
-        title={`${student.firstName} ${student.lastName}`}
+        title={fullName(student)}
         description={student.email}
         action={action}
       />

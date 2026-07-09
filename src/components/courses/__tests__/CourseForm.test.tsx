@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
+import { fullName } from '@/lib/personName'
 import { CourseForm } from '@/components/courses/CourseFormDialog'
 import { useStore } from '@/data/store'
 import {
@@ -77,7 +78,7 @@ describe('<CourseForm />', () => {
     if (!course) throw new Error('seed has no course with a resolvable teacher')
     const teacher = teachers.find((t) => t.id === course.teacherId)
     if (!teacher) throw new Error('expected the assigned teacher to exist')
-    const teacherName = `${teacher.firstName} ${teacher.lastName}`
+    const teacherName = fullName(teacher)
 
     renderForm({ courseId: course.id })
 
@@ -110,7 +111,7 @@ describe('<CourseForm />', () => {
     const user = userEvent.setup()
     const ldaVista = useStore.getState().teachers.find((t) => t.sede === 'Linda Vista')
     if (!ldaVista) throw new Error('expected a Linda Vista teacher')
-    const teacherName = `${ldaVista.firstName} ${ldaVista.lastName}`
+    const teacherName = fullName(ldaVista)
 
     renderForm()
     await user.click(screen.getByRole('combobox', { name: 'Campus' }))

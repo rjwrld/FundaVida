@@ -6,6 +6,7 @@ import { parseISO } from 'date-fns'
 import { I18nProvider } from '@/lib/i18n'
 import { formatGrade } from '@/lib/format'
 import { shortCourseName } from '@/lib/courseName'
+import { fullName } from '@/lib/personName'
 import { sessionsFor } from '@/lib/sessions'
 import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
 import { courseDisplayState, isOpenForEnrollment } from '@/lib/courseDisplayState'
@@ -145,9 +146,7 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
       ).toBeInTheDocument()
     })
     // …but no other student's record (roster row) appears.
-    expect(
-      screen.queryByText(`${classmate.firstName} ${classmate.lastName}`)
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText(fullName(classmate))).not.toBeInTheDocument()
   })
 
   it('shows a Student their own Grade for the Course', async () => {
@@ -258,9 +257,7 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     })
     // The roster loads from a separate async query, so wait for the row rather
     // than asserting synchronously off the heading (raced on slower CI).
-    expect(
-      await screen.findByText(`${classmate.firstName} ${classmate.lastName}`)
-    ).toBeInTheDocument()
+    expect(await screen.findByText(fullName(classmate))).toBeInTheDocument()
   })
 
   it('shows the Course’s Teacher the full enrollment roster', async () => {
@@ -277,9 +274,7 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
     })
     // The roster loads from a separate async query, so wait for the row rather
     // than asserting synchronously off the heading (raced on slower CI).
-    expect(
-      await screen.findByText(`${classmate.firstName} ${classmate.lastName}`)
-    ).toBeInTheDocument()
+    expect(await screen.findByText(fullName(classmate))).toBeInTheDocument()
   })
 })
 
@@ -653,7 +648,7 @@ describe('<CoursesDetailPage /> — in-course certificates module (ADR-0024)', (
     // The certificates module renders for the roster-viewing admin, listing the
     // emitted Certificate — but offers no approval (closing the Course emits them).
     expect(await screen.findByRole('heading', { name: 'Certificates' })).toBeInTheDocument()
-    expect(await screen.findByText(`${student.firstName} ${student.lastName}`)).toBeInTheDocument()
+    expect(await screen.findByText(fullName(student))).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /approve certificate for/i })
     ).not.toBeInTheDocument()
@@ -1051,9 +1046,7 @@ describe('<CoursesDetailPage /> — sessions surface & roster (issue 153, ADR-00
     )
     // findBy: the roster loads via a separate useTcuTrainees() query that isn't in
     // the page's loading gate, so it populates after the heading (raced getByText → #182).
-    expect(
-      await within(section).findByText(`${trainee.firstName} ${trainee.lastName}`)
-    ).toBeInTheDocument()
+    expect(await within(section).findByText(fullName(trainee))).toBeInTheDocument()
   })
 
   it('drops a Sede-mismatched volunteer from the list (One-Sede invariant, ADR-0011)', async () => {
@@ -1085,9 +1078,7 @@ describe('<CoursesDetailPage /> — sessions surface & roster (issue 153, ADR-00
     // The legitimate same-Sede volunteer is shown…
     // findBy: the roster loads via a separate useTcuTrainees() query that isn't in
     // the page's loading gate, so it populates after the heading (raced getByText → #182).
-    expect(
-      await within(section).findByText(`${trainee.firstName} ${trainee.lastName}`)
-    ).toBeInTheDocument()
+    expect(await within(section).findByText(fullName(trainee))).toBeInTheDocument()
     // …but the Sede-mismatched one never appears.
     expect(within(section).queryByText('Rogue Volunteer')).not.toBeInTheDocument()
   })
@@ -1113,9 +1104,7 @@ describe('<CoursesDetailPage /> — sessions surface & roster (issue 153, ADR-00
     )
     // findBy: the roster loads via a separate useTcuTrainees() query that isn't in
     // the page's loading gate, so it populates after the heading (raced getByText → #182).
-    expect(
-      await within(section).findByText(`${trainee.firstName} ${trainee.lastName}`)
-    ).toBeInTheDocument()
+    expect(await within(section).findByText(fullName(trainee))).toBeInTheDocument()
   })
 
   it('renders a closed Course as a Finished badge (ADR-0042)', async () => {

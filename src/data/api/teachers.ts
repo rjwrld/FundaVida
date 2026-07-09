@@ -1,4 +1,5 @@
 import type { Teacher } from '@/types'
+import { fullName } from '@/lib/personName'
 import { scopedGet, scopedList } from './scopedRead'
 
 export interface TeacherFilters {
@@ -9,7 +10,7 @@ function applyFilters(teachers: Teacher[], filters: TeacherFilters): Teacher[] {
   const { search } = filters
   if (!search) return teachers
   const q = search.toLowerCase()
-  return teachers.filter((t) => `${t.firstName} ${t.lastName} ${t.email}`.toLowerCase().includes(q))
+  return teachers.filter((t) => `${fullName(t)} ${t.email}`.toLowerCase().includes(q))
 }
 
 export const teachersApi = {

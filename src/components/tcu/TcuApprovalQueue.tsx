@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useTcuActivities, useTcuTrainees, useApproveTcuActivity } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
+import { fullName } from '@/lib/personName'
 
 /**
  * Renders an approval queue for pending TCU activities.
@@ -37,7 +38,7 @@ export function TcuApprovalQueue() {
     const trainee = trainees.find((x) => x.id === a.traineeId)
     return {
       activity: a,
-      traineeName: `${trainee?.firstName ?? ''} ${trainee?.lastName ?? ''}`.trim(),
+      traineeName: trainee ? fullName(trainee) : '',
     }
   })
 

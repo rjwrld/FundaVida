@@ -17,6 +17,7 @@ import {
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
 import { listViewState } from '@/lib/listViewState'
+import { fullName } from '@/lib/personName'
 import { ListHeaderBand } from '@/components/shared/ListHeaderBand'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
@@ -102,7 +103,7 @@ export function TeachersListPage() {
               </TableHeader>
               <TableBody>
                 {data.map((teacher) => {
-                  const name = `${teacher.firstName} ${teacher.lastName}`
+                  const name = fullName(teacher)
                   return (
                     <TableRow key={teacher.id} className="h-12 hover:bg-muted/40">
                       <TableCell>

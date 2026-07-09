@@ -8,6 +8,7 @@ import { useStore } from '@/data/store'
 import { useCertificates } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
+import { fullName } from '@/lib/personName'
 import type { Course } from '@/types'
 
 interface CardItem {
@@ -44,7 +45,7 @@ export function CourseCertificatesSection({ course }: { course: Course }) {
       if (!student) continue
       result.push({
         id: cert.id,
-        studentName: `${student.firstName} ${student.lastName}`,
+        studentName: fullName(student),
         programName,
         score: cert.score,
         grade: formatGrade(cert.score),

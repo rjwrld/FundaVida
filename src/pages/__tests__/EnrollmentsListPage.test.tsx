@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { shortCourseName } from '@/lib/courseName'
+import { fullName } from '@/lib/personName'
 import { EnrollmentsListPage } from '@/pages/EnrollmentsListPage'
 import { useStore } from '@/data/store'
 import {
@@ -83,7 +84,7 @@ describe('<EnrollmentsListPage /> — admin oversight by Sede → Course (ADR-00
     // recur across Sedes, so just assert at least one card shows it.
     expect((await screen.findAllByText(shortCourseName(course))).length).toBeGreaterThan(0)
     const approveButton = await screen.findByRole('button', {
-      name: new RegExp(`approve ${student.firstName} ${student.lastName}'s enrollment`, 'i'),
+      name: new RegExp(`approve ${fullName(student)}'s enrollment`, 'i'),
     })
     fireEvent.click(approveButton)
 

@@ -29,6 +29,7 @@ import {
 import { resolveQueries } from '@/lib/resolveQueries'
 import { effectiveSessions, isSessionRecordable } from '@/lib/sessions'
 import { clock } from '@/lib/clock'
+import { fullName } from '@/lib/personName'
 import { useFormat } from '@/hooks/useFormat'
 import { can } from '@/permissions'
 import { useStore } from '@/data/store'
@@ -132,7 +133,7 @@ export function MarkSessionAttendancePage() {
         .filter(Boolean)
         .sort((a, b) => {
           if (!a || !b) return 0
-          return `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
+          return fullName(a).localeCompare(fullName(b))
         })
 
       return {
@@ -282,9 +283,7 @@ export function MarkSessionAttendancePage() {
               if (!student) return null
               return (
                 <TableRow key={student.id}>
-                  <TableCell>
-                    {student.firstName} {student.lastName}
-                  </TableCell>
+                  <TableCell>{fullName(student)}</TableCell>
                   <TableCell className="text-right">
                     <Select
                       value={attendanceByStudentId[student.id]}
@@ -295,7 +294,7 @@ export function MarkSessionAttendancePage() {
                       <SelectTrigger
                         className="w-32"
                         aria-label={t('attendance.mark.statusLabel', {
-                          name: `${student.firstName} ${student.lastName}`,
+                          name: fullName(student),
                         })}
                       >
                         <SelectValue />
