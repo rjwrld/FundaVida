@@ -392,6 +392,116 @@ describe('<CoursesDetailPage /> — Message the class entry (ADR-0041)', () => {
   })
 })
 
+/**
+ * The Course's outbox (ADR-0046). The seed's one teacher-authored class message,
+ * cam-4, was sent by tea-1 to cou-1 — a *closed* cohort, which is why the card
+ * carries no lifecycle guard while the compose action does.
+ */
+describe('<CoursesDetailPage /> — Sent messages card (ADR-0046)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  /** The seeded teacher-authored campaign, and the Course it targeted. */
+  function teacherCampaign() {
+    const campaign = req(
+      useStore.getState().emailCampaigns.find((c) => c.id === 'cam-4'),
+      'seed: cam-4 missing'
+    )
+    if (campaign.filter.kind !== 'course') throw new Error('seed: cam-4 is not course-scoped')
+    const course = req(
+      useStore.getState().courses.find((c) => c.id === campaign.filter.value),
+      'seed: cam-4 targets a course that does not exist'
+    )
+    return { campaign, course }
+  }
+
+  /** A second campaign on the same Course, sent by someone else. */
+  function seedAdminCampaignOnSameCourse(subject: string) {
+    const { campaign } = teacherCampaign()
+    useStore.setState({
+      emailCampaigns: [
+        ...useStore.getState().emailCampaigns,
+        { ...campaign, id: 'cam-admin', subject, sentBy: 'admin' },
+      ],
+    })
+  }
+
+  it("shows the owning Teacher their own class message, and only theirs ('own' scope)", async () => {
+    const { campaign, course } = teacherCampaign()
+    seedAdminCampaignOnSameCourse("Admin's note to the same class")
+    asRole('teacher')
+    renderPage(course.id)
+
+    expect(await screen.findByRole('heading', { name: 'Sent messages' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: campaign.subject })).toBeInTheDocument()
+    // The scope seam narrowed to sentBy === tea-1: the admin's campaign on the same
+    // Course never reaches the teacher's card.
+    expect(
+      screen.queryByRole('button', { name: "Admin's note to the same class" })
+    ).not.toBeInTheDocument()
+  })
+
+  it("shows an admin the teacher's class message on the same Course ('all' scope)", async () => {
+    const { campaign, course } = teacherCampaign()
+    asRole('admin')
+    renderPage(course.id)
+
+    expect(await screen.findByRole('button', { name: campaign.subject })).toBeInTheDocument()
+  })
+
+  it('renders on a closed cohort, where the compose action does not', async () => {
+    const { course } = teacherCampaign()
+    expect(course.status).toBe('closed')
+    asRole('teacher')
+    renderPage(course.id)
+
+    expect(await screen.findByRole('heading', { name: 'Sent messages' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Message the class' })).not.toBeInTheDocument()
+  })
+
+  it('never shows a Student the card', async () => {
+    const { campaign, course } = teacherCampaign()
+    asRole('student')
+    renderPage(course.id)
+
+    // stu-1 is enrolled in cou-1, so the detail page renders — but `bulkEmail: {}`
+    // denies the card outright.
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: shortCourseName(course) })).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('heading', { name: 'Sent messages' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: campaign.subject })).not.toBeInTheDocument()
+  })
+
+  it('shows an empty state on a Course nobody has messaged', async () => {
+    const { publishedOwnCourse } = fixtures()
+    asRole('teacher')
+    renderPage(publishedOwnCourse.id)
+
+    expect(await screen.findByRole('heading', { name: 'Sent messages' })).toBeInTheDocument()
+    expect(await screen.findByText('No messages sent to this class yet.')).toBeInTheDocument()
+  })
+
+  it('opens the sent artifact from a row, with no filter column in the card (ADR-0045)', async () => {
+    const { campaign, course } = teacherCampaign()
+    asRole('teacher')
+    renderPage(course.id)
+
+    fireEvent.click(await screen.findByRole('button', { name: campaign.subject }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByRole('heading', { name: 'Email preview' })).toBeInTheDocument()
+    // The recipient count is over emails, not Students (ADR-0041): cam-4's audience
+    // is 'both', so each Student contributes their own address and their guardian's.
+    expect(within(dialog).getByText(String(campaign.recipientIds.length * 2))).toBeInTheDocument()
+  })
+})
+
 describe('<CoursesDetailPage /> — in-course certificates module (ADR-0024)', () => {
   beforeEach(() => {
     clearPersistedState()

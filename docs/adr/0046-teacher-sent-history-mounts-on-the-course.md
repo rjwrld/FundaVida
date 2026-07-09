@@ -1,0 +1,21 @@
+# Teacher sent history mounts on the Course, not a BulkEmailPage list
+
+_Accepted (design grilling 2026-07-08). Amends ADR-0041._
+
+ADR-0041 bullet 2 claimed a teacher's own-scoped campaigns surface as a "history list [that] shows only their campaigns." No such list was ever mounted: the sole caller of `useEmailCampaigns` is the admin-only `BulkEmailPage`, so the `'own'` branch of `applyEmailCampaignsScope` is reachable in tests but dead in the product. ADR-0045 sharpened the loss — a teacher can preview a draft through "Message the class", but once they hit Send the rendered email is gone for good. The teacher's outbox needs a home, and the Course is it, not the admin surface.
+
+## Decision
+
+**The surface.** `CoursesDetailPage` gains a "Sent messages" card below the announcement feed, so the Course's two outbound channels read as one story. It gates on `useCan('view', 'bulkEmail', { course })` — the same in-context predicate the roster uses — which is true for the owning teacher (`courseOwned`) and any admin (`view: true`), and false for students (`bulkEmail: {}`). It carries **no lifecycle guard**: sent history is read-only, and is if anything more useful once a cohort closes. The seed proves the point — `cam-4`, the teacher persona's one class message, targets `cou-1`, which is `closed`. An `isLiveCohort` gate would hide the only teacher-authored campaign in the product from the only Course it was sent to. The compose action keeps its own separate `isLiveCohort` guard, because the store rejects a closed send.
+
+**The contents are viewer-agnostic.** A `select`-based `useCourseCampaigns(courseId)` layers on the existing `[...EMAIL_CAMPAIGNS_KEY, role]` query and filters the already-scoped list to `filter.kind === 'course' && filter.value === courseId`, newest first. The scope seam does the per-viewer narrowing: a teacher's `own` scope yields their class messages; an admin's `all` scope yields **every** course-targeted campaign, including a teacher's. An admin opening the Course therefore sees the teacher's class message there — consistent with the admin already seeing it on `BulkEmailPage`, and a "Sent messages" card that hid a message actually sent to the Course would lie by omission. The component never branches on role; the seam already did.
+
+**The rows.** Subject (the click target), audience, recipient **email** count (ADR-0041 semantics), sentAt. No filter column — every row targets this same Course, so the label would be constant noise; the card body consequently never calls `emailFilterLabel`. A plain `<Table>`, never the paginated `DataTable`: a Course sends a handful of class messages, so pagination buys nothing, and `DataTable`'s dual card/table render fights Playwright's strict mode. Clicking a subject opens the existing `EmailPreviewDialog` (ADR-0045) — it takes no new permission, it rides the surface it sits on.
+
+## Consequences
+
+- **No matrix, scope, api, route, or STATE_KEY change.** `EmailCampaign` gains no field; v15 stands. Any diff touching `matrix.ts` or `scope.ts` while implementing this is over-broadening and should be rejected in review.
+- The card shares `EMAIL_CAMPAIGNS_KEY`, so the existing `sendEmailCampaign` invalidation (write-set → `EMAIL_CAMPAIGNS_KEY`, ADR-0029) refreshes it after a send with no new `invalidates` entry. A teacher who messages a live class watches the row appear.
+- The `'own'` branch of `applyEmailCampaignsScope`, covered at the api level but never reached in production, now has a real production caller. A page-level test pins that the teacher path shows own-only; a second pins that an admin sees the teacher's message, guarding this decision against a silent narrowing.
+- The recipient count is recomputed from the campaign's stored `recipientIds` against the viewer's **scoped** students, exactly as `BulkEmailPage` does. Both audiences that can see the card can see the roster it counts (teacher: `enrolledInOwnCourses`; admin: `all`), so the count never under-reports.
+- The card body is off `emailFilterLabel`, so the only coupling to the concurrent raw-id fix (#282) is `EmailPreviewDialog`'s runtime filter chrome. #281's e2e therefore asserts on the rendered body and subject, never the filter row.
