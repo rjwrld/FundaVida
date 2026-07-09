@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NoResults } from '@/components/shared/NoResults'
 import {
@@ -14,7 +14,16 @@ import { sentRecipientCount } from '@/lib/emailRecipients'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { useCourseCampaigns, useStudents } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
-import type { Course } from '@/types'
+import type { Course, EmailCampaign, Student } from '@/types'
+
+/** One row per sent campaign, its recipient count resolved against the viewer's students. */
+function buildRows(campaigns: EmailCampaign[], students: Student[]) {
+  const studentById = new Map(students.map((s) => [s.id, s]))
+  return campaigns.map((campaign) => ({
+    campaign,
+    emailCount: sentRecipientCount(campaign, studentById),
+  }))
+}
 
 /**
  * The Course's outbox (ADR-0046): the class messages sent to this cohort, newest
@@ -32,25 +41,19 @@ export function CourseSentMessagesSection({ course }: { course: Course }) {
   const { formatDateTime, formatNumber } = useFormat()
   const campaignsQuery = useCourseCampaigns(course.id)
   const studentsQuery = useStudents()
-  const { data: campaigns = [] } = campaignsQuery
-  const { data: students = [] } = studentsQuery
   const [openedId, setOpenedId] = useState<string | null>(null)
 
-  // Every row derives from BOTH queries — the campaign for its subject, the
-  // students for its recipient count — so the card holds until both resolve
-  // (ADR-0030). Reading the students query's default `[]` window would paint a row
-  // counting zero recipients, then correct it.
+  // Every row derives from BOTH queries — the campaign for its subject, the students
+  // for its recipient count — so the card holds until both resolve (ADR-0030).
+  // Reading the students query's default `[]` window would paint a row counting zero
+  // recipients, then correct it.
+  //
+  // The rows come out of `gate.data`, which narrows to a tuple only once both have
+  // loaded. Nothing here destructures a `[]` default, so widening this card's data
+  // dependencies without widening the gate is a type error, not a flash.
   const gate = resolveQueries([campaignsQuery, studentsQuery])
 
-  const studentById = useMemo(() => new Map(students.map((s) => [s.id, s])), [students])
-
-  const rows = useMemo(() => {
-    if (gate.isPending) return null
-    return campaigns.map((campaign) => ({
-      campaign,
-      emailCount: sentRecipientCount(campaign, studentById),
-    }))
-  }, [gate.isPending, campaigns, studentById])
+  const rows = gate.isPending ? null : buildRows(...gate.data)
 
   const opened = rows?.find((row) => row.campaign.id === openedId)
 

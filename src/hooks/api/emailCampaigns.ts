@@ -29,6 +29,8 @@ export function useCourseCampaigns(courseId: string) {
   // an inline arrow would hand the card a fresh array on every render.
   const select = useCallback(
     (campaigns: EmailCampaign[]) =>
+      // `.filter` hands `.sort` a fresh array, so the in-place sort never touches
+      // the array react-query cached. Drop the filter and this mutates the cache.
       campaigns
         .filter((c) => c.filter.kind === 'course' && c.filter.value === courseId)
         .sort((a, b) => b.sentAt.localeCompare(a.sentAt)),
