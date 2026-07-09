@@ -31,9 +31,14 @@ export function useCourseCampaigns(courseId: string) {
     (campaigns: EmailCampaign[]) =>
       // `.filter` hands `.sort` a fresh array, so the in-place sort never touches
       // the array react-query cached. Drop the filter and this mutates the cache.
+      //
+      // Relational compare, not `localeCompare`: `sentAt` is a fixed-format ISO
+      // instant, where lexicographic order IS chronological order. `localeCompare`
+      // is locale-aware collation and promises no such thing (`mostRecentByDate` in
+      // lib/utils.ts sorts ISO strings the same way).
       campaigns
         .filter((c) => c.filter.kind === 'course' && c.filter.value === courseId)
-        .sort((a, b) => b.sentAt.localeCompare(a.sentAt)),
+        .sort((a, b) => (a.sentAt > b.sentAt ? -1 : a.sentAt < b.sentAt ? 1 : 0)),
     [courseId]
   )
   return useQuery({

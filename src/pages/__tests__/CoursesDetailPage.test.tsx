@@ -567,6 +567,46 @@ describe('<CoursesDetailPage /> — Sent messages card (ADR-0046)', () => {
     )
   })
 
+  it('counts only recipients the viewer can still resolve, so a teacher may undercount', async () => {
+    const { campaign, course } = teacherCampaign()
+    // Every recipient contributes their own address and their Encargado's ('both').
+    const fullCount = campaign.recipientIds.length * 2
+
+    // An admin hard-deletes one recipient's enrollments across every Course this
+    // teacher owns. Unlike a withdrawal — which keeps the record, and so keeps the
+    // Student in `enrolledInOwnCourses` — a delete removes it, dropping that Student
+    // out of the teacher's student scope entirely.
+    asRole('admin')
+    const victim = req(campaign.recipientIds[0], 'seed: cam-4 has no recipients')
+    const ownCourseIds = new Set(
+      useStore
+        .getState()
+        .courses.filter((c) => c.teacherId === 'tea-1')
+        .map((c) => c.id)
+    )
+    for (const enrollment of useStore
+      .getState()
+      .enrollments.filter((e) => e.studentId === victim && ownCourseIds.has(e.courseId))) {
+      useStore.getState().unenrollStudent(enrollment.id)
+    }
+
+    // The count is reconstructed from who the reader can see, not recorded at send
+    // time (ADR-0046). The teacher loses the departed recipient from their count...
+    asRole('teacher')
+    const teacherView = renderPage(course.id)
+    expect(await screen.findByTestId('sent-message-recipients')).toHaveTextContent(
+      String(fullCount - 2)
+    )
+    teacherView.unmount()
+
+    // ...while the admin, whose scope is `all`, still counts them.
+    asRole('admin')
+    renderPage(course.id)
+    expect(await screen.findByTestId('sent-message-recipients')).toHaveTextContent(
+      String(fullCount)
+    )
+  })
+
   it('opens the sent artifact from a row, with no filter column in the card (ADR-0045)', async () => {
     const { campaign, course } = teacherCampaign()
     asRole('teacher')

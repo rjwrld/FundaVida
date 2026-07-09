@@ -106,17 +106,18 @@ export function recipientEmails(students: Student[], audience: EmailAudience): s
 }
 
 /**
- * How many distinct email addresses a *sent* campaign reached — emails, not
- * Students (ADR-0041). Reconstructed from the campaign's stored recipient
- * Students, resolved through the `studentById` index the caller supplies.
+ * How many distinct email addresses a sent campaign reaches among the recipients
+ * `studentById` can resolve — emails, not Students (ADR-0041).
  *
- * Both surfaces that list a sent campaign read this: the admin history on
- * `BulkEmailPage` and a Course's outbox (ADR-0046). One home for the *formula*,
- * so neither can invent its own arithmetic. The inputs are still the caller's:
- * `BulkEmailPage` indexes the raw store and the outbox indexes the scope seam,
- * so a recipient the caller cannot see is a recipient this does not count. That
- * is the intended reading of a scoped count, not a discrepancy to paper over —
- * see ADR-0046 on why both audiences can always see the roster they count.
+ * This is **reconstructed, not recorded**: ADR-0041 stores `recipientIds`, never a
+ * count, so a recipient missing from the index is a recipient not counted. The
+ * answer is therefore relative to the caller's index, and two callers can honestly
+ * disagree: `BulkEmailPage` indexes the raw store, a Course's outbox (ADR-0046)
+ * indexes the scope seam, and a Student who has left the reader's scope silently
+ * leaves their count. It is not the count at send time. See ADR-0046's consequences
+ * for why recording that number instead is out of scope.
+ *
+ * Both surfaces read this one formula, so neither invents its own arithmetic.
  */
 export function sentRecipientCount(
   campaign: Pick<EmailCampaign, 'recipientIds' | 'audience'>,
