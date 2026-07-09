@@ -43,6 +43,7 @@ import type { AttendanceStatus } from '@/types'
 import { CloseReadinessChecklist } from '@/components/courses/CloseReadinessChecklist'
 import { CourseSessionsSection } from '@/components/courses/CourseSessionsSection'
 import { CourseAnnouncementsSection } from '@/components/courses/CourseAnnouncementsSection'
+import { CourseSentMessagesSection } from '@/components/courses/CourseSentMessagesSection'
 import { GradeDialog } from '@/components/courses/GradeDialog'
 import { EnrollStudentDialog } from '@/components/courses/EnrollStudentDialog'
 import { MessageClassDialog } from '@/components/courses/MessageClassDialog'
@@ -159,6 +160,10 @@ export function CoursesDetailPage() {
   // and Announcements manage gates).
   const canMessageClass =
     useCan('create', 'bulkEmail', { course: course || undefined }) && isLiveCohort(course)
+  // The Course's outbox (ADR-0046). Same audience as the compose action minus its
+  // lifecycle guard: reading what was already sent is safe on a closed cohort, and
+  // the demo's one teacher-authored class message lives on exactly such a Course.
+  const canViewSentMessages = useCan('view', 'bulkEmail', { course: course || undefined })
 
   // Close-readiness derivation (issue #204), from the page's existing scoped
   // queries. ONE closeReadiness derivation feeds both the close-readiness
@@ -290,6 +295,11 @@ export function CoursesDetailPage() {
       />
 
       {showChecklist && <CloseReadinessChecklist readiness={readiness} />}
+
+      {/* The outbox sits directly under the header that carries "Message the class"
+          (ADR-0046), so compose and sent history read as one channel. The
+          close-readiness banner stays topmost: it is a call to act, not a record. */}
+      {canViewSentMessages && <CourseSentMessagesSection course={course} />}
 
       <section className="grid gap-4 sm:grid-cols-2">
         <Card>

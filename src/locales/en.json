@@ -393,6 +393,10 @@
         "yourAttendance": "Your attendance",
         "yourRecords": "Your records"
       },
+      "sentMessages": {
+        "empty": "No messages sent to this class yet.",
+        "heading": "Sent messages"
+      },
       "sessions": {
         "empty": "No sessions scheduled for this course.",
         "groups": {

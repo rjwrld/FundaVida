@@ -1,5 +1,13 @@
 import type { TFunction } from 'i18next'
-import type { Course, EmailAudience, EmailFilter, Enrollment, Program, Student } from '@/types'
+import type {
+  Course,
+  EmailAudience,
+  EmailCampaign,
+  EmailFilter,
+  Enrollment,
+  Program,
+  Student,
+} from '@/types'
 
 export interface RecipientInput {
   students: Student[]
@@ -95,4 +103,28 @@ export function recipientEmails(students: Student[], audience: EmailAudience): s
     if (audience === 'guardians' || audience === 'both') push(student.guardian.email)
   }
   return emails
+}
+
+/**
+ * How many distinct email addresses a sent campaign reaches among the recipients
+ * `studentById` can resolve — emails, not Students (ADR-0041).
+ *
+ * This is **reconstructed, not recorded**: ADR-0041 stores `recipientIds`, never a
+ * count, so a recipient missing from the index is a recipient not counted. The
+ * answer is therefore relative to the caller's index, and two callers can honestly
+ * disagree: `BulkEmailPage` indexes the raw store, a Course's outbox (ADR-0046)
+ * indexes the scope seam, and a Student who has left the reader's scope silently
+ * leaves their count. It is not the count at send time. See ADR-0046's consequences
+ * for why recording that number instead is out of scope.
+ *
+ * Both surfaces read this one formula, so neither invents its own arithmetic.
+ */
+export function sentRecipientCount(
+  campaign: Pick<EmailCampaign, 'recipientIds' | 'audience'>,
+  studentById: Map<string, Student>
+): number {
+  const recipients = campaign.recipientIds
+    .map((id) => studentById.get(id))
+    .filter((s) => s !== undefined)
+  return recipientEmails(recipients, campaign.audience).length
 }

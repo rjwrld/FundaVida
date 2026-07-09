@@ -18,6 +18,16 @@ const seededCampaign = world.emailCampaigns.find((c) => c.id === 'cam-1')
 if (!seededCampaign) throw new Error('seed must contain the broadcast campaign cam-1')
 const seededOpeningParagraph = seededCampaign.body.split('\n\n')[0] ?? ''
 
+// The teacher persona's one class message (ADR-0046) and the Course it was sent to.
+// That Course is *closed* — which is the whole reason the Sent messages card carries
+// no lifecycle guard. Derived from the seed, not hand-guessed.
+const classMessage = world.emailCampaigns.find((c) => c.id === 'cam-4')
+if (!classMessage || classMessage.filter.kind !== 'course') {
+  throw new Error('seed must contain the teacher-authored, course-scoped campaign cam-4')
+}
+const messagedCourseId = classMessage.filter.value
+const classMessageOpeningParagraph = classMessage.body.split('\n\n')[0] ?? ''
+
 test('admin sends a bulk email and sees it in the history', async ({ page }) => {
   const suffix = Date.now()
   const subject = `E2E ${suffix}`
@@ -118,6 +128,33 @@ test('a teacher previews their class message — the viewer rides the existing s
   const email = page.frameLocator('iframe[title="Rendered email"]')
   await expect(email.getByRole('heading', { name: 'Materiales de esta semana' })).toBeVisible()
   await expect(email.getByText('Traigan su cuaderno.')).toBeVisible()
+})
+
+test('a teacher reads a class message they already sent, from the Course (ADR-0046)', async ({
+  page,
+}) => {
+  await pinDemoEpoch(page, EPOCH)
+  await enterAs(page, 'teacher')
+  await page.goto(`/app/courses/${messagedCourseId}`)
+
+  // The outbox mounts on the Course, never on the admin-only /app/bulk-email.
+  await expect(page.getByRole('link', { name: 'Bulk Email' })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Sent messages' })).toBeVisible()
+
+  // No lifecycle guard: the cohort is closed, so there is no compose action here —
+  // but the message the teacher sent while it ran is still readable.
+  await expect(page.getByRole('button', { name: 'Message the class' })).toHaveCount(0)
+
+  await page.getByRole('button', { name: classMessage.subject }).click()
+
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { name: 'Email preview' })).toBeVisible()
+
+  // Assert on the rendered artifact — subject and body — not the dialog's filter row.
+  const email = page.frameLocator('iframe[title="Rendered email"]')
+  await expect(email.getByRole('heading', { name: classMessage.subject })).toBeVisible()
+  await expect(email.getByText(classMessageOpeningParagraph)).toBeVisible()
+  await expect(email.getByText(/no email was actually sent/i)).toBeVisible()
 })
 
 test('the composer previews the current draft before sending', async ({ page }) => {

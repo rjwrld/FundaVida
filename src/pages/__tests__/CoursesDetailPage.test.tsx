@@ -392,6 +392,236 @@ describe('<CoursesDetailPage /> — Message the class entry (ADR-0041)', () => {
   })
 })
 
+/**
+ * The Course's outbox (ADR-0046). The seed's one teacher-authored class message,
+ * cam-4, was sent by tea-1 to cou-1 — a *closed* cohort, which is why the card
+ * carries no lifecycle guard while the compose action does.
+ */
+describe('<CoursesDetailPage /> — Sent messages card (ADR-0046)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  /** The seeded teacher-authored campaign, and the Course it targeted. */
+  function teacherCampaign() {
+    const campaign = req(
+      useStore.getState().emailCampaigns.find((c) => c.id === 'cam-4'),
+      'seed: cam-4 missing'
+    )
+    if (campaign.filter.kind !== 'course') throw new Error('seed: cam-4 is not course-scoped')
+    const course = req(
+      useStore.getState().courses.find((c) => c.id === campaign.filter.value),
+      'seed: cam-4 targets a course that does not exist'
+    )
+    return { campaign, course }
+  }
+
+  /** A second campaign on the same Course, sent by someone else. */
+  function seedAdminCampaignOnSameCourse(subject: string) {
+    const { campaign } = teacherCampaign()
+    useStore.setState({
+      emailCampaigns: [
+        ...useStore.getState().emailCampaigns,
+        { ...campaign, id: 'cam-admin', subject, sentBy: 'admin' },
+      ],
+    })
+  }
+
+  it("shows the owning Teacher their own class message, and only theirs ('own' scope)", async () => {
+    const { campaign, course } = teacherCampaign()
+    seedAdminCampaignOnSameCourse("Admin's note to the same class")
+    asRole('teacher')
+    renderPage(course.id)
+
+    expect(await screen.findByRole('heading', { name: 'Sent messages' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: campaign.subject })).toBeInTheDocument()
+    // The scope seam narrowed to sentBy === tea-1: the admin's campaign on the same
+    // Course never reaches the teacher's card.
+    expect(
+      screen.queryByRole('button', { name: "Admin's note to the same class" })
+    ).not.toBeInTheDocument()
+  })
+
+  it("shows an admin the teacher's class message on the same Course ('all' scope)", async () => {
+    const { campaign, course } = teacherCampaign()
+    asRole('admin')
+    renderPage(course.id)
+
+    expect(await screen.findByRole('button', { name: campaign.subject })).toBeInTheDocument()
+  })
+
+  it('renders on a closed cohort, where the compose action does not', async () => {
+    const { course } = teacherCampaign()
+    expect(course.status).toBe('closed')
+    asRole('teacher')
+    renderPage(course.id)
+
+    expect(await screen.findByRole('heading', { name: 'Sent messages' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Message the class' })).not.toBeInTheDocument()
+  })
+
+  it('never shows a Student the card', async () => {
+    const { campaign, course } = teacherCampaign()
+    asRole('student')
+    renderPage(course.id)
+
+    // stu-1 is enrolled in cou-1, so the detail page renders — but `bulkEmail: {}`
+    // denies the card outright.
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: shortCourseName(course) })).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('heading', { name: 'Sent messages' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: campaign.subject })).not.toBeInTheDocument()
+  })
+
+  // "the card shows on every Course the viewer may see, empty-state included"
+  // (ADR-0046) — for BOTH audiences the view permission admits, not just the teacher.
+  it.each(['teacher', 'admin'] as const)(
+    'shows %s an empty state on a Course nobody has messaged',
+    async (role) => {
+      const { publishedOwnCourse } = fixtures()
+      asRole(role)
+      renderPage(publishedOwnCourse.id)
+
+      expect(await screen.findByRole('heading', { name: 'Sent messages' })).toBeInTheDocument()
+      expect(await screen.findByText('No messages sent to this class yet.')).toBeInTheDocument()
+    }
+  )
+
+  it('lands a freshly sent class message in the card, with no reload', async () => {
+    const { publishedOwnCourse } = fixtures()
+    asRole('teacher')
+    renderPage(publishedOwnCourse.id)
+
+    // Nothing targets this live cohort yet — cam-4 was sent to the closed one.
+    expect(await screen.findByText('No messages sent to this class yet.')).toBeInTheDocument()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Message the class' }))
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.change(within(dialog).getByLabelText('Subject'), {
+      target: { value: 'Materiales de esta semana' },
+    })
+    fireEvent.change(within(dialog).getByLabelText('Body'), {
+      target: { value: 'Traigan su cuaderno de apuntes.' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Send' }))
+
+    // The card shares EMAIL_CAMPAIGNS_KEY with the admin history, so the write-set
+    // invalidation sendEmailCampaign already emits refreshes it for free — no new
+    // `invalidates` entry, and no reload (ADR-0029, ADR-0046). That "free" refresh
+    // is only free while the keys stay prefix-compatible: make the invalidation
+    // `exact`, and this row never arrives.
+    await waitFor(
+      () => {
+        expect(
+          screen.getByRole('button', { name: 'Materiales de esta semana' })
+        ).toBeInTheDocument()
+      },
+      { timeout: 4000 }
+    )
+    expect(screen.queryByText('No messages sent to this class yet.')).not.toBeInTheDocument()
+  })
+
+  it('sits beside the compose action, above the overview and the feed', async () => {
+    const { course } = teacherCampaign()
+    asRole('teacher')
+    renderPage(course.id)
+
+    // ADR-0046: compose and outbox are one channel, so the card mounts under the
+    // page header that carries "Message the class" — not down in the section flow.
+    const outbox = await screen.findByRole('heading', { name: 'Sent messages' })
+    const overview = screen.getByRole('heading', { name: 'Overview' })
+    const feed = screen.getByRole('heading', { name: 'Announcements' })
+
+    for (const later of [overview, feed]) {
+      expect(outbox.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
+  })
+
+  it('never paints a zero recipient count while the students query is still open', async () => {
+    const { campaign, course } = teacherCampaign()
+    asRole('teacher')
+    // The count is derived from TWO queries — campaigns and students. Hold students
+    // open well past campaigns so the window where rows exist but `students` is
+    // still [] is wide and deterministic rather than a sub-tick race (ADR-0030).
+    const listStudents = api.students.list
+    vi.spyOn(api.students, 'list').mockImplementation(async (filters) => {
+      await delay(600)
+      return listStudents(filters)
+    })
+    renderPage(course.id)
+
+    // The moment a row exists, its count must already be the real one: a row that
+    // paints "0 recipients" and then corrects itself is the flash ADR-0030 forbids.
+    await screen.findByRole('button', { name: campaign.subject }, { timeout: 3000 })
+    expect(screen.getByTestId('sent-message-recipients')).toHaveTextContent(
+      String(campaign.recipientIds.length * 2)
+    )
+  })
+
+  it('counts only recipients the viewer can still resolve, so a teacher may undercount', async () => {
+    const { campaign, course } = teacherCampaign()
+    // Every recipient contributes their own address and their Encargado's ('both').
+    const fullCount = campaign.recipientIds.length * 2
+
+    // An admin hard-deletes one recipient's enrollments across every Course this
+    // teacher owns. Unlike a withdrawal — which keeps the record, and so keeps the
+    // Student in `enrolledInOwnCourses` — a delete removes it, dropping that Student
+    // out of the teacher's student scope entirely.
+    asRole('admin')
+    const victim = req(campaign.recipientIds[0], 'seed: cam-4 has no recipients')
+    const ownCourseIds = new Set(
+      useStore
+        .getState()
+        .courses.filter((c) => c.teacherId === 'tea-1')
+        .map((c) => c.id)
+    )
+    for (const enrollment of useStore
+      .getState()
+      .enrollments.filter((e) => e.studentId === victim && ownCourseIds.has(e.courseId))) {
+      useStore.getState().unenrollStudent(enrollment.id)
+    }
+
+    // The count is reconstructed from who the reader can see, not recorded at send
+    // time (ADR-0046). The teacher loses the departed recipient from their count...
+    asRole('teacher')
+    const teacherView = renderPage(course.id)
+    expect(await screen.findByTestId('sent-message-recipients')).toHaveTextContent(
+      String(fullCount - 2)
+    )
+    teacherView.unmount()
+
+    // ...while the admin, whose scope is `all`, still counts them.
+    asRole('admin')
+    renderPage(course.id)
+    expect(await screen.findByTestId('sent-message-recipients')).toHaveTextContent(
+      String(fullCount)
+    )
+  })
+
+  it('opens the sent artifact from a row, with no filter column in the card (ADR-0045)', async () => {
+    const { campaign, course } = teacherCampaign()
+    asRole('teacher')
+    renderPage(course.id)
+
+    fireEvent.click(await screen.findByRole('button', { name: campaign.subject }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByRole('heading', { name: 'Email preview' })).toBeInTheDocument()
+    // The recipient count is over emails, not Students (ADR-0041): cam-4's audience
+    // is 'both', so each Student contributes their own address and their guardian's.
+    expect(within(dialog).getByText(String(campaign.recipientIds.length * 2))).toBeInTheDocument()
+  })
+})
+
 describe('<CoursesDetailPage /> — in-course certificates module (ADR-0024)', () => {
   beforeEach(() => {
     clearPersistedState()
