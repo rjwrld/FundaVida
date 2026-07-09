@@ -491,6 +491,22 @@ describe('<CoursesDetailPage /> — Sent messages card (ADR-0046)', () => {
     expect(await screen.findByText('No messages sent to this class yet.')).toBeInTheDocument()
   })
 
+  it('sits beside the compose action, above the overview and the feed', async () => {
+    const { course } = teacherCampaign()
+    asRole('teacher')
+    renderPage(course.id)
+
+    // ADR-0046: compose and outbox are one channel, so the card mounts under the
+    // page header that carries "Message the class" — not down in the section flow.
+    const outbox = await screen.findByRole('heading', { name: 'Sent messages' })
+    const overview = screen.getByRole('heading', { name: 'Overview' })
+    const feed = screen.getByRole('heading', { name: 'Announcements' })
+
+    for (const later of [overview, feed]) {
+      expect(outbox.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
+  })
+
   it('never paints a zero recipient count while the students query is still open', async () => {
     const { campaign, course } = teacherCampaign()
     asRole('teacher')

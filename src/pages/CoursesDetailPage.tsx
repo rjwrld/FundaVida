@@ -296,6 +296,11 @@ export function CoursesDetailPage() {
 
       {showChecklist && <CloseReadinessChecklist readiness={readiness} />}
 
+      {/* The outbox sits directly under the header that carries "Message the class"
+          (ADR-0046), so compose and sent history read as one channel. The
+          close-readiness banner stays topmost: it is a call to act, not a record. */}
+      {canViewSentMessages && <CourseSentMessagesSection course={course} />}
+
       <section className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader>
@@ -360,8 +365,6 @@ export function CoursesDetailPage() {
           isLoading={announcementsQuery.isPending}
         />
       )}
-
-      {canViewSentMessages && <CourseSentMessagesSection course={course} />}
 
       {canViewRoster && (
         <Fragment>
