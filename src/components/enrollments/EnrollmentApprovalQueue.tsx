@@ -117,7 +117,8 @@ export function EnrollmentApprovalQueue() {
 
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-semibold">{t('enrollments.approvalQueue.title')}</h2>
+      {/* An h3, like every sibling card on the TeacherDashboard — its only consumer. */}
+      <h3 className="text-lg font-semibold">{t('enrollments.approvalQueue.title')}</h3>
       <DataTable
         data={rows}
         columns={columns}

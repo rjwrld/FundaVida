@@ -67,7 +67,8 @@ export function TcuApprovalQueue() {
 
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-semibold">{t('tcu.approvalQueue.title')}</h2>
+      {/* An h3, like every sibling card on the TeacherDashboard — its only consumer. */}
+      <h3 className="text-lg font-semibold">{t('tcu.approvalQueue.title')}</h3>
 
       {/* Desktop: a dense table. Hidden on mobile, where columns would push the
           actions off-screen — the same rows render as stacked cards instead. */}
