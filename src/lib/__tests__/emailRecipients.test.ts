@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import type { TFunction } from 'i18next'
-import { resolveRecipients, recipientEmails, emailFilterLabel } from '../emailRecipients'
+import {
+  resolveRecipients,
+  recipientEmails,
+  emailFilterLabel,
+  sentRecipientCount,
+} from '../emailRecipients'
 import type { Program, Student, Course, Enrollment } from '@/types'
 
 function iso() {
@@ -215,5 +220,33 @@ describe('emailFilterLabel', () => {
 
   it('omits the suffix when a non-"all" filter has no value yet (a half-filled draft)', () => {
     expect(emailFilterLabel({ kind: 'program' }, names, t)).toBe('bulkEmail.filter.program')
+  })
+})
+
+describe('sentRecipientCount', () => {
+  const studentById = new Map(students.map((s) => [s.id, s]))
+
+  it('counts emails, not Students, de-duplicating the Encargado the two share', () => {
+    // Both fixture Students have the same Encargado, so a 'both' send reaches
+    // three addresses, not 2× the roster (ADR-0041).
+    expect(
+      sentRecipientCount({ recipientIds: ['stu-1', 'stu-2'], audience: 'both' }, studentById)
+    ).toBe(3)
+  })
+
+  it('counts one address per Student for a students-only send', () => {
+    expect(
+      sentRecipientCount({ recipientIds: ['stu-1', 'stu-2'], audience: 'students' }, studentById)
+    ).toBe(2)
+  })
+
+  it('skips recipient ids the caller cannot resolve, rather than counting a ghost', () => {
+    expect(
+      sentRecipientCount({ recipientIds: ['stu-1', 'stu-404'], audience: 'students' }, studentById)
+    ).toBe(1)
+  })
+
+  it('returns zero for a campaign with no stored recipients', () => {
+    expect(sentRecipientCount({ recipientIds: [], audience: 'both' }, studentById)).toBe(0)
   })
 })

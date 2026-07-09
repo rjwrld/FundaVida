@@ -1,5 +1,13 @@
 import type { TFunction } from 'i18next'
-import type { Course, EmailAudience, EmailFilter, Enrollment, Program, Student } from '@/types'
+import type {
+  Course,
+  EmailAudience,
+  EmailCampaign,
+  EmailFilter,
+  Enrollment,
+  Program,
+  Student,
+} from '@/types'
 
 export interface RecipientInput {
   students: Student[]
@@ -95,4 +103,23 @@ export function recipientEmails(students: Student[], audience: EmailAudience): s
     if (audience === 'guardians' || audience === 'both') push(student.guardian.email)
   }
   return emails
+}
+
+/**
+ * How many distinct email addresses a *sent* campaign reached — emails, not
+ * Students (ADR-0041). Reconstructed from the campaign's stored recipient
+ * Students, resolved through the caller's (scoped) student index.
+ *
+ * Both surfaces that list a sent campaign read this: the admin history on
+ * `BulkEmailPage` and a Course's outbox (ADR-0046). One home, so the two can
+ * never drift into counting the same campaign two different ways.
+ */
+export function sentRecipientCount(
+  campaign: Pick<EmailCampaign, 'recipientIds' | 'audience'>,
+  studentById: Map<string, Student>
+): number {
+  const recipients = campaign.recipientIds
+    .map((id) => studentById.get(id))
+    .filter((s) => s !== undefined)
+  return recipientEmails(recipients, campaign.audience).length
 }

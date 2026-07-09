@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table'
 import { EmailCampaignForm } from '@/components/email/EmailCampaignForm'
 import { EmailPreviewDialog } from '@/components/email/EmailPreviewDialog'
-import { emailFilterLabel, recipientEmails } from '@/lib/emailRecipients'
+import { emailFilterLabel, sentRecipientCount } from '@/lib/emailRecipients'
 import { useEmailCampaigns } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
@@ -28,19 +28,12 @@ export function BulkEmailPage() {
 
   const studentById = useMemo(() => new Map(students.map((s) => [s.id, s])), [students])
 
-  // The recipient count is over emails, not Students (ADR-0041): reproduce each
-  // sent audience's email list from the stored recipient Students.
   const rows = useMemo(
     () =>
-      history.map((campaign) => {
-        const recipientStudents = campaign.recipientIds
-          .map((id) => studentById.get(id))
-          .filter((s) => s !== undefined)
-        return {
-          campaign,
-          emailCount: recipientEmails(recipientStudents, campaign.audience).length,
-        }
-      }),
+      history.map((campaign) => ({
+        campaign,
+        emailCount: sentRecipientCount(campaign, studentById),
+      })),
     [history, studentById]
   )
 

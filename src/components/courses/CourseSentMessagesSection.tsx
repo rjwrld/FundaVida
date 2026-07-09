@@ -10,7 +10,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { EmailPreviewDialog } from '@/components/email/EmailPreviewDialog'
-import { recipientEmails } from '@/lib/emailRecipients'
+import { sentRecipientCount } from '@/lib/emailRecipients'
+import { resolveQueries } from '@/lib/resolveQueries'
 import { useCourseCampaigns, useStudents } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import type { Course } from '@/types'
@@ -29,29 +30,29 @@ import type { Course } from '@/types'
 export function CourseSentMessagesSection({ course }: { course: Course }) {
   const { t } = useTranslation()
   const { formatDateTime, formatNumber } = useFormat()
-  const { data: campaigns = [], isPending } = useCourseCampaigns(course.id)
-  const { data: students = [] } = useStudents()
+  const campaignsQuery = useCourseCampaigns(course.id)
+  const studentsQuery = useStudents()
+  const { data: campaigns = [] } = campaignsQuery
+  const { data: students = [] } = studentsQuery
   const [openedId, setOpenedId] = useState<string | null>(null)
+
+  // Every row derives from BOTH queries — the campaign for its subject, the
+  // students for its recipient count — so the card holds until both resolve
+  // (ADR-0030). Reading the students query's default `[]` window would paint a row
+  // counting zero recipients, then correct it.
+  const gate = resolveQueries([campaignsQuery, studentsQuery])
 
   const studentById = useMemo(() => new Map(students.map((s) => [s.id, s])), [students])
 
-  // The recipient count is over emails, not Students (ADR-0041): reproduce each
-  // sent audience's email list from the stored recipient Students.
-  const rows = useMemo(
-    () =>
-      campaigns.map((campaign) => {
-        const recipientStudents = campaign.recipientIds
-          .map((id) => studentById.get(id))
-          .filter((s) => s !== undefined)
-        return {
-          campaign,
-          emailCount: recipientEmails(recipientStudents, campaign.audience).length,
-        }
-      }),
-    [campaigns, studentById]
-  )
+  const rows = useMemo(() => {
+    if (gate.isPending) return null
+    return campaigns.map((campaign) => ({
+      campaign,
+      emailCount: sentRecipientCount(campaign, studentById),
+    }))
+  }, [gate.isPending, campaigns, studentById])
 
-  const opened = rows.find((row) => row.campaign.id === openedId)
+  const opened = rows?.find((row) => row.campaign.id === openedId)
 
   return (
     <section aria-labelledby="course-sent-messages-heading" className="space-y-3">
@@ -59,9 +60,7 @@ export function CourseSentMessagesSection({ course }: { course: Course }) {
         {t('courses.detail.sentMessages.heading')}
       </h2>
 
-      {/* Hold the empty state until the list resolves, so a loading `[]` never
-          flashes "no messages yet" over a Course that has some (ADR-0030). */}
-      {isPending ? (
+      {rows === null ? (
         <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
       ) : rows.length === 0 ? (
         <NoResults message={t('courses.detail.sentMessages.empty')} />
@@ -92,7 +91,9 @@ export function CourseSentMessagesSection({ course }: { course: Course }) {
                   </button>
                 </TableCell>
                 <TableCell>{t(`bulkEmail.audience.${campaign.audience}`)}</TableCell>
-                <TableCell className="text-right">{formatNumber(emailCount)}</TableCell>
+                <TableCell className="text-right" data-testid="sent-message-recipients">
+                  {formatNumber(emailCount)}
+                </TableCell>
                 <TableCell>{formatDateTime(campaign.sentAt)}</TableCell>
               </TableRow>
             ))}

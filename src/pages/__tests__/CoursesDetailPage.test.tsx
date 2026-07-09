@@ -406,6 +406,10 @@ describe('<CoursesDetailPage /> — Sent messages card (ADR-0046)', () => {
     useStore.getState().setLocale('en')
   })
 
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   /** The seeded teacher-authored campaign, and the Course it targeted. */
   function teacherCampaign() {
     const campaign = req(
@@ -485,6 +489,27 @@ describe('<CoursesDetailPage /> — Sent messages card (ADR-0046)', () => {
 
     expect(await screen.findByRole('heading', { name: 'Sent messages' })).toBeInTheDocument()
     expect(await screen.findByText('No messages sent to this class yet.')).toBeInTheDocument()
+  })
+
+  it('never paints a zero recipient count while the students query is still open', async () => {
+    const { campaign, course } = teacherCampaign()
+    asRole('teacher')
+    // The count is derived from TWO queries — campaigns and students. Hold students
+    // open well past campaigns so the window where rows exist but `students` is
+    // still [] is wide and deterministic rather than a sub-tick race (ADR-0030).
+    const listStudents = api.students.list
+    vi.spyOn(api.students, 'list').mockImplementation(async (filters) => {
+      await delay(600)
+      return listStudents(filters)
+    })
+    renderPage(course.id)
+
+    // The moment a row exists, its count must already be the real one: a row that
+    // paints "0 recipients" and then corrects itself is the flash ADR-0030 forbids.
+    await screen.findByRole('button', { name: campaign.subject }, { timeout: 3000 })
+    expect(screen.getByTestId('sent-message-recipients')).toHaveTextContent(
+      String(campaign.recipientIds.length * 2)
+    )
   })
 
   it('opens the sent artifact from a row, with no filter column in the card (ADR-0045)', async () => {
