@@ -95,15 +95,14 @@ describe('<DashboardPage /> (admin)', () => {
     ).toBeInTheDocument()
   })
 
-  it('renders the right-panel agenda slice and upcoming list', async () => {
+  it('renders the right-panel agenda slice', async () => {
     renderDashboard()
     // The agenda slice replaces the decorative DashboardCalendar (ADR-0038); it
-    // always ends with an Open Calendar link, and admin also gets the
-    // operational-nudges "On your radar" section below it.
+    // always ends with an Open Calendar link. The static "On your radar" nudges
+    // were removed — the supporting cards already link to where the work happens.
     const aside = screen.getByRole('complementary')
     expect(aside).toBeInTheDocument()
     expect(await within(aside).findByRole('link', { name: /open calendar/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /on your radar/i })).toBeInTheDocument()
   })
 })
 

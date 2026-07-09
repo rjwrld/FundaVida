@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
@@ -88,6 +88,37 @@ describe('<MobileNav />', () => {
 
     expect(screen.getByTestId('location')).toHaveTextContent('/app/courses')
     expect(screen.queryByRole('link', { name: 'Courses' })).not.toBeInTheDocument()
+  })
+
+  // The drawer opens with a brand row hosting the close X as a flex child (the
+  // sheet's default absolute X is suppressed via hideClose), so the X tracks
+  // the row's layout instead of overlapping it by coincidence.
+  it('renders the brand lockup and close button in the drawer header row', async () => {
+    const user = userEvent.setup()
+    useStore.getState().setRole('admin')
+    renderMobileNav()
+
+    await user.click(screen.getByRole('button', { name: /open navigation/i }))
+
+    const drawer = screen.getByRole('dialog')
+    const lockup = within(drawer).getByRole('link', { name: 'FundaVida' })
+    const close = within(drawer).getByRole('button', { name: /close/i })
+    expect(lockup.parentElement).toBe(close.parentElement)
+    expect(close.className).not.toContain('absolute')
+  })
+
+  // Tapping the lockup while already on /app produces no pathname change for
+  // the auto-close effect to react to; the lockup's onClick must close it.
+  it('closes the drawer when the brand lockup is tapped on the current route', async () => {
+    const user = userEvent.setup()
+    useStore.getState().setRole('admin')
+    renderMobileNav()
+
+    await user.click(screen.getByRole('button', { name: /open navigation/i }))
+    await user.click(screen.getByRole('link', { name: 'FundaVida' }))
+
+    expect(screen.getByTestId('location')).toHaveTextContent('/app')
+    expect(screen.queryByRole('link', { name: 'FundaVida' })).not.toBeInTheDocument()
   })
 
   // The drawer's job on a phone is navigation; the pinned NeedHelpCard used to

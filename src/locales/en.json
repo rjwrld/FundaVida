@@ -553,9 +553,7 @@
       "pulse": {
         "toClose": "Ready to close",
         "unmarked": "Unmarked sessions"
-      },
-      "upcomingEmpty": "Nothing on deck.",
-      "upcomingTitle": "On your radar"
+      }
     },
     "stats": {
       "activeCourses": "Active courses",
@@ -608,11 +606,7 @@
       },
       "sectionTitle": "Your worklist"
     },
-    "title": "Signed in as {{role}}",
-    "upcoming": {
-      "gradePending": "Grade pending: {{course}}",
-      "tcuLogged": "TCU logged: {{title}}"
-    }
+    "title": "Signed in as {{role}}"
   },
   "demoBanner": {
     "badge": "Demo snapshot",

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Menu } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { BrandLockup } from '@/components/brand/BrandLockup'
 import { NavSections } from '@/components/layout/NavSections'
 import { useStore } from '@/data/store'
 
@@ -55,9 +56,20 @@ export function MobileNav() {
       <SheetContent
         side="left"
         aria-describedby={undefined}
+        hideClose
         className="w-72 max-w-[85vw] border-border/60 p-0"
       >
         <SheetTitle className="sr-only">{t('sidebar.navAriaLabel')}</SheetTitle>
+        {/* Brand row: the header's lockup plus the close X as flex children, so
+            the X tracks the row's layout. The lockup's onClick covers tapping it
+            while already on /app (no pathname change to auto-close on). */}
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/60 px-4">
+          <BrandLockup wordmark="always" onClick={() => setOpen(false)} />
+          <SheetClose>
+            <X className="size-4" />
+            <span className="sr-only">{t('common.actions.close')}</span>
+          </SheetClose>
+        </div>
         <NavSections role={role} className="flex-1 px-3 py-5" onNavigate={() => setOpen(false)} />
       </SheetContent>
     </Sheet>
