@@ -2,9 +2,8 @@ import { useMemo } from 'react'
 import { isSameMonth, parseISO, startOfDay, subDays } from 'date-fns'
 import { clock } from '@/lib/clock'
 import { useStore } from '@/data/store'
-import { mostRecentByDate } from '@/lib/utils'
 import { dashboardStatDeltas, type StatDeltas } from '@/lib/stats'
-import type { AuditLogEntry, Course, TcuActivity } from '@/types'
+import type { AuditLogEntry, Course } from '@/types'
 
 export interface TopCourse {
   id: string
@@ -25,7 +24,6 @@ export interface DashboardStats {
   tcuHours: number
   recentActivity: AuditLogEntry[]
   topCourses: TopCourse[]
-  recentTcu: TcuActivity[]
   attendanceRate: number
   attendanceTrend: AttendanceTrendPoint[]
   courses: Course[]
@@ -79,8 +77,6 @@ export function useDashboardStats(): DashboardStats {
       .sort((a, b) => b.enrollmentCount - a.enrollmentCount)
       .slice(0, 3)
 
-    const recentTcu = mostRecentByDate(tcuActivities, 5)
-
     // Scope rate to the current calendar month so the label matches the data.
     const monthRecords = attendance.filter((a) => isSameMonth(parseISO(a.sessionDate), clock.now()))
     const attendanceRate =
@@ -108,7 +104,6 @@ export function useDashboardStats(): DashboardStats {
       tcuHours,
       recentActivity,
       topCourses,
-      recentTcu,
       attendanceRate,
       attendanceTrend,
       courses,

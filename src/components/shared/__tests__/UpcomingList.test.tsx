@@ -3,13 +3,8 @@ import { render, screen } from '@testing-library/react'
 import { UpcomingList } from '../UpcomingList'
 
 const items = [
-  { id: 'a', title: 'Close cohort 12', variant: 'info' as const },
-  {
-    id: 'b',
-    title: 'Send quarterly report',
-    subtitle: 'High priority',
-    variant: 'warning' as const,
-  },
+  { id: 'a', title: 'Close cohort 12' },
+  { id: 'b', title: 'Send quarterly report', subtitle: 'High priority' },
 ]
 
 describe('<UpcomingList />', () => {
