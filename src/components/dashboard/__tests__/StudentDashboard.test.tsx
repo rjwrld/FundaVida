@@ -46,6 +46,12 @@ describe('StudentDashboard — content-first (ADR-0043)', () => {
     expect(await screen.findByRole('heading', { name: /announcements/i })).toBeInTheDocument()
   })
 
+  it('opens the main column with an h2, bridging the PageHeader h1 to the h3 cards', async () => {
+    renderDashboard()
+    const headings = await screen.findAllByRole('heading')
+    expect(headings[0]?.tagName).toBe('H2')
+  })
+
   it('drops the retired navigation shortcut cards', () => {
     renderDashboard()
     // Browse / My profile shortcut cards were deleted (the sidebar and Account nav

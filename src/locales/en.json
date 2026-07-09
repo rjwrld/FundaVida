@@ -553,6 +553,7 @@
       "vsLastMonth": "vs last month"
     },
     "student": {
+      "sectionTitle": "Your learning",
       "table": {
         "attendance": "Attendance",
         "course": "Course",
@@ -574,6 +575,7 @@
       "noUpcomingSessions": "No upcoming sessions",
       "recentActivities": "Recent activities",
       "recentActivitiesList": "Recent activities",
+      "sectionTitle": "Your TCU service",
       "sedeLabel": "Campus"
     },
     "teacher": {
@@ -587,7 +589,8 @@
       "ownCourses": {
         "empty": "You don't have any courses yet.",
         "title": "My courses"
-      }
+      },
+      "sectionTitle": "Your worklist"
     },
     "title": "Signed in as {{role}}",
     "upcoming": {

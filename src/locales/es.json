@@ -560,6 +560,7 @@
       "vsLastMonth": "vs. mes pasado"
     },
     "student": {
+      "sectionTitle": "Tu aprendizaje",
       "table": {
         "attendance": "Asistencia",
         "course": "Curso",
@@ -581,6 +582,7 @@
       "noUpcomingSessions": "Sin próximas sesiones",
       "recentActivities": "Actividades recientes",
       "recentActivitiesList": "Actividades recientes",
+      "sectionTitle": "Tu servicio de TCU",
       "sedeLabel": "Sede"
     },
     "teacher": {
@@ -594,7 +596,8 @@
       "ownCourses": {
         "empty": "Aún no tienes cursos.",
         "title": "Mis cursos"
-      }
+      },
+      "sectionTitle": "Tu lista de trabajo"
     },
     "title": "Sesión como {{role}}",
     "upcoming": {

@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { useCourses } from '@/hooks/api/courses'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { DashboardShell } from './DashboardShell'
@@ -25,10 +26,11 @@ import { EnrollmentApprovalQueue } from '@/components/enrollments/EnrollmentAppr
  * approval worklists.)
  */
 export function TeacherDashboard() {
+  const { t } = useTranslation()
   const { data: courses = [] } = useCourses()
 
   return (
-    <DashboardShell>
+    <DashboardShell sectionTitle={t('dashboard.teacher.sectionTitle')}>
       {/* Worklists first — the time-sensitive jobs. */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <NeedsMarkingWorklist />

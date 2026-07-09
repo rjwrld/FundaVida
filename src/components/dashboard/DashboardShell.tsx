@@ -14,6 +14,13 @@ const stagger: Variants = {
 }
 
 export interface DashboardShellProps {
+  /**
+   * Names the main column. Rendered as an `sr-only` `<h2>` above the children,
+   * bridging the `PageHeader` `<h1>` to the cards' `<h3>`s — without it every
+   * role dashboard skips a heading level (issue #278). Required, so a new role
+   * cannot reintroduce the skip.
+   */
+  sectionTitle: string
   /** Main column content (role-specific stats and panels). */
   children: ReactNode
   /**
@@ -31,7 +38,7 @@ export interface DashboardShellProps {
  * `DashboardCalendar` grid, the aside now shows at every width — a compact
  * agenda travels down gracefully, so there is no `xl`-only gate.
  */
-export function DashboardShell({ children, upcoming }: DashboardShellProps) {
+export function DashboardShell({ sectionTitle, children, upcoming }: DashboardShellProps) {
   const { t } = useTranslation()
 
   return (
@@ -41,7 +48,11 @@ export function DashboardShell({ children, upcoming }: DashboardShellProps) {
       animate="visible"
       className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_300px]"
     >
-      <div className="flex flex-col gap-6">{children}</div>
+      <div className="flex flex-col gap-6">
+        {/* Absolutely positioned by `sr-only`, so it is not a flex item and adds no gap. */}
+        <h2 className="sr-only">{sectionTitle}</h2>
+        {children}
+      </div>
 
       <motion.aside
         variants={fadeUp}

@@ -113,6 +113,17 @@ describe('<TcuDashboard /> — assigned Course card + approved-only hours (ADR-0
     expect(screen.getAllByLabelText('Loading stat')).toHaveLength(3)
   })
 
+  it('opens the main column with an h2, bridging the PageHeader h1 to the h3 cards', async () => {
+    renderDashboard()
+
+    // The first synchronous paint is the pending gate's skeletons. The shell's
+    // h2 leads there too, so the loading frame never skips a heading level.
+    expect(screen.getAllByRole('heading')[0]?.tagName).toBe('H2')
+
+    await screen.findByText('Robótica Comunitaria')
+    expect(screen.getAllByRole('heading')[0]?.tagName).toBe('H2')
+  })
+
   it('renders the assigned-Course card with campus, meeting days, and a Log hours CTA', async () => {
     renderDashboard()
 
