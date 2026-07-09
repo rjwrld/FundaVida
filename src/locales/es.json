@@ -560,9 +560,7 @@
       "pulse": {
         "toClose": "Listos para cerrar",
         "unmarked": "Sesiones sin registrar"
-      },
-      "upcomingEmpty": "Nada en la agenda.",
-      "upcomingTitle": "En tu radar"
+      }
     },
     "stats": {
       "activeCourses": "Cursos activos",
@@ -615,11 +613,7 @@
       },
       "sectionTitle": "Tu lista de trabajo"
     },
-    "title": "Sesión como {{role}}",
-    "upcoming": {
-      "gradePending": "Calificación pendiente: {{course}}",
-      "tcuLogged": "TCU registrado: {{title}}"
-    }
+    "title": "Sesión como {{role}}"
   },
   "demoBanner": {
     "badge": "Versión de demostración",
