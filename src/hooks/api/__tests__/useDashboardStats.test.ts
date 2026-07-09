@@ -63,13 +63,19 @@ describe('useDashboardStats — certificate-backed counts (ADR-0024)', () => {
     expect(after.certsIssued).toBe(before.certsIssued + emitted)
   })
 
-  it('derives the today/this-month windows from the frozen clock, not wall-time', () => {
-    // Override the clock to a far epoch after the real-now seed; the trend's last
-    // bucket must be the frozen today, proving the window reads clock.today().
+  it('derives its trailing window from the frozen clock, not wall-time', () => {
+    // Override the clock to a far epoch after the real-now seed. Every seeded record
+    // then predates the trailing window, so each metric equals its own baseline and
+    // every delta is exactly 0. A hook reading wall-time would still see the fresh
+    // seed inside the window and report growth.
     setDemoEpoch(new Date('2099-06-15T12:00:00.000Z'))
     const { result } = renderHook(() => useDashboardStats())
-    const trend = result.current.attendanceTrend
-    expect(trend[trend.length - 1]?.day.getTime()).toBe(clock.today().getTime())
+    expect(result.current.deltas).toEqual({
+      totalStudents: 0,
+      activeCourses: 0,
+      certsIssued: 0,
+      tcuHours: 0,
+    })
   })
 
   it('exposes real month-over-month deltas derived from the same dated data', () => {
