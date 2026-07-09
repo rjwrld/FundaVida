@@ -43,7 +43,7 @@ export function CommandPalette() {
       <CommandInput placeholder={t('common.commandPalette.placeholder')} />
       <CommandList>
         <CommandEmpty>
-          <Search className="size-5 text-muted-foreground/40" strokeWidth={1.5} />
+          <Search className="size-5 text-muted-foreground" strokeWidth={1.5} />
           <p className="text-sm text-muted-foreground">{t('common.commandPalette.empty')}</p>
         </CommandEmpty>
 
@@ -90,13 +90,13 @@ export function CommandPalette() {
       <CommandFooter>
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
-            <kbd className="inline-flex h-4 items-center rounded border border-border/60 bg-background px-1 font-mono text-[10px]">
+            <kbd className="inline-flex h-4 items-center rounded-sm border border-border/60 bg-background px-1 font-mono text-[10px]">
               ↵
             </kbd>
             {t('common.commandPalette.hints.select')}
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="inline-flex h-4 items-center rounded border border-border/60 bg-background px-1 font-mono text-[10px]">
+            <kbd className="inline-flex h-4 items-center rounded-sm border border-border/60 bg-background px-1 font-mono text-[10px]">
               Esc
             </kbd>
             {t('common.commandPalette.hints.close')}

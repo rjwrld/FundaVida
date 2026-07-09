@@ -39,7 +39,7 @@ export function CertificatePreview({
       style={{ containerType: 'size', backgroundColor: C.paper }}
     >
       <div
-        className="flex aspect-[11/8.5] flex-col items-center justify-between border-4 p-6 text-center sm:p-10"
+        className="flex aspect-11/8.5 flex-col items-center justify-between border-4 p-6 text-center sm:p-10"
         style={{
           width: 'clamp(20rem, min(100cqw, 100cqh * 11 / 8.5), 42rem)',
           borderColor: C.navy,

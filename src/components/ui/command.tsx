@@ -56,11 +56,11 @@ const CommandInput = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
   <div className="flex items-center gap-2 border-b border-border/60 px-4" cmdk-input-wrapper="">
-    <Search className="size-4 shrink-0 text-muted-foreground/70" />
+    <Search className="size-4 shrink-0 text-muted-foreground" />
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        'flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-50',
+        'flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
         className
       )}
       {...props}
@@ -101,7 +101,7 @@ const CommandGroup = React.forwardRef<
     ref={ref}
     className={cn(
       'overflow-hidden text-foreground',
-      '[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.08em] [&_[cmdk-group-heading]]:text-muted-foreground/70',
+      '**:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:pb-1 **:[[cmdk-group-heading]]:pt-2 **:[[cmdk-group-heading]]:text-[11px] **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-[0.08em] **:[[cmdk-group-heading]]:text-muted-foreground',
       '[&:not(:first-child)_[cmdk-group-heading]]:mt-2',
       className
     )}
@@ -129,7 +129,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground outline-none transition-colors',
+      'relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground outline-hidden transition-colors',
       'data-[selected=true]:bg-brand-green-50 data-[selected=true]:text-brand-green-800',
       'dark:data-[selected=true]:bg-brand-green-500/10 dark:data-[selected=true]:text-brand-green-200',
       'data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50',
@@ -145,7 +145,7 @@ CommandItem.displayName = CommandPrimitive.Item.displayName
 const CommandShortcut = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
   <span
     className={cn(
-      'ml-auto flex items-center gap-1 text-[11px] tracking-wider text-muted-foreground/70',
+      'ml-auto flex items-center gap-1 text-[11px] tracking-wider text-muted-foreground',
       className
     )}
     {...props}
@@ -156,7 +156,7 @@ CommandShortcut.displayName = 'CommandShortcut'
 const CommandFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      'flex items-center justify-between border-t border-border/60 px-4 py-2 text-[11px] text-muted-foreground/70',
+      'flex items-center justify-between border-t border-border/60 px-4 py-2 text-[11px] text-muted-foreground',
       className
     )}
     {...props}

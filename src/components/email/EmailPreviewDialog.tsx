@@ -120,7 +120,7 @@ export function EmailPreviewDialog({
           title={t('bulkEmail.preview.frameTitle')}
           sandbox=""
           srcDoc={html}
-          className="h-[26rem] w-full rounded-md border bg-white"
+          className="h-104 w-full rounded-md border bg-white"
         />
       </DialogContent>
     </Dialog>

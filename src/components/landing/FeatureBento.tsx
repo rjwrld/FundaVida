@@ -24,7 +24,7 @@ export function FeatureBento() {
         viewport={{ once: true, amount: 0.2 }}
         className="mt-12"
       >
-        <BentoGrid className="auto-rows-[20rem]">
+        <BentoGrid className="auto-rows-80">
           <motion.div variants={fadeUp} transition={transitionDefaults} className="contents">
             <BentoCell span={2} className="flex flex-col p-0">
               <div className="flex flex-col gap-2 p-8 pb-4">
@@ -48,7 +48,7 @@ export function FeatureBento() {
                   decoding="async"
                 />
                 <div
-                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent"
+                  className="pointer-events-none absolute inset-0 bg-linear-to-t from-card via-card/40 to-transparent"
                   aria-hidden
                 />
               </div>
@@ -56,9 +56,9 @@ export function FeatureBento() {
           </motion.div>
 
           <motion.div variants={fadeUp} transition={transitionDefaults} className="contents">
-            <BentoCell className="bg-gradient-to-br from-flame-yellow-50 via-card to-card ring-1 ring-flame-yellow-200/60">
+            <BentoCell className="bg-linear-to-br from-flame-yellow-50 via-card to-card ring-1 ring-flame-yellow-200/60">
               <div className="relative flex h-full flex-col">
-                <span className="inline-flex w-fit items-center rounded-sm bg-flame-yellow-100 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-widest text-flame-yellow-700">
+                <span className="inline-flex w-fit items-center rounded-xs bg-flame-yellow-100 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-widest text-flame-yellow-700">
                   pdf
                 </span>
                 <h3 className="mt-4 font-display text-2xl text-foreground">
@@ -72,16 +72,16 @@ export function FeatureBento() {
           </motion.div>
 
           <motion.div variants={fadeUp} transition={transitionDefaults} className="contents">
-            <BentoCell className="bg-gradient-to-br from-brand-blue-50 via-card to-card ring-1 ring-brand-blue-200/60">
+            <BentoCell className="bg-linear-to-br from-brand-blue-50 via-card to-card ring-1 ring-brand-blue-200/60">
               <div
                 aria-hidden
                 className="pointer-events-none absolute -right-12 top-6 select-none font-display leading-[0.85] tracking-tight"
               >
-                <div className="text-[7rem] text-brand-blue-700/90">EN</div>
-                <div className="-mt-4 text-[7rem] text-brand-blue-300/70">ES</div>
+                <div className="text-[7rem] text-brand-blue-700">EN</div>
+                <div className="-mt-4 text-[7rem] text-brand-blue-300">ES</div>
               </div>
               <div className="relative flex h-full flex-col">
-                <span className="inline-flex w-fit items-center rounded-sm bg-brand-blue-100 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-widest text-brand-blue-700">
+                <span className="inline-flex w-fit items-center rounded-xs bg-brand-blue-100 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-widest text-brand-blue-700">
                   i18n
                 </span>
                 <h3 className="mt-4 max-w-[12ch] font-display text-2xl text-foreground">

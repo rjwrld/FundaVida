@@ -39,7 +39,7 @@ export function FinalCTA() {
             {t('landing.finalCta.cta')}
             <ArrowRight size={16} />
           </Button>
-          <p className="mt-4 font-mono text-xs uppercase tracking-widest text-muted-foreground/80">
+          <p className="mt-4 font-mono text-xs uppercase tracking-widest text-muted-foreground">
             {t('landing.hero.noSignup')}
           </p>
         </div>

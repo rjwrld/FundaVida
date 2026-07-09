@@ -30,7 +30,7 @@ export function ProgramsListPage() {
               <li key={program.id}>
                 <Link
                   to={`/app/programs/${program.id}`}
-                  className="group block h-full focus-visible:outline-none"
+                  className="group block h-full focus-visible:outline-hidden"
                   aria-label={program.name}
                 >
                   <Card className="h-full transition-colors hover:border-primary/50">
