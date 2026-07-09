@@ -399,6 +399,10 @@
         "yourAttendance": "Tu asistencia",
         "yourRecords": "Tus registros"
       },
+      "sentMessages": {
+        "empty": "Aún no se han enviado mensajes a esta clase.",
+        "heading": "Mensajes enviados"
+      },
       "sessions": {
         "empty": "No hay sesiones programadas para este curso.",
         "groups": {
