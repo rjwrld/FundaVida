@@ -155,6 +155,10 @@
     "recipientCount_one": "{{count}} destinatario recibirá este correo.",
     "recipientCount_many": "{{count}} destinatarios recibirán este correo.",
     "recipientCount_other": "{{count}} destinatarios recibirán este correo.",
+    "sender": {
+      "admin": "Administración",
+      "system": "Sistema"
+    },
     "sending": "Enviando…",
     "submit": "Enviar",
     "subtitle": "Redacta un mensaje, elige destinatarios, envía (simulado).",

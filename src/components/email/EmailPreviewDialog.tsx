@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { buildEmailHtml } from '@/lib/emailHtml'
-import { emailFilterLabel } from '@/lib/emailRecipients'
+import { campaignSenderLabel, emailFilterLabel } from '@/lib/emailRecipients'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import type { EmailAudience, EmailFilter } from '@/types'
@@ -22,7 +22,10 @@ interface Props {
   audience: EmailAudience
   /** Emails the campaign reaches, not Students (ADR-0041). */
   recipientCount: number
-  /** Sent campaigns only — a composer draft has neither a sender nor a timestamp. */
+  /**
+   * The campaign's raw `sentBy` — a user id or a sentinel, resolved to a name here.
+   * Sent campaigns only: a composer draft has neither a sender nor a timestamp.
+   */
   sender?: string
   sentAt?: string
 }
@@ -52,6 +55,7 @@ export function EmailPreviewDialog({
   const { formatDateTime, formatNumber } = useFormat()
   const programs = useStore((s) => s.programs)
   const courses = useStore((s) => s.courses)
+  const teachers = useStore((s) => s.teachers)
 
   const html = useMemo(
     () =>
@@ -65,7 +69,14 @@ export function EmailPreviewDialog({
   )
 
   const chrome: { label: string; value: string }[] = [
-    ...(sender ? [{ label: t('bulkEmail.preview.sender'), value: sender }] : []),
+    ...(sender
+      ? [
+          {
+            label: t('bulkEmail.preview.sender'),
+            value: campaignSenderLabel(sender, { teachers }, t),
+          },
+        ]
+      : []),
     {
       label: t('bulkEmail.history.columns.filter'),
       value: emailFilterLabel(filter, { programs, courses }, t),
