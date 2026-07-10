@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { AppToaster } from '@/components/shared/AppToaster'
+import { Toaster } from '@/components/ui/sonner'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LandingPage } from '@/pages/LandingPage'
 import { WelcomePage } from '@/pages/WelcomePage'
@@ -30,7 +30,7 @@ import { RoleGate } from '@/components/demo/RoleGate'
 export function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <AppToaster />
+      <Toaster />
       <Routes>
         <Route index element={<LandingPage />} />
         <Route path="/welcome" element={<WelcomePage />} />

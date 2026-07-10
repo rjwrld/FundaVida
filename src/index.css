@@ -330,7 +330,7 @@
 
 /*
  * Retime Sonner's toast enter/exit transition to the shared motion token. The
- * duration is fed as `--fv-toast-duration` from AppToaster (0s under
+ * duration is fed as `--fv-toast-duration` from ui/sonner (0s under
  * prefers-reduced-motion, ADR-0027); Sonner's own reduced-motion rule already
  * sets `transition-property: none`, so a zero duration is belt-and-suspenders.
  */
