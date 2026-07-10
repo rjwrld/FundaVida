@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Check } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 import { useFormat } from '@/hooks/useFormat'
 import { calendarCardName } from '@/lib/courseName'
 import type {
@@ -335,7 +336,9 @@ function AgendaBanner({ agenda }: { agenda: RoleAgenda }) {
 }
 
 function BannerShell({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-xl border border-border bg-card px-4 py-3">{children}</div>
+  // The one-row compression above the canvas keeps its tight px-4 py-3 rather
+  // than adopting stock Card padding — it's a banner, not a stacked card.
+  return <Card className="gap-0 px-4 py-3">{children}</Card>
 }
 
 /** The banner's one-line caught-up variant — a check + the good-news word. */

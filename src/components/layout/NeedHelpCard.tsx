@@ -1,13 +1,14 @@
 import { LifeBuoy } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Card, CardContent } from '@/components/ui/card'
 
 const REPO_URL = 'https://github.com/rjwrld/FundaVida'
 
 export function NeedHelpCard() {
   const { t } = useTranslation()
   return (
-    <div className="m-3 mt-auto rounded-lg border border-border bg-card p-4">
-      <div className="flex items-start gap-3">
+    <Card className="m-3 mt-auto">
+      <CardContent className="flex items-start gap-3">
         <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-green-500/15 text-brand-green-700 dark:text-brand-green-300">
           <LifeBuoy className="size-4" />
         </div>
@@ -25,7 +26,7 @@ export function NeedHelpCard() {
             {t('common.help.cta')}
           </a>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

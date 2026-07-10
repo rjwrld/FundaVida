@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Card } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
 import { listViewState } from '@/lib/listViewState'
@@ -90,7 +91,7 @@ export function TeachersListPage() {
         empty={<TeachersEmpty onAdd={canCreate ? openCreate : undefined} />}
         noResults={<NoResults message={t('teachers.list.emptyFiltered')} />}
         content={
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <Card className="overflow-hidden py-0 gap-0">
             <ListHeaderBand label={t('teachers.list.title')} count={count} />
             <Table>
               <TableHeader>
@@ -128,7 +129,7 @@ export function TeachersListPage() {
                 })}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         }
       />
 
