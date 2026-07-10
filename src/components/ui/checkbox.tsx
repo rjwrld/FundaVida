@@ -1,35 +1,29 @@
+'use client'
+
 import * as React from 'react'
+import { CheckIcon } from 'lucide-react'
+import { Checkbox as CheckboxPrimitive } from 'radix-ui'
+
 import { cn } from '@/lib/utils'
 
-const Checkbox = React.forwardRef<
-  HTMLInputElement,
-  React.ComponentProps<'input'> & { label?: string }
->(({ className, label, ...props }, ref) => {
-  const generatedId = React.useId()
-  const id = props.id ?? generatedId
+function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
   return (
-    <div className="flex items-center gap-2">
-      <input
-        type="checkbox"
-        className={cn(
-          'h-4 w-4 rounded-sm border border-input bg-background ring-offset-background focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-          className
-        )}
-        ref={ref}
-        id={id}
-        {...props}
-      />
-      {label && (
-        <label
-          htmlFor={id}
-          className="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          {label}
-        </label>
+    <CheckboxPrimitive.Root
+      data-slot="checkbox"
+      className={cn(
+        'peer size-4 shrink-0 rounded-[4px] border border-input shadow-xs transition-shadow outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:bg-input/30 dark:aria-invalid:ring-destructive/40 dark:data-[state=checked]:bg-primary',
+        className
       )}
-    </div>
+      {...props}
+    >
+      <CheckboxPrimitive.Indicator
+        data-slot="checkbox-indicator"
+        className="grid place-content-center text-current transition-none"
+      >
+        <CheckIcon className="size-3.5" />
+      </CheckboxPrimitive.Indicator>
+    </CheckboxPrimitive.Root>
   )
-})
-Checkbox.displayName = 'Checkbox'
+}
 
 export { Checkbox }
