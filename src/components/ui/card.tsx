@@ -1,25 +1,37 @@
 import * as React from 'react'
+
 import { cn } from '@/lib/utils'
 
-export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+function Card({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
     <div
-      ref={ref}
-      className={cn('rounded-lg border bg-card text-card-foreground', className)}
+      data-slot="card"
+      className={cn(
+        'flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground shadow-sm',
+        className
+      )}
       {...props}
     />
   )
-)
-Card.displayName = 'Card'
+}
 
-export const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
+function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="card-header"
+      className={cn(
+        '@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6',
+        className
+      )}
+      {...props}
+    />
   )
-)
-CardHeader.displayName = 'CardHeader'
+}
 
-export interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+// Local extension (ADR-0047): the registry renders CardTitle as a <div>; ours
+// stays a real heading so cards nest in the document outline (axe heading-order
+// and e2e getByRole('heading') depend on it).
+export interface CardTitleProps extends React.ComponentProps<'h2'> {
   /**
    * Heading level to render. Defaults to `h2`. Set this when a card sits under a
    * section heading so the card title nests correctly in the document outline
@@ -28,20 +40,48 @@ export interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement>
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 }
 
-export const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
-  ({ className, as: Heading = 'h2', ...props }, ref) => (
+function CardTitle({ className, as: Heading = 'h2', ...props }: CardTitleProps) {
+  return (
     <Heading
-      ref={ref}
-      className={cn('font-semibold leading-none tracking-tight', className)}
+      data-slot="card-title"
+      className={cn('leading-none font-semibold', className)}
       {...props}
     />
   )
-)
-CardTitle.displayName = 'CardTitle'
+}
 
-export const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
+function CardDescription({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="card-description"
+      className={cn('text-sm text-muted-foreground', className)}
+      {...props}
+    />
   )
-)
-CardContent.displayName = 'CardContent'
+}
+
+function CardAction({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="card-action"
+      className={cn('col-start-2 row-span-2 row-start-1 self-start justify-self-end', className)}
+      {...props}
+    />
+  )
+}
+
+function CardContent({ className, ...props }: React.ComponentProps<'div'>) {
+  return <div data-slot="card-content" className={cn('px-6', className)} {...props} />
+}
+
+function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="card-footer"
+      className={cn('flex items-center px-6 [.border-t]:pt-6', className)}
+      {...props}
+    />
+  )
+}
+
+export { Card, CardHeader, CardFooter, CardTitle, CardAction, CardDescription, CardContent }

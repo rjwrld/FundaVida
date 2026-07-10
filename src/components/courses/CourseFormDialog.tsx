@@ -400,25 +400,28 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
               sun: t('courses.form.weekdays.sun'),
             }
             return (
-              <Checkbox
-                key={day}
-                value={day}
-                label={dayLabels[day]}
-                checked={watch('meetingDays').includes(day)}
-                onChange={(e) => {
-                  const checked = e.currentTarget.checked
-                  const current = watch('meetingDays')
-                  if (checked) {
-                    setValue('meetingDays', [...current, day], { shouldValidate: true })
-                  } else {
-                    setValue(
-                      'meetingDays',
-                      current.filter((d) => d !== day),
-                      { shouldValidate: true }
-                    )
-                  }
-                }}
-              />
+              <div key={day} className="flex items-center gap-2">
+                <Checkbox
+                  id={`meeting-day-${day}`}
+                  value={day}
+                  checked={watch('meetingDays').includes(day)}
+                  onCheckedChange={(checked) => {
+                    const current = watch('meetingDays')
+                    if (checked === true) {
+                      setValue('meetingDays', [...current, day], { shouldValidate: true })
+                    } else {
+                      setValue(
+                        'meetingDays',
+                        current.filter((d) => d !== day),
+                        { shouldValidate: true }
+                      )
+                    }
+                  }}
+                />
+                <Label htmlFor={`meeting-day-${day}`} className="cursor-pointer font-normal">
+                  {dayLabels[day]}
+                </Label>
+              </div>
             )
           })}
         </div>

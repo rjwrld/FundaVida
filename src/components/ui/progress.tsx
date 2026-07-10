@@ -1,26 +1,32 @@
+'use client'
+
 import * as React from 'react'
-import * as ProgressPrimitive from '@radix-ui/react-progress'
+import { Progress as ProgressPrimitive } from 'radix-ui'
+
 import { cn } from '@/lib/utils'
 
-const Progress = React.forwardRef<
-  React.ElementRef<typeof ProgressPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
->(({ className, value, ...props }, ref) => (
-  <ProgressPrimitive.Root
-    ref={ref}
-    // Forward the value so the bar exposes role=progressbar with aria-valuenow,
-    // not Radix's valueless "indeterminate" state. The fill is still driven by
-    // the indicator transform below (with its own duration-500 transition).
-    value={value}
-    className={cn('relative h-2 w-full overflow-hidden rounded-full bg-muted', className)}
-    {...props}
-  >
-    <ProgressPrimitive.Indicator
-      className="h-full w-full flex-1 bg-brand-green-500 transition-transform duration-500 ease-out dark:bg-brand-green-400"
-      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-    />
-  </ProgressPrimitive.Root>
-))
-Progress.displayName = ProgressPrimitive.Root.displayName
+function Progress({
+  className,
+  value,
+  ...props
+}: React.ComponentProps<typeof ProgressPrimitive.Root>) {
+  return (
+    <ProgressPrimitive.Root
+      data-slot="progress"
+      // Local extension (ADR-0047): forward the value so the bar exposes
+      // role=progressbar with aria-valuenow, not Radix's valueless
+      // "indeterminate" state (the registry version drops it).
+      value={value}
+      className={cn('relative h-2 w-full overflow-hidden rounded-full bg-primary/20', className)}
+      {...props}
+    >
+      <ProgressPrimitive.Indicator
+        data-slot="progress-indicator"
+        className="h-full w-full flex-1 bg-primary transition-all"
+        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+      />
+    </ProgressPrimitive.Root>
+  )
+}
 
 export { Progress }
