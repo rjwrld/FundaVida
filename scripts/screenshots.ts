@@ -12,12 +12,15 @@ import { mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { setTimeout as delay } from 'node:timers/promises'
+import { resolvePort } from './ports'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 const PUBLIC = join(ROOT, 'public')
 const SHOTS_DIR = join(PUBLIC, 'screenshots')
-const DEV_PORT = 5173
+// Anchored to ROOT so the port is the worktree's regardless of where this script
+// was invoked from (scripts/ports.ts); it is handed to the server explicitly.
+const DEV_PORT = resolvePort(5173, ROOT)
 const DEV_URL = `http://localhost:${DEV_PORT}`
 
 type Locale = 'en' | 'es'
@@ -86,10 +89,12 @@ const SHOTS: Shot[] = [
 ]
 
 async function startDevServer(): Promise<ChildProcess> {
-  const server = spawn('npm', ['run', 'dev'], {
+  // Pass the port rather than letting vite re-derive it: the stdout wait below
+  // matches on this exact number. (The old `PORT` env var never did anything —
+  // vite does not read it.)
+  const server = spawn('npm', ['run', 'dev', '--', '--port', String(DEV_PORT), '--strictPort'], {
     cwd: ROOT,
     stdio: ['ignore', 'pipe', 'inherit'],
-    env: { ...process.env, PORT: String(DEV_PORT) },
   })
   await new Promise<void>((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error('dev server did not start in 30s')), 30_000)
