@@ -138,7 +138,8 @@ export function CalendarPage() {
               aria-pressed={view === 'week'}
               onClick={() => setView('week')}
               className={cn(
-                view === 'week' && 'bg-primary text-primary-foreground hover:bg-primary/90'
+                view === 'week' &&
+                  'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
               )}
             >
               {t('calendar.viewToggle.week')}
@@ -150,7 +151,8 @@ export function CalendarPage() {
               aria-pressed={view === 'month'}
               onClick={() => setView('month')}
               className={cn(
-                view === 'month' && 'bg-primary text-primary-foreground hover:bg-primary/90'
+                view === 'month' &&
+                  'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
               )}
             >
               {t('calendar.viewToggle.month')}

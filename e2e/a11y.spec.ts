@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect, type Locator, type Page } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { seedDemo } from '../src/data/seed'
 import { STATE_KEY } from '../src/data/persistence'
@@ -42,6 +42,24 @@ async function scan(page: Page) {
     // If a looping animation never settles we still scan the current frame.
     .catch(() => undefined)
   return new AxeBuilder({ page }).withTags(TAGS).analyze()
+}
+
+/** Resolve once the element's colour pair has stopped changing. */
+async function settleColorTransition(target: Locator) {
+  const read = () =>
+    target.evaluate((el) => {
+      const s = getComputedStyle(el)
+      return `${s.color}|${s.backgroundColor}`
+    })
+  await expect
+    .poll(async () => {
+      const before = await read()
+      // 50ms, not one frame: a 150ms ease rounds to the same colour across
+      // adjacent frames near its end, which would settle early.
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      return (await read()) === before
+    })
+    .toBe(true)
 }
 
 /** Seed the demo store and sign in as the given role before navigating. */
@@ -113,4 +131,27 @@ test.describe('accessibility (axe)', () => {
       expect(results.violations).toEqual([])
     })
   }
+
+  /**
+   * The route scans above never hover anything, so they cannot see a hover-only
+   * contrast failure. The calendar's active view toggle had one: `ghost` supplies
+   * `hover:text-accent-foreground`, and the active-state override set a hover
+   * background but no hover foreground, so hovering the pressed button painted
+   * near-black on brand green (3.86:1).
+   */
+  test('the active calendar view toggle keeps AA contrast while hovered', async ({ page }) => {
+    await seedAndEnter(page, 'admin', 'admin')
+    await page.goto('/app/calendar')
+
+    const activeToggle = page.getByRole('main').getByRole('button', { name: 'Week', exact: true })
+    await expect(activeToggle).toHaveAttribute('aria-pressed', 'true')
+    await activeToggle.hover()
+    await settleColorTransition(activeToggle)
+
+    const results = await new AxeBuilder({ page })
+      .include('main button[aria-pressed="true"]')
+      .withTags(['wcag2aa'])
+      .analyze()
+    expect(results.violations).toEqual([])
+  })
 })
