@@ -11,23 +11,21 @@ const badgeVariants = cva(
       variant: {
         default: 'bg-primary text-primary-foreground [a&]:hover:bg-primary/90',
         secondary: 'bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90',
-        // Local extension (ADR-0047): status variants for domain badges.
-        // border/bg derive from the shared --destructive/--success tokens (so the
-        // tint tracks the theme); the text shades stay hand-tuned literals to hold
-        // AA contrast on the low-alpha tint. Restyle to the stock outline+dot look
-        // is scoped to #304, not here.
-        destructive:
-          // Text darkened 0.55→0.5 for the fundavida-green theme: its stock
-          // --destructive tints the /12 bg deeper than the old token, and 0.55
-          // lands at 4.33:1 there (axe AA fails at <4.5).
-          'border-destructive/40 bg-destructive/12 text-[oklch(0.5_0.2_25)] dark:text-[oklch(0.72_0.17_22)]',
         outline:
           'border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
         ghost: '[a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 [a&]:hover:underline',
-        success:
-          'border-success/40 bg-success/14 text-[oklch(0.5_0.16_138)] dark:text-[oklch(0.78_0.14_138)]',
-        warning: 'border-border bg-muted text-foreground',
+        // Local extension (ADR-0047): the status variants all wear the registry's
+        // outline pill, and the hue lives in the dot below — never in the label.
+        // The dot is aria-hidden, so it answers to the 3:1 non-text contrast
+        // rule instead of 4.5:1, which is what lets `--success`/`--destructive`
+        // be used raw here. Tinting the text instead is what forced the old
+        // hand-tuned `text-[oklch(...)]` literals off the tokens.
+        // `destructive` deliberately overrides its stock filled treatment: in
+        // this app it is only ever a status (absent, rejected), never a chip.
+        destructive: 'border-border bg-transparent text-foreground',
+        success: 'border-border bg-transparent text-foreground',
+        warning: 'border-border bg-transparent text-foreground',
         info: 'border-border bg-transparent text-muted-foreground',
         neutral: 'border-border bg-transparent text-muted-foreground',
       },
@@ -38,19 +36,41 @@ const badgeVariants = cva(
   }
 )
 
-// Local extension (ADR-0047): `dot` renders a leading status dot in the
-// variant's text color; several list pages pair it with the status variants.
+// `--warning` and `--info` died with the blueprint skin (ADR-0047), so neither
+// gets an amber dot; only success and destructive carry a hue. Warning still has
+// to out-rank neutral, though — "Pending" sits next to "Withdrawn" in the
+// enrollments list and only one of them is actionable — so it takes the solid
+// foreground dot and the quiet states take the muted one.
+const badgeDotVariants = cva('size-1.5 shrink-0 rounded-full', {
+  variants: {
+    variant: {
+      destructive: 'bg-destructive',
+      success: 'bg-success',
+      warning: 'bg-foreground',
+      info: 'bg-muted-foreground',
+      neutral: 'bg-muted-foreground',
+    },
+  },
+})
+
+const STATUS_VARIANTS = ['destructive', 'success', 'warning', 'info', 'neutral'] as const
+
+type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>['variant']>
+type StatusVariant = (typeof STATUS_VARIANTS)[number]
+
+function isStatusVariant(variant: BadgeVariant | null | undefined): variant is StatusVariant {
+  return STATUS_VARIANTS.includes(variant as StatusVariant)
+}
+
 export interface BadgeProps
   extends React.ComponentProps<'span'>, VariantProps<typeof badgeVariants> {
   asChild?: boolean
-  dot?: boolean
 }
 
 function Badge({
   className,
   variant = 'default',
   asChild = false,
-  dot,
   children,
   ...props
 }: BadgeProps) {
@@ -63,7 +83,9 @@ function Badge({
       className={cn(badgeVariants({ variant }), className)}
       {...props}
     >
-      {dot ? <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" /> : null}
+      {isStatusVariant(variant) ? (
+        <span aria-hidden="true" data-slot="badge-dot" className={badgeDotVariants({ variant })} />
+      ) : null}
       {children}
     </Comp>
   )

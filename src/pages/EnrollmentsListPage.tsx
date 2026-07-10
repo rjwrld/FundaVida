@@ -41,11 +41,12 @@ type StatusFilter = 'active' | 'all' | EnrollmentStatus
 
 function statusVariant(
   status: EnrollmentStatus
-): 'success' | 'warning' | 'destructive' | 'outline' {
+): 'success' | 'warning' | 'destructive' | 'neutral' {
   if (status === 'approved') return 'success'
   if (status === 'pending') return 'warning'
   if (status === 'rejected') return 'destructive'
-  return 'outline'
+  // `neutral`, not `outline`: every pill in this column needs its status dot.
+  return 'neutral'
 }
 
 export function EnrollmentsListPage() {
@@ -346,9 +347,7 @@ function CourseEnrollmentGroup({
               <span className="font-mono text-xs text-muted-foreground tabular-nums">
                 {formatDate(e.enrolledAt)}
               </span>
-              <Badge variant={statusVariant(e.status)} dot>
-                {t(`enrollments.status.${e.status}`)}
-              </Badge>
+              <Badge variant={statusVariant(e.status)}>{t(`enrollments.status.${e.status}`)}</Badge>
               <div className="flex gap-1">
                 {e.status === 'pending' && canApprove && (
                   <>

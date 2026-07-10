@@ -78,9 +78,7 @@ export function CertificateCard({ cert, onOpen, className }: Props) {
               {cert.grade}
             </span>
           </div>
-          <Badge variant="success" dot>
-            {t('certificates.status.issued')}
-          </Badge>
+          <Badge variant="success">{t('certificates.status.issued')}</Badge>
         </div>
       </CardContent>
     </Card>
