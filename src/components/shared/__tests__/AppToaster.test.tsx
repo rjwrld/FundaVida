@@ -36,7 +36,7 @@ describe('AppToaster', () => {
     render(<AppToaster />)
     expect(vi.mocked(Toaster)).toHaveBeenCalledWith(
       expect.objectContaining({ theme: 'light' }),
-      expect.anything()
+      undefined
     )
   })
 
@@ -49,7 +49,7 @@ describe('AppToaster', () => {
     const { rerender } = render(<AppToaster />)
     expect(vi.mocked(Toaster)).toHaveBeenCalledWith(
       expect.objectContaining({ theme: 'light' }),
-      expect.anything()
+      undefined
     )
 
     // Verify it's still using the hook on rerender
@@ -58,7 +58,7 @@ describe('AppToaster', () => {
     expect(vi.mocked(Toaster)).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({ theme: 'light' }),
-      expect.anything()
+      undefined
     )
   })
 
@@ -71,7 +71,7 @@ describe('AppToaster', () => {
     render(<AppToaster />)
     expect(vi.mocked(Toaster)).toHaveBeenCalledWith(
       expect.objectContaining({ theme: 'dark' }),
-      expect.anything()
+      undefined
     )
   })
 
@@ -84,7 +84,7 @@ describe('AppToaster', () => {
     render(<AppToaster />)
     expect(vi.mocked(Toaster)).toHaveBeenCalledWith(
       expect.objectContaining({ theme: 'system' }),
-      expect.anything()
+      undefined
     )
   })
 
@@ -99,7 +99,7 @@ describe('AppToaster', () => {
           style: expect.objectContaining({ '--fv-toast-duration': '0.2s' }),
         }),
       }),
-      expect.anything()
+      undefined
     )
   })
 
@@ -115,7 +115,7 @@ describe('AppToaster', () => {
           style: expect.objectContaining({ '--fv-toast-duration': '0s' }),
         }),
       }),
-      expect.anything()
+      undefined
     )
   })
 })
