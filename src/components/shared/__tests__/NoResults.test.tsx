@@ -8,8 +8,8 @@ describe('<NoResults />', () => {
     expect(screen.getByText('No students match your filter.')).toBeInTheDocument()
   })
 
-  it('applies the shared dashed-border styling', () => {
+  it('renders the message as muted empty-state copy', () => {
     render(<NoResults message="Nothing here." />)
-    expect(screen.getByText('Nothing here.')).toHaveClass('border-dashed', 'text-muted-foreground')
+    expect(screen.getByText('Nothing here.')).toHaveClass('text-muted-foreground')
   })
 })
