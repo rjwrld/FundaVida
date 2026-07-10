@@ -222,11 +222,27 @@ test.describe('calendar navigation (ADR-0044)', () => {
     await page.getByRole('button', { name: 'Month', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'June 2026' })).toBeVisible()
 
-    await page.getByRole('button', { name: /Monday, June 15, 2026/ }).click()
+    await page.getByRole('button', { name: /Monday, June 15th, 2026/ }).click()
     // Back on the week canvas: month heading gone, the week nav returns.
     await expect(page.getByRole('heading', { name: 'June 2026' })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Today' })).toBeVisible()
     await expect(page.getByText(COURSE_CARD, { exact: true }).first()).toBeVisible()
+  })
+
+  test('a day can be selected from the keyboard alone', async ({ page }) => {
+    await seedAndEnter(page, seedSnapshot, 'admin', 'admin')
+
+    await page.getByRole('button', { name: 'Month', exact: true }).click()
+    // The grid is a single tab stop landing on today (Mon, Jun 15); arrow keys
+    // move the roving focus from there.
+    await page.getByRole('button', { name: /Monday, June 15th, 2026/ }).focus()
+    await page.keyboard.press('ArrowRight')
+    await expect(page.getByRole('button', { name: /Tuesday, June 16th, 2026/ })).toBeFocused()
+
+    await page.keyboard.press('Enter')
+    // Enter is a navigator move, same as a tap: back on the week canvas.
+    await expect(page.getByRole('heading', { name: 'June 2026' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Today' })).toBeVisible()
   })
 
   test('prev/next week navigation updates the visible sessions', async ({ page }) => {

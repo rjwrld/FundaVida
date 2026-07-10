@@ -24,7 +24,7 @@ export interface NearestSession {
 
 /**
  * The Monday that starts the week containing `date` (Monday-start, matching
- * `CalendarWidget` and the domain's Mon..Sun `Weekday` ordering).
+ * `MonthNavigator` and the domain's Mon..Sun `Weekday` ordering).
  */
 export function startOfWeekMonday(date: Date): Date {
   return startOfWeek(date, { weekStartsOn: 1 })
