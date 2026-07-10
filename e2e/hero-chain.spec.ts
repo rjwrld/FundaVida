@@ -88,7 +88,7 @@ test('admin runs the full chain: create student, enroll, grade, close, certifica
   // Closing the Course emits a downloadable Certificate for every passing Student,
   // all at once (ADR-0024) — there is no separate approval step.
   await page.getByRole('button', { name: 'Close course' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Close course' }).click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Close course' }).click()
 
   // The new student's Certificate now appears in the in-course Certificates section,
   // immediately downloadable; the Close action is gone (the cohort is closed).

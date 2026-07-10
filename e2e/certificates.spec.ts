@@ -125,7 +125,7 @@ test('closing a course emits its certificates, downloadable in context', async (
   await page.getByRole('button', { name: 'Close course' }).click()
 
   // Confirm in the dialog (its confirm button shares the label).
-  const dialog = page.getByRole('dialog')
+  const dialog = page.getByRole('alertdialog')
   await dialog.getByRole('button', { name: 'Close course' }).click()
 
   // The freshly-emitted Certificate now appears in the in-course section and the
@@ -151,7 +151,7 @@ test('lowering a passing grade below 70 after close revokes the certificate (ADR
   //    so the React Query cache stays alive and the staleness bug can surface.)
   await page.goto(`/app/courses/${revocableCourse.id}`)
   await page.getByRole('button', { name: 'Close course' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Close course' }).click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Close course' }).click()
   await expect(page.getByRole('button', { name: /open preview/i }).first()).toBeVisible()
 
   // 2. The global gallery (now cached) lists this course's Certificates, including
