@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { I18nProvider } from '@/lib/i18n'
 import { CalendarPage } from '@/pages/CalendarPage'
 import { api } from '@/data/api'
@@ -80,9 +81,11 @@ function renderPage() {
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
-        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <CalendarPage />
-        </MemoryRouter>
+        <TooltipProvider>
+          <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <CalendarPage />
+          </MemoryRouter>
+        </TooltipProvider>
       </QueryClientProvider>
     </I18nProvider>
   )

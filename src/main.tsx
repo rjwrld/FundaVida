@@ -12,6 +12,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { App } from './App'
+import { TooltipProvider } from './components/ui/tooltip'
 import { I18nProvider } from './lib/i18n'
 import './index.css'
 
@@ -33,7 +34,9 @@ createRoot(rootEl).render(
     <MotionConfig reducedMotion="user">
       <I18nProvider>
         <QueryClientProvider client={queryClient}>
-          <App />
+          <TooltipProvider>
+            <App />
+          </TooltipProvider>
         </QueryClientProvider>
       </I18nProvider>
     </MotionConfig>

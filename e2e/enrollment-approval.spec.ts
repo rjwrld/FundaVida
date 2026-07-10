@@ -162,7 +162,10 @@ test.describe('enrollment approval workflow', () => {
     const row = page.getByRole('row').filter({ hasText: STUDENT_NAME })
     const approve = row.getByTestId(`approve-${PENDING_ID}`)
     await expect(approve).toBeDisabled()
-    await expect(approve).toHaveAttribute('title', 'Course is at capacity')
+    // The reason moved from a native `title=""` onto a Radix tooltip, whose
+    // trigger is the span wrapping the (pointer-events-none) disabled Button.
+    await row.getByTestId(`approve-${PENDING_ID}-reason`).hover()
+    await expect(page.getByRole('tooltip')).toHaveText('Course is at capacity')
     // Rejecting a request remains available even when full.
     await expect(row.getByTestId(`reject-${PENDING_ID}`)).toBeEnabled()
   })

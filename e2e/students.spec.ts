@@ -93,7 +93,7 @@ test('a student cannot open another student’s profile (self-only, ADR-0012)', 
 
 test('list renders in Spanish when locale is ES', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'es' }).click()
+  await page.getByRole('radio', { name: 'es' }).click()
   await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.getByRole('link', { name: 'Estudiantes', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Estudiantes' })).toBeVisible()

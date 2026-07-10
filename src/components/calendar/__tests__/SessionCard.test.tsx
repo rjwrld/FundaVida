@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { I18nProvider } from '@/lib/i18n'
 import { useStore } from '@/data/store'
 import { SessionCard } from '../SessionCard'
@@ -31,9 +33,11 @@ function makeCourse(overrides: Partial<Course> = {}): Course {
 function renderCard(ui: React.ReactElement) {
   return render(
     <I18nProvider>
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        {ui}
-      </MemoryRouter>
+      <TooltipProvider>
+        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          {ui}
+        </MemoryRouter>
+      </TooltipProvider>
     </I18nProvider>
   )
 }
@@ -60,7 +64,7 @@ describe('<SessionCard />', () => {
     expect(screen.getByText('7/16')).toBeInTheDocument()
   })
 
-  it('keeps the full canonical name in the tooltip / accessible name', () => {
+  it('keeps the full canonical name in the tooltip / accessible name', async () => {
     renderCard(
       <SessionCard
         course={makeCourse()}
@@ -70,7 +74,13 @@ describe('<SessionCard />', () => {
       />
     )
     const link = screen.getByRole('link', { name: 'Matemáticas Primaria — Linda Vista (jun)' })
-    expect(link).toHaveAttribute('title', 'Matemáticas Primaria — Linda Vista (jun)')
+    // The native `title=""` is gone — the full name now hangs off ui/tooltip.
+    expect(link).not.toHaveAttribute('title')
+
+    await userEvent.hover(link)
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'Matemáticas Primaria — Linda Vista (jun)'
+    )
   })
 
   it('renders a student’s present verdict as one word, not a badge', () => {

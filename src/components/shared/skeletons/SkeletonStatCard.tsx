@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 export function SkeletonStatCard({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
@@ -9,9 +10,9 @@ export function SkeletonStatCard({ className, ...props }: React.HTMLAttributes<H
       className={cn('flex flex-col gap-3 rounded-xl border border-border bg-card p-5', className)}
       {...props}
     >
-      <span className="h-2.5 w-1/2 animate-pulse-soft rounded-sm bg-muted" aria-hidden="true" />
-      <span className="h-8 w-2/3 animate-pulse-soft rounded-sm bg-muted/80" aria-hidden="true" />
-      <span className="h-2.5 w-1/3 animate-pulse-soft rounded-sm bg-muted/70" aria-hidden="true" />
+      <Skeleton className="h-2.5 w-1/2" aria-hidden="true" />
+      <Skeleton className="h-8 w-2/3" aria-hidden="true" />
+      <Skeleton className="h-2.5 w-1/3" aria-hidden="true" />
     </div>
   )
 }

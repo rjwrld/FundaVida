@@ -1,40 +1,42 @@
 import { useTranslation } from 'react-i18next'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useStore } from '@/data/store'
+import type { Locale } from '@/data/persistence'
 import { cn } from '@/lib/utils'
 
 type Variant = 'header' | 'landing'
 
+/**
+ * The EN/ES switch. `type="single"` is the honest ARIA for an exclusive choice,
+ * so Radix renders a `radiogroup` of `radio`s (`aria-checked`) rather than the
+ * hand-rolled `aria-pressed` buttons this replaces. `value` is always the store's
+ * locale, so the group is controlled and a re-click can never deselect it.
+ */
 export function LanguageToggle({ variant = 'header' }: { variant?: Variant }) {
   const locale = useStore((s) => s.locale)
   const setLocale = useStore((s) => s.setLocale)
   const { t } = useTranslation()
 
   return (
-    <div
-      role="group"
+    <ToggleGroup
+      type="single"
+      variant="outline"
+      size="sm"
+      value={locale}
+      onValueChange={(next) => next && setLocale(next as Locale)}
       aria-label={t('common.language.label')}
-      className={cn(
-        'inline-flex overflow-hidden rounded-md border text-xs',
-        variant === 'landing' && 'bg-background/90 backdrop-blur-sm'
-      )}
+      className={cn('text-xs', variant === 'landing' && 'bg-background/90 backdrop-blur-sm')}
     >
       {(['en', 'es'] as const).map((code) => (
-        <button
+        <ToggleGroupItem
           key={code}
-          type="button"
-          aria-pressed={locale === code}
-          onClick={() => setLocale(code)}
-          className={cn(
-            'px-2.5 py-1 font-medium uppercase tracking-wide transition-colors',
-            'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-            locale === code
-              ? 'bg-foreground text-background'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
+          value={code}
+          aria-label={code}
+          className="px-2.5 font-medium uppercase tracking-wide"
         >
           {code}
-        </button>
+        </ToggleGroupItem>
       ))}
-    </div>
+    </ToggleGroup>
   )
 }

@@ -28,7 +28,7 @@ test('tcu trainee sees only their own TCU activities', async ({ page }) => {
 
 test('renders in Spanish when locale is ES', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'es' }).click()
+  await page.getByRole('radio', { name: 'es' }).click()
   await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.getByRole('link', { name: 'TCU' }).click()
   await expect(page.getByRole('heading', { name: 'Actividades TCU' })).toBeVisible()

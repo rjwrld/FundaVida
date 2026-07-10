@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 export interface SkeletonTableProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -19,11 +20,7 @@ export function SkeletonTable({ rows = 5, columns = 4, className, ...props }: Sk
         style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
       >
         {Array.from({ length: columns }).map((_, index) => (
-          <span
-            key={index}
-            className="h-3 w-20 animate-pulse-soft rounded-sm bg-muted"
-            aria-hidden="true"
-          />
+          <Skeleton key={index} className="h-3 w-20" aria-hidden="true" />
         ))}
       </div>
       <div className="divide-y divide-border/60">
@@ -34,11 +31,7 @@ export function SkeletonTable({ rows = 5, columns = 4, className, ...props }: Sk
             style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
           >
             {Array.from({ length: columns }).map((_, colIndex) => (
-              <span
-                key={colIndex}
-                className="h-3 w-3/4 animate-pulse-soft rounded-sm bg-muted/70"
-                aria-hidden="true"
-              />
+              <Skeleton key={colIndex} className="h-3 w-3/4" aria-hidden="true" />
             ))}
           </div>
         ))}

@@ -1,6 +1,7 @@
 import { Info } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useDemoBanner } from './useDemoBanner'
 
 // The collapsed demo notice: a compact info button that lives inside the header
@@ -13,15 +14,19 @@ export function DemoBadge() {
   if (!dismissed) return null
 
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon"
-      onClick={restore}
-      aria-label={t('demoBanner.badge')}
-      title={t('demoBanner.badge')}
-    >
-      <Info className="size-4" />
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={restore}
+          aria-label={t('demoBanner.badge')}
+        >
+          <Info className="size-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{t('demoBanner.badge')}</TooltipContent>
+    </Tooltip>
   )
 }
