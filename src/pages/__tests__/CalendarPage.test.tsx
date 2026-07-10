@@ -163,14 +163,14 @@ describe('<CalendarPage />', () => {
     expect(screen.getByText('No sessions recorded yet')).toBeInTheDocument()
   })
 
-  it('toggles to month mode, reusing CalendarWidget', async () => {
+  it('toggles to month mode, reusing MonthNavigator', async () => {
     useStore.getState().setRole('admin')
     renderPage()
 
     await screen.findAllByText('Matemáticas')
     fireEvent.click(screen.getByRole('button', { name: 'Month' }))
 
-    // CalendarWidget renders a month heading like "June 2026".
+    // MonthNavigator renders a month heading like "June 2026".
     expect(screen.getByText('June 2026')).toBeInTheDocument()
   })
 
@@ -184,7 +184,7 @@ describe('<CalendarPage />', () => {
     expect(screen.queryByRole('heading', { name: 'Sessions' })).not.toBeInTheDocument()
 
     // Tapping a day swaps to Week view positioned on that week.
-    fireEvent.click(screen.getByRole('button', { name: /Monday, June 15, 2026/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Monday, June 15th, 2026/ }))
     expect(screen.queryByText('June 2026')).not.toBeInTheDocument()
     expect((await screen.findAllByText('Matemáticas')).length).toBeGreaterThan(0)
     // The week canvas's navigation is back (Today / prev / next).

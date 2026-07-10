@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { isSameDay, parseISO } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { CalendarWidget } from '@/components/shared/CalendarWidget'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { AgendaSidebar } from '@/components/calendar/AgendaSidebar'
+import { MonthNavigator } from '@/components/calendar/MonthNavigator'
 import { WeekCanvas, type CalendarViewMode } from '@/components/calendar/WeekCanvas'
 import { type SessionCardStatus } from '@/components/calendar/SessionCard'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { useStore } from '@/data/store'
 import {
   useAttendance,
@@ -26,7 +27,7 @@ import { cn } from '@/lib/utils'
 /**
  * The role-divergent calendar (ADR-0044). Week is the default: a workweek
  * `WeekCanvas` beside a role-conditioned `AgendaSidebar`. The Week|Month toggle
- * swaps in `CalendarWidget` as a *navigator* — density-scaled marks whose day-tap
+ * swaps in `MonthNavigator` as a *navigator* — density-scaled marks whose day-tap
  * jumps the week canvas onto that week (no second day-detail view). Responsive is
  * a ladder with one render path: at `lg+` the sidebar-plus-canvas split; below,
  * the sidebar compresses to a one-row banner above the canvas with the full
@@ -184,7 +185,11 @@ export function CalendarPage() {
           </aside>
         </div>
       ) : (
-        <CalendarWidget events={events} onSelect={handleMonthSelect} />
+        <Card>
+          <CardContent>
+            <MonthNavigator events={events} onSelect={handleMonthSelect} />
+          </CardContent>
+        </Card>
       )}
     </div>
   )

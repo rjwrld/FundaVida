@@ -172,6 +172,11 @@
     "emptyWeekNext": "Next: {{session}}",
     "emptyWeekPrev": "Previous: {{session}}",
     "jumpToWeek": "Jump to that week",
+    "month": {
+      "next": "Next month",
+      "previous": "Previous month",
+      "todayLabel": "Today, {{date}}"
+    },
     "next": "Next week",
     "noCourses": "No courses yet — sessions will appear here once you have one.",
     "previous": "Previous week",

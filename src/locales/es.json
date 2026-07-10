@@ -173,6 +173,11 @@
     "emptyWeekNext": "Siguiente: {{session}}",
     "emptyWeekPrev": "Anterior: {{session}}",
     "jumpToWeek": "Ir a esa semana",
+    "month": {
+      "next": "Mes siguiente",
+      "previous": "Mes anterior",
+      "todayLabel": "Hoy, {{date}}"
+    },
     "next": "Semana siguiente",
     "noCourses": "Aún no hay cursos — las sesiones aparecerán aquí cuando tengas uno.",
     "previous": "Semana anterior",

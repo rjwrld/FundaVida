@@ -154,4 +154,22 @@ test.describe('accessibility (axe)', () => {
       .analyze()
     expect(results.violations).toEqual([])
   })
+
+  // The month navigator only exists behind the Week|Month toggle, so the route
+  // scans above never reach it. It is the app's only date-picker grid.
+  test('calendar month navigator has no violations', async ({ page }) => {
+    await seedAndEnter(page, 'admin', 'admin')
+    await page.goto('/app/calendar')
+    const monthToggle = page.getByRole('button', { name: 'Month', exact: true })
+    await monthToggle.click()
+    await expect(page.getByRole('heading', { name: 'June 2026' })).toBeVisible()
+    // Unlike the route scans above, this one follows a click, so it has to wait
+    // out two things the others never see: the pointer left hovering the toggle,
+    // and the toggle's `transition-all` still easing its colours. axe reads a
+    // half-applied colour pair as a contrast failure.
+    await page.mouse.move(0, 0)
+    await settleColorTransition(monthToggle)
+    const results = await scan(page)
+    expect(results.violations).toEqual([])
+  })
 })
