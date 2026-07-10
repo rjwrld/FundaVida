@@ -56,7 +56,7 @@ export function MobileNav() {
       <SheetContent
         side="left"
         aria-describedby={undefined}
-        hideClose
+        showCloseButton={false}
         className="w-72 max-w-[85vw] border-border/60 p-0"
       >
         <SheetTitle className="sr-only">{t('sidebar.navAriaLabel')}</SheetTitle>
