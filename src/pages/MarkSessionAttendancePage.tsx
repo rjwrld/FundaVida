@@ -1,7 +1,9 @@
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useState, useMemo } from 'react'
+import { Info } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -227,12 +229,13 @@ export function MarkSessionAttendancePage() {
             total: String(sessions.length),
           } as Record<string, string>)} · ${formatDate(session.date)}`}
         />
-        {/* Muted, not amber: `--warning` died with the blueprint skin (ADR-0047),
-            and this notice states a fact about the session rather than warning
-            about a consequence. */}
-        <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-          {t('attendance.mark.future')}
-        </div>
+        {/* Default (not destructive) Alert: `--warning` died with the blueprint
+            skin (ADR-0047), and this notice states a fact about the session
+            rather than warning about a consequence. */}
+        <Alert>
+          <Info />
+          <AlertDescription>{t('attendance.mark.future')}</AlertDescription>
+        </Alert>
       </div>
     )
   }

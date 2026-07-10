@@ -1,13 +1,20 @@
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
 
 export interface EmptyStateAction {
   label: string
   onClick?: () => void
 }
 
-export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface EmptyStateProps extends React.ComponentProps<typeof Empty> {
   heading: string
   body: string
   illustration?: React.ReactNode
@@ -23,32 +30,21 @@ export function EmptyState({
   ...props
 }: EmptyStateProps) {
   return (
-    <div
-      className={cn(
-        'relative flex flex-col items-center justify-center rounded-xl border-[1.5px] border-dashed border-border/60',
-        'bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--brand-green-50)_40%,transparent)_0%,transparent_60%)]',
-        'dark:bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--brand-green-900)_50%,transparent)_0%,transparent_60%)]',
-        'px-6 pb-12 pt-14 text-center',
-        className
-      )}
-      {...props}
-    >
-      <span
-        aria-hidden="true"
-        className="absolute right-4 top-4 size-1 rounded-full bg-brand-green-500"
-      />
-      {illustration ? (
-        <div className="mb-3 flex max-w-[200px] items-center justify-center">{illustration}</div>
-      ) : null}
-      <h3 className="font-display text-[28px] leading-tight text-foreground">{heading}</h3>
-      <p className="mt-2 max-w-sm text-sm text-muted-foreground">{body}</p>
+    <Empty className={className} {...props}>
+      <EmptyHeader>
+        {illustration ? (
+          <EmptyMedia className="w-full max-w-[200px]">{illustration}</EmptyMedia>
+        ) : null}
+        <EmptyTitle>{heading}</EmptyTitle>
+        <EmptyDescription>{body}</EmptyDescription>
+      </EmptyHeader>
       {action ? (
-        <div className="mt-5">
+        <EmptyContent>
           <Button size="sm" onClick={action.onClick}>
             {action.label}
           </Button>
-        </div>
+        </EmptyContent>
       ) : null}
-    </div>
+    </Empty>
   )
 }
