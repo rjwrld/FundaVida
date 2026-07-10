@@ -6,6 +6,14 @@ import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useTcuActivities, useTcuTrainees, useCourses } from '@/hooks/api'
 import { StatCard } from '@/components/shared/StatCard'
 import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { SkeletonStatCard } from '@/components/shared/skeletons/SkeletonStatCard'
 import { LogTcuActivityDialog } from '@/components/tcu/LogTcuActivityDialog'
@@ -76,46 +84,50 @@ export function TcuDashboard() {
       {/* Hero: the assigned Course — where the volunteer serves (ADR-0036). */}
       {assignedCourse && (
         <motion.div variants={fadeUp} transition={transitionDefaults}>
-          <article className="flex h-full flex-col rounded-lg border border-border bg-card p-5">
-            <header className="mb-4 flex items-center gap-2">
-              <GraduationCap
-                className="size-4 text-brand-green-700 dark:text-brand-green-300"
-                aria-hidden="true"
-              />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('dashboard.tcu.assignedCourse')}</p>
-                <h3 className="font-display text-lg text-foreground">{assignedCourse.name}</h3>
-              </div>
-            </header>
-            <dl className="flex-1 space-y-2 text-sm">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="size-3.5" aria-hidden="true" />
-                <dt className="sr-only">{t('dashboard.tcu.sedeLabel')}</dt>
-                <dd className="text-foreground">{assignedCourse.sede}</dd>
-              </div>
-              {meetingDays && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <CalendarDays className="size-3.5" aria-hidden="true" />
-                  <dt className="sr-only">{t('dashboard.tcu.meetingDaysLabel')}</dt>
-                  <dd className="text-foreground">{meetingDays}</dd>
+          <Card className="h-full">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <GraduationCap
+                  className="size-4 text-brand-green-700 dark:text-brand-green-300"
+                  aria-hidden="true"
+                />
+                <div>
+                  <CardDescription>{t('dashboard.tcu.assignedCourse')}</CardDescription>
+                  <CardTitle as="h3">{assignedCourse.name}</CardTitle>
                 </div>
-              )}
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="size-3.5" aria-hidden="true" />
-                <dt className="sr-only">{t('dashboard.tcu.nextSessionLabel')}</dt>
-                <dd className="text-foreground">
-                  {nextSession
-                    ? `${t('dashboard.tcu.nextSessionLabel')}: ${formatDate(nextSession.date)}`
-                    : t('dashboard.tcu.noUpcomingSessions')}
-                </dd>
               </div>
-            </dl>
-            <div className="mt-4">
+            </CardHeader>
+            <CardContent className="flex-1">
+              <dl className="flex flex-col gap-2 text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="size-3.5" aria-hidden="true" />
+                  <dt className="sr-only">{t('dashboard.tcu.sedeLabel')}</dt>
+                  <dd className="text-foreground">{assignedCourse.sede}</dd>
+                </div>
+                {meetingDays && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <CalendarDays className="size-3.5" aria-hidden="true" />
+                    <dt className="sr-only">{t('dashboard.tcu.meetingDaysLabel')}</dt>
+                    <dd className="text-foreground">{meetingDays}</dd>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Clock className="size-3.5" aria-hidden="true" />
+                  <dt className="sr-only">{t('dashboard.tcu.nextSessionLabel')}</dt>
+                  <dd className="text-foreground">
+                    {nextSession
+                      ? `${t('dashboard.tcu.nextSessionLabel')}: ${formatDate(nextSession.date)}`
+                      : t('dashboard.tcu.noUpcomingSessions')}
+                  </dd>
+                </div>
+              </dl>
+            </CardContent>
+            <CardFooter>
               <Button variant="default" size="sm" onClick={() => setLogDialogOpen(true)}>
                 {t('dashboard.tcu.logHours')}
               </Button>
-            </div>
-          </article>
+            </CardFooter>
+          </Card>
         </motion.div>
       )}
 

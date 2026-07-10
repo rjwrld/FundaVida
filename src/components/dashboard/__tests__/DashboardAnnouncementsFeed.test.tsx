@@ -46,6 +46,15 @@ describe('<DashboardAnnouncementsFeed /> — cross-course feed (ADR-0040/0043)',
     vi.restoreAllMocks()
   })
 
+  // The Card shell is a plain div (ADR-0047), so the named region the old
+  // `<section aria-labelledby>` carried is restated on the Card. Pin it: a future
+  // registry re-pull that drops the role/label would otherwise pass every gate.
+  it('exposes the feed as a region named by its heading', async () => {
+    renderFeed()
+
+    expect(await screen.findByRole('region', { name: 'Announcements' })).toBeInTheDocument()
+  })
+
   it('lists the latest posts with their Course name and the inline composer for composers', async () => {
     const course = useStore.getState().courses[0]
     if (!course) throw new Error('seed: no courses')

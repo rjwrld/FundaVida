@@ -35,7 +35,7 @@ describe('CertsThisEpoch', () => {
     const { container } = renderCard()
 
     // AnimatedNumber counts up from 0 as the async query resolves; allow it to settle.
-    const region = container.querySelector('article') as HTMLElement
+    const region = container.querySelector('[data-slot="card"]') as HTMLElement
     expect(
       await within(region).findByText(String(expected), {}, { timeout: 2500 })
     ).toBeInTheDocument()

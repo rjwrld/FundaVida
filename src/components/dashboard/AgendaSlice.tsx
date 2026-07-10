@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, CalendarDays, ClipboardCheck } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { UpcomingList, type UpcomingItem } from '@/components/shared/UpcomingList'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { useCourses } from '@/hooks/api/courses'
@@ -70,60 +71,64 @@ export function AgendaSlice() {
   }))
 
   return (
-    <section className="rounded-lg border border-border bg-card p-5" data-testid="agenda-slice">
-      <header className="mb-3 flex items-center gap-2">
-        <CalendarDays
-          className="size-4 text-brand-green-700 dark:text-brand-green-300"
-          aria-hidden="true"
-        />
-        <h3 className="font-display text-base text-foreground">
+    <Card data-testid="agenda-slice">
+      <CardHeader>
+        <CardTitle as="h3" className="flex items-center gap-2">
+          <CalendarDays
+            className="size-4 text-brand-green-700 dark:text-brand-green-300"
+            aria-hidden="true"
+          />
           {t('dashboard.rightPanel.agendaTitle')}
-        </h3>
-      </header>
+        </CardTitle>
+      </CardHeader>
 
-      {agenda.role === 'teacher' && <NeedsMarkingHero group={agenda.worklist[0]} />}
+      <CardContent className="flex flex-col gap-4">
+        {agenda.role === 'teacher' && <NeedsMarkingHero group={agenda.worklist[0]} />}
 
-      {agenda.role === 'admin' && (
-        <dl className="mb-4 grid grid-cols-2 gap-3">
-          <div className="rounded-md bg-muted/50 px-3 py-2">
-            <dt className="text-xs text-muted-foreground">
-              {t('dashboard.rightPanel.pulse.unmarked')}
-            </dt>
-            <dd className="font-display text-xl tabular-nums text-foreground">
-              {agenda.pulse.unmarkedCount}
-            </dd>
-          </div>
-          <div className="rounded-md bg-muted/50 px-3 py-2">
-            <dt className="text-xs text-muted-foreground">
-              {t('dashboard.rightPanel.pulse.toClose')}
-            </dt>
-            <dd className="font-display text-xl tabular-nums text-foreground">
-              {agenda.pulse.coursesToCloseCount}
-            </dd>
-          </div>
-        </dl>
-      )}
+        {agenda.role === 'admin' && (
+          <dl className="grid grid-cols-2 gap-3">
+            <div className="rounded-md bg-muted/50 px-3 py-2">
+              <dt className="text-xs text-muted-foreground">
+                {t('dashboard.rightPanel.pulse.unmarked')}
+              </dt>
+              <dd className="font-display text-xl tabular-nums text-foreground">
+                {agenda.pulse.unmarkedCount}
+              </dd>
+            </div>
+            <div className="rounded-md bg-muted/50 px-3 py-2">
+              <dt className="text-xs text-muted-foreground">
+                {t('dashboard.rightPanel.pulse.toClose')}
+              </dt>
+              <dd className="font-display text-xl tabular-nums text-foreground">
+                {agenda.pulse.coursesToCloseCount}
+              </dd>
+            </div>
+          </dl>
+        )}
 
-      {agenda.role === 'student' && <ProgressList rows={agenda.progress} t={t} />}
+        {agenda.role === 'student' && <ProgressList rows={agenda.progress} t={t} />}
 
-      <div className="mb-3">
-        <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          {t('dashboard.rightPanel.agendaUpcomingTitle')}
-        </h4>
-        <UpcomingList
-          items={upcomingItems}
-          emptyLabel={t('dashboard.rightPanel.agendaUpcomingEmpty')}
-        />
-      </div>
+        <div>
+          <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {t('dashboard.rightPanel.agendaUpcomingTitle')}
+          </h4>
+          <UpcomingList
+            items={upcomingItems}
+            emptyLabel={t('dashboard.rightPanel.agendaUpcomingEmpty')}
+          />
+        </div>
+      </CardContent>
 
-      <Link
-        to="/app/calendar"
-        className="inline-flex items-center gap-1 text-sm font-medium text-brand-green-700 dark:text-brand-green-300 hover:underline"
-      >
-        {t('dashboard.rightPanel.openCalendar')}
-        <ArrowRight className="size-4" aria-hidden="true" />
-      </Link>
-    </section>
+      <CardFooter>
+        <Link
+          to="/app/calendar"
+          className="inline-flex items-center gap-1 text-sm font-medium text-brand-green-700 dark:text-brand-green-300 hover:underline"
+        >
+          {t('dashboard.rightPanel.openCalendar')}
+          <ArrowRight className="size-4" aria-hidden="true" />
+        </Link>
+      </CardFooter>
+    </Card>
   )
 }
 
@@ -135,7 +140,7 @@ function NeedsMarkingHero({ group }: { group: WorklistGroup | undefined }) {
   const { t } = useTranslation()
 
   return (
-    <div className="mb-4">
+    <div>
       <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {t('dashboard.rightPanel.needsMarkingTitle')}
       </h4>
@@ -167,7 +172,7 @@ function ProgressList({
   t: (key: string, opts?: Record<string, unknown>) => string
 }) {
   return (
-    <div className="mb-4">
+    <div>
       <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {t('dashboard.rightPanel.progressTitle')}
       </h4>

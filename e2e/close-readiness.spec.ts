@@ -49,7 +49,7 @@ test('dashboard readiness indicator agrees with the course detail checklist (iss
   // Dashboard: the Courses-to-close card row for the anchor course carries the
   // blocked indicator.
   const card = page
-    .locator('article')
+    .locator('[data-slot="card"]')
     .filter({ has: page.getByRole('heading', { name: 'Courses to close' }) })
   const row = card.getByRole('link', { name: anchorCourse.name })
   await expect(row.getByTestId('close-readiness-indicator')).toHaveText('Blocked')
