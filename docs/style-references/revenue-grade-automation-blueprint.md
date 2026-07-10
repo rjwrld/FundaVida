@@ -2,7 +2,7 @@
 
 > monochrome engineering blueprint with a green spark
 
-> **⚠️ Status note (2026-06-25, done):** This is an external style reference (a generic "Revenue-Grade Automation" SaaS look). Its mono Frost/Paper/Ink base and flat aesthetic were adopted by the app, but its electric-green accent `#7CFC00` was **never adopted as the brand green and has been reverted** (PR 1, 2026-06-25) — it is _not_ a FundaVida color. The brand green is **Figure Green `#32982D`** (the logo green, hue 138). See [`superpowers/plans/2026-06-25-green-system-figure-green-and-calendar.md`](superpowers/plans/2026-06-25-green-system-figure-green-and-calendar.md). **Do not re-introduce `#7CFC00` as the brand green.**
+> **⚠️ Status note (2026-06-25, done):** This is an external style reference (a generic "Revenue-Grade Automation" SaaS look). Its mono Frost/Paper/Ink base and flat aesthetic were adopted by the app, but its electric-green accent `#7CFC00` was **never adopted as the brand green and has been reverted** (PR 1, 2026-06-25) — it is _not_ a FundaVida color. The brand green is **Figure Green `#32982D`** (the logo green, hue 138). **Do not re-introduce `#7CFC00` as the brand green.**
 
 **Theme:** light
 
