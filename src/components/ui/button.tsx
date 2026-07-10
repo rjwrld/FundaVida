@@ -36,21 +36,20 @@ const buttonVariants = cva(
   }
 )
 
-// Local extension (ADR-0047): the registry ships React-19-style components
-// (ref as prop); on React 18 a function component drops the ref, which breaks
-// Radix asChild triggers (Slot must forward the ref to position/focus).
-const Button = React.forwardRef<
-  HTMLButtonElement,
-  React.ComponentProps<'button'> &
-    VariantProps<typeof buttonVariants> & {
-      asChild?: boolean
-    }
->(({ className, variant = 'default', size = 'default', asChild = false, ...props }, ref) => {
+function Button({
+  className,
+  variant = 'default',
+  size = 'default',
+  asChild = false,
+  ...props
+}: React.ComponentProps<'button'> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean
+  }) {
   const Comp = asChild ? Slot.Root : 'button'
 
   return (
     <Comp
-      ref={ref}
       data-slot="button"
       data-variant={variant}
       data-size={size}
@@ -58,8 +57,7 @@ const Button = React.forwardRef<
       {...props}
     />
   )
-})
-Button.displayName = 'Button'
+}
 
 export { Button }
 // eslint-disable-next-line react-refresh/only-export-components

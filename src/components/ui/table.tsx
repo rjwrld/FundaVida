@@ -18,22 +18,15 @@ function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
   return <thead data-slot="table-header" className={cn('[&_tr]:border-b', className)} {...props} />
 }
 
-// Local extension (ADR-0047): forwardRef re-added on TableBody/TableRow —
-// DataTable wraps both in framer-motion's motion.create(), which needs the
-// DOM node through the ref; React 18 drops refs on plain function components.
-const TableBody = React.forwardRef<HTMLTableSectionElement, React.ComponentProps<'tbody'>>(
-  ({ className, ...props }, ref) => {
-    return (
-      <tbody
-        ref={ref}
-        data-slot="table-body"
-        className={cn('[&_tr:last-child]:border-0', className)}
-        {...props}
-      />
-    )
-  }
-)
-TableBody.displayName = 'TableBody'
+function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
+  return (
+    <tbody
+      data-slot="table-body"
+      className={cn('[&_tr:last-child]:border-0', className)}
+      {...props}
+    />
+  )
+}
 
 function TableFooter({ className, ...props }: React.ComponentProps<'tfoot'>) {
   return (
@@ -45,22 +38,18 @@ function TableFooter({ className, ...props }: React.ComponentProps<'tfoot'>) {
   )
 }
 
-const TableRow = React.forwardRef<HTMLTableRowElement, React.ComponentProps<'tr'>>(
-  ({ className, ...props }, ref) => {
-    return (
-      <tr
-        ref={ref}
-        data-slot="table-row"
-        className={cn(
-          'border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted',
-          className
-        )}
-        {...props}
-      />
-    )
-  }
-)
-TableRow.displayName = 'TableRow'
+function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
+  return (
+    <tr
+      data-slot="table-row"
+      className={cn(
+        'border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted',
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
 function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
   return (
