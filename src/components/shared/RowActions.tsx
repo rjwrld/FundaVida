@@ -31,7 +31,7 @@ export function RowActions({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 pointer-coarse:h-11 pointer-coarse:w-11 text-muted-foreground hover:text-green-600"
+          className="h-8 w-8 pointer-coarse:h-11 pointer-coarse:w-11 text-muted-foreground hover:text-success"
           aria-label={publishLabel ?? 'Publish'}
           onClick={onPublish}
           data-testid="publish-button"

@@ -521,7 +521,7 @@ export function CoursesDetailPage() {
                       <TableRow key={record.id}>
                         <TableCell>{sessionLabel}</TableCell>
                         <TableCell>
-                          <Badge variant={statusVariant(record.status)} dot>
+                          <Badge variant={statusVariant(record.status)}>
                             {t(`attendance.list.status.${record.status}`)}
                           </Badge>
                         </TableCell>

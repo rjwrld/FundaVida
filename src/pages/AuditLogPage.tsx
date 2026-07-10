@@ -76,15 +76,15 @@ export function AuditLogPage() {
       id: 'action',
       header: t('auditLog.columns.action'),
       cell: (e) => (
-        <Badge variant={actionVariant(e.action)} dot>
-          {t(`auditLog.actions.${e.action}`)}
-        </Badge>
+        <Badge variant={actionVariant(e.action)}>{t(`auditLog.actions.${e.action}`)}</Badge>
       ),
     },
     {
       id: 'entity',
       header: t('auditLog.columns.entity'),
-      cell: (e) => <Badge variant="neutral">{t(`auditLog.entities.${e.entity}`)}</Badge>,
+      // `outline`, not a status variant: the entity is a category chip, and a
+      // status dot in front of it would signal a state it does not have.
+      cell: (e) => <Badge variant="outline">{t(`auditLog.entities.${e.entity}`)}</Badge>,
     },
     {
       id: 'summary',

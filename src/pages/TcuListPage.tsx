@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Progress } from '@/components/ui/progress'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
@@ -31,6 +32,13 @@ import { useFormat } from '@/hooks/useFormat'
 import { useStore } from '@/data/store'
 import { LogTcuActivityDialog } from '@/components/tcu/LogTcuActivityDialog'
 import type { TcuFilters } from '@/data/api/tcu'
+import type { TcuActivityStatus } from '@/types'
+
+function statusVariant(status: TcuActivityStatus): 'success' | 'warning' | 'destructive' {
+  if (status === 'approved') return 'success'
+  if (status === 'pending') return 'warning'
+  return 'destructive'
+}
 
 export function TcuListPage() {
   const { t } = useTranslation()
@@ -233,17 +241,9 @@ export function TcuListPage() {
                       </TableCell>
                       <TableCell>{formatDate(a.date)}</TableCell>
                       <TableCell>
-                        <span
-                          className={`text-xs font-medium px-2 py-1 rounded-sm ${
-                            a.status === 'approved'
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                              : a.status === 'pending'
-                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                          }`}
-                        >
+                        <Badge variant={statusVariant(a.status)}>
                           {t(`tcu.list.status.${a.status}`)}
-                        </span>
+                        </Badge>
                       </TableCell>
                       <TableCell>{trainee && fullName(trainee)}</TableCell>
                     </TableRow>

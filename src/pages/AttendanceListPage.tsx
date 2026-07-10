@@ -94,9 +94,7 @@ export function AttendanceListPage() {
       id: 'status',
       header: t('attendance.list.columns.status'),
       cell: (r) => (
-        <Badge variant={statusVariant(r.status)} dot>
-          {t(`attendance.list.status.${r.status}`)}
-        </Badge>
+        <Badge variant={statusVariant(r.status)}>{t(`attendance.list.status.${r.status}`)}</Badge>
       ),
     },
   ]

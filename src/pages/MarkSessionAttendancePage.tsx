@@ -227,7 +227,10 @@ export function MarkSessionAttendancePage() {
             total: String(sessions.length),
           } as Record<string, string>)} · ${formatDate(session.date)}`}
         />
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800 dark:border-yellow-900 dark:bg-yellow-950/40 dark:text-yellow-200">
+        {/* Muted, not amber: `--warning` died with the blueprint skin (ADR-0047),
+            and this notice states a fact about the session rather than warning
+            about a consequence. */}
+        <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
           {t('attendance.mark.future')}
         </div>
       </div>
