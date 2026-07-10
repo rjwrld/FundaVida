@@ -1,8 +1,8 @@
 import { render } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { AppToaster } from '../AppToaster'
+import { Toaster } from '../sonner'
 import { useTheme } from '@/hooks/useTheme'
-import { Toaster } from 'sonner'
+import { Toaster as Sonner } from 'sonner'
 import { useReducedMotion } from 'framer-motion'
 
 // Mock the useTheme hook
@@ -10,18 +10,18 @@ vi.mock('@/hooks/useTheme', () => ({
   useTheme: vi.fn(),
 }))
 
-// Mock the Toaster component
+// Mock the underlying Sonner toaster
 vi.mock('sonner', () => ({
   Toaster: vi.fn(() => null),
 }))
 
-// AppToaster's only framer-motion dependency is the reduced-motion seam; mock it
+// The only framer-motion dependency is the reduced-motion seam; mock it
 // directly (per the StatCard/AnimatedNumber precedent) so each test can drive it.
 vi.mock('framer-motion', () => ({
   useReducedMotion: vi.fn(() => false),
 }))
 
-describe('AppToaster', () => {
+describe('Toaster', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(useReducedMotion).mockReturnValue(false)
@@ -33,8 +33,8 @@ describe('AppToaster', () => {
       setTheme: vi.fn(),
     })
 
-    render(<AppToaster />)
-    expect(vi.mocked(Toaster)).toHaveBeenCalledWith(
+    render(<Toaster />)
+    expect(vi.mocked(Sonner)).toHaveBeenCalledWith(
       expect.objectContaining({ theme: 'light' }),
       undefined
     )
@@ -46,16 +46,16 @@ describe('AppToaster', () => {
       setTheme: vi.fn(),
     })
 
-    const { rerender } = render(<AppToaster />)
-    expect(vi.mocked(Toaster)).toHaveBeenCalledWith(
+    const { rerender } = render(<Toaster />)
+    expect(vi.mocked(Sonner)).toHaveBeenCalledWith(
       expect.objectContaining({ theme: 'light' }),
       undefined
     )
 
     // Verify it's still using the hook on rerender
-    rerender(<AppToaster />)
-    expect(vi.mocked(Toaster)).toHaveBeenCalledTimes(2)
-    expect(vi.mocked(Toaster)).toHaveBeenNthCalledWith(
+    rerender(<Toaster />)
+    expect(vi.mocked(Sonner)).toHaveBeenCalledTimes(2)
+    expect(vi.mocked(Sonner)).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({ theme: 'light' }),
       undefined
@@ -68,8 +68,8 @@ describe('AppToaster', () => {
       setTheme: vi.fn(),
     })
 
-    render(<AppToaster />)
-    expect(vi.mocked(Toaster)).toHaveBeenCalledWith(
+    render(<Toaster />)
+    expect(vi.mocked(Sonner)).toHaveBeenCalledWith(
       expect.objectContaining({ theme: 'dark' }),
       undefined
     )
@@ -81,8 +81,8 @@ describe('AppToaster', () => {
       setTheme: vi.fn(),
     })
 
-    render(<AppToaster />)
-    expect(vi.mocked(Toaster)).toHaveBeenCalledWith(
+    render(<Toaster />)
+    expect(vi.mocked(Sonner)).toHaveBeenCalledWith(
       expect.objectContaining({ theme: 'system' }),
       undefined
     )
@@ -91,9 +91,9 @@ describe('AppToaster', () => {
   it('times the toast enter/exit transition from the shared motion token', () => {
     vi.mocked(useTheme).mockReturnValue({ theme: 'light', setTheme: vi.fn() })
 
-    render(<AppToaster />)
+    render(<Toaster />)
 
-    expect(vi.mocked(Toaster)).toHaveBeenCalledWith(
+    expect(vi.mocked(Sonner)).toHaveBeenCalledWith(
       expect.objectContaining({
         toastOptions: expect.objectContaining({
           style: expect.objectContaining({ '--fv-toast-duration': '0.2s' }),
@@ -107,14 +107,51 @@ describe('AppToaster', () => {
     vi.mocked(useTheme).mockReturnValue({ theme: 'light', setTheme: vi.fn() })
     vi.mocked(useReducedMotion).mockReturnValue(true)
 
-    render(<AppToaster />)
+    render(<Toaster />)
 
-    expect(vi.mocked(Toaster)).toHaveBeenCalledWith(
+    expect(vi.mocked(Sonner)).toHaveBeenCalledWith(
       expect.objectContaining({
         toastOptions: expect.objectContaining({
           style: expect.objectContaining({ '--fv-toast-duration': '0s' }),
         }),
       }),
+      undefined
+    )
+  })
+
+  it('keeps the registry chrome: token-driven surface vars and stock icons', () => {
+    vi.mocked(useTheme).mockReturnValue({ theme: 'light', setTheme: vi.fn() })
+
+    render(<Toaster />)
+
+    expect(vi.mocked(Sonner)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        className: 'toaster group',
+        style: expect.objectContaining({
+          '--normal-bg': 'var(--popover)',
+          '--normal-text': 'var(--popover-foreground)',
+          '--normal-border': 'var(--border)',
+          '--border-radius': 'var(--radius)',
+        }),
+        icons: expect.objectContaining({
+          success: expect.anything(),
+          info: expect.anything(),
+          warning: expect.anything(),
+          error: expect.anything(),
+          loading: expect.anything(),
+        }),
+      }),
+      undefined
+    )
+  })
+
+  it('lets callers override the registry defaults', () => {
+    vi.mocked(useTheme).mockReturnValue({ theme: 'light', setTheme: vi.fn() })
+
+    render(<Toaster position="top-center" />)
+
+    expect(vi.mocked(Sonner)).toHaveBeenCalledWith(
+      expect.objectContaining({ position: 'top-center' }),
       undefined
     )
   })
