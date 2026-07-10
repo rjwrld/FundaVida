@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Clock } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { clock } from '@/lib/clock'
 import { upcomingSessions } from '@/lib/sessions'
@@ -51,12 +52,11 @@ export function NextSessionsList({ courses, limit = 5 }: NextSessionsListProps) 
                     } as Record<string, string>)}
                   </p>
                 </div>
-                <Link
-                  to={`/app/courses/${session.courseId}/sessions/${session.date}/mark`}
-                  className="inline-flex shrink-0 items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                >
-                  {t('dashboard.teacher.markAttendance')}
-                </Link>
+                <Button asChild size="sm">
+                  <Link to={`/app/courses/${session.courseId}/sessions/${session.date}/mark`}>
+                    {t('dashboard.teacher.markAttendance')}
+                  </Link>
+                </Button>
               </li>
             ))}
           </ul>
