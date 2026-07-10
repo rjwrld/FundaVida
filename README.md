@@ -17,8 +17,6 @@ FundaVida was a production educational-management platform built for a Costa Ric
 | Vercel + Supabase hosting | Vercel only                           |
 | Spanish-only UI           | Bilingual EN / ES (toggle top-right)  |
 
-See [`docs/superpowers/specs/`](docs/superpowers/specs/) for the design specs that drove each phase and [`docs/superpowers/plans/`](docs/superpowers/plans/) for the implementation plans.
-
 ## Live demo
 
 [![Dashboard preview](public/screenshots/hero.en.png)](https://fundavida.vercel.app/)
@@ -208,21 +206,6 @@ src/
 ├── pages/            # Route-level components
 └── types/            # Shared TS types
 ```
-
-## Phase history
-
-| Phase | Focus                                            | Design spec                                                                               |
-| ----- | ------------------------------------------------ | ----------------------------------------------------------------------------------------- |
-| 1     | Scaffold, tooling, CI                            | [spec](docs/superpowers/specs/2026-04-21-fundavida-portfolio-polish-design.md) (umbrella) |
-| 2     | Data layer, persistence, role switcher           | [plan](docs/superpowers/plans/2026-04-22-phase-2-data-layer-and-role-switcher.md)         |
-| 3     | Tier 1 modules (Students, Courses, Certificates) | [plan](docs/superpowers/plans/2026-04-22-phase-3-tier-1-modules.md)                       |
-| 4     | Tier 2 modules (Teachers, Enrollments, Grades)   | [plan](docs/superpowers/plans/2026-04-22-phase-4-tier-2-modules.md)                       |
-| 5a    | TCU + Attendance                                 | [plan](docs/superpowers/plans/2026-04-22-phase-5a-tcu-and-attendance.md)                  |
-| 5b    | Reports, Audit Logs, Bulk Email                  | [plan](docs/superpowers/plans/2026-04-22-phase-5b-reports-audit-email.md)                 |
-| 6     | i18n EN / ES                                     | [spec](docs/superpowers/specs/2026-04-22-phase-6-i18n-design.md)                          |
-| 7     | Portfolio polish + deploy                        | [spec](docs/superpowers/specs/2026-04-23-phase-7-portfolio-polish-and-deploy-design.md)   |
-
-Each phase → one branch per task → one PR → one merge. The [merged PR list](https://github.com/rjwrld/FundaVida/pulls?q=is%3Apr+is%3Amerged) is itself a portfolio artifact.
 
 ## Author
 
