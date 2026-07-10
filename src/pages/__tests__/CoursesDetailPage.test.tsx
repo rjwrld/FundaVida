@@ -696,7 +696,7 @@ describe('<CoursesDetailPage /> — close course action (ADR-0024)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Close course' }))
 
     // Confirm inside the dialog (its confirm button shares the label).
-    const dialog = await screen.findByRole('dialog')
+    const dialog = await screen.findByRole('alertdialog')
     fireEvent.click(within(dialog).getByRole('button', { name: 'Close course' }))
 
     await waitFor(() => {
@@ -954,7 +954,7 @@ describe('<CoursesDetailPage /> — close-readiness checklist (issue #204)', () 
     const closeButton = await screen.findByRole('button', { name: 'Close course' })
     expect(closeButton).toBeEnabled()
     fireEvent.click(closeButton)
-    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(await screen.findByRole('alertdialog')).toBeInTheDocument()
   })
 })
 

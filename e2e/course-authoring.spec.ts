@@ -82,7 +82,7 @@ test('teacher closes a published course from its detail page (ADR-0024)', async 
   await page.getByRole('button', { name: 'Close course' }).click()
 
   // Confirm in the dialog (its confirm button shares the trigger's label).
-  await page.getByRole('dialog').getByRole('button', { name: 'Close course' }).click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Close course' }).click()
 
   // The close persists to the store as a 'closed' status…
   await expect
