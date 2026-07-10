@@ -1,145 +1,335 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* Dark mode stays class-driven (ThemeToggle stamps `.dark` on <html>). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Touch-target sweep: enlarge coarse-pointer (touch) hit areas without
+   bloating dense mouse/desktop rows. Was a JS plugin in the v3 config. */
+@custom-variant pointer-coarse (@media (pointer: coarse));
+
+/* Semantic tokens are runtime-switchable (:root / .dark below hold the values),
+   so the theme maps them by reference. Radius derives from --radius the same
+   way the v3 config did; --radius-sm pins the old bare `rounded` (0.25rem)
+   that the v4 rename shifts onto `rounded-sm`. */
+@theme inline {
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-brand-green-50: var(--brand-green-50);
+  --color-brand-green-100: var(--brand-green-100);
+  --color-brand-green-200: var(--brand-green-200);
+  --color-brand-green-300: var(--brand-green-300);
+  --color-brand-green-400: var(--brand-green-400);
+  --color-brand-green-500: var(--brand-green-500);
+  --color-brand-green-600: var(--brand-green-600);
+  --color-brand-green-700: var(--brand-green-700);
+  --color-brand-green-800: var(--brand-green-800);
+  --color-brand-green-900: var(--brand-green-900);
+  --color-brand-green-950: var(--brand-green-950);
+  --color-brand-blue-50: var(--brand-blue-50);
+  --color-brand-blue-100: var(--brand-blue-100);
+  --color-brand-blue-200: var(--brand-blue-200);
+  --color-brand-blue-300: var(--brand-blue-300);
+  --color-brand-blue-400: var(--brand-blue-400);
+  --color-brand-blue-500: var(--brand-blue-500);
+  --color-brand-blue-600: var(--brand-blue-600);
+  --color-brand-blue-700: var(--brand-blue-700);
+  --color-brand-blue-800: var(--brand-blue-800);
+  --color-brand-blue-900: var(--brand-blue-900);
+  --color-brand-blue-950: var(--brand-blue-950);
+  --color-flame-red-50: var(--flame-red-50);
+  --color-flame-red-500: var(--flame-red-500);
+  --color-flame-red-600: var(--flame-red-600);
+  --color-flame-red-700: var(--flame-red-700);
+  --color-flame-yellow-50: var(--flame-yellow-50);
+  --color-flame-yellow-100: var(--flame-yellow-100);
+  --color-flame-yellow-200: var(--flame-yellow-200);
+  --color-flame-yellow-300: var(--flame-yellow-300);
+  --color-flame-yellow-400: var(--flame-yellow-400);
+  --color-flame-yellow-500: var(--flame-yellow-500);
+  --color-flame-yellow-600: var(--flame-yellow-600);
+  --color-flame-yellow-700: var(--flame-yellow-700);
+  --color-flame-yellow-800: var(--flame-yellow-800);
+  --color-flame-yellow-900: var(--flame-yellow-900);
+  --color-flame-yellow-950: var(--flame-yellow-950);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-xs: calc(var(--radius) - 4px);
+  --radius-sm: 0.25rem;
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 12px);
+}
+
+@theme {
+  --shadow-elevated: 0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 2px 10px -2px rgba(0, 0, 0, 0.04);
+
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-fade-up: fade-up 0.3s ease-out;
+  --animate-pulse-soft: pulse-soft 2s infinite;
+  --animate-aurora-drift: aurora-drift 20s ease-in-out infinite;
+  --animate-float: float 4s ease-in-out infinite;
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes fade-up {
+    0% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes pulse-soft {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
+  @keyframes aurora-drift {
+    0%,
+    100% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+    50% {
+      transform: translate(-10%, -10%) rotate(2deg);
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+}
+
+/* Referenced only through the arbitrary [animation:marquee_…] value in
+   landing/Marquee.tsx, so it must stay a global keyframes rule — @theme
+   only emits keyframes tied to a used --animate-* token. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* The v3 config's container (center + 2rem padding, no max-width until the
+   1440px cap). v4's stock container caps at every breakpoint, which would
+   visibly narrow the landing page — override each tier back to none. */
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  max-width: none;
+  @media (width >= 40rem) {
+    max-width: none;
+  }
+  @media (width >= 48rem) {
+    max-width: none;
+  }
+  @media (width >= 64rem) {
+    max-width: none;
+  }
+  @media (width >= 80rem) {
+    max-width: none;
+  }
+  @media (width >= 96rem) {
+    max-width: none;
+  }
+  @media (width >= 1440px) {
+    max-width: 1440px;
+  }
+}
+
+/*
+  The default border color changed to `currentcolor` in Tailwind CSS v4; the
+  v3 setup applied `border-border` to every element, so this compatibility
+  layer keeps that exact behavior.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--border, currentcolor);
+  }
+}
 
 @layer base {
   :root {
     /* Brand Green ramp (primary product color) */
-    --brand-green-50: 0.97 0.02 138;
-    --brand-green-100: 0.93 0.05 138;
-    --brand-green-200: 0.87 0.09 138;
-    --brand-green-300: 0.78 0.14 138;
-    --brand-green-400: 0.68 0.16 138;
-    --brand-green-500: 0.57 0.17 138;
-    --brand-green-600: 0.5 0.16 138;
-    --brand-green-700: 0.42 0.14 138;
-    --brand-green-800: 0.34 0.11 138;
-    --brand-green-900: 0.26 0.08 138;
-    --brand-green-950: 0.18 0.05 138;
+    --brand-green-50: oklch(0.97 0.02 138);
+    --brand-green-100: oklch(0.93 0.05 138);
+    --brand-green-200: oklch(0.87 0.09 138);
+    --brand-green-300: oklch(0.78 0.14 138);
+    --brand-green-400: oklch(0.68 0.16 138);
+    --brand-green-500: oklch(0.57 0.17 138);
+    --brand-green-600: oklch(0.5 0.16 138);
+    --brand-green-700: oklch(0.42 0.14 138);
+    --brand-green-800: oklch(0.34 0.11 138);
+    --brand-green-900: oklch(0.26 0.08 138);
+    --brand-green-950: oklch(0.18 0.05 138);
 
     /* Brand Blue ramp (secondary / institutional) */
-    --brand-blue-50: 0.97 0.02 260;
-    --brand-blue-100: 0.92 0.05 260;
-    --brand-blue-200: 0.84 0.1 260;
-    --brand-blue-300: 0.74 0.15 260;
-    --brand-blue-400: 0.62 0.18 260;
-    --brand-blue-500: 0.51 0.19 260;
-    --brand-blue-600: 0.44 0.18 260;
-    --brand-blue-700: 0.37 0.16 260;
-    --brand-blue-800: 0.3 0.13 260;
-    --brand-blue-900: 0.24 0.1 260;
-    --brand-blue-950: 0.17 0.06 260;
+    --brand-blue-50: oklch(0.97 0.02 260);
+    --brand-blue-100: oklch(0.92 0.05 260);
+    --brand-blue-200: oklch(0.84 0.1 260);
+    --brand-blue-300: oklch(0.74 0.15 260);
+    --brand-blue-400: oklch(0.62 0.18 260);
+    --brand-blue-500: oklch(0.51 0.19 260);
+    --brand-blue-600: oklch(0.44 0.18 260);
+    --brand-blue-700: oklch(0.37 0.16 260);
+    --brand-blue-800: oklch(0.3 0.13 260);
+    --brand-blue-900: oklch(0.24 0.1 260);
+    --brand-blue-950: oklch(0.17 0.06 260);
 
     /* Flame Red ramp (destructive) */
-    --flame-red-50: 0.97 0.02 27;
-    --flame-red-100: 0.92 0.06 27;
-    --flame-red-200: 0.84 0.13 27;
-    --flame-red-300: 0.72 0.21 27;
-    --flame-red-400: 0.62 0.24 27;
-    --flame-red-500: 0.52 0.25 27;
-    --flame-red-600: 0.46 0.22 27;
-    --flame-red-700: 0.39 0.18 27;
-    --flame-red-800: 0.32 0.14 27;
-    --flame-red-900: 0.25 0.1 27;
-    --flame-red-950: 0.17 0.06 27;
+    --flame-red-50: oklch(0.97 0.02 27);
+    --flame-red-100: oklch(0.92 0.06 27);
+    --flame-red-200: oklch(0.84 0.13 27);
+    --flame-red-300: oklch(0.72 0.21 27);
+    --flame-red-400: oklch(0.62 0.24 27);
+    --flame-red-500: oklch(0.52 0.25 27);
+    --flame-red-600: oklch(0.46 0.22 27);
+    --flame-red-700: oklch(0.39 0.18 27);
+    --flame-red-800: oklch(0.32 0.14 27);
+    --flame-red-900: oklch(0.25 0.1 27);
+    --flame-red-950: oklch(0.17 0.06 27);
 
     /* Flame Yellow ramp (accent / celebration / warning) */
-    --flame-yellow-50: 0.98 0.02 90;
-    --flame-yellow-100: 0.95 0.06 90;
-    --flame-yellow-200: 0.92 0.11 90;
-    --flame-yellow-300: 0.9 0.15 90;
-    --flame-yellow-400: 0.87 0.16 90;
-    --flame-yellow-500: 0.85 0.17 90;
-    --flame-yellow-600: 0.75 0.16 90;
-    --flame-yellow-700: 0.63 0.14 90;
-    --flame-yellow-800: 0.5 0.11 90;
-    --flame-yellow-900: 0.38 0.09 90;
-    --flame-yellow-950: 0.25 0.06 90;
+    --flame-yellow-50: oklch(0.98 0.02 90);
+    --flame-yellow-100: oklch(0.95 0.06 90);
+    --flame-yellow-200: oklch(0.92 0.11 90);
+    --flame-yellow-300: oklch(0.9 0.15 90);
+    --flame-yellow-400: oklch(0.87 0.16 90);
+    --flame-yellow-500: oklch(0.85 0.17 90);
+    --flame-yellow-600: oklch(0.75 0.16 90);
+    --flame-yellow-700: oklch(0.63 0.14 90);
+    --flame-yellow-800: oklch(0.5 0.11 90);
+    --flame-yellow-900: oklch(0.38 0.09 90);
+    --flame-yellow-950: oklch(0.25 0.06 90);
 
     /* Neutral ramp (cool gray, hue 220) */
-    --neutral-50: 0.99 0.003 220;
-    --neutral-100: 0.96 0.006 220;
-    --neutral-200: 0.92 0.01 220;
-    --neutral-300: 0.86 0.015 220;
-    --neutral-400: 0.7 0.02 220;
-    --neutral-500: 0.55 0.025 220;
-    --neutral-600: 0.45 0.025 220;
-    --neutral-700: 0.35 0.022 220;
-    --neutral-800: 0.26 0.018 220;
-    --neutral-900: 0.18 0.015 220;
-    --neutral-950: 0.13 0.012 220;
+    --neutral-50: oklch(0.99 0.003 220);
+    --neutral-100: oklch(0.96 0.006 220);
+    --neutral-200: oklch(0.92 0.01 220);
+    --neutral-300: oklch(0.86 0.015 220);
+    --neutral-400: oklch(0.7 0.02 220);
+    --neutral-500: oklch(0.55 0.025 220);
+    --neutral-600: oklch(0.45 0.025 220);
+    --neutral-700: oklch(0.35 0.022 220);
+    --neutral-800: oklch(0.26 0.018 220);
+    --neutral-900: oklch(0.18 0.015 220);
+    --neutral-950: oklch(0.13 0.012 220);
 
     /* Semantic tokens — light mode (blueprint: Frost/Paper/Ink + scarce green) */
-    --background: 0.96 0 0; /* Frost #f5f5f5 */
-    --foreground: 0.26 0 0; /* Ink #202020 */
-    --card: 1 0 0; /* Paper #ffffff */
-    --card-foreground: 0.26 0 0;
-    --popover: 1 0 0;
-    --popover-foreground: 0.26 0 0;
-    --primary: 0.5 0.16 138; /* Figure Green 600 #2A8426 (AA-safe for off-white text) */
-    --primary-foreground: 0.99 0.003 95; /* off-white #FCFCFA text ON dark green */
-    --secondary: 0.26 0 0; /* Ink surface panel #202020 */
-    --secondary-foreground: 0.96 0 0; /* Frost text on Ink */
-    --muted: 0.96 0 0; /* Frost surface */
-    --muted-foreground: 0.52 0 0; /* muted #6b6b6b */
-    --accent: 0.95 0 0; /* hover frost #f0f0f0 (NOT green) */
-    --accent-foreground: 0.26 0 0; /* Ink */
-    --destructive: 0.64 0.21 25; /* error #ef4444 */
-    --destructive-foreground: 1 0 0;
-    --success: 0.57 0.17 138; /* Figure Green 500 #32982D */
-    --warning: 0.36 0 0; /* neutralized to mono (Carbon) — Resolved Decision #3 */
-    --info: 0.36 0 0; /* neutralized to mono (Carbon) */
-    --border: 0.91 0 0; /* soft #e5e5e5 */
-    --input: 0.91 0 0;
-    --ring: 0.57 0.17 138; /* Figure Green 500 focus ring (brand-guidelines §15.2) */
+    --background: oklch(0.96 0 0); /* Frost #f5f5f5 */
+    --foreground: oklch(0.26 0 0); /* Ink #202020 */
+    --card: oklch(1 0 0); /* Paper #ffffff */
+    --card-foreground: oklch(0.26 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.26 0 0);
+    --primary: oklch(0.5 0.16 138); /* Figure Green 600 #2A8426 (AA-safe for off-white text) */
+    --primary-foreground: oklch(0.99 0.003 95); /* off-white #FCFCFA text ON dark green */
+    --secondary: oklch(0.26 0 0); /* Ink surface panel #202020 */
+    --secondary-foreground: oklch(0.96 0 0); /* Frost text on Ink */
+    --muted: oklch(0.96 0 0); /* Frost surface */
+    --muted-foreground: oklch(0.52 0 0); /* muted #6b6b6b */
+    --accent: oklch(0.95 0 0); /* hover frost #f0f0f0 (NOT green) */
+    --accent-foreground: oklch(0.26 0 0); /* Ink */
+    --destructive: oklch(0.64 0.21 25); /* error #ef4444 */
+    --destructive-foreground: oklch(1 0 0);
+    --success: oklch(0.57 0.17 138); /* Figure Green 500 #32982D */
+    --warning: oklch(0.36 0 0); /* neutralized to mono (Carbon) — Resolved Decision #3 */
+    --info: oklch(0.36 0 0); /* neutralized to mono (Carbon) */
+    --border: oklch(0.91 0 0); /* soft #e5e5e5 */
+    --input: oklch(0.91 0 0);
+    --ring: oklch(0.57 0.17 138); /* Figure Green 500 focus ring (brand-guidelines §15.2) */
 
     /* Chart categorical palette */
     --chart-1: var(--brand-green-500);
-    --chart-2: 0.45 0 0; /* mono ramp for future multi-series charts */
-    --chart-3: 0.6 0 0;
-    --chart-4: 0.72 0 0;
-    --chart-5: 0.82 0 0;
+    --chart-2: oklch(0.45 0 0); /* mono ramp for future multi-series charts */
+    --chart-3: oklch(0.6 0 0);
+    --chart-4: oklch(0.72 0 0);
+    --chart-5: oklch(0.82 0 0);
 
     --radius: 0.75rem;
   }
 
   .dark {
-    --background: 0.2 0 0; /* dark canvas #161616 */
-    --foreground: 0.96 0 0; /* Frost text #f5f5f5 */
-    --card: 0.26 0 0; /* Ink card #202020 */
-    --card-foreground: 0.96 0 0;
-    --popover: 0.26 0 0;
-    --popover-foreground: 0.96 0 0;
-    --primary: 0.7 0.17 138; /* vivid Figure Green (pops on Ink) */
-    --primary-foreground: 0.26 0 0; /* Ink text ON light green */
-    --secondary: 0.3 0 0; /* lighter Ink panel #2a2a2a */
-    --secondary-foreground: 0.96 0 0;
-    --muted: 0.24 0 0; /* subtle dark surface */
-    --muted-foreground: 0.68 0 0; /* dark muted #9a9a9a */
-    --accent: 0.3 0 0; /* hover #2a2a2a */
-    --accent-foreground: 0.96 0 0;
-    --destructive: 0.64 0.21 25; /* error #ef4444 */
-    --destructive-foreground: 0.96 0 0;
-    --success: 0.68 0.16 138; /* Figure Green 400 (vivid on dark) */
-    --warning: 0.84 0 0; /* neutralized to mono (light Carbon on Ink) — Resolved Decision #3 */
-    --info: 0.84 0 0; /* neutralized to mono */
-    --border: 0.3 0 0; /* soft dark border #2a2a2a */
-    --input: 0.3 0 0;
-    --ring: 0.68 0.16 138; /* Figure Green 400 focus ring (dark) */
+    --background: oklch(0.2 0 0); /* dark canvas #161616 */
+    --foreground: oklch(0.96 0 0); /* Frost text #f5f5f5 */
+    --card: oklch(0.26 0 0); /* Ink card #202020 */
+    --card-foreground: oklch(0.96 0 0);
+    --popover: oklch(0.26 0 0);
+    --popover-foreground: oklch(0.96 0 0);
+    --primary: oklch(0.7 0.17 138); /* vivid Figure Green (pops on Ink) */
+    --primary-foreground: oklch(0.26 0 0); /* Ink text ON light green */
+    --secondary: oklch(0.3 0 0); /* lighter Ink panel #2a2a2a */
+    --secondary-foreground: oklch(0.96 0 0);
+    --muted: oklch(0.24 0 0); /* subtle dark surface */
+    --muted-foreground: oklch(0.68 0 0); /* dark muted #9a9a9a */
+    --accent: oklch(0.3 0 0); /* hover #2a2a2a */
+    --accent-foreground: oklch(0.96 0 0);
+    --destructive: oklch(0.64 0.21 25); /* error #ef4444 */
+    --destructive-foreground: oklch(0.96 0 0);
+    --success: oklch(0.68 0.16 138); /* Figure Green 400 (vivid on dark) */
+    --warning: oklch(
+      0.84 0 0
+    ); /* neutralized to mono (light Carbon on Ink) — Resolved Decision #3 */
+    --info: oklch(0.84 0 0); /* neutralized to mono */
+    --border: oklch(0.3 0 0); /* soft dark border #2a2a2a */
+    --input: oklch(0.3 0 0);
+    --ring: oklch(0.68 0.16 138); /* Figure Green 400 focus ring (dark) */
 
     --chart-1: var(--brand-green-400);
-    --chart-2: 0.82 0 0; /* mono ramp for future multi-series charts */
-    --chart-3: 0.7 0 0;
-    --chart-4: 0.58 0 0;
-    --chart-5: 0.46 0 0;
-  }
-
-  * {
-    @apply border-border;
+    --chart-2: oklch(0.82 0 0); /* mono ramp for future multi-series charts */
+    --chart-3: oklch(0.7 0 0);
+    --chart-4: oklch(0.58 0 0);
+    --chart-5: oklch(0.46 0 0);
   }
 
   html {
-    background-color: oklch(var(--background));
+    background-color: var(--background);
   }
 
   body {

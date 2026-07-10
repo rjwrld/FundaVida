@@ -21,7 +21,7 @@ export function SkeletonTable({ rows = 5, columns = 4, className, ...props }: Sk
         {Array.from({ length: columns }).map((_, index) => (
           <span
             key={index}
-            className="h-3 w-20 animate-pulse-soft rounded bg-muted"
+            className="h-3 w-20 animate-pulse-soft rounded-sm bg-muted"
             aria-hidden="true"
           />
         ))}
@@ -36,7 +36,7 @@ export function SkeletonTable({ rows = 5, columns = 4, className, ...props }: Sk
             {Array.from({ length: columns }).map((_, colIndex) => (
               <span
                 key={colIndex}
-                className="h-3 w-3/4 animate-pulse-soft rounded bg-muted/70"
+                className="h-3 w-3/4 animate-pulse-soft rounded-sm bg-muted/70"
                 aria-hidden="true"
               />
             ))}

@@ -1,0 +1,96 @@
+# The UI converges on stock shadcn: registry components, one theme file, brand as primary
+
+_Accepted (design grilling + artifact review 2026-07-09). Supersedes the Figure-Green token skin
+(PRs #102/#105/#132) as the app-wide surface treatment; ADR-0026 (Pager) and ADR-0044 (calendar
+layout) stand; ADR-0010 (derived nav) is untouched._
+
+The codebase is already ~60% a shadcn app — `components.json`, 18 primitives under
+`src/components/ui/`, cva/tailwind-merge/Radix — but the adoption stalled halfway and the gaps
+grew organically: 31 files re-implement the Card shell by hand (10 in `dashboard/` alone), two
+pages hardcode status-pill colors the extended Badge already provides, tooltips are native
+`title=""` attributes, `ui/checkbox.tsx` is a plain `<input>` wearing a Radix costume, and
+`components.json` still declares the deprecated `default` style with a `slate` base color that
+matches nothing in `index.css`. Meanwhile the custom token skin (Frost/Paper/Ink, mono-neutralized
+warning/info, 0.75rem radius) makes every registry pull a hand-adaptation. The decision, after
+reviewing eleven mocked directions: stop maintaining a fork of shadcn's look and converge on the
+registry's stock output, with exactly one deliberate deviation — the brand green as primary.
+
+## Decision
+
+**One theme file carries the entire visual identity.** `fundavida-green` is the stock shadcn
+`base` theme (zinc neutrals, 0.625rem radius, stock shadows and typography scale) with five token
+groups re-pointed to Figure Green hue 138: `primary` (light `oklch(0.5 0.16 138)`, dark
+`oklch(0.72 0.17 138)`), `ring`, `sidebar-primary`, and `chart-1…5`. Nothing else deviates. The
+old semantic customs die with the skin: Frost/Paper/Ink values, the mono-neutralized `--warning`/
+`--info`, and the 0.75rem radius are all replaced by stock. The filled Badge color variants
+restyle to the registry's outline-pill-with-status-dot. Components must consume theme tokens only;
+a component referencing `brand-green-*` outside the exempt surfaces below is a review rejection.
+
+**Tailwind 4 goes first, because the theme file demands it.** The theme is a Tailwind-4-format
+registry item (full `oklch()` values); the current Tailwind 3 plumbing wraps triplet variables in
+`oklch(var(--token))`, so installing the theme before the upgrade would nest `oklch(oklch(…))`.
+Phase 0 is therefore the 3.4→4 upgrade plus `components.json` repair (`new-york`, correct base
+color) plus a registry re-pull of all 18 existing primitives. Local extensions that survive the
+re-pull are re-applied as explicit, separately-reviewable commits: CardTitle's `as` prop
+(a11y-driven), the Badge dot, and a real Radix rewrite of the fake checkbox. `scripts/screenshots.ts`
+diffs before/after — Phase 0 through Phase 3 are zero-intended-visual-change except where stock
+replaces custom chrome.
+
+**Brand pigment is contained, not deleted.** The `brand-green`/`brand-blue`/`flame-*` 11-step
+ramps survive only where the app is deliberately not shadcn: the marketing landing
+(`src/components/landing/`) and the certificate PDF pipeline (`CertificatePreview` +
+`lib/pdf/certificateTheme`), which stays light regardless of app theme. The landing/app seam —
+expressive landing, stock app — is accepted on purpose.
+
+**Structure adopts the registry's blocks.** The app shell moves to the Sidebar primitive: grouped
+sections still derive from `NAV_ITEMS` and the permission matrix (ADR-0010 unchanged — the block
+is presentation, the matrix is truth), the built-in mobile sheet replaces `MobileNav` (closing
+#292's ≥44px touch targets as an acceptance criterion, not a separate fix), and the collapsed
+icon rail (⌘B) arrives free. Breadcrumbs, ⌘K, and the theme toggle consolidate into the block's
+header slot. Dashboards rebuild on stock card/chart patterns with recharts under the shadcn Chart
+wrapper; the welcome/role-select view rebuilds on an auth-block layout. The ADR-0044 calendar
+keeps its locked layout and re-skins onto the new primitives (its tooltips finally become
+`ui/tooltip` instead of `title=""`).
+
+**DataTable rebases onto TanStack Table with three preserved contracts.** (1) the dual render —
+real table ≥sm, stacked cards below, with the Playwright strict-mode implication kept documented;
+(2) framer-motion row enter/exit behind `useReducedMotion`; (3) the `Pager`/`usePagination`
+integration — the Pager stays custom per ADR-0026, it is better than the stock recipe. The
+existing test suite is ported first so behavior is pinned before the swap.
+
+**Motion is a designed layer, scoped by frequency.** The rule: the showier the animation, the
+rarer the moment it celebrates. A subtle base package covers high-frequency states (sliding tab
+indicator, sidebar active pill and collapse spring, staggered row/card entrances, chart draw-in,
+count-ups, dialog/sheet/toast transitions; 150–250ms). Expressive moments are reserved for rare,
+high-emotion events: certificate issuance (confetti + shimmer), the course-close checklist cascade
+with a button-to-checkmark morph, the enrollment-approval sweep, the welcome entrance with an SVG
+logo stroke-draw, and a View Transitions theme-toggle wipe (progressive enhancement). A
+shared-element course-card→detail morph is a stretch goal, gated on it not fighting async data
+loading (the ADR-0030 resolve-queries discipline applies). Route-level page transitions were
+considered and rejected — navigation is the highest-frequency action in the app. Everything
+routes through `lib/motion.ts` tokens and respects `prefers-reduced-motion`.
+
+**Delivery is a serial issue queue, not a parallel wave.** One milestone, phases 0–6 as ~18
+ordered issues, each sized to one implement-skill run and reviewed before merge. Phases 0, 3, 4
+touch global surfaces and must not overlap anything; the Phase 2 sweep is split into serial
+file-disjoint slices.
+
+## Consequences
+
+- **The e2e suite is the safety net and the risk.** 95% of selectors are role/label-based and
+  survive Radix swaps that preserve ARIA; the 19 `getByTestId` and 4 raw `locator` call sites are
+  grepped and checked in every phase that touches their markup.
+- **Registry re-pulls can silently clobber local extensions.** The surviving extensions are the
+  explicit list above; each re-application is its own commit so a future `shadcn add` diff shows
+  exactly what local delta exists.
+- **No matrix, scope, api, or STATE_KEY change anywhere in the series.** This is a pure UI
+  convergence; a diff touching `matrix.ts`, `scope.ts`, or persistence is over-broadening and
+  should be rejected in review.
+- The i18n surface is unchanged in meaning but touched in many files; `i18n:check` drift is the
+  expected failure mode of a careless port, and locale files commit before components
+  (pre-commit ordering gotcha).
+- The demo's first-run experience changes visibly (Phases 4–6). Screenshot review is part of
+  those phases' acceptance criteria, not an afterthought.
+- Revoked decisions are recorded here so they are not re-litigated: keep-Figure-Green-everywhere,
+  filled Badge variants, Ink dark palette, 0.75rem radius. Revocable-but-kept: the DataTable
+  mobile card render (drop only with an explicit ADR amendment).

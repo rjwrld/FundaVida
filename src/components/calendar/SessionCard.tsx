@@ -33,9 +33,9 @@ export interface SessionCardProps {
 // on present + the Mark action + today, nowhere else. `excused` reads as the
 // neutral "late/other" state, so it takes a quiet muted rail, not a third color.
 const VERDICT_RAIL: Record<AttendanceRecord['status'], string> = {
-  present: 'border-l-[oklch(var(--success))]',
-  absent: 'border-l-[oklch(var(--destructive))]',
-  excused: 'border-l-[oklch(var(--muted-foreground))]',
+  present: 'border-l-success',
+  absent: 'border-l-destructive',
+  excused: 'border-l-muted-foreground',
 }
 const VERDICT_TEXT: Record<AttendanceRecord['status'], string> = {
   present: 'text-[oklch(0.5_0.16_138)] dark:text-[oklch(0.78_0.14_138)]',

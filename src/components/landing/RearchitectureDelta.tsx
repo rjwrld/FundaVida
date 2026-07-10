@@ -49,14 +49,14 @@ export function RearchitectureDelta() {
             >
               <span className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground">
                 {numeral}
-                <span className="text-muted-foreground/40">/{total}</span>
+                <span className="text-muted-foreground">/{total}</span>
               </span>
               <motion.div
                 initial={{ opacity: 0, x: -16 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, amount: 0.6 }}
                 transition={transitionDefaults}
-                className="font-mono text-sm uppercase tracking-wide text-muted-foreground/80"
+                className="font-mono text-sm uppercase tracking-wide text-muted-foreground"
               >
                 {row.before}
               </motion.div>
@@ -77,7 +77,7 @@ export function RearchitectureDelta() {
                 transition={{ ...transitionDefaults, delay: 0.05 }}
                 className="col-span-2 font-display text-xl leading-snug text-foreground md:col-span-1 md:text-2xl"
               >
-                <span className="rounded-sm bg-brand-green-100/70 px-2 py-0.5 decoration-brand-green-400">
+                <span className="rounded-xs bg-brand-green-100/70 px-2 py-0.5 decoration-brand-green-400">
                   {row.after}
                 </span>
               </motion.div>

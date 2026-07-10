@@ -36,7 +36,7 @@ export function WelcomeBanner({
     >
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand-green-500 to-transparent [--tw-gradient-to-position:40%]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-linear-to-r from-brand-green-500 to-transparent to-40%"
       />
       <div className="relative z-10 flex max-w-xl flex-col gap-2">
         {eyebrow ? (

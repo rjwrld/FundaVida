@@ -15,7 +15,7 @@ export function LanguageToggle({ variant = 'header' }: { variant?: Variant }) {
       aria-label={t('common.language.label')}
       className={cn(
         'inline-flex overflow-hidden rounded-md border text-xs',
-        variant === 'landing' && 'bg-background/90 backdrop-blur'
+        variant === 'landing' && 'bg-background/90 backdrop-blur-sm'
       )}
     >
       {(['en', 'es'] as const).map((code) => (
@@ -26,7 +26,7 @@ export function LanguageToggle({ variant = 'header' }: { variant?: Variant }) {
           onClick={() => setLocale(code)}
           className={cn(
             'px-2.5 py-1 font-medium uppercase tracking-wide transition-colors',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
             locale === code
               ? 'bg-foreground text-background'
               : 'text-muted-foreground hover:text-foreground'

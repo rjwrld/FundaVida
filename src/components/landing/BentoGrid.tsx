@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 
 export function BentoGrid({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('grid auto-rows-[16rem] grid-cols-1 gap-4 md:grid-cols-2', className)}>
+    <div className={cn('grid auto-rows-64 grid-cols-1 gap-4 md:grid-cols-2', className)}>
       {children}
     </div>
   )

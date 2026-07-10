@@ -88,7 +88,7 @@ export function CourseSentMessagesSection({ course }: { course: Course }) {
                   <button
                     type="button"
                     onClick={() => setOpenedId(campaign.id)}
-                    className="text-left font-medium underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="text-left font-medium underline-offset-4 hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     {campaign.subject}
                   </button>

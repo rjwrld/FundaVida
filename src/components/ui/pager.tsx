@@ -54,7 +54,7 @@ export function Pager({ pagination, pageSizeOptions = [10, 25, 50] }: PagerProps
           <select
             value={pageSize}
             onChange={(e) => setPageSize(Number(e.target.value))}
-            className="h-9 rounded-lg border border-input bg-background px-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="h-9 rounded-lg border border-input bg-background px-2 text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             {pageSizeOptions.map((n) => (
               <option key={n} value={n}>

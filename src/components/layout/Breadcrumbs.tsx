@@ -112,7 +112,7 @@ export function Breadcrumbs() {
       {crumbs.map((crumb, idx) => (
         <Fragment key={`${crumb.label}-${idx}`}>
           {idx > 0 ? (
-            <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/50" aria-hidden />
+            <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
           ) : null}
           {crumb.to && idx < crumbs.length - 1 ? (
             <Link

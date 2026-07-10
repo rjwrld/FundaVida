@@ -46,11 +46,11 @@ export function CertificateCard({ cert, onOpen, className }: Props) {
       className={cn(
         'group relative flex flex-col overflow-hidden border-border/70 transition-colors',
         clickable &&
-          'cursor-pointer hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          'cursor-pointer hover:border-foreground/30 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         className
       )}
     >
-      <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-card">
+      <div className="relative flex aspect-4/3 items-center justify-center overflow-hidden bg-card">
         <span
           aria-hidden="true"
           className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-muted ring-2 ring-border"

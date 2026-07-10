@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const badgeVariants = cva(
-  'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2',
   {
     variants: {
       variant: {
@@ -16,10 +16,10 @@ const badgeVariants = cva(
         // stay hand-tuned literals — they are darker/lighter than the base token
         // to hold AA contrast on the low-alpha tint, which no token expresses.
         destructive:
-          'border-[oklch(var(--destructive)/0.4)] bg-[oklch(var(--destructive)/0.12)] text-[oklch(0.55_0.2_25)] dark:text-[oklch(0.72_0.17_22)]',
+          'border-destructive/40 bg-destructive/12 text-[oklch(0.55_0.2_25)] dark:text-[oklch(0.72_0.17_22)]',
         outline: 'border-border text-foreground',
         success:
-          'border-[oklch(var(--success)/0.4)] bg-[oklch(var(--success)/0.14)] text-[oklch(0.5_0.16_138)] dark:text-[oklch(0.78_0.14_138)]',
+          'border-success/40 bg-success/14 text-[oklch(0.5_0.16_138)] dark:text-[oklch(0.78_0.14_138)]',
         warning: 'border-border bg-muted text-foreground',
         info: 'border-border bg-transparent text-muted-foreground',
         neutral: 'border-border bg-transparent text-muted-foreground',

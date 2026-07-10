@@ -79,7 +79,7 @@ export function CertificatePreviewDialog({ open, payload, dataUrl, downloadName,
                     {t('certificates.list.dialog.description')}
                   </DialogPrimitive.Description>
                   <DialogPrimitive.Close
-                    className="rounded-sm text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="rounded-xs text-muted-foreground transition-colors hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     aria-label={t('common.actions.close')}
                   >
                     <X size={18} aria-hidden="true" />
