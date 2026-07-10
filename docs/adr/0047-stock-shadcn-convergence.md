@@ -1,6 +1,8 @@
 # The UI converges on stock shadcn: registry components, one theme file, brand as primary
 
-_Accepted (design grilling + artifact review 2026-07-09). Supersedes the Figure-Green token skin
+_Accepted (design grilling + artifact review 2026-07-09). Amended 2026-07-10: `--success`
+recorded as the second deliberate deviation, the two-hue status language settled, and the
+brand-pigment rule dated to phase 2e. Supersedes the Figure-Green token skin
 (PRs #102/#105/#132) as the app-wide surface treatment; ADR-0026 (Pager) and ADR-0044 (calendar
 layout) stand; ADR-0010 (derived nav) is untouched._
 
@@ -13,18 +15,33 @@ pages hardcode status-pill colors the extended Badge already provides, tooltips 
 matches nothing in `index.css`. Meanwhile the custom token skin (Frost/Paper/Ink, mono-neutralized
 warning/info, 0.75rem radius) makes every registry pull a hand-adaptation. The decision, after
 reviewing eleven mocked directions: stop maintaining a fork of shadcn's look and converge on the
-registry's stock output, with exactly one deliberate deviation — the brand green as primary.
+registry's stock output, with two deliberate deviations — the brand green as primary, and a
+`--success` token that stock shadcn does not ship.
 
 ## Decision
 
 **One theme file carries the entire visual identity.** `fundavida-green` is the stock shadcn
 `base` theme (zinc neutrals, 0.625rem radius, stock shadows and typography scale) with five token
 groups re-pointed to Figure Green hue 138: `primary` (light `oklch(0.5 0.16 138)`, dark
-`oklch(0.72 0.17 138)`), `ring`, `sidebar-primary`, and `chart-1…5`. Nothing else deviates. The
-old semantic customs die with the skin: Frost/Paper/Ink values, the mono-neutralized `--warning`/
-`--info`, and the 0.75rem radius are all replaced by stock. The filled Badge color variants
-restyle to the registry's outline-pill-with-status-dot. Components must consume theme tokens only;
-a component referencing `brand-green-*` outside the exempt surfaces below is a review rejection.
+`oklch(0.72 0.17 138)`), `ring`, `sidebar-primary`, and `chart-1…5` — plus one added semantic
+token, `--success` (light `oklch(0.57 0.17 138)`, dark `oklch(0.68 0.16 138)`), which the status
+surfaces consume as `bg-success`; registry re-pulls do not know about it and must not remove it.
+Nothing else deviates. The old semantic customs die with the skin: Frost/Paper/Ink values, the
+mono-neutralized `--warning`/`--info`, and the 0.75rem radius are all replaced by stock. The
+filled Badge color variants restyle to the registry's outline-pill-with-status-dot. Components
+must consume theme tokens only. 22 files predating this rule still reference `brand-green-*`/
+`flame-*` outside the exempt surfaces; phase 2e (#335) sweeps them, and from that phase on a new
+reference outside the exempt surfaces is a review rejection.
+
+**The status language is deliberately two-hue: success and destructive carry color, everything
+else is grey** (decided 2026-07-10 after reviewing both directions in mockups; the alternative
+was reinstating `--warning` as a third deviation). `--warning` and `--info` stay retired. The
+Badge `warning` variant keeps its solid foreground dot — actionable grey, one step louder than
+`neutral`'s muted dot — as the blessed convention, not a workaround. `info` is byte-identical to
+`neutral` and folds into it: the variant name is deleted with the `statusVariant` consolidation
+(#332), and its call sites (`excused` attendance, `update` audit actions) remap to `neutral` — a
+zero-pixel change. Surfaces that once leaned on amber render pending as grey beside the green
+(the enrollment funnel's pending segment); charts color by `chart-1…5`, not by status tokens.
 
 **Tailwind 4 goes first, because the theme file demands it.** The theme is a Tailwind-4-format
 registry item (full `oklch()` values); the current Tailwind 3 plumbing wraps triplet variables in
@@ -107,5 +124,6 @@ file-disjoint slices.
 - The demo's first-run experience changes visibly (Phases 4–6). Screenshot review is part of
   those phases' acceptance criteria, not an afterthought.
 - Revoked decisions are recorded here so they are not re-litigated: keep-Figure-Green-everywhere,
-  filled Badge variants, Ink dark palette, 0.75rem radius. Revocable-but-kept: the DataTable
+  filled Badge variants, Ink dark palette, 0.75rem radius, and reinstating `--warning`/`--info`
+  (the two-hue decision above). Revocable-but-kept: the DataTable
   mobile card render (drop only with an explicit ADR amendment).
