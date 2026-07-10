@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ClipboardCheck } from 'lucide-react'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { useCourses } from '@/hooks/api/courses'
 import { useAttendance } from '@/hooks/api/attendance'
@@ -46,48 +47,48 @@ export function NeedsMarkingWorklist() {
   const worklist = agenda.role === 'teacher' ? agenda.worklist : []
 
   return (
-    <article
-      className="flex h-full flex-col rounded-lg border border-border bg-card p-5"
-      data-testid="needs-marking-worklist"
-    >
-      <header className="mb-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+    <Card className="h-full" data-testid="needs-marking-worklist">
+      <CardHeader>
+        <CardTitle as="h3" className="flex items-center gap-2">
           <ClipboardCheck
             className="size-4 text-brand-green-700 dark:text-brand-green-300"
             aria-hidden="true"
           />
-          <h3 className="font-display text-lg text-foreground">
-            {t('dashboard.teacher.needsMarking.title')}
-          </h3>
-        </div>
+          {t('dashboard.teacher.needsMarking.title')}
+        </CardTitle>
         {worklist.length > 0 && (
-          <span className="shrink-0 rounded-full bg-brand-green-100 px-2 py-0.5 text-xs font-medium tabular-nums text-brand-green-800 dark:bg-brand-green-500/20 dark:text-brand-green-100">
-            {worklist.length}
-          </span>
+          <CardAction>
+            <span className="rounded-full bg-brand-green-100 px-2 py-0.5 text-xs font-medium tabular-nums text-brand-green-800 dark:bg-brand-green-500/20 dark:text-brand-green-100">
+              {worklist.length}
+            </span>
+          </CardAction>
         )}
-      </header>
-
-      {worklist.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('dashboard.teacher.needsMarking.empty')}</p>
-      ) : (
-        <ul className="flex flex-1 flex-col divide-y divide-border/60">
-          {worklist.map((group) => (
-            <li key={group.courseId} className="py-2 first:pt-0 last:pb-0">
-              <Link
-                to={`/app/courses/${group.courseId}/sessions/${group.oldestDate}/mark`}
-                className="group flex items-center gap-3 rounded-md py-1"
-              >
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
-                  {shortCourseName({ name: group.courseName, sede: group.sede })}
-                </span>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {t('calendar.sidebar.teacher.sessionsToMark', { count: group.count })}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </article>
+      </CardHeader>
+      <CardContent className="flex flex-1 flex-col">
+        {worklist.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {t('dashboard.teacher.needsMarking.empty')}
+          </p>
+        ) : (
+          <ul className="flex flex-1 flex-col divide-y divide-border/60">
+            {worklist.map((group) => (
+              <li key={group.courseId} className="py-2 first:pt-0 last:pb-0">
+                <Link
+                  to={`/app/courses/${group.courseId}/sessions/${group.oldestDate}/mark`}
+                  className="group flex items-center gap-3 rounded-md py-1"
+                >
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
+                    {shortCourseName({ name: group.courseName, sede: group.sede })}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {t('calendar.sidebar.teacher.sessionsToMark', { count: group.count })}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   )
 }

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { AnimatedNumber } from '@/components/shared/AnimatedNumber'
 import { NoResults } from '@/components/shared/NoResults'
@@ -144,16 +145,15 @@ export function StudentCoursesTable() {
   }
 
   return (
-    <section
-      className="rounded-lg border border-border bg-card p-5"
-      aria-labelledby="my-courses-heading"
-    >
-      <header className="mb-4">
-        <h3 id="my-courses-heading" className="font-display text-lg text-foreground">
+    // `Card` renders a plain div, so the named region the old `<section>` carried
+    // is restated here rather than dropped in the port.
+    <Card role="region" aria-labelledby="my-courses-heading">
+      <CardHeader>
+        <CardTitle as="h3" id="my-courses-heading">
           {t('dashboard.student.table.title')}
-        </h3>
-      </header>
-      {body}
-    </section>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>{body}</CardContent>
+    </Card>
   )
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Megaphone } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -79,38 +80,43 @@ export function DashboardAnnouncementsFeed({ courseId }: { courseId?: string }) 
   const selectedCourseId = pickedCourseId || soleCourseId
 
   return (
-    <section
-      className="flex h-full flex-col rounded-lg border border-border bg-card p-5"
+    // `Card` renders a plain div, so the named region the old `<section>` carried
+    // is restated here rather than dropped in the port.
+    <Card
+      className="h-full"
+      role="region"
       aria-labelledby="dashboard-announcements-heading"
       data-testid="announcements-feed"
     >
-      <header className="mb-4 flex items-center gap-2">
-        <Megaphone
-          className="size-4 text-brand-green-700 dark:text-brand-green-300"
-          aria-hidden="true"
-        />
-        <h3 id="dashboard-announcements-heading" className="font-display text-lg text-foreground">
+      <CardHeader>
+        <CardTitle as="h3" id="dashboard-announcements-heading" className="flex items-center gap-2">
+          <Megaphone
+            className="size-4 text-brand-green-700 dark:text-brand-green-300"
+            aria-hidden="true"
+          />
           {t('dashboard.announcements.title')}
-        </h3>
-      </header>
+        </CardTitle>
+      </CardHeader>
 
-      {items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('dashboard.announcements.empty')}</p>
-      ) : (
-        <ul className="flex flex-1 flex-col divide-y divide-border/60">
-          {items.map((announcement) => (
-            <FeedRow
-              key={announcement.id}
-              announcement={announcement}
-              course={courseById.get(announcement.courseId) ?? null}
-              formatDate={formatDate}
-            />
-          ))}
-        </ul>
-      )}
+      <CardContent className="flex flex-1 flex-col">
+        {items.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('dashboard.announcements.empty')}</p>
+        ) : (
+          <ul className="flex flex-1 flex-col divide-y divide-border/60">
+            {items.map((announcement) => (
+              <FeedRow
+                key={announcement.id}
+                announcement={announcement}
+                course={courseById.get(announcement.courseId) ?? null}
+                formatDate={formatDate}
+              />
+            ))}
+          </ul>
+        )}
+      </CardContent>
 
       {canCompose && composableCourses.length > 0 && (
-        <div className="mt-4 space-y-2 border-t border-border/60 pt-4">
+        <CardFooter className="flex-col items-stretch gap-2 border-t">
           <h4 className="text-sm font-medium text-foreground">
             {t('dashboard.announcements.compose.heading')}
           </h4>
@@ -127,9 +133,9 @@ export function DashboardAnnouncementsFeed({ courseId }: { courseId?: string }) 
             </SelectContent>
           </Select>
           <AnnouncementComposer courseId={selectedCourseId} />
-        </div>
+        </CardFooter>
       )}
-    </section>
+    </Card>
   )
 }
 

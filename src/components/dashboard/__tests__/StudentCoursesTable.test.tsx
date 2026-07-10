@@ -44,6 +44,15 @@ describe('<StudentCoursesTable /> — buildStudentProgress roll-up (ADR-0032/004
     vi.restoreAllMocks()
   })
 
+  // The Card shell is a plain div (ADR-0047), so the named region the old
+  // `<section aria-labelledby>` carried is restated on the Card. Pin it: a future
+  // registry re-pull that drops the role/label would otherwise pass every gate.
+  it('exposes the roll-up as a region named by its heading', async () => {
+    renderTable()
+
+    expect(await screen.findByRole('region', { name: 'My courses' })).toBeInTheDocument()
+  })
+
   it('renders the per-course columns and deep-links each row to the Course', async () => {
     renderTable()
 

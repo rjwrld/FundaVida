@@ -75,7 +75,7 @@ describe('EnrollmentFunnelBySede', () => {
     })
 
     const { container } = renderCard()
-    const card = container.querySelector('article') as HTMLElement
+    const card = container.querySelector('[data-slot="card"]') as HTMLElement
 
     expect(await within(card).findByText('Hatillo')).toBeInTheDocument()
     // rejected is excluded: 3 approved, 2 pending.

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { GraduationCap } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { clock } from '@/lib/clock'
 import { closeReadiness } from '@/lib/closeReadiness'
 import { coursesToClose } from '@/lib/dashboard'
@@ -47,58 +48,60 @@ export function CoursesToClose() {
   }, [closeable, enrollments, grades, attendance, sessionExceptions])
 
   return (
-    <article className="flex h-full flex-col rounded-lg border border-border bg-card p-5">
-      <header className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="font-display text-lg text-foreground">
-          {t('dashboard.coursesToClose.title')}
-        </h3>
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle as="h3">{t('dashboard.coursesToClose.title')}</CardTitle>
         {closeable.length > 0 && (
-          <span className="shrink-0 rounded-full bg-brand-green-100 px-2 py-0.5 text-xs font-medium tabular-nums text-brand-green-800 dark:bg-brand-green-500/20 dark:text-brand-green-100">
-            {closeable.length}
-          </span>
+          <CardAction>
+            <span className="rounded-full bg-brand-green-100 px-2 py-0.5 text-xs font-medium tabular-nums text-brand-green-800 dark:bg-brand-green-500/20 dark:text-brand-green-100">
+              {closeable.length}
+            </span>
+          </CardAction>
         )}
-      </header>
-      {isLoading ? null : closeable.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('dashboard.coursesToClose.empty')}</p>
-      ) : (
-        <ul className="flex flex-1 flex-col divide-y divide-border/60">
-          {closeable.map((course) => {
-            const readiness = readinessById?.get(course.id)
-            return (
-              <li key={course.id} className="py-2 first:pt-0 last:pb-0">
-                <Link
-                  to={`/app/courses/${course.id}`}
-                  className="group flex items-center gap-3 rounded-md py-1"
-                >
-                  <GraduationCap
-                    className="size-4 shrink-0 text-brand-green-700 dark:text-brand-green-300"
-                    aria-hidden="true"
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
-                      {course.name}
+      </CardHeader>
+      <CardContent className="flex flex-1 flex-col">
+        {isLoading ? null : closeable.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('dashboard.coursesToClose.empty')}</p>
+        ) : (
+          <ul className="flex flex-1 flex-col divide-y divide-border/60">
+            {closeable.map((course) => {
+              const readiness = readinessById?.get(course.id)
+              return (
+                <li key={course.id} className="py-2 first:pt-0 last:pb-0">
+                  <Link
+                    to={`/app/courses/${course.id}`}
+                    className="group flex items-center gap-3 rounded-md py-1"
+                  >
+                    <GraduationCap
+                      className="size-4 shrink-0 text-brand-green-700 dark:text-brand-green-300"
+                      aria-hidden="true"
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
+                        {course.name}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {t('dashboard.coursesToClose.ended', { date: formatDate(course.term.end) })}
+                      </span>
                     </span>
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {t('dashboard.coursesToClose.ended', { date: formatDate(course.term.end) })}
-                    </span>
-                  </span>
-                  {readiness && (
-                    <Badge
-                      variant={readiness.ready ? 'success' : 'warning'}
-                      className="shrink-0"
-                      data-testid="close-readiness-indicator"
-                    >
-                      {readiness.ready
-                        ? t('courses.detail.readiness.verdict.ready')
-                        : t('courses.detail.readiness.verdict.blocked')}
-                    </Badge>
-                  )}
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
-      )}
-    </article>
+                    {readiness && (
+                      <Badge
+                        variant={readiness.ready ? 'success' : 'warning'}
+                        className="shrink-0"
+                        data-testid="close-readiness-indicator"
+                      >
+                        {readiness.ready
+                          ? t('courses.detail.readiness.verdict.ready')
+                          : t('courses.detail.readiness.verdict.blocked')}
+                      </Badge>
+                    )}
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   )
 }

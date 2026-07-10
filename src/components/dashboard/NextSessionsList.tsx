@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Clock } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { clock } from '@/lib/clock'
 import { upcomingSessions } from '@/lib/sessions'
 import type { Course } from '@/types'
@@ -19,44 +20,48 @@ export function NextSessionsList({ courses, limit = 5 }: NextSessionsListProps) 
   const sessions = upcomingSessions(courses, clock.today(), limit)
 
   return (
-    <article className="flex h-full flex-col rounded-lg border border-border bg-card p-5">
-      <header className="mb-4 flex items-center gap-2">
-        <Clock
-          className="size-4 text-brand-green-700 dark:text-brand-green-300"
-          aria-hidden="true"
-        />
-        <h3 className="font-display text-lg text-foreground">
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle as="h3" className="flex items-center gap-2">
+          <Clock
+            className="size-4 text-brand-green-700 dark:text-brand-green-300"
+            aria-hidden="true"
+          />
           {t('dashboard.teacher.nextSessions')}
-        </h3>
-      </header>
-      {sessions.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('dashboard.teacher.noUpcomingSessions')}</p>
-      ) : (
-        <ul className="flex flex-1 flex-col divide-y divide-border/60">
-          {sessions.map((session) => (
-            <li
-              key={`${session.courseId}-${session.date}`}
-              className="flex items-start gap-3 py-3 first:pt-0 last:pb-0"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-foreground">{session.courseName}</p>
-                <p className="text-xs text-muted-foreground">
-                  {t('calendar.sessionEntry', {
-                    ordinal: String(session.ordinal),
-                    course: session.courseName,
-                  } as Record<string, string>)}
-                </p>
-              </div>
-              <Link
-                to={`/app/courses/${session.courseId}/sessions/${session.date}/mark`}
-                className="inline-flex shrink-0 items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-1 flex-col">
+        {sessions.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {t('dashboard.teacher.noUpcomingSessions')}
+          </p>
+        ) : (
+          <ul className="flex flex-1 flex-col divide-y divide-border/60">
+            {sessions.map((session) => (
+              <li
+                key={`${session.courseId}-${session.date}`}
+                className="flex items-start gap-3 py-3 first:pt-0 last:pb-0"
               >
-                {t('dashboard.teacher.markAttendance')}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </article>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground">{session.courseName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('calendar.sessionEntry', {
+                      ordinal: String(session.ordinal),
+                      course: session.courseName,
+                    } as Record<string, string>)}
+                  </p>
+                </div>
+                <Link
+                  to={`/app/courses/${session.courseId}/sessions/${session.date}/mark`}
+                  className="inline-flex shrink-0 items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  {t('dashboard.teacher.markAttendance')}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   )
 }
