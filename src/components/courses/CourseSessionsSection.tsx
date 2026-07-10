@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { isSameDay, parseISO } from 'date-fns'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { NoResults } from '@/components/shared/NoResults'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import {
@@ -225,22 +226,24 @@ export function CourseSessionsSection({
               ))}
               {upcoming.length > UPCOMING_VISIBLE && (
                 <li>
-                  <details className="group">
-                    <summary className="cursor-pointer list-none rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring">
+                  <Collapsible>
+                    <CollapsibleTrigger className="cursor-pointer rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring">
                       {t('courses.detail.sessions.showMore', {
                         n: upcoming.length - UPCOMING_VISIBLE,
                       })}
-                    </summary>
-                    <ul className="mt-2 space-y-2">
-                      {upcoming.slice(UPCOMING_VISIBLE).map((session) => (
-                        <SessionRow
-                          key={session.date}
-                          label={sessionLabel(session)}
-                          action={manageAction(session)}
-                        />
-                      ))}
-                    </ul>
-                  </details>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <ul className="mt-2 space-y-2">
+                        {upcoming.slice(UPCOMING_VISIBLE).map((session) => (
+                          <SessionRow
+                            key={session.date}
+                            label={sessionLabel(session)}
+                            action={manageAction(session)}
+                          />
+                        ))}
+                      </ul>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </li>
               )}
             </SessionGroup>
@@ -248,27 +251,29 @@ export function CourseSessionsSection({
 
           {/* Recorded — collapsed; each row shows its present-count and a Review action. */}
           {showVerdicts && recorded.length > 0 && (
-            <details className="group">
-              <summary className="cursor-pointer list-none text-sm font-semibold tracking-tight text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring">
+            <Collapsible>
+              <CollapsibleTrigger className="cursor-pointer text-sm font-semibold tracking-tight text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring">
                 {`${t('courses.detail.sessions.groups.recorded')} · ${recorded.length}`}
-              </summary>
-              <ul
-                aria-label={t('courses.detail.sessions.groups.recorded')}
-                className="mt-2 space-y-2"
-              >
-                {recorded.map((session) => (
-                  <SessionRow
-                    key={session.date}
-                    label={sessionLabel(session)}
-                    meta={t('courses.detail.sessions.present', {
-                      present: presentCount(session),
-                      total: enrolledCount,
-                    })}
-                    action={reviewAction(session)}
-                  />
-                ))}
-              </ul>
-            </details>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <ul
+                  aria-label={t('courses.detail.sessions.groups.recorded')}
+                  className="mt-2 space-y-2"
+                >
+                  {recorded.map((session) => (
+                    <SessionRow
+                      key={session.date}
+                      label={sessionLabel(session)}
+                      meta={t('courses.detail.sessions.present', {
+                        present: presentCount(session),
+                        total: enrolledCount,
+                      })}
+                      action={reviewAction(session)}
+                    />
+                  ))}
+                </ul>
+              </CollapsibleContent>
+            </Collapsible>
           )}
 
           {/* Past — a Student's read-only view: no verdicts, no actions (ADR-0037). */}

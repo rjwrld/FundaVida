@@ -35,7 +35,7 @@ test('admin sees a teacher profile with per-course stats (ADR-0012 scope seam)',
 
 test('teacher profile renders its per-course table in Spanish', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'es' }).click()
+  await page.getByRole('radio', { name: 'es' }).click()
   await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.goto(`/app/teachers/${anchorTeacher.id}`)
 
@@ -77,7 +77,7 @@ test('admin creates a teacher', async ({ page }) => {
 
 test('list renders in Spanish when locale is ES', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'es' }).click()
+  await page.getByRole('radio', { name: 'es' }).click()
   await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.getByRole('link', { name: 'Docentes' }).click()
   await expect(page.getByRole('heading', { name: 'Docentes' })).toBeVisible()

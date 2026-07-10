@@ -1,7 +1,14 @@
 import { Fragment, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronRight } from 'lucide-react'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 import { NAV_ITEMS } from '@/constants/nav'
 import { useStudents, useTeachers, usePrograms, useCourses } from '@/hooks/api'
 import { fullName } from '@/lib/personName'
@@ -105,27 +112,28 @@ export function Breadcrumbs() {
   if (crumbs.length === 0) return null
 
   return (
-    <nav
-      aria-label={t('common.a11y.breadcrumb')}
-      className="flex min-w-0 items-center gap-1.5 text-sm"
-    >
-      {crumbs.map((crumb, idx) => (
-        <Fragment key={`${crumb.label}-${idx}`}>
-          {idx > 0 ? (
-            <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-          ) : null}
-          {crumb.to && idx < crumbs.length - 1 ? (
-            <Link
-              to={crumb.to}
-              className="truncate text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {crumb.label}
-            </Link>
-          ) : (
-            <span className="truncate font-medium text-foreground">{crumb.label}</span>
-          )}
-        </Fragment>
-      ))}
-    </nav>
+    <Breadcrumb aria-label={t('common.a11y.breadcrumb')} className="min-w-0">
+      <BreadcrumbList className="flex-nowrap gap-1.5 sm:gap-1.5">
+        {crumbs.map((crumb, idx) => (
+          <Fragment key={`${crumb.label}-${idx}`}>
+            {idx > 0 ? <BreadcrumbSeparator /> : null}
+            <BreadcrumbItem className="min-w-0">
+              {crumb.to && idx < crumbs.length - 1 ? (
+                <BreadcrumbLink asChild className="truncate">
+                  <Link to={crumb.to}>{crumb.label}</Link>
+                </BreadcrumbLink>
+              ) : (
+                // `role="link"` is stripped: the current page is not a link, and
+                // leaving it would add a second `getByRole('link')` match for the
+                // page's own name — the nav item already owns that accessible name.
+                <BreadcrumbPage role={undefined} className="truncate font-medium">
+                  {crumb.label}
+                </BreadcrumbPage>
+              )}
+            </BreadcrumbItem>
+          </Fragment>
+        ))}
+      </BreadcrumbList>
+    </Breadcrumb>
   )
 }

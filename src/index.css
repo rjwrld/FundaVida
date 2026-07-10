@@ -105,7 +105,6 @@
 
   --animate-fade-in: fade-in 0.2s ease-out;
   --animate-fade-up: fade-up 0.3s ease-out;
-  --animate-pulse-soft: pulse-soft 2s infinite;
   --animate-aurora-drift: aurora-drift 20s ease-in-out infinite;
   --animate-float: float 4s ease-in-out infinite;
 
@@ -125,15 +124,6 @@
     100% {
       opacity: 1;
       transform: translateY(0);
-    }
-  }
-  @keyframes pulse-soft {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.6;
     }
   }
   @keyframes aurora-drift {
@@ -305,8 +295,7 @@
   @media (prefers-reduced-motion: reduce) {
     .aurora,
     .marquee,
-    .float,
-    .pulse-soft {
+    .float {
       animation: none !important;
     }
   }

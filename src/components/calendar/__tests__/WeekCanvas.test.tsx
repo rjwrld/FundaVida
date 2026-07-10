@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { I18nProvider } from '@/lib/i18n'
 import { useStore } from '@/data/store'
 import { setDemoEpoch } from '@/lib/clock'
@@ -34,9 +35,11 @@ function makeCourse(overrides: Partial<Course> = {}): Course {
 function renderCanvas(ui: React.ReactElement) {
   return render(
     <I18nProvider>
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        {ui}
-      </MemoryRouter>
+      <TooltipProvider>
+        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          {ui}
+        </MemoryRouter>
+      </TooltipProvider>
     </I18nProvider>
   )
 }
