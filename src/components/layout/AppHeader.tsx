@@ -1,6 +1,7 @@
 import { Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { RoleSwitcher } from '@/components/demo/RoleSwitcher'
 import { DemoBadge } from '@/components/demo/DemoBadge'
 import { BrandLockup } from '@/components/brand/BrandLockup'
@@ -27,7 +28,13 @@ export function AppHeader() {
           <MobileNav />
           <BrandLockup />
         </div>
-        <div aria-hidden className="hidden h-5 w-px bg-border/60 sm:block" />
+        {/* `data-[orientation=vertical]:h-5` and not `h-5`: the primitive's own
+            `data-[orientation=vertical]:h-full` would otherwise out-specify a
+            bare height and stretch the rule to the full header. */}
+        <Separator
+          orientation="vertical"
+          className="hidden bg-border/60 data-[orientation=vertical]:h-5 sm:block"
+        />
         <Breadcrumbs />
       </div>
       <Button

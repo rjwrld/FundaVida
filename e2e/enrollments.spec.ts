@@ -20,7 +20,7 @@ test('admin unenrolls a student from the enrollments list', async ({ page }) => 
 
 test('list renders in Spanish when locale is ES', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'es' }).click()
+  await page.getByRole('radio', { name: 'es' }).click()
   await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.getByRole('link', { name: 'Matrículas', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Matrículas' })).toBeVisible()

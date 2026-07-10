@@ -112,7 +112,7 @@ test('course detail shows the derived Sessions surface and assigned Volunteers (
 
 test('list renders in Spanish when locale is ES', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'es' }).click()
+  await page.getByRole('radio', { name: 'es' }).click()
   await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.getByRole('link', { name: 'Cursos' }).click()
   await expect(page.getByRole('heading', { name: 'Cursos' })).toBeVisible()

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { I18nProvider } from '@/lib/i18n'
 import { DemoBanner } from '@/components/demo/DemoBanner'
 import { DemoBadge } from '@/components/demo/DemoBadge'
@@ -13,8 +14,10 @@ import { setDemoEpoch } from '@/lib/clock'
 function renderBanner() {
   return render(
     <I18nProvider>
-      <DemoBanner />
-      <DemoBadge />
+      <TooltipProvider>
+        <DemoBanner />
+        <DemoBadge />
+      </TooltipProvider>
     </I18nProvider>
   )
 }

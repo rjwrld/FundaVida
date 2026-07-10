@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -106,12 +107,20 @@ function renderSection(props: Partial<React.ComponentProps<typeof CourseSessions
   )
 }
 
+// Recorded rides a ui/collapsible, whose content is unmounted while closed — so
+// a test that reads inside it has to open the disclosure first. The old
+// `<details>` leaked its content into jsdom even when collapsed; Radix does not.
+async function openRecorded() {
+  await userEvent.click(screen.getByRole('button', { name: /^Recorded/ }))
+  return screen.getByRole('list', { name: 'Recorded' })
+}
+
 describe('<CourseSessionsSection />', () => {
   beforeEach(() => {
     useStore.getState().setLocale('en')
   })
 
-  it('groups a marker’s Sessions by state with a summary line', () => {
+  it('groups a marker’s Sessions by state with a summary line', async () => {
     renderSection()
 
     expect(screen.getByRole('heading', { name: 'Sessions' })).toBeInTheDocument()
@@ -122,7 +131,10 @@ describe('<CourseSessionsSection />', () => {
     expect(screen.getByRole('list', { name: 'Needs attendance' })).toBeInTheDocument()
     expect(screen.getByRole('list', { name: 'Today' })).toBeInTheDocument()
     expect(screen.getByRole('list', { name: 'Upcoming' })).toBeInTheDocument()
-    expect(screen.getByRole('list', { name: 'Recorded' })).toBeInTheDocument()
+
+    // Recorded is collapsed by default: its disclosure is present, its list is not.
+    expect(screen.queryByRole('list', { name: 'Recorded' })).not.toBeInTheDocument()
+    expect(await openRecorded()).toBeInTheDocument()
   })
 
   it('puts the unrecorded past Session in the Needs-attendance queue with a "0/total recorded" state', () => {
@@ -141,10 +153,10 @@ describe('<CourseSessionsSection />', () => {
     )
   })
 
-  it('shows the recorded past Session its present-count and a Review action', () => {
+  it('shows the recorded past Session its present-count and a Review action', async () => {
     renderSection()
 
-    const recorded = screen.getByRole('list', { name: 'Recorded' })
+    const recorded = await openRecorded()
     const row = within(recorded).getByRole('listitem')
     expect(row).toHaveTextContent('Session 1 · ')
     expect(row).toHaveTextContent('3/10 present')
@@ -166,13 +178,18 @@ describe('<CourseSessionsSection />', () => {
     ).toHaveAttribute('href', `/app/courses/${course.id}/sessions/${todaySession.date}/mark`)
   })
 
-  it('collapses the Upcoming overflow behind a keyboard-native disclosure', () => {
+  it('collapses the Upcoming overflow behind a keyboard-native disclosure', async () => {
     renderSection()
 
     const upcomingList = screen.getByRole('list', { name: 'Upcoming' })
-    // Three rows visible, the remaining two behind a <details> disclosure.
-    expect(screen.getByText('Show 2 more')).toBeInTheDocument()
+    // Three rows visible, the remaining two behind a ui/collapsible disclosure.
+    const disclosure = screen.getByRole('button', { name: 'Show 2 more' })
+    expect(disclosure).toHaveAttribute('aria-expanded', 'false')
     expect(within(upcomingList).getAllByRole('listitem').length).toBeGreaterThanOrEqual(3)
+
+    await userEvent.click(disclosure)
+    expect(disclosure).toHaveAttribute('aria-expanded', 'true')
+    expect(within(upcomingList).getAllByRole('listitem').length).toBeGreaterThanOrEqual(5)
   })
 
   it('renders a Student’s view with no verdicts and no actions', () => {

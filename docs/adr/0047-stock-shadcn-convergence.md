@@ -80,12 +80,27 @@ file-disjoint slices.
 - **The e2e suite is the safety net and the risk.** 95% of selectors are role/label-based and
   survive Radix swaps that preserve ARIA; the 19 `getByTestId` and 4 raw `locator` call sites are
   grepped and checked in every phase that touches their markup.
+- **Not every registry swap preserves ARIA, so "role-based selectors are safe" is not a licence
+  to skip the e2e run.** Phase 1a found this the hard way: `ToggleGroup type="single"` is a Radix
+  `radiogroup` of `radio`s and explicitly sets `aria-pressed: undefined`, so porting
+  `LanguageToggle` turned 11 spec files' `getByRole('button', { name: 'es' })` into 18 failures.
+  The radiogroup is the honest ARIA for an exclusive choice and the selectors moved to
+  `getByRole('radio', …)`. Every phase runs the full e2e suite before merge — a unit-green,
+  typecheck-green branch says nothing about the role tree.
 - **Registry re-pulls can silently clobber local extensions.** The surviving extensions are the
   explicit list above; each re-application is its own commit so a future `shadcn add` diff shows
   exactly what local delta exists.
 - **No matrix, scope, api, or STATE_KEY change anywhere in the series.** This is a pure UI
   convergence; a diff touching `matrix.ts`, `scope.ts`, or persistence is over-broadening and
   should be rejected in review.
+- **Radix disclosures cost Chrome's find-in-page, and it is not recoverable.** Replacing
+  `<details>` with `ui/collapsible` (Phase 1a, `CourseSessionsSection`) means Ctrl+F no longer
+  auto-expands collapsed content: Radix unmounts `CollapsibleContent`, and `forceMount` only
+  swaps the unmount for `hidden`, which find-in-page skips the same way. `hidden="until-found"`
+  cannot rescue it either — Radix hard-codes `hidden: !isOpen`, and `react-dom` treats `hidden`
+  as a boolean attribute. Accepted, not worked around: the behaviour was Chrome-only (Firefox and
+  Safari never auto-expanded `<details>`), and the alternative is forking a stock primitive. The
+  same trade lands on every future disclosure — accordion, popover, the collapsed sidebar rail.
 - The i18n surface is unchanged in meaning but touched in many files; `i18n:check` drift is the
   expected failure mode of a careless port, and locale files commit before components
   (pre-commit ordering gotcha).

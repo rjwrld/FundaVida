@@ -42,7 +42,7 @@ test('admin sees audit log and a new create entry after making one', async ({ pa
 
 test('renders in Spanish when locale is ES', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'es' }).click()
+  await page.getByRole('radio', { name: 'es' }).click()
   await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.getByRole('link', { name: 'Bitácora' }).click()
   await expect(page.getByRole('heading', { name: 'Bitácora' })).toBeVisible()

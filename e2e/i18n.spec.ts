@@ -13,7 +13,7 @@ test.describe('i18n', () => {
   })
 
   test('toggling to ES on landing renders Spanish copy and persists', async ({ page }) => {
-    await page.getByRole('button', { name: 'es' }).click()
+    await page.getByRole('radio', { name: 'es' }).click()
     await expect(page.getByText(/demo de portafolio sin backend/)).toBeVisible()
 
     await page.reload()
@@ -27,7 +27,7 @@ test.describe('i18n', () => {
     await expect(page.getByText('React 18').first()).toBeVisible()
     await expect(page.getByRole('link', { name: 'FundaVida org' })).toBeVisible()
 
-    await page.getByRole('button', { name: 'es' }).click()
+    await page.getByRole('radio', { name: 'es' }).click()
 
     await expect(
       page.getByRole('heading', { name: 'Construido con el mismo oficio que producción.' })
@@ -37,7 +37,7 @@ test.describe('i18n', () => {
   })
 
   test('locale persists from landing into app shell', async ({ page }) => {
-    await page.getByRole('button', { name: 'es' }).click()
+    await page.getByRole('radio', { name: 'es' }).click()
     await page
       .getByRole('button', { name: /Ingresar como administrador/i })
       .first()
@@ -52,7 +52,7 @@ test.describe('i18n', () => {
     await expect(page).toHaveURL(/\/app$/)
     await expect(page.getByRole('link', { name: 'Students', exact: true })).toBeVisible()
 
-    await page.getByRole('button', { name: 'es', exact: true }).click()
+    await page.getByRole('radio', { name: 'es', exact: true }).click()
     await expect(page.getByRole('link', { name: 'Estudiantes', exact: true })).toBeVisible()
 
     await page.reload()

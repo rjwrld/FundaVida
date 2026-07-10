@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { calendarCardName } from '@/lib/courseName'
 import { cn } from '@/lib/utils'
 import type { Session } from '@/lib/sessions'
@@ -104,25 +105,29 @@ export function SessionCard({
     time === 'past' && !verdict && 'opacity-80'
   )
 
-  if (linkToMark) {
-    return (
-      <Link
-        to={`/app/courses/${course.id}/sessions/${session.date}/mark`}
-        aria-label={course.name}
-        title={course.name}
-        className={cn(
-          className,
-          'hover:border-brand-green-400 hover:bg-brand-green-50 dark:hover:bg-brand-green-950/30'
-        )}
-      >
-        {content}
-      </Link>
-    )
-  }
-
+  // The card title is clamped and de-suffixed, so the full canonical name is
+  // recovered on hover. The Link also carries it as its accessible name; the
+  // read-only card is not focusable, so the tooltip is a pointer affordance
+  // only — exactly the reach the `title=""` it replaces had.
   return (
-    <div className={className} title={course.name}>
-      {content}
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {linkToMark ? (
+          <Link
+            to={`/app/courses/${course.id}/sessions/${session.date}/mark`}
+            aria-label={course.name}
+            className={cn(
+              className,
+              'hover:border-brand-green-400 hover:bg-brand-green-50 dark:hover:bg-brand-green-950/30'
+            )}
+          >
+            {content}
+          </Link>
+        ) : (
+          <div className={className}>{content}</div>
+        )}
+      </TooltipTrigger>
+      <TooltipContent>{course.name}</TooltipContent>
+    </Tooltip>
   )
 }
