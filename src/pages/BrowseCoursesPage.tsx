@@ -88,7 +88,7 @@ export function BrowseCoursesPage() {
         }
         noResults={<NoResults message={t('courses.browse.emptyFiltered')} />}
         content={
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <Card className="overflow-hidden py-0 gap-0">
             <ListHeaderBand label={t('courses.browse.title')} count={count} />
             <Table>
               <TableHeader>
@@ -145,7 +145,7 @@ export function BrowseCoursesPage() {
                 })}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         }
       />
     </div>

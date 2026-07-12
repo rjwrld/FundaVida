@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Progress } from '@/components/ui/progress'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -101,32 +102,34 @@ export function TcuListPage() {
       />
 
       {isTcuRole && selfTrainee && (
-        <section className="space-y-3 rounded-lg border border-border bg-card p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">{t('tcu.dashboard.progress')}</p>
-              <p className="text-xs text-muted-foreground">{fullName(selfTrainee)}</p>
+        <Card>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">{t('tcu.dashboard.progress')}</p>
+                <p className="text-xs text-muted-foreground">{fullName(selfTrainee)}</p>
+              </div>
+              <div className="text-right">
+                <p className="font-mono text-lg tabular-nums">
+                  {formatNumber(approvedHours)} / {TCU_TARGET_HOURS}
+                </p>
+                <p className="text-xs text-muted-foreground">{t('tcu.dashboard.approvedHours')}</p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="font-mono text-lg tabular-nums">
-                {formatNumber(approvedHours)} / {TCU_TARGET_HOURS}
+            <Progress value={progressPercent} className="h-2" />
+            {pendingHours > 0 && (
+              <p className="text-xs text-muted-foreground">
+                + {formatNumber(pendingHours)} {t('tcu.dashboard.pendingHours')}
               </p>
-              <p className="text-xs text-muted-foreground">{t('tcu.dashboard.approvedHours')}</p>
-            </div>
-          </div>
-          <Progress value={progressPercent} className="h-2" />
-          {pendingHours > 0 && (
-            <p className="text-xs text-muted-foreground">
-              + {formatNumber(pendingHours)} {t('tcu.dashboard.pendingHours')}
-            </p>
-          )}
-        </section>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {!roster.isPending && (isTeacher || role === 'admin') && pendingActivities.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">{t('tcu.approvalQueue.title')}</h2>
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <Card className="overflow-hidden py-0 gap-0">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -183,7 +186,7 @@ export function TcuListPage() {
                 })}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         </section>
       )}
 
@@ -216,7 +219,7 @@ export function TcuListPage() {
         empty={<NoResults message={t('tcu.list.empty')} />}
         noResults={<NoResults message={t('tcu.list.emptyFiltered')} />}
         content={
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <Card className="overflow-hidden py-0 gap-0">
             <ListHeaderBand label={t('tcu.list.title')} count={count} />
             <Table>
               <TableHeader>
@@ -251,7 +254,7 @@ export function TcuListPage() {
                 })}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         }
       />
 

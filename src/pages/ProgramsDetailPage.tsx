@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Card } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useProgram, useCourses } from '@/hooks/api'
 
@@ -59,7 +60,7 @@ export function ProgramsDetailPage() {
         {courses.length === 0 ? (
           <NoResults message={t('programs.detail.noCourses')} />
         ) : (
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <Card className="overflow-hidden py-0 gap-0">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -86,7 +87,7 @@ export function ProgramsDetailPage() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         )}
       </section>
     </div>

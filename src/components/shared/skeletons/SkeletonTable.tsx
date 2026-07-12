@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
 export interface SkeletonTableProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -9,10 +10,10 @@ export interface SkeletonTableProps extends React.HTMLAttributes<HTMLDivElement>
 
 export function SkeletonTable({ rows = 5, columns = 4, className, ...props }: SkeletonTableProps) {
   return (
-    <div
+    <Card
       role="status"
       aria-label="Loading table"
-      className={cn('overflow-hidden rounded-xl border border-border bg-card', className)}
+      className={cn('overflow-hidden py-0 gap-0', className)}
       {...props}
     >
       <div
@@ -36,6 +37,6 @@ export function SkeletonTable({ rows = 5, columns = 4, className, ...props }: Sk
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }

@@ -179,10 +179,14 @@ export function CalendarPage() {
               statusFor={statusFor}
             />
           </div>
-          {/* Full buckets: lg left column; below lg they follow the canvas. */}
-          <aside className="rounded-xl border border-border bg-card p-5 lg:order-1">
-            <AgendaSidebar agenda={agenda} variant="full" />
-          </aside>
+          {/* Full buckets: lg left column; below lg they follow the canvas. Card
+              renders a div, so the complementary landmark the <aside> carried is
+              restated with role rather than dropped. */}
+          <Card role="complementary" className="lg:order-1">
+            <CardContent>
+              <AgendaSidebar agenda={agenda} variant="full" />
+            </CardContent>
+          </Card>
         </div>
       ) : (
         <Card>

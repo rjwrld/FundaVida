@@ -8,6 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useTcuActivities, useTcuTrainees, useApproveTcuActivity } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import { fullName } from '@/lib/personName'
@@ -73,7 +74,7 @@ export function TcuApprovalQueue() {
 
       {/* Desktop: a dense table. Hidden on mobile, where columns would push the
           actions off-screen — the same rows render as stacked cards instead. */}
-      <div className="hidden overflow-hidden rounded-xl border border-border bg-card sm:block">
+      <Card className="hidden overflow-hidden py-0 gap-0 sm:block">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -103,23 +104,27 @@ export function TcuApprovalQueue() {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       {/* Mobile: one card per activity with the actions full-width underneath. */}
       <ul className="space-y-3 sm:hidden">
         {rows.map(({ activity, traineeName }) => (
-          <li key={activity.id} className="rounded-xl border border-border bg-card p-4">
-            <p className="font-medium text-foreground">{activity.title}</p>
-            <p className="text-sm text-muted-foreground">{traineeName}</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {formatDate(activity.date)} ·{' '}
-              <span className="font-mono tabular-nums">{formatNumber(activity.hours)}</span>{' '}
-              {t('tcu.list.columns.hours').toLowerCase()}
-            </p>
-            <div className="mt-3 flex gap-2">
-              {approveButton(activity.id, true)}
-              {rejectButton(activity.id, true)}
-            </div>
+          <li key={activity.id}>
+            <Card>
+              <CardContent>
+                <p className="font-medium text-foreground">{activity.title}</p>
+                <p className="text-sm text-muted-foreground">{traineeName}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {formatDate(activity.date)} ·{' '}
+                  <span className="font-mono tabular-nums">{formatNumber(activity.hours)}</span>{' '}
+                  {t('tcu.list.columns.hours').toLowerCase()}
+                </p>
+              </CardContent>
+              <CardFooter className="gap-2">
+                {approveButton(activity.id, true)}
+                {rejectButton(activity.id, true)}
+              </CardFooter>
+            </Card>
           </li>
         ))}
       </ul>
