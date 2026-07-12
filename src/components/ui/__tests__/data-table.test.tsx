@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
+import { beforeEach, describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MotionConfig } from 'framer-motion'
+import { useReducedMotion } from 'framer-motion'
 import { I18nProvider } from '@/lib/i18n'
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { ListView } from '@/components/shared/ListView'
@@ -19,6 +19,24 @@ import { listViewState } from '@/lib/listViewState'
  * silent behavior change. Every test here is behavioral: it asserts what a user
  * or a Playwright selector can observe, never how the component is wired.
  */
+
+/**
+ * The reduced-motion opt-out hangs off framer's `useReducedMotion()`, which reads the
+ * `(prefers-reduced-motion: reduce)` media query itself — it does NOT consult the
+ * `<MotionConfig reducedMotion>` the app wraps around it (that only steers framer's own
+ * animation engine). jsdom has no preference to flip, and framer latches its answer in a
+ * module-level singleton on the first read, so the hook is the seam: mock it (per the
+ * sonner/StatCard precedent) and let each test drive it. The rest of the module is the
+ * real thing — the rows have to actually animate here.
+ */
+vi.mock('framer-motion', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('framer-motion')>()),
+  useReducedMotion: vi.fn(() => false),
+}))
+
+beforeEach(() => {
+  vi.mocked(useReducedMotion).mockReturnValue(false)
+})
 
 interface Row {
   id: string
@@ -56,6 +74,12 @@ function bodyRowNames() {
     .getAllByRole('row')
     .slice(1) // drop header row
     .map((row) => within(row).getAllByRole('cell')[0]?.textContent)
+}
+
+/** Body (data) row elements in the rendered table, in DOM order. */
+function dataRows(): HTMLElement[] {
+  const table = screen.getByRole('table')
+  return within(table).getAllByRole('row').slice(1) // drop header row
 }
 
 /** First body (data) row element in the rendered table. */
@@ -467,62 +491,108 @@ describe('<DataTable /> — row motion', () => {
   })
 
   it('keeps rows mounted and visible under prefers-reduced-motion (no hidden initial state)', () => {
-    // reducedMotion="always" drives the same useReducedMotion() seam the app wires
-    // globally via <MotionConfig reducedMotion="user"> in main.tsx. With it on, the
-    // body opts out of the enter/exit variants so no row is left in an opacity-0
-    // initial state that depends on an animation firing to become visible.
-    // toBeVisible() is what carries that: it fails on an opacity-0 row.
-    render(
-      <I18nProvider>
-        <MotionConfig reducedMotion="always">
-          <DataTable data={makeRows(25)} columns={columns} getRowKey={(r) => r.id} />
-        </MotionConfig>
-      </I18nProvider>
-    )
+    // With the preference on, the body opts out of the enter/exit variants entirely, so
+    // no row is left in an opacity-0 initial state that depends on an animation firing to
+    // become visible — the failure mode that would strand every row invisible for a user
+    // whose OS suppresses animations. toBeVisible() is what carries it: an opacity-0 row
+    // fails it. Read synchronously, on the mount commit: there is nothing to wait for.
+    vi.mocked(useReducedMotion).mockReturnValue(true)
+    renderTable()
 
     expect(within(firstBodyRow()).getByRole('cell', { name: 'Name 1' })).toBeVisible()
     expect(screen.getByText('Name 10')).toBeVisible()
+    expect(dataRows().every((row) => row.style.opacity === '')).toBe(true)
   })
 
   it('still removes a row under prefers-reduced-motion', async () => {
-    const { rerender } = render(
-      <I18nProvider>
-        <MotionConfig reducedMotion="always">
-          <DataTable data={makeRows(3)} columns={columns} getRowKey={(r) => r.id} />
-        </MotionConfig>
-      </I18nProvider>
-    )
+    vi.mocked(useReducedMotion).mockReturnValue(true)
+    const { rerender } = renderTable({ data: makeRows(3) })
 
     rerender(
       <I18nProvider>
-        <MotionConfig reducedMotion="always">
-          <DataTable data={makeRows(3).slice(1)} columns={columns} getRowKey={(r) => r.id} />
-        </MotionConfig>
+        <DataTable data={makeRows(3).slice(1)} columns={columns} getRowKey={(r) => r.id} />
       </I18nProvider>
     )
 
     await waitFor(() => expect(bodyRowNames()).toEqual(['Name 2', 'Name 3']))
   })
 
+  it('leaves the mobile cards visible under prefers-reduced-motion too', () => {
+    vi.mocked(useReducedMotion).mockReturnValue(true)
+    renderTable({ renderCard: (r: Row) => <span>Card {r.name}</span> })
+
+    const cards = screen.getAllByRole('listitem')
+    expect(cards).toHaveLength(10)
+    cards.forEach((card) => expect(card).toBeVisible())
+  })
+
   /**
-   * NOT a contract yet — the staggered row entrance the code intends does not
-   * actually run today, and pinning it would fail. Two independent causes, both
-   * verified against framer-motion 12:
+   * The staggered entrance (#349). Rows inherit `initial="hidden"`/`animate="visible"`
+   * from `MotionTableBody`, whose `staggerChildren` walks them in order — so each row
+   * mounts at the `fadeUp` hidden target and settles later than the one above it.
    *
-   *   1. The rows pass `exit="hidden"` — a *string* variant label, which makes
-   *      framer classify the row as variant-controlling. Such a child no longer
-   *      inherits `initial`/`animate` from `MotionTableBody`, so the body's
-   *      hidden→visible transition (and its staggerChildren) never reaches it.
-   *      An object target (`exit={{ opacity: 0, y: 8 }}`) does not do this.
-   *   2. `<AnimatePresence initial={false}>` suppresses the enter animation of
-   *      children present at its first mount — and because it sits *inside* the
-   *      body that remounts per page (`key={pagination.page}`), every page is a
-   *      first mount.
-   *
-   * The rows therefore just appear, in both motion modes. Enabling the entrance
-   * is a visual change and belongs to its own issue, not to this pinning pass.
+   * Two things this guards, because both were once broken and neither is visible to a
+   * text query: a row that passes a *string* variant label to `exit` is classified as
+   * variant-controlling and stops inheriting the body's `initial`/`animate` entirely
+   * (it then renders with no motion styles at all), and an `<AnimatePresence
+   * initial={false}>` suppresses the entrance of the children present at its own first
+   * mount — which, inside a body that remounts per page, is every page.
    */
-  it.todo('staggers the row entrance when motion is enabled')
+  // A whole page on one screen: 25 rows means the last one waits out 24 stagger steps
+  // (~1.4s) before it even starts, which is the margin the mid-flight sample below
+  // spends. The window is generous on purpose — a stagger read on a loaded CI box is a
+  // race if you give it only a couple of frames.
+  const onePage = { pageSize: 25, pageSizeOptions: [25] }
+  const allOf = (value: number) => Array(25).fill(value)
+
+  it('staggers the row entrance when motion is enabled', async () => {
+    renderTable(onePage)
+
+    // Every row mounts at fadeUp's hidden target. (Pre-fix the rows carried no motion
+    // styles at all, so this read was '' — NaN — rather than 0.)
+    const opacities = () => dataRows().map((row) => Number(row.style.opacity))
+    expect(opacities()).toEqual(allOf(0))
+
+    // Staggered: sampled once the first row is under way, the last row — 24 stagger
+    // steps behind it — is still further from visible. A simultaneous fade would tie
+    // here instead of trailing.
+    await waitFor(() => expect(opacities()[0]).toBeGreaterThan(0))
+    const midFlight = opacities()
+    expect(midFlight[24]).toBeLessThan(midFlight[0] as number)
+
+    // …and every row settles fully visible, none stranded hidden.
+    await waitFor(() => expect(opacities()).toEqual(allOf(1)), { timeout: 4000 })
+  })
+
+  it('staggers the mobile card entrance too', async () => {
+    renderTable({ ...onePage, renderCard: (r: Row) => <span>Card {r.name}</span> })
+
+    const cardOpacities = () =>
+      screen.getAllByRole('listitem').map((li) => Number(li.style.opacity))
+    expect(cardOpacities()).toEqual(allOf(0))
+
+    await waitFor(() => expect(cardOpacities()[0]).toBeGreaterThan(0))
+    const midFlight = cardOpacities()
+    expect(midFlight[24]).toBeLessThan(midFlight[0] as number)
+
+    await waitFor(() => expect(cardOpacities()).toEqual(allOf(1)), { timeout: 4000 })
+  })
+
+  it('re-runs the entrance on the next page, not just the first', async () => {
+    // The body remounts per page precisely so the entrance replays. An
+    // `<AnimatePresence initial={false}>` inside it would silently swallow that: the
+    // page's rows would snap straight to visible instead of entering.
+    const user = userEvent.setup()
+    renderTable()
+    await waitFor(() => expect(dataRows()[0]?.style.opacity).toBe('1'))
+
+    await user.click(screen.getByRole('button', { name: 'Next page' }))
+
+    expect(bodyRowNames()[0]).toBe('Name 11')
+    const entering = dataRows().map((row) => Number(row.style.opacity))
+    expect(entering[9]).toBeLessThan(1) // still entering, not already settled
+    await waitFor(() => expect(dataRows()[9]?.style.opacity).toBe('1'), { timeout: 4000 })
+  })
 })
 
 describe('<DataTable /> — empty state', () => {
