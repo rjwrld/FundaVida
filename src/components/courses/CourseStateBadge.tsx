@@ -10,7 +10,7 @@ import type { Course } from '@/types'
 // Term ended is the muted attention cue that mirrors the close worklist.
 const VARIANT_BY_STATE: Record<CourseDisplayState, BadgeProps['variant']> = {
   draft: 'outline',
-  startsSoon: 'info',
+  startsSoon: 'neutral',
   inProgress: 'success',
   termEnded: 'warning',
   finished: 'secondary',

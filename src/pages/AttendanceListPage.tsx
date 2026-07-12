@@ -21,16 +21,11 @@ import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { findSession } from '@/lib/sessions'
 import { fullName } from '@/lib/personName'
+import { ATTENDANCE_VARIANT } from '@/lib/statusVariant'
 import type { AttendanceFilters } from '@/data/api/attendance'
 import type { AttendanceRecord, AttendanceStatus } from '@/types'
 
 const STATUS_OPTIONS: AttendanceStatus[] = ['present', 'absent', 'excused']
-
-function statusVariant(status: AttendanceStatus): 'success' | 'destructive' | 'info' {
-  if (status === 'present') return 'success'
-  if (status === 'absent') return 'destructive'
-  return 'info'
-}
 
 export function AttendanceListPage() {
   const { t } = useTranslation()
@@ -94,7 +89,9 @@ export function AttendanceListPage() {
       id: 'status',
       header: t('attendance.list.columns.status'),
       cell: (r) => (
-        <Badge variant={statusVariant(r.status)}>{t(`attendance.list.status.${r.status}`)}</Badge>
+        <Badge variant={ATTENDANCE_VARIANT[r.status]}>
+          {t(`attendance.list.status.${r.status}`)}
+        </Badge>
       ),
     },
   ]

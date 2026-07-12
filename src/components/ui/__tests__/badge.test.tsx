@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { Badge } from '@/components/ui/badge'
 
-const STATUS_VARIANTS = ['success', 'warning', 'destructive', 'info', 'neutral'] as const
+// No `info`: it was a duplicate name for `neutral`'s pixels and is gone (#332).
+const STATUS_VARIANTS = ['success', 'warning', 'destructive', 'neutral'] as const
 const PLAIN_VARIANTS = ['default', 'secondary', 'outline', 'ghost', 'link'] as const
 
 function dotOf(container: HTMLElement) {
