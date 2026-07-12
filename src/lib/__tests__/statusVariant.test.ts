@@ -35,22 +35,36 @@ describe('status variant maps', () => {
     })
   })
 
-  // The old cascade fell through to `neutral` for everything it did not name;
-  // the Record has to spell those out, so they are the ones worth pinning.
-  it('maps audit actions, including the five the old cascade left to fall through', () => {
+  it('maps audit actions', () => {
     expect(AUDIT_ACTION_VARIANT).toEqual({
       create: 'success',
       enroll: 'success',
       approve: 'success',
+      close: 'success',
       delete: 'destructive',
-      grade: 'warning',
+      unenroll: 'destructive',
       update: 'neutral',
       requestEnroll: 'neutral',
-      unenroll: 'neutral',
       withdraw: 'neutral',
-      close: 'neutral',
+      grade: 'neutral',
       log: 'neutral',
     })
+  })
+
+  // ADR-0047 defines the `warning` dot as *actionable* grey. An audit entry is
+  // history — nothing in the table is actionable — so the variant has nothing to
+  // say here and must not creep back in (#347).
+  it('never uses the actionable warning dot for a historical audit entry', () => {
+    expect(Object.values(AUDIT_ACTION_VARIANT)).not.toContain('warning')
+  })
+
+  // The asymmetry is deliberate, not an oversight: an admin removing someone
+  // else's enrollment is a removal; a student leaving of their own accord is not.
+  it('reads an admin unenroll as a removal but a self-withdrawal as quiet', () => {
+    expect(AUDIT_ACTION_VARIANT.unenroll).toBe('destructive')
+    expect(AUDIT_ACTION_VARIANT.withdraw).toBe('neutral')
+    // ...and the withdraw side agrees with how the enrollment funnel reads it.
+    expect(AUDIT_ACTION_VARIANT.withdraw).toBe(ENROLLMENT_VARIANT.withdrawn)
   })
 
   // `outline` renders no status dot, so a status column would lose its dot on
