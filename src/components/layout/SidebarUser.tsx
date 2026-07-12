@@ -24,6 +24,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { useCurrentPersona } from '@/hooks/useCurrentPersona'
 import { useStore } from '@/data/store'
 import { landingPathForRole } from '@/lib/roleLanding'
 import { fullName } from '@/lib/personName'
@@ -44,25 +45,18 @@ const ROLE_ICONS: Record<Role, LucideIcon> = {
  * account menu. Admin has no person record — it renders as the role alone, one line.
  */
 export function SidebarUser() {
-  const role = useStore((s) => s.role)
-  const userId = useStore((s) => s.currentUserId)
-  const person = useStore((s) => {
-    if (!userId) return undefined
-    return (
-      s.teachers.find((p) => p.id === userId) ??
-      s.students.find((p) => p.id === userId) ??
-      s.tcuTrainees.find((p) => p.id === userId)
-    )
-  })
+  const persona = useCurrentPersona()
   const setRole = useStore((s) => s.setRole)
   const { isMobile, setOpenMobile } = useSidebar()
   const navigate = useNavigate()
   const { t } = useTranslation()
 
-  if (!role) return null
+  if (!persona) return null
 
+  const { role, person } = persona
   const current = ROLES.find((r) => r.value === role)
   const roleLabel = current ? t(current.labelKey) : t('roleSwitcher.choose')
+  // Admin is a seat, not a person in the graph: it names itself with its role, on one line.
   const name = person ? fullName(person) : roleLabel
   const Icon = ROLE_ICONS[role]
 
