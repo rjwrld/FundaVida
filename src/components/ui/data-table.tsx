@@ -3,6 +3,15 @@ import { useTranslation } from 'react-i18next'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type RowData,
+  type SortingState,
+} from '@tanstack/react-table'
+import {
   Table,
   TableBody,
   TableCell,
@@ -30,6 +39,21 @@ import { cn } from '@/lib/utils'
 const MotionTableBody = motion.create(TableBody)
 const MotionTableRow = motion.create(TableRow)
 
+/**
+ * Per-column presentation carried through TanStack's `meta` escape hatch: the
+ * table core knows nothing about alignment or class names, so they ride along
+ * on the column def and are read back at render time.
+ */
+declare module '@tanstack/react-table' {
+  // TanStack declares both type params; this augmentation needs neither.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    align?: 'left' | 'right'
+    className?: string
+    headerClassName?: string
+  }
+}
+
 export interface DataTableColumn<T> {
   /** Stable column identifier (also the React key). */
   id: string
@@ -41,13 +65,6 @@ export interface DataTableColumn<T> {
   sortAccessor?: (row: T) => string | number
   headerClassName?: string
   className?: string
-}
-
-type SortDirection = 'asc' | 'desc'
-
-interface SortState {
-  columnId: string
-  direction: SortDirection
 }
 
 export interface DataTableProps<T> {
@@ -119,6 +136,25 @@ function compareValues(a: string | number, b: string | number): number {
   return String(a).localeCompare(String(b))
 }
 
+/**
+ * Adapt this table's column shape to TanStack's. Every column is an accessor
+ * column so the sorted row model has a value to compare; a column without a
+ * `sortAccessor` accesses a constant, which — `Array.prototype.sort` being
+ * stable — leaves the rows in their original order if it is ever sorted.
+ */
+function toColumnDefs<T>(columns: DataTableColumn<T>[]): ColumnDef<T, string | number>[] {
+  return columns.map((col) => ({
+    id: col.id,
+    accessorFn: col.sortAccessor ?? (() => ''),
+    header: () => col.header,
+    cell: (ctx) => col.cell(ctx.row.original),
+    enableSorting: col.sortable ?? false,
+    sortingFn: (a, b, columnId) =>
+      compareValues(a.getValue<string | number>(columnId), b.getValue<string | number>(columnId)),
+    meta: { align: col.align, className: col.className, headerClassName: col.headerClassName },
+  }))
+}
+
 export function DataTable<T>({
   data,
   columns,
@@ -130,34 +166,39 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const { t } = useTranslation()
   const reduce = useReducedMotion()
-  const [sort, setSort] = React.useState<SortState | null>(null)
+  const [sorting, setSorting] = React.useState<SortingState>([])
 
-  const sortedData = React.useMemo(() => {
-    if (!sort) return data
-    const column = columns.find((c) => c.id === sort.columnId)
-    if (!column?.sortAccessor) return data
-    const accessor = column.sortAccessor
-    const factor = sort.direction === 'asc' ? 1 : -1
-    // Copy before sorting so the caller's (scoped) array is never mutated.
-    return [...data].sort((a, b) => factor * compareValues(accessor(a), accessor(b)))
-  }, [data, columns, sort])
+  const columnDefs = React.useMemo(() => toColumnDefs(columns), [columns])
 
-  const pagination = usePagination(sortedData, { pageSize })
+  const table = useReactTable({
+    data,
+    columns: columnDefs,
+    state: { sorting },
+    onSortingChange: setSorting,
+    // Row identity is the caller's key, so a re-sort reorders the existing rows
+    // instead of remounting them — which is what lets the exit/enter animations
+    // (and any future per-row state) survive it.
+    getRowId: (row) => getRowKey(row),
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    // Sorting here is single-column and always cycles asc → desc → unsorted.
+    // Two TanStack defaults would break that and neither is loud about it:
+    // the first click's direction is inferred from the column's value type
+    // (`getAutoSortDir` returns desc for anything non-string, so the numeric
+    // columns would open descending), and shift-click accumulates a second
+    // sort. `enableSortingRemoval` already defaults to true; it is stated
+    // because the third click of the cycle depends on it.
+    sortDescFirst: false,
+    enableMultiSort: false,
+    enableSortingRemoval: true,
+  })
+
+  // Pagination stays this table's own (ADR-0026): the Pager is a better control
+  // than the registry recipe's, and `usePagination` clamps the window so a
+  // shrinking list can never strand it past the end. TanStack sorts; we window.
+  const rows = table.getRowModel().rows
+  const pagination = usePagination(rows, { pageSize })
   const { pageItems } = pagination
-
-  // Cycle a sortable column: unsorted → asc → desc → unsorted.
-  const toggleSort = (columnId: string) =>
-    setSort((current) => {
-      if (current?.columnId !== columnId) return { columnId, direction: 'asc' }
-      if (current.direction === 'asc') return { columnId, direction: 'desc' }
-      return null
-    })
-
-  const ariaSortFor = (col: DataTableColumn<T>): React.AriaAttributes['aria-sort'] => {
-    if (!col.sortable) return undefined
-    if (sort?.columnId !== col.id) return 'none'
-    return sort.direction === 'asc' ? 'ascending' : 'descending'
-  }
 
   if (data.length === 0) {
     return <>{emptyState ?? <NoResults message={t('common.table.empty')} />}</>
@@ -173,40 +214,55 @@ export function DataTable<T>({
       >
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/50 hover:bg-muted/50">
-              {columns.map((col) => {
-                const direction = sort?.columnId === col.id ? sort.direction : null
-                return (
-                  <TableHead
-                    key={col.id}
-                    aria-sort={ariaSortFor(col)}
-                    className={cn(col.align === 'right' && 'text-right', col.headerClassName)}
-                  >
-                    {col.sortable ? (
-                      <button
-                        type="button"
-                        onClick={() => toggleSort(col.id)}
-                        className={cn(
-                          'inline-flex items-center gap-1.5 rounded-xs font-medium hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                          col.align === 'right' && 'flex-row-reverse'
-                        )}
-                      >
-                        {col.header}
-                        {direction === 'asc' ? (
-                          <ArrowUp size={14} aria-hidden="true" />
-                        ) : direction === 'desc' ? (
-                          <ArrowDown size={14} aria-hidden="true" />
-                        ) : (
-                          <ArrowUpDown size={14} aria-hidden="true" className="opacity-40" />
-                        )}
-                      </button>
-                    ) : (
-                      col.header
-                    )}
-                  </TableHead>
-                )
-              })}
-            </TableRow>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="bg-muted/50 hover:bg-muted/50">
+                {headerGroup.headers.map((header) => {
+                  const column = header.column
+                  const meta = column.columnDef.meta
+                  const sortable = column.getCanSort()
+                  const direction = column.getIsSorted()
+                  const label = flexRender(column.columnDef.header, header.getContext())
+
+                  return (
+                    <TableHead
+                      key={header.id}
+                      aria-sort={
+                        sortable
+                          ? direction === 'asc'
+                            ? 'ascending'
+                            : direction === 'desc'
+                              ? 'descending'
+                              : 'none'
+                          : undefined
+                      }
+                      className={cn(meta?.align === 'right' && 'text-right', meta?.headerClassName)}
+                    >
+                      {sortable ? (
+                        <button
+                          type="button"
+                          onClick={column.getToggleSortingHandler()}
+                          className={cn(
+                            'inline-flex items-center gap-1.5 rounded-xs font-medium hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                            meta?.align === 'right' && 'flex-row-reverse'
+                          )}
+                        >
+                          {label}
+                          {direction === 'asc' ? (
+                            <ArrowUp size={14} aria-hidden="true" />
+                          ) : direction === 'desc' ? (
+                            <ArrowDown size={14} aria-hidden="true" />
+                          ) : (
+                            <ArrowUpDown size={14} aria-hidden="true" className="opacity-40" />
+                          )}
+                        </button>
+                      ) : (
+                        label
+                      )}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            ))}
           </TableHeader>
           <MotionTableBody
             // Remount per page so each page entrance re-runs the staggered fade.
@@ -218,20 +274,23 @@ export function DataTable<T>({
             <AnimatePresence>
               {pageItems.map((row) => (
                 <MotionTableRow
-                  key={getRowKey(row)}
+                  key={row.id}
                   className="h-12 hover:bg-muted/40"
                   variants={reduce ? undefined : fadeUp}
                   exit={reduce ? undefined : fadeUpHidden}
                   transition={transitionFast}
                 >
-                  {columns.map((col) => (
-                    <TableCell
-                      key={col.id}
-                      className={cn(col.align === 'right' && 'text-right', col.className)}
-                    >
-                      {col.cell(row)}
-                    </TableCell>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const meta = cell.column.columnDef.meta
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        className={cn(meta?.align === 'right' && 'text-right', meta?.className)}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    )
+                  })}
                 </MotionTableRow>
               ))}
             </AnimatePresence>
@@ -250,12 +309,12 @@ export function DataTable<T>({
           <AnimatePresence>
             {pageItems.map((row) => (
               <motion.li
-                key={getRowKey(row)}
+                key={row.id}
                 variants={reduce ? undefined : fadeUp}
                 exit={reduce ? undefined : fadeUpHidden}
                 transition={transitionFast}
               >
-                {renderCard(row)}
+                {renderCard(row.original)}
               </motion.li>
             ))}
           </AnimatePresence>
