@@ -1,9 +1,24 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MotionConfig } from 'framer-motion'
 import { I18nProvider } from '@/lib/i18n'
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
+import { ListView } from '@/components/shared/ListView'
+import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
+import { listViewState } from '@/lib/listViewState'
+
+/**
+ * The DataTable contract suite (ADR-0047 phase 3a).
+ *
+ * `DataTable` is about to be rebased onto TanStack Table. The ADR names three
+ * contracts the rebase must preserve — the dual render, the framer-motion row
+ * enter/exit behind `useReducedMotion`, and the `Pager`/`usePagination`
+ * integration — and this file pins them (plus sorting and the empty/loading
+ * seam) against the CURRENT implementation, so the swap is a refactor and not a
+ * silent behavior change. Every test here is behavioral: it asserts what a user
+ * or a Playwright selector can observe, never how the component is wired.
+ */
 
 interface Row {
   id: string
@@ -51,7 +66,20 @@ function firstBodyRow() {
   return row as HTMLElement
 }
 
-describe('<DataTable />', () => {
+/** The sort indicator icon rendered inside a column header. */
+function sortIcon(headerName: string) {
+  const header = screen.getByRole('columnheader', { name: headerName })
+  const icon = header.querySelector('svg')
+  if (!icon) throw new Error(`no sort indicator in the "${headerName}" header`)
+  return icon
+}
+
+function sortButton(headerName: string) {
+  const header = screen.getByRole('columnheader', { name: headerName })
+  return within(header).getByRole('button')
+}
+
+describe('<DataTable /> — pager integration (usePagination)', () => {
   it('windows the first page of rows and reports the current page', () => {
     renderTable()
 
@@ -95,63 +123,6 @@ describe('<DataTable />', () => {
     expect(screen.getByRole('button', { name: 'Previous page' })).toBeEnabled()
   })
 
-  it('toggles a sortable column through ascending, descending and none', async () => {
-    const user = userEvent.setup()
-    const unsorted: Row[] = [
-      { id: 'a', name: 'Charlie', score: 30 },
-      { id: 'b', name: 'Alice', score: 10 },
-      { id: 'c', name: 'Bob', score: 20 },
-    ]
-    renderTable({ data: unsorted })
-
-    // Original insertion order.
-    expect(bodyRowNames()).toEqual(['Charlie', 'Alice', 'Bob'])
-
-    const nameHeader = screen.getByRole('columnheader', { name: 'Name' })
-    const nameButton = within(nameHeader).getByRole('button')
-
-    await user.click(nameButton) // ascending
-    expect(bodyRowNames()).toEqual(['Alice', 'Bob', 'Charlie'])
-    expect(nameHeader).toHaveAttribute('aria-sort', 'ascending')
-
-    await user.click(nameButton) // descending
-    expect(bodyRowNames()).toEqual(['Charlie', 'Bob', 'Alice'])
-    expect(nameHeader).toHaveAttribute('aria-sort', 'descending')
-
-    await user.click(nameButton) // none → back to original order
-    expect(bodyRowNames()).toEqual(['Charlie', 'Alice', 'Bob'])
-    expect(nameHeader).toHaveAttribute('aria-sort', 'none')
-  })
-
-  it('sorts numeric columns by value, not lexically', async () => {
-    const user = userEvent.setup()
-    const unsorted: Row[] = [
-      { id: 'a', name: 'Charlie', score: 30 },
-      { id: 'b', name: 'Alice', score: 100 },
-      { id: 'c', name: 'Bob', score: 9 },
-    ]
-    renderTable({ data: unsorted })
-
-    const scoreHeader = screen.getByRole('columnheader', { name: 'Score' })
-    await user.click(within(scoreHeader).getByRole('button')) // ascending
-    expect(bodyRowNames()).toEqual(['Bob', 'Charlie', 'Alice']) // 9, 30, 100
-  })
-
-  it('renders a default empty state and no pager when there are zero rows', () => {
-    renderTable({ data: [] })
-
-    expect(screen.getByText('No results')).toBeInTheDocument()
-    expect(screen.queryByRole('table')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Next page' })).not.toBeInTheDocument()
-  })
-
-  it('renders a caller-supplied empty state when provided', () => {
-    renderTable({ data: [], emptyState: <p>Nothing enrolled yet</p> })
-
-    expect(screen.getByText('Nothing enrolled yet')).toBeInTheDocument()
-    expect(screen.queryByText('No results')).not.toBeInTheDocument()
-  })
-
   it('reports the visible row range', async () => {
     const user = userEvent.setup()
     renderTable()
@@ -159,6 +130,21 @@ describe('<DataTable />', () => {
 
     await user.click(screen.getByRole('button', { name: 'Last page' }))
     expect(screen.getByText('Showing 21–25 of 25')).toBeInTheDocument()
+  })
+
+  it('honors a caller-supplied initial page size', () => {
+    renderTable({ pageSize: 5, pageSizeOptions: [5, 15] })
+
+    expect(bodyRowNames()).toHaveLength(5)
+    expect(screen.getByText('Page 1 of 5')).toBeInTheDocument()
+    expect(screen.getByLabelText('Rows per page')).toHaveValue('5')
+  })
+
+  it('offers the caller-supplied page sizes in the select', () => {
+    renderTable({ pageSize: 5, pageSizeOptions: [5, 15] })
+
+    const options = within(screen.getByLabelText('Rows per page')).getAllByRole('option')
+    expect(options.map((o) => o.textContent)).toEqual(['5', '15'])
   })
 
   it('changes the page size and re-windows the rows', async () => {
@@ -173,15 +159,35 @@ describe('<DataTable />', () => {
     expect(screen.getByText('Page 1 of 1')).toBeInTheDocument()
   })
 
-  it('does not make non-sortable columns clickable', () => {
-    const plainColumns: DataTableColumn<Row>[] = [
-      { id: 'name', header: 'Name', cell: (r) => r.name },
-    ]
-    renderTable({ data: makeRows(3), columns: plainColumns })
+  it('returns to the first page when the page size changes', async () => {
+    const user = userEvent.setup()
+    renderTable()
 
-    const header = screen.getByRole('columnheader', { name: 'Name' })
-    expect(within(header).queryByRole('button')).not.toBeInTheDocument()
-    expect(header).not.toHaveAttribute('aria-sort')
+    await user.click(screen.getByRole('button', { name: 'Last page' }))
+    expect(screen.getByText('Page 3 of 3')).toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Rows per page'), '25')
+    expect(screen.getByText('Page 1 of 1')).toBeInTheDocument()
+    expect(bodyRowNames()[0]).toBe('Name 1')
+  })
+
+  it('clamps the page when the data shrinks beneath the current window', async () => {
+    // A filter narrowing the list must never strand the window past the end
+    // (usePagination clamps; the rows re-window instead of rendering blank).
+    const user = userEvent.setup()
+    const { rerender } = renderTable()
+
+    await user.click(screen.getByRole('button', { name: 'Last page' }))
+    expect(screen.getByText('Page 3 of 3')).toBeInTheDocument()
+
+    rerender(
+      <I18nProvider>
+        <DataTable data={makeRows(4)} columns={columns} getRowKey={(r) => r.id} />
+      </I18nProvider>
+    )
+
+    expect(screen.getByText('Page 1 of 1')).toBeInTheDocument()
+    expect(bodyRowNames()).toEqual(['Name 1', 'Name 2', 'Name 3', 'Name 4'])
   })
 
   it('announces the current page in a labelled, polite live region', () => {
@@ -206,7 +212,189 @@ describe('<DataTable />', () => {
     await user.keyboard('{Enter}')
     expect(screen.getByText('Page 2 of 3')).toBeInTheDocument()
   })
+})
 
+describe('<DataTable /> — sorting', () => {
+  const unsorted: Row[] = [
+    { id: 'a', name: 'Charlie', score: 30 },
+    { id: 'b', name: 'Alice', score: 10 },
+    { id: 'c', name: 'Bob', score: 20 },
+  ]
+
+  it('toggles a sortable column through ascending, descending and none', async () => {
+    const user = userEvent.setup()
+    renderTable({ data: unsorted })
+
+    // Original insertion order.
+    expect(bodyRowNames()).toEqual(['Charlie', 'Alice', 'Bob'])
+
+    const nameHeader = screen.getByRole('columnheader', { name: 'Name' })
+    const nameButton = within(nameHeader).getByRole('button')
+
+    await user.click(nameButton) // ascending
+    expect(bodyRowNames()).toEqual(['Alice', 'Bob', 'Charlie'])
+    expect(nameHeader).toHaveAttribute('aria-sort', 'ascending')
+
+    await user.click(nameButton) // descending
+    expect(bodyRowNames()).toEqual(['Charlie', 'Bob', 'Alice'])
+    expect(nameHeader).toHaveAttribute('aria-sort', 'descending')
+
+    await user.click(nameButton) // none → back to original order
+    expect(bodyRowNames()).toEqual(['Charlie', 'Alice', 'Bob'])
+    expect(nameHeader).toHaveAttribute('aria-sort', 'none')
+  })
+
+  it('shows the sort direction in the header indicator', async () => {
+    // The icon is the only sighted cue for the sort state (aria-sort carries it
+    // for AT), so the up/down/idle triple is part of the contract, not chrome.
+    const user = userEvent.setup()
+    renderTable({ data: unsorted })
+
+    expect(sortIcon('Name').classList.contains('lucide-arrow-up-down')).toBe(true)
+    expect(sortIcon('Name')).toHaveClass('opacity-40') // idle: dimmed
+
+    await user.click(sortButton('Name'))
+    expect(sortIcon('Name').classList.contains('lucide-arrow-up')).toBe(true)
+    expect(sortIcon('Name')).not.toHaveClass('opacity-40')
+
+    await user.click(sortButton('Name'))
+    expect(sortIcon('Name').classList.contains('lucide-arrow-down')).toBe(true)
+
+    await user.click(sortButton('Name'))
+    expect(sortIcon('Name').classList.contains('lucide-arrow-up-down')).toBe(true)
+  })
+
+  it('keeps the idle indicator on the columns that are not the active sort', async () => {
+    const user = userEvent.setup()
+    renderTable({ data: unsorted })
+
+    await user.click(sortButton('Name'))
+    expect(sortIcon('Score').classList.contains('lucide-arrow-up-down')).toBe(true)
+  })
+
+  it('moves the sort to another column, restarting at ascending', async () => {
+    // Sorting is single-column: taking Score hands Name back to its unsorted state.
+    const user = userEvent.setup()
+    renderTable({ data: unsorted })
+
+    await user.click(sortButton('Name'))
+    await user.click(sortButton('Name')) // Name is now descending
+    expect(screen.getByRole('columnheader', { name: 'Name' })).toHaveAttribute(
+      'aria-sort',
+      'descending'
+    )
+
+    await user.click(sortButton('Score'))
+    expect(bodyRowNames()).toEqual(['Alice', 'Bob', 'Charlie']) // 10, 20, 30
+    expect(screen.getByRole('columnheader', { name: 'Score' })).toHaveAttribute(
+      'aria-sort',
+      'ascending'
+    )
+    expect(screen.getByRole('columnheader', { name: 'Name' })).toHaveAttribute('aria-sort', 'none')
+  })
+
+  it('sorts numeric columns by value, not lexically', async () => {
+    const user = userEvent.setup()
+    renderTable({
+      data: [
+        { id: 'a', name: 'Charlie', score: 30 },
+        { id: 'b', name: 'Alice', score: 100 },
+        { id: 'c', name: 'Bob', score: 9 },
+      ],
+    })
+
+    await user.click(sortButton('Score')) // ascending
+    expect(bodyRowNames()).toEqual(['Bob', 'Charlie', 'Alice']) // 9, 30, 100
+  })
+
+  it('sorts the whole data set before windowing it, not just the visible page', async () => {
+    const user = userEvent.setup()
+    renderTable() // 25 rows, scores 1…25
+
+    await user.click(sortButton('Score')) // ascending
+    await user.click(sortButton('Score')) // descending
+
+    // Descending over all 25 rows — not a re-ordering of page 1's ten rows.
+    // Waited, not read synchronously: a sort that swaps the windowed rows leaves
+    // the outgoing ones mounted until their exit animation finishes, so the body
+    // briefly holds both sets (see "row motion" below).
+    await waitFor(() => {
+      expect(bodyRowNames()).toHaveLength(10)
+      expect(bodyRowNames()[0]).toBe('Name 25')
+      expect(bodyRowNames()[9]).toBe('Name 16')
+    })
+  })
+
+  it('stays on the current page when the sort changes', async () => {
+    // Today the page index survives a sort change. TanStack's `autoResetPageIndex`
+    // defaults to TRUE (it would snap back to page 1), so the rebase has to opt
+    // out to keep this behavior — that is exactly why it is pinned here.
+    const user = userEvent.setup()
+    renderTable()
+
+    await user.click(screen.getByRole('button', { name: 'Last page' }))
+    expect(screen.getByText('Page 3 of 3')).toBeInTheDocument()
+
+    await user.click(sortButton('Score')) // ascending
+    await user.click(sortButton('Score')) // descending
+
+    expect(screen.getByText('Page 3 of 3')).toBeInTheDocument()
+    // Page 3 of the descending order: scores 5…1.
+    await waitFor(() =>
+      expect(bodyRowNames()).toEqual(['Name 5', 'Name 4', 'Name 3', 'Name 2', 'Name 1'])
+    )
+  })
+
+  it('does not mutate the array it was handed', async () => {
+    const user = userEvent.setup()
+    const data = [...unsorted]
+
+    renderTable({ data })
+    await user.click(sortButton('Name'))
+
+    expect(data).toEqual(unsorted) // the caller's (scoped) array is untouched
+  })
+
+  it('keys rows by getRowKey, so sorting reorders nodes instead of remounting them', async () => {
+    // Row identity is what lets the exit/enter animations and any future row
+    // state survive a re-sort; a rebase that keys rows by index would remount
+    // every row on every sort.
+    const user = userEvent.setup()
+    renderTable({ data: unsorted })
+
+    const aliceRow = screen.getByText('Alice').closest('tr')
+    await user.click(sortButton('Name'))
+
+    expect(screen.getByText('Alice').closest('tr')).toBe(aliceRow)
+  })
+
+  it('does not make non-sortable columns clickable', () => {
+    const plainColumns: DataTableColumn<Row>[] = [
+      { id: 'name', header: 'Name', cell: (r) => r.name },
+    ]
+    renderTable({ data: makeRows(3), columns: plainColumns })
+
+    const header = screen.getByRole('columnheader', { name: 'Name' })
+    expect(within(header).queryByRole('button')).not.toBeInTheDocument()
+    expect(header).not.toHaveAttribute('aria-sort')
+  })
+})
+
+describe('<DataTable /> — columns', () => {
+  it('renders the columns in declared order, right-aligning where asked', () => {
+    renderTable({ data: makeRows(1) })
+
+    const headers = screen.getAllByRole('columnheader')
+    expect(headers.map((h) => h.textContent)).toEqual(['Name', 'Score'])
+
+    const cells = within(firstBodyRow()).getAllByRole('cell')
+    expect(cells.map((c) => c.textContent)).toEqual(['Name 1', '1'])
+    expect(headers[1]).toHaveClass('text-right')
+    expect(cells[1]).toHaveClass('text-right')
+  })
+})
+
+describe('<DataTable /> — dual render (table ≥sm, cards <sm)', () => {
   it('renders a mobile card for each windowed row when renderCard is given', async () => {
     const user = userEvent.setup()
     renderTable({ renderCard: (r: Row) => <span>Card {r.name}</span> })
@@ -219,23 +407,6 @@ describe('<DataTable />', () => {
     expect(screen.getAllByRole('listitem')[0]).toHaveTextContent('Card Name 11')
   })
 
-  it('keeps rows mounted and visible under prefers-reduced-motion (no hidden initial state)', () => {
-    // reducedMotion="always" drives the same useReducedMotion() seam the app wires
-    // globally via <MotionConfig reducedMotion="user"> in main.tsx. With it on, the
-    // body opts out of the enter/exit variants so no row is left in an opacity-0
-    // initial state that depends on an animation firing to become visible.
-    render(
-      <I18nProvider>
-        <MotionConfig reducedMotion="always">
-          <DataTable data={makeRows(25)} columns={columns} getRowKey={(r) => r.id} />
-        </MotionConfig>
-      </I18nProvider>
-    )
-    expect(firstBodyRow().style.opacity).not.toBe('0')
-    expect(screen.getByText('Name 1')).toBeVisible()
-    expect(screen.getByText('Name 10')).toBeVisible()
-  })
-
   it('hides the desktop table on mobile and shows the card list, only when cards are given', () => {
     const withCards = renderTable({ renderCard: (r: Row) => <span>{r.name}</span> })
     const desktop = withCards.container.querySelector('.rounded-xl.border')
@@ -246,6 +417,171 @@ describe('<DataTable />', () => {
     const plain = renderTable()
     expect(plain.container.querySelector('.rounded-xl.border')).not.toHaveClass('hidden')
     expect(plain.container.querySelector('ul')).toBeNull()
+  })
+
+  it('renders each row TWICE when cards are on — the strict-mode implication', () => {
+    // Both renders are always in the DOM; only CSS decides which one is visible.
+    // So a text/CSS selector matches twice and Playwright's strict mode fails on
+    // it (`getByText` resolves to 2), while role queries stay unambiguous because
+    // the card's markup is not a table cell. Every e2e selector over a DataTable
+    // surface depends on this, so the rebase must keep both renders mounted.
+    renderTable({ renderCard: (r: Row) => <span>{r.name}</span> })
+
+    expect(screen.getAllByText('Name 1')).toHaveLength(2)
+    expect(screen.getAllByRole('cell', { name: 'Name 1' })).toHaveLength(1)
+  })
+
+  it('renders each row once when no cards are given', () => {
+    renderTable()
+
+    expect(screen.getAllByText('Name 1')).toHaveLength(1)
+  })
+})
+
+describe('<DataTable /> — row motion', () => {
+  it('holds a removed row in the DOM for its exit animation, then drops it', async () => {
+    // AnimatePresence defers the unmount so the row can fade out; a rebase that
+    // renders rows without it would rip the node out synchronously.
+    const { rerender } = renderTable({ data: makeRows(3) })
+    expect(bodyRowNames()).toEqual(['Name 1', 'Name 2', 'Name 3'])
+
+    rerender(
+      <I18nProvider>
+        <DataTable data={makeRows(3).slice(1)} columns={columns} getRowKey={(r) => r.id} />
+      </I18nProvider>
+    )
+
+    // Still mounted on the commit that removed it from `data`…
+    expect(bodyRowNames()).toEqual(['Name 1', 'Name 2', 'Name 3'])
+    // …and gone once the exit animation finishes.
+    await waitFor(() => expect(bodyRowNames()).toEqual(['Name 2', 'Name 3']))
+  })
+
+  it('settles every windowed row to fully visible', async () => {
+    renderTable({ data: makeRows(3) })
+
+    await waitFor(() => {
+      expect(screen.getByText('Name 1')).toBeVisible()
+      expect(screen.getByText('Name 3')).toBeVisible()
+    })
+  })
+
+  it('keeps rows mounted and visible under prefers-reduced-motion (no hidden initial state)', () => {
+    // reducedMotion="always" drives the same useReducedMotion() seam the app wires
+    // globally via <MotionConfig reducedMotion="user"> in main.tsx. With it on, the
+    // body opts out of the enter/exit variants so no row is left in an opacity-0
+    // initial state that depends on an animation firing to become visible.
+    // toBeVisible() is what carries that: it fails on an opacity-0 row.
+    render(
+      <I18nProvider>
+        <MotionConfig reducedMotion="always">
+          <DataTable data={makeRows(25)} columns={columns} getRowKey={(r) => r.id} />
+        </MotionConfig>
+      </I18nProvider>
+    )
+
+    expect(within(firstBodyRow()).getByRole('cell', { name: 'Name 1' })).toBeVisible()
+    expect(screen.getByText('Name 10')).toBeVisible()
+  })
+
+  it('still removes a row under prefers-reduced-motion', async () => {
+    const { rerender } = render(
+      <I18nProvider>
+        <MotionConfig reducedMotion="always">
+          <DataTable data={makeRows(3)} columns={columns} getRowKey={(r) => r.id} />
+        </MotionConfig>
+      </I18nProvider>
+    )
+
+    rerender(
+      <I18nProvider>
+        <MotionConfig reducedMotion="always">
+          <DataTable data={makeRows(3).slice(1)} columns={columns} getRowKey={(r) => r.id} />
+        </MotionConfig>
+      </I18nProvider>
+    )
+
+    await waitFor(() => expect(bodyRowNames()).toEqual(['Name 2', 'Name 3']))
+  })
+
+  /**
+   * NOT a contract yet — the staggered row entrance the code intends does not
+   * actually run today, and pinning it would fail. Two independent causes, both
+   * verified against framer-motion 12:
+   *
+   *   1. The rows pass `exit="hidden"` — a *string* variant label, which makes
+   *      framer classify the row as variant-controlling. Such a child no longer
+   *      inherits `initial`/`animate` from `MotionTableBody`, so the body's
+   *      hidden→visible transition (and its staggerChildren) never reaches it.
+   *      An object target (`exit={{ opacity: 0, y: 8 }}`) does not do this.
+   *   2. `<AnimatePresence initial={false}>` suppresses the enter animation of
+   *      children present at its first mount — and because it sits *inside* the
+   *      body that remounts per page (`key={pagination.page}`), every page is a
+   *      first mount.
+   *
+   * The rows therefore just appear, in both motion modes. Enabling the entrance
+   * is a visual change and belongs to its own issue, not to this pinning pass.
+   */
+  it.todo('staggers the row entrance when motion is enabled')
+})
+
+describe('<DataTable /> — empty state', () => {
+  it('renders a default empty state and no pager when there are zero rows', () => {
+    renderTable({ data: [] })
+
+    expect(screen.getByText('No results')).toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Next page' })).not.toBeInTheDocument()
+  })
+
+  it('renders a caller-supplied empty state when provided', () => {
+    renderTable({ data: [], emptyState: <p>Nothing enrolled yet</p> })
+
+    expect(screen.getByText('Nothing enrolled yet')).toBeInTheDocument()
+    expect(screen.queryByText('No results')).not.toBeInTheDocument()
+  })
+
+  it('drops the card list along with the table when empty', () => {
+    const { container } = renderTable({ data: [], renderCard: (r: Row) => <span>{r.name}</span> })
+
+    expect(container.querySelector('ul')).toBeNull()
+    expect(screen.queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument()
+  })
+})
+
+describe('<DataTable /> — loading is the list shell’s branch, not the table’s', () => {
+  // DataTable owns no loading state by design: the pages wrap it in <ListView>,
+  // which renders the skeleton *instead of* the table while the query is in
+  // flight (ADR-0032). Pinned here because the rebase must not grow its own
+  // loading branch — that would double-render the skeleton on every list page.
+  const listView = (isLoading: boolean) => (
+    <I18nProvider>
+      <ListView
+        state={listViewState({ isLoading, count: isLoading ? 0 : 25, hasFilters: false })}
+        skeleton={<SkeletonTable rows={8} columns={2} />}
+        empty={<p>Nothing yet</p>}
+        noResults={<p>No matches</p>}
+        content={<DataTable data={makeRows(25)} columns={columns} getRowKey={(r) => r.id} />}
+      />
+    </I18nProvider>
+  )
+
+  it('shows the skeleton and never mounts the table while loading', () => {
+    render(listView(true))
+
+    expect(screen.getByRole('status', { name: 'Loading table' })).toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Nothing yet')).not.toBeInTheDocument()
+  })
+
+  it('swaps the skeleton for the table once the rows arrive', () => {
+    const { rerender } = render(listView(true))
+    rerender(listView(false))
+
+    expect(screen.queryByRole('status', { name: 'Loading table' })).not.toBeInTheDocument()
+    expect(screen.getByRole('table')).toBeInTheDocument()
+    expect(bodyRowNames()).toHaveLength(10)
   })
 })
 
@@ -287,5 +623,21 @@ describe('<DataTableCard />', () => {
     expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
     // The actions header is not rendered as a detail label.
     expect(screen.queryByText('Actions')).not.toBeInTheDocument()
+  })
+
+  it('shows the same data the table row shows, column for column', () => {
+    // The card is the mobile counterpart of the row — if a rebase changes the
+    // column set, both renders must move together (ADR-0047's dual render).
+    const row: Row = { id: 'r1', name: 'Name 1', score: 42 }
+    render(
+      <I18nProvider>
+        <DataTableCard row={row} columns={columns} titleColumnId="name" />
+      </I18nProvider>
+    )
+
+    const labels = screen.getAllByRole('term').map((dt) => dt.textContent)
+    const values = screen.getAllByRole('definition').map((dd) => dd.textContent)
+    expect(labels).toEqual(['Score'])
+    expect(values).toEqual(['42'])
   })
 })
