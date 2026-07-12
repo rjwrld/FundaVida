@@ -1,8 +1,24 @@
 import { describe, it, expect } from 'vitest'
-import { navItemsForRole } from '../nav'
+import { isNavItemActive, navItemsForRole } from '../nav'
 import type { Role } from '@/types'
 
 const ROLES: Role[] = ['admin', 'teacher', 'student', 'tcu']
+
+describe('isNavItemActive', () => {
+  it('marks a section active on its own route and on its detail routes', () => {
+    expect(isNavItemActive('/app/courses', '/app/courses')).toBe(true)
+    expect(isNavItemActive('/app/courses/12', '/app/courses')).toBe(true)
+  })
+
+  it('matches the dashboard exactly — every route is under /app', () => {
+    expect(isNavItemActive('/app', '/app')).toBe(true)
+    expect(isNavItemActive('/app/courses', '/app')).toBe(false)
+  })
+
+  it('does not let a route match a sibling with the same prefix', () => {
+    expect(isNavItemActive('/app/courses-archive', '/app/courses')).toBe(false)
+  })
+})
 
 describe('navItemsForRole', () => {
   it('exposes the calendar to every role', () => {

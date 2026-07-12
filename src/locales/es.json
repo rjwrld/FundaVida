@@ -865,13 +865,11 @@
   },
   "roleSwitcher": {
     "choose": "Elegir rol",
-    "current": "Rol: {{role}}",
     "switch": "Cambiar rol"
   },
   "sidebar": {
     "navAriaLabel": "Navegación",
-    "openNav": "Abrir menú de navegación",
-    "sectionsAriaLabel": "Secciones"
+    "toggle": "Alternar navegación"
   },
   "students": {
     "detail": {

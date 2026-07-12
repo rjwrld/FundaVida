@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { act, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { MotionConfig } from 'framer-motion'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -38,6 +39,9 @@ describe('<AppLayout />', () => {
     clearPersistedState()
     clearPersistedRole()
     clearPersistedCurrentUser()
+    // The block persists the rail state in a cookie, which jsdom keeps across tests in
+    // a file — an expanded-by-default assertion would inherit the previous test's collapse.
+    document.cookie = 'sidebar_state=; path=/; max-age=0'
     useStore.getState().resetDemo()
     useStore.getState().setLocale('en')
   })
@@ -46,8 +50,51 @@ describe('<AppLayout />', () => {
     useStore.getState().setRole('admin')
     renderWithRouter(<div>Hello from outlet</div>)
     expect(screen.getByRole('banner')).toBeInTheDocument()
-    expect(screen.getByRole('complementary', { name: 'Sections' })).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Navigation' })).toBeInTheDocument()
     expect(screen.getByText('Hello from outlet')).toBeInTheDocument()
+  })
+
+  // ⌘/Ctrl+B is the block's shortcut; the state it toggles is what the cookie persists,
+  // so the rail comes back collapsed on the next load (lib/sidebarState).
+  it('collapses and re-expands the rail on the keyboard shortcut', async () => {
+    const user = userEvent.setup()
+    useStore.getState().setRole('admin')
+    renderWithRouter(<div>Hello from outlet</div>)
+
+    const sidebar = document.querySelector('[data-slot="sidebar"]')
+    expect(sidebar).toHaveAttribute('data-state', 'expanded')
+
+    await user.keyboard('{Meta>}b{/Meta}')
+    expect(sidebar).toHaveAttribute('data-state', 'collapsed')
+    expect(document.cookie).toContain('sidebar_state=false')
+
+    await user.keyboard('{Control>}b{/Control}')
+    expect(sidebar).toHaveAttribute('data-state', 'expanded')
+    expect(document.cookie).toContain('sidebar_state=true')
+  })
+
+  it('opens the rail collapsed when the persisted cookie says so', () => {
+    document.cookie = 'sidebar_state=false; path=/'
+    useStore.getState().setRole('admin')
+    renderWithRouter(<div>Hello from outlet</div>)
+
+    expect(document.querySelector('[data-slot="sidebar"]')).toHaveAttribute(
+      'data-state',
+      'collapsed'
+    )
+  })
+
+  // The header trigger is the mobile drawer's only way in, and the rail's toggle above md.
+  it('toggles the sidebar from the header trigger', async () => {
+    const user = userEvent.setup()
+    useStore.getState().setRole('admin')
+    renderWithRouter(<div>Hello from outlet</div>)
+
+    await user.click(screen.getByRole('button', { name: 'Toggle navigation' }))
+    expect(document.querySelector('[data-slot="sidebar"]')).toHaveAttribute(
+      'data-state',
+      'collapsed'
+    )
   })
 
   it('renders the app footer within the shell', () => {

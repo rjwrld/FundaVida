@@ -9,14 +9,18 @@ import { cn } from '@/lib/utils'
  * is cramped there); `always` keeps it visible for hosts with room, like the mobile drawer.
  * The link stays labelled for assistive tech either way. `onClick` lets a drawer host close
  * itself even when the link targets the current route (no pathname change to react to).
+ * `wordmarkClassName` lets a host hide the text on its own condition without teaching this
+ * component about it — the sidebar drops it when it collapses to the icon rail.
  */
 export function BrandLockup({
   className,
   wordmark = 'responsive',
+  wordmarkClassName,
   onClick,
 }: {
   className?: string
   wordmark?: 'responsive' | 'always'
+  wordmarkClassName?: string
   onClick?: () => void
 }) {
   return (
@@ -33,7 +37,8 @@ export function BrandLockup({
       <span
         className={cn(
           'font-display text-lg font-semibold tracking-tight text-foreground',
-          wordmark === 'responsive' && 'hidden sm:inline'
+          wordmark === 'responsive' && 'hidden sm:inline',
+          wordmarkClassName
         )}
       >
         FundaVida

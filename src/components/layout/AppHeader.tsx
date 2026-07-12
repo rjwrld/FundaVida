@@ -2,11 +2,10 @@ import { Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { RoleSwitcher } from '@/components/demo/RoleSwitcher'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 import { DemoBadge } from '@/components/demo/DemoBadge'
 import { BrandLockup } from '@/components/brand/BrandLockup'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
-import { MobileNav } from '@/components/layout/MobileNav'
 import { LanguageToggle } from '@/components/layout/LanguageToggle'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { useCommandPaletteContext } from '@/hooks/useCommandPaletteContext'
@@ -23,10 +22,15 @@ export function AppHeader() {
           width and painted over by the right-hand controls (#271); under
           extreme pressure the row overflows right instead. Breadcrumbs keep
           their own min-w-0 and truncate.
+
+          One trigger, two jobs: below `md` it opens the sidebar's drawer (the
+          hamburger MobileNav used to own), from `md` up it collapses the rail —
+          the same thing ⌘/Ctrl+B does. The lockup is the sidebar's above `md`,
+          so the header only carries it while the sidebar is a sheet.
         */}
         <div className="flex shrink-0 items-center gap-3">
-          <MobileNav />
-          <BrandLockup />
+          <SidebarTrigger aria-label={t('sidebar.toggle')} />
+          <BrandLockup className="md:hidden" />
         </div>
         {/* `data-[orientation=vertical]:h-5` and not `h-5`: the primitive's own
             `data-[orientation=vertical]:h-full` would otherwise out-specify a
@@ -60,11 +64,12 @@ export function AppHeader() {
       >
         <Search className="size-4" />
       </Button>
+      {/* The role switch is no longer here: it is the sidebar's user footer, where the
+          block puts the account menu (ADR-0047 phase 4a). */}
       <div className="flex shrink-0 items-center gap-1.5">
         <DemoBadge />
         <ThemeToggle />
         <LanguageToggle variant="header" />
-        <RoleSwitcher />
       </div>
     </header>
   )
