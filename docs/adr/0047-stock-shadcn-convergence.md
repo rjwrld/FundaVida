@@ -2,9 +2,10 @@
 
 _Accepted (design grilling + artifact review 2026-07-09). Amended 2026-07-10: `--success`
 recorded as the second deliberate deviation, the two-hue status language settled, and the
-brand-pigment rule dated to phase 2e. Supersedes the Figure-Green token skin
-(PRs #102/#105/#132) as the app-wide surface treatment; ADR-0026 (Pager) and ADR-0044 (calendar
-layout) stand; ADR-0010 (derived nav) is untouched._
+brand-pigment rule dated to phase 2e. Amended 2026-07-12: `warning` stated as a principle
+(actionable only, never historical) rather than as a single example. Supersedes the Figure-Green
+token skin (PRs #102/#105/#132) as the app-wide surface treatment; ADR-0026 (Pager) and ADR-0044
+(calendar layout) stand; ADR-0010 (derived nav) is untouched._
 
 The codebase is already ~60% a shadcn app — `components.json`, 18 primitives under
 `src/components/ui/`, cva/tailwind-merge/Radix — but the adoption stalled halfway and the gaps
@@ -42,6 +43,15 @@ Badge `warning` variant keeps its solid foreground dot — actionable grey, one 
 (#332), and its call sites (`excused` attendance, `update` audit actions) remap to `neutral` — a
 zero-pixel change. Surfaces that once leaned on amber render pending as grey beside the green
 (the enrollment funnel's pending segment); charts color by `chart-1…5`, not by status tokens.
+
+**`warning` means _actionable_, and only that** (amended 2026-07-12 with #347). It is the dot for
+a state someone still has to resolve — a `pending` enrollment, a `pending` TCU activity. It is not
+a general-purpose "noteworthy" grey. It therefore may not appear on a **historical** surface, where
+every row already happened and nothing can be acted on: the audit log is the case in point, and
+`grade` was using `warning` there simply because the pre-#332 if-cascade named it. Read the rule as
+a question — _can the viewer do something about this row?_ If no, the choice is `neutral`. This is
+the reasoning the paragraph above always implied; #347 states it so the next enum mapped to a Badge
+doesn't reach for `warning` as a synonym for "important".
 
 **Tailwind 4 goes first, because the theme file demands it.** The theme is a Tailwind-4-format
 registry item (full `oklch()` values); the current Tailwind 3 plumbing wraps triplet variables in

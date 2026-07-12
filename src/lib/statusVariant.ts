@@ -33,19 +33,29 @@ export const TCU_VARIANT: Record<TcuActivityStatus, BadgeProps['variant']> = {
   rejected: 'destructive',
 }
 
-// `grade` is the one audit action that is neither an outcome nor a removal, and
-// it is the row an admin scans for, so it keeps the solid-dot `warning`. The
-// rest of the greys were only ever grey by falling off the end of the cascade.
+// No `warning` in this map, deliberately (#347). ADR-0047 defines the `warning`
+// dot as *actionable* grey — the thing you still have to do something about. An
+// audit entry is history: it already happened, and nothing in this table is
+// actionable. So the louder dot has no meaning to carry here, and every quiet
+// action is `neutral`.
+//
+// `unenroll` is `destructive` but `withdraw` is not, and that asymmetry is the
+// point: an admin removing someone else's enrollment is a removal, like `delete`,
+// whereas a student leaving of their own accord is not a red event —
+// `ENROLLMENT_VARIANT.withdrawn` already reads it as `neutral`, and the two maps
+// agreeing with each other matters more than the two verbs looking symmetrical.
 export const AUDIT_ACTION_VARIANT: Record<AuditAction, BadgeProps['variant']> = {
   create: 'success',
   enroll: 'success',
   approve: 'success',
+  // The terminal success of the whole domain: closing a course is what emits
+  // every certificate. It is not a routine edit and should not read as one.
+  close: 'success',
   delete: 'destructive',
-  grade: 'warning',
+  unenroll: 'destructive',
   update: 'neutral',
   requestEnroll: 'neutral',
-  unenroll: 'neutral',
   withdraw: 'neutral',
-  close: 'neutral',
+  grade: 'neutral',
   log: 'neutral',
 }
