@@ -53,9 +53,9 @@ export function CoursesToClose() {
         <CardTitle as="h3">{t('dashboard.coursesToClose.title')}</CardTitle>
         {closeable.length > 0 && (
           <CardAction>
-            <span className="rounded-full bg-brand-green-100 px-2 py-0.5 text-xs font-medium tabular-nums text-brand-green-800 dark:bg-brand-green-500/20 dark:text-brand-green-100">
+            <Badge variant="secondary" className="tabular-nums">
               {closeable.length}
-            </span>
+            </Badge>
           </CardAction>
         )}
       </CardHeader>
@@ -72,12 +72,9 @@ export function CoursesToClose() {
                     to={`/app/courses/${course.id}`}
                     className="group flex items-center gap-3 rounded-md py-1"
                   >
-                    <GraduationCap
-                      className="size-4 shrink-0 text-brand-green-700 dark:text-brand-green-300"
-                      aria-hidden="true"
-                    />
+                    <GraduationCap className="size-4 shrink-0 text-primary" aria-hidden="true" />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
+                      <span className="block truncate text-sm font-medium text-foreground group-hover:text-primary group-hover:underline">
                         {course.name}
                       </span>
                       <span className="block truncate text-xs text-muted-foreground">

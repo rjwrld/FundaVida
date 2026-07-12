@@ -74,10 +74,7 @@ export function AgendaSlice() {
     <Card data-testid="agenda-slice">
       <CardHeader>
         <CardTitle as="h3" className="flex items-center gap-2">
-          <CalendarDays
-            className="size-4 text-brand-green-700 dark:text-brand-green-300"
-            aria-hidden="true"
-          />
+          <CalendarDays className="size-4 text-primary" aria-hidden="true" />
           {t('dashboard.rightPanel.agendaTitle')}
         </CardTitle>
       </CardHeader>
@@ -122,7 +119,7 @@ export function AgendaSlice() {
       <CardFooter>
         <Link
           to="/app/calendar"
-          className="inline-flex items-center gap-1 text-sm font-medium text-brand-green-700 dark:text-brand-green-300 hover:underline"
+          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
         >
           {t('dashboard.rightPanel.openCalendar')}
           <ArrowRight className="size-4" aria-hidden="true" />
@@ -154,7 +151,7 @@ function NeedsMarkingHero({ group }: { group: WorklistGroup | undefined }) {
           className="group flex items-center gap-2 rounded-md py-1"
         >
           <ClipboardCheck className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
+          <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-primary group-hover:underline">
             {t('calendar.sidebar.teacher.sessionsToMark', { count: group.count })} —{' '}
             {calendarCardName({ name: group.courseName, sede: group.sede })}
           </span>

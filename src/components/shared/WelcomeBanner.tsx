@@ -36,11 +36,11 @@ export function WelcomeBanner({
     >
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-linear-to-r from-brand-green-500 to-transparent to-40%"
+        className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-linear-to-r from-primary to-transparent to-40%"
       />
       <div className="relative z-10 flex max-w-xl flex-col gap-2">
         {eyebrow ? (
-          <span className="text-[12px] font-medium uppercase tracking-wider text-brand-green-700 dark:text-brand-green-300">
+          <span className="text-[12px] font-medium uppercase tracking-wider text-primary">
             {eyebrow}
           </span>
         ) : null}

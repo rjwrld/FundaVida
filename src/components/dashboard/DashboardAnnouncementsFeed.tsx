@@ -90,10 +90,7 @@ export function DashboardAnnouncementsFeed({ courseId }: { courseId?: string }) 
     >
       <CardHeader>
         <CardTitle as="h3" id="dashboard-announcements-heading" className="flex items-center gap-2">
-          <Megaphone
-            className="size-4 text-brand-green-700 dark:text-brand-green-300"
-            aria-hidden="true"
-          />
+          <Megaphone className="size-4 text-primary" aria-hidden="true" />
           {t('dashboard.announcements.title')}
         </CardTitle>
       </CardHeader>
@@ -157,7 +154,7 @@ function FeedRow({
         className="group block rounded-md"
       >
         <div className="flex items-center justify-between gap-2">
-          <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
+          <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-primary group-hover:underline">
             {course ? shortCourseName(course) : t('dashboard.announcements.unknownCourse')}
           </span>
           <div className="flex shrink-0 items-center gap-1.5">

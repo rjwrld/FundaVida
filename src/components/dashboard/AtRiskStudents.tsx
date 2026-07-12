@@ -48,7 +48,7 @@ export function AtRiskStudents() {
       <CardHeader>
         <CardTitle as="h3">{t('dashboard.atRisk.title')}</CardTitle>
         <CardAction>
-          <AlertTriangle className="size-4 text-flame-red-500" aria-hidden="true" />
+          <AlertTriangle className="size-4 text-destructive" aria-hidden="true" />
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col">
@@ -63,7 +63,7 @@ export function AtRiskStudents() {
                     to={`/app/students/${student.id}`}
                     className="group flex items-center justify-between gap-3 rounded-md py-1"
                   >
-                    <span className="min-w-0 truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
+                    <span className="min-w-0 truncate text-sm font-medium text-foreground group-hover:text-primary group-hover:underline">
                       {fullName(student)}
                     </span>
                     <div className="flex shrink-0 flex-wrap justify-end gap-1">
@@ -88,7 +88,7 @@ export function AtRiskStudents() {
       <CardFooter>
         <Link
           to="/app/students"
-          className="inline-flex items-center gap-1 text-sm font-medium text-brand-green-700 dark:text-brand-green-300 hover:underline"
+          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
         >
           {t('dashboard.atRisk.viewAll')}
           <ArrowRight className="size-4" aria-hidden="true" />

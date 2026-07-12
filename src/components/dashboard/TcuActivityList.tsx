@@ -26,10 +26,7 @@ export function TcuActivityList({ activities, limit = 5 }: TcuActivityListProps)
     <Card className="h-full">
       <CardHeader>
         <CardTitle as="h3" className="flex items-center gap-2">
-          <Activity
-            className="size-4 text-brand-green-700 dark:text-brand-green-300"
-            aria-hidden="true"
-          />
+          <Activity className="size-4 text-primary" aria-hidden="true" />
           {t('dashboard.tcu.recentActivitiesList')}
         </CardTitle>
       </CardHeader>

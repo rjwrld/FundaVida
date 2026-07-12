@@ -56,15 +56,12 @@ function WorklistRow({ group }: { group: WorklistGroup }) {
         to={markHref(group.courseId, group.oldestDate)}
         className="group flex flex-col rounded-md py-1 text-sm"
       >
-        <span className="font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300">
+        <span className="font-medium text-foreground group-hover:text-primary">
           {calendarCardName({ name: group.courseName, sede: group.sede })}
         </span>
         <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
           {t('calendar.sidebar.teacher.sessionsToMark', { count: group.count })}
-          <ArrowRight
-            className="size-3 text-brand-green-700 dark:text-brand-green-300"
-            aria-hidden="true"
-          />
+          <ArrowRight className="size-3 text-primary" aria-hidden="true" />
         </span>
       </Link>
     </li>
@@ -112,7 +109,7 @@ function StatRow({
         <p className="text-sm text-foreground">{label}</p>
         <Link
           to={to}
-          className="inline-flex items-center gap-1 text-xs font-medium text-brand-green-700 hover:underline dark:text-brand-green-300"
+          className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
         >
           {action}
           <ArrowRight className="size-3" aria-hidden="true" />
@@ -236,10 +233,7 @@ function UpcomingBucket({ agenda }: { agenda: RoleAgenda }) {
 function CaughtUp({ title, body }: { title: string; body: string }) {
   return (
     <div className="mt-2 flex items-start gap-2 text-sm">
-      <Check
-        className="mt-0.5 size-4 shrink-0 text-brand-green-700 dark:text-brand-green-300"
-        aria-hidden="true"
-      />
+      <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
       <span>
         <span className="font-medium text-foreground">{title}</span>{' '}
         <span className="text-muted-foreground">{body}</span>
@@ -265,7 +259,7 @@ function AgendaBanner({ agenda }: { agenda: RoleAgenda }) {
         ) : (
           <Link
             to={markHref(oldest.courseId, oldest.oldestDate)}
-            className="inline-flex items-center gap-1 text-sm font-medium text-brand-green-700 hover:underline dark:text-brand-green-300"
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
           >
             {t('calendar.sidebar.teacher.sessionsToMark', { count: total })}
             <ArrowRight className="size-3.5" aria-hidden="true" />
@@ -290,7 +284,7 @@ function AgendaBanner({ agenda }: { agenda: RoleAgenda }) {
           {unmarkedCount > 0 && (
             <Link
               to="/app/attendance"
-              className="inline-flex items-center gap-1 font-medium text-brand-green-700 hover:underline dark:text-brand-green-300"
+              className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
             >
               {t('calendar.sidebar.admin.unmarked', { count: unmarkedCount })}
               <ArrowRight className="size-3.5" aria-hidden="true" />
@@ -299,7 +293,7 @@ function AgendaBanner({ agenda }: { agenda: RoleAgenda }) {
           {coursesToCloseCount > 0 && (
             <Link
               to="/app/courses"
-              className="inline-flex items-center gap-1 font-medium text-brand-green-700 hover:underline dark:text-brand-green-300"
+              className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
             >
               {t('calendar.sidebar.admin.coursesToClose', { count: coursesToCloseCount })}
               <ArrowRight className="size-3.5" aria-hidden="true" />
@@ -345,7 +339,7 @@ function BannerShell({ children }: { children: React.ReactNode }) {
 function BannerCaughtUp({ label }: { label: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-      <Check className="size-4 text-brand-green-700 dark:text-brand-green-300" aria-hidden="true" />
+      <Check className="size-4 text-primary" aria-hidden="true" />
       {label}
     </span>
   )

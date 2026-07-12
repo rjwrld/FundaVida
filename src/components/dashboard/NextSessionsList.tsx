@@ -24,10 +24,7 @@ export function NextSessionsList({ courses, limit = 5 }: NextSessionsListProps) 
     <Card className="h-full">
       <CardHeader>
         <CardTitle as="h3" className="flex items-center gap-2">
-          <Clock
-            className="size-4 text-brand-green-700 dark:text-brand-green-300"
-            aria-hidden="true"
-          />
+          <Clock className="size-4 text-primary" aria-hidden="true" />
           {t('dashboard.teacher.nextSessions')}
         </CardTitle>
       </CardHeader>

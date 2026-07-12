@@ -27,10 +27,7 @@ export function CertsThisEpoch() {
       <CardHeader>
         <CardTitle as="h3">{t('dashboard.certsThisEpoch.title')}</CardTitle>
         <CardAction>
-          <Award
-            className="size-4 text-brand-green-700 dark:text-brand-green-300"
-            aria-hidden="true"
-          />
+          <Award className="size-4 text-primary" aria-hidden="true" />
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col justify-center">
@@ -45,7 +42,7 @@ export function CertsThisEpoch() {
       <CardFooter>
         <Link
           to="/app/certificates"
-          className="inline-flex items-center gap-1 text-sm font-medium text-brand-green-700 dark:text-brand-green-300 hover:underline"
+          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
         >
           {t('dashboard.certsThisEpoch.viewAll')}
           <ArrowRight className="size-4" aria-hidden="true" />
