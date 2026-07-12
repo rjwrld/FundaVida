@@ -79,5 +79,20 @@ describe('i18n', () => {
         expect(label.trim()).not.toBe('')
       }
     )
+
+    // The action dropdown reads a *different* namespace from the badge — the badge
+    // names the act ("Create"), the filter names the set of them ("Creates") — so it
+    // needs its own coverage. Leaving it out is what let the first cut of this fix
+    // widen ACTIONS to eleven while `auditLog.filter` still held seven.
+    it.each(Object.keys(AUDIT_ACTION_VARIANT) as AuditAction[])(
+      'renders a real filter option for the %s action, not the raw key',
+      async (action) => {
+        await i18next.changeLanguage(locale)
+        const key = `auditLog.filter.${action}`
+        const label = i18next.t(key)
+        expect(label).not.toBe(key)
+        expect(label.trim()).not.toBe('')
+      }
+    )
   })
 })

@@ -93,12 +93,16 @@
     "filter": {
       "all": "All actions",
       "approve": "Approvals",
+      "close": "Closures",
       "create": "Creates",
       "delete": "Deletes",
       "enroll": "Enrollments",
       "grade": "Grades",
+      "log": "Activity logs",
+      "requestEnroll": "Enrollment requests",
       "unenroll": "Unenrollments",
-      "update": "Updates"
+      "update": "Updates",
+      "withdraw": "Withdrawals"
     },
     "list": {
       "emptyFiltered": "No audit entries match your filter."

@@ -93,12 +93,16 @@
     "filter": {
       "all": "Todas las acciones",
       "approve": "Aprobaciones",
+      "close": "Cierres",
       "create": "Creaciones",
       "delete": "Eliminaciones",
       "enroll": "Matrículas",
       "grade": "Calificaciones",
+      "log": "Registros de actividad",
+      "requestEnroll": "Solicitudes de matrícula",
       "unenroll": "Desmatrículas",
-      "update": "Actualizaciones"
+      "update": "Actualizaciones",
+      "withdraw": "Retiros"
     },
     "list": {
       "emptyFiltered": "Ningún registro coincide con el filtro."

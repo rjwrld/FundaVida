@@ -129,14 +129,21 @@ t('auditLog.entities.emailCampaign')
 t('auditLog.entities.session')
 t('auditLog.entities.announcement')
 
-// Keys referenced dynamically via t(`auditLog.filter.${action}`) in the filter dropdown
+// Keys referenced dynamically via t(`auditLog.filter.${action}`) in the filter dropdown.
+// A second namespace alongside auditLog.actions on purpose: the badge names the act
+// ("Create"), the dropdown names the set of them ("Creates"). Needs one line per
+// AuditAction too, or the dropdown option renders as its own raw key (#345).
 t('auditLog.filter.create')
 t('auditLog.filter.update')
 t('auditLog.filter.delete')
 t('auditLog.filter.enroll')
+t('auditLog.filter.requestEnroll')
 t('auditLog.filter.unenroll')
+t('auditLog.filter.withdraw')
 t('auditLog.filter.grade')
 t('auditLog.filter.approve')
+t('auditLog.filter.close')
+t('auditLog.filter.log')
 
 // Keys referenced dynamically via t(`bulkEmail.filter.${kind}`) for history rows
 t('bulkEmail.filter.all')
