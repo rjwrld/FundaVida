@@ -3,6 +3,8 @@ import i18next from 'i18next'
 import '@/lib/i18n'
 import { useStore } from '@/data/store'
 import enJson from '@/locales/en.json'
+import { AUDIT_ACTION_VARIANT } from '@/lib/statusVariant'
+import type { AuditAction, AuditEntity } from '@/types'
 
 describe('i18n', () => {
   beforeEach(() => {
@@ -35,5 +37,62 @@ describe('i18n', () => {
   it('returns the raw key when absent from both locales', async () => {
     await i18next.changeLanguage('es')
     expect(i18next.t('does.not.exist.anywhere')).toBe('does.not.exist.anywhere')
+  })
+
+  // The audit badge and its entity column resolve their labels dynamically, so a
+  // missing key is not a typecheck error — it silently renders as the raw string
+  // `auditLog.actions.close` (#345). These Records are the exhaustiveness seam:
+  // widening either enum fails to compile here before it can ship a raw key.
+  const ALL_ENTITIES: Record<AuditEntity, true> = {
+    student: true,
+    teacher: true,
+    course: true,
+    enrollment: true,
+    grade: true,
+    certificate: true,
+    attendance: true,
+    emailCampaign: true,
+    tcuActivity: true,
+    session: true,
+    announcement: true,
+  }
+
+  describe.each(['en', 'es'])('audit log labels (%s)', (locale) => {
+    it.each(Object.keys(AUDIT_ACTION_VARIANT) as AuditAction[])(
+      'renders a real label for the %s action, not the raw key',
+      async (action) => {
+        await i18next.changeLanguage(locale)
+        const key = `auditLog.actions.${action}`
+        const label = i18next.t(key)
+        expect(label).not.toBe(key)
+        expect(label.trim()).not.toBe('')
+      }
+    )
+
+    it.each(Object.keys(ALL_ENTITIES) as AuditEntity[])(
+      'renders a real label for the %s entity, not the raw key',
+      async (entity) => {
+        await i18next.changeLanguage(locale)
+        const key = `auditLog.entities.${entity}`
+        const label = i18next.t(key)
+        expect(label).not.toBe(key)
+        expect(label.trim()).not.toBe('')
+      }
+    )
+
+    // The action dropdown reads a *different* namespace from the badge — the badge
+    // names the act ("Create"), the filter names the set of them ("Creates") — so it
+    // needs its own coverage. Leaving it out is what let the first cut of this fix
+    // widen ACTIONS to eleven while `auditLog.filter` still held seven.
+    it.each(Object.keys(AUDIT_ACTION_VARIANT) as AuditAction[])(
+      'renders a real filter option for the %s action, not the raw key',
+      async (action) => {
+        await i18next.changeLanguage(locale)
+        const key = `auditLog.filter.${action}`
+        const label = i18next.t(key)
+        expect(label).not.toBe(key)
+        expect(label.trim()).not.toBe('')
+      }
+    )
   })
 })

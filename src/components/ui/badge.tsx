@@ -26,7 +26,6 @@ const badgeVariants = cva(
         destructive: 'border-border bg-transparent text-foreground',
         success: 'border-border bg-transparent text-foreground',
         warning: 'border-border bg-transparent text-foreground',
-        info: 'border-border bg-transparent text-muted-foreground',
         neutral: 'border-border bg-transparent text-muted-foreground',
       },
     },
@@ -41,19 +40,22 @@ const badgeVariants = cva(
 // to out-rank neutral, though — "Pending" sits next to "Withdrawn" in the
 // enrollments list and only one of them is actionable — so it takes the solid
 // foreground dot and the quiet states take the muted one.
+//
+// There is no `info` variant: it was byte-identical to `neutral` in both the
+// pill and the dot, so it was a second name for the same pixels and an invitation
+// to drift. Anything that used to be `info` is `neutral` (issue #332).
 const badgeDotVariants = cva('size-1.5 shrink-0 rounded-full', {
   variants: {
     variant: {
       destructive: 'bg-destructive',
       success: 'bg-success',
       warning: 'bg-foreground',
-      info: 'bg-muted-foreground',
       neutral: 'bg-muted-foreground',
     },
   },
 })
 
-const STATUS_VARIANTS = ['destructive', 'success', 'warning', 'info', 'neutral'] as const
+const STATUS_VARIANTS = ['destructive', 'success', 'warning', 'neutral'] as const
 
 type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>['variant']>
 type StatusVariant = (typeof STATUS_VARIANTS)[number]

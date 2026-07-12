@@ -39,7 +39,6 @@ import { resolveQueries } from '@/lib/resolveQueries'
 import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
 import { isOpenForEnrollment, isLiveCohort } from '@/lib/courseDisplayState'
 import { clock } from '@/lib/clock'
-import type { AttendanceStatus } from '@/types'
 import { CloseReadinessChecklist } from '@/components/courses/CloseReadinessChecklist'
 import { CourseSessionsSection } from '@/components/courses/CourseSessionsSection'
 import { CourseAnnouncementsSection } from '@/components/courses/CourseAnnouncementsSection'
@@ -51,17 +50,12 @@ import { CourseCertificatesSection } from '@/components/courses/CourseCertificat
 import { CourseStateBadge } from '@/components/courses/CourseStateBadge'
 import { shortCourseName } from '@/lib/courseName'
 import { fullName } from '@/lib/personName'
+import { ATTENDANCE_VARIANT } from '@/lib/statusVariant'
 
 interface GradingTarget {
   studentId: string
   studentName: string
   initialScore?: number
-}
-
-function statusVariant(status: AttendanceStatus): 'success' | 'destructive' | 'info' {
-  if (status === 'present') return 'success'
-  if (status === 'absent') return 'destructive'
-  return 'info'
 }
 
 export function CoursesDetailPage() {
@@ -521,7 +515,7 @@ export function CoursesDetailPage() {
                       <TableRow key={record.id}>
                         <TableCell>{sessionLabel}</TableCell>
                         <TableCell>
-                          <Badge variant={statusVariant(record.status)}>
+                          <Badge variant={ATTENDANCE_VARIANT[record.status]}>
                             {t(`attendance.list.status.${record.status}`)}
                           </Badge>
                         </TableCell>

@@ -13,6 +13,7 @@ import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
 import { listViewState } from '@/lib/listViewState'
+import { AUDIT_ACTION_VARIANT } from '@/lib/statusVariant'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { AuditLogsEmpty } from '@/components/empty-states/AuditLogsEmpty'
 import { useAuditLog } from '@/hooks/api'
@@ -20,15 +21,24 @@ import { useFormat } from '@/hooks/useFormat'
 import type { AuditLogFilters } from '@/data/api/auditLog'
 import type { AuditAction, AuditEntity, AuditLogEntry } from '@/types'
 
+// Every AuditAction the store can emit, so the filter can reach every row the
+// log can actually contain (#345). Ordered as the enum declares them.
 const ACTIONS: AuditAction[] = [
   'create',
   'update',
   'delete',
   'enroll',
+  'requestEnroll',
   'unenroll',
+  'withdraw',
   'grade',
   'approve',
+  'close',
+  'log',
 ]
+// Likewise every AuditEntity: `announcement`, `attendance` and `tcuActivity` are
+// all written to the log but were absent here, so their rows could not be
+// filtered to at all (#345).
 const ENTITIES: AuditEntity[] = [
   'student',
   'teacher',
@@ -36,19 +46,12 @@ const ENTITIES: AuditEntity[] = [
   'enrollment',
   'grade',
   'certificate',
+  'attendance',
   'session',
+  'announcement',
   'emailCampaign',
+  'tcuActivity',
 ]
-
-function actionVariant(
-  action: AuditAction
-): 'success' | 'info' | 'destructive' | 'warning' | 'neutral' {
-  if (action === 'create' || action === 'enroll' || action === 'approve') return 'success'
-  if (action === 'update') return 'info'
-  if (action === 'delete') return 'destructive'
-  if (action === 'grade') return 'warning'
-  return 'neutral'
-}
 
 export function AuditLogPage() {
   const { t } = useTranslation()
@@ -76,7 +79,7 @@ export function AuditLogPage() {
       id: 'action',
       header: t('auditLog.columns.action'),
       cell: (e) => (
-        <Badge variant={actionVariant(e.action)}>{t(`auditLog.actions.${e.action}`)}</Badge>
+        <Badge variant={AUDIT_ACTION_VARIANT[e.action]}>{t(`auditLog.actions.${e.action}`)}</Badge>
       ),
     },
     {

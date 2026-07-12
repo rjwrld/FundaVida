@@ -162,7 +162,9 @@ function FeedRow({
                 this is where the Admin dashboard gains it (ADR-0043). */}
             {course && <CourseStateBadge course={course} />}
             {announcement.kind === 'sessionChange' && (
-              <Badge variant="info">{t('courses.detail.announcements.kind.sessionChange')}</Badge>
+              <Badge variant="neutral">
+                {t('courses.detail.announcements.kind.sessionChange')}
+              </Badge>
             )}
           </div>
         </div>
