@@ -55,12 +55,16 @@
   "auditLog": {
     "actions": {
       "approve": "Approve",
+      "close": "Close",
       "create": "Create",
       "delete": "Delete",
       "enroll": "Enroll",
       "grade": "Grade",
+      "log": "Log",
+      "requestEnroll": "Request enrollment",
       "unenroll": "Unenroll",
-      "update": "Update"
+      "update": "Update",
+      "withdraw": "Withdraw"
     },
     "columns": {
       "action": "Action",
@@ -74,6 +78,7 @@
       "heading": "No audit entries yet"
     },
     "entities": {
+      "announcement": "Announcement",
       "attendance": "Attendance",
       "certificate": "Certificate",
       "course": "Course",
@@ -82,18 +87,22 @@
       "grade": "Grade",
       "session": "Session",
       "student": "Student",
-      "tcu": "TCU",
+      "tcuActivity": "TCU",
       "teacher": "Teacher"
     },
     "filter": {
       "all": "All actions",
       "approve": "Approvals",
+      "close": "Closures",
       "create": "Creates",
       "delete": "Deletes",
       "enroll": "Enrollments",
       "grade": "Grades",
+      "log": "Activity logs",
+      "requestEnroll": "Enrollment requests",
       "unenroll": "Unenrollments",
-      "update": "Updates"
+      "update": "Updates",
+      "withdraw": "Withdrawals"
     },
     "list": {
       "emptyFiltered": "No audit entries match your filter."
