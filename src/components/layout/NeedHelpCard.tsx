@@ -9,7 +9,7 @@ export function NeedHelpCard() {
   return (
     <Card className="m-3 mt-auto">
       <CardContent className="flex items-start gap-3">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-green-500/15 text-brand-green-700 dark:text-brand-green-300">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
           <LifeBuoy className="size-4" />
         </div>
         <div className="min-w-0 space-y-1">
@@ -21,7 +21,7 @@ export function NeedHelpCard() {
             href={REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 inline-flex text-[13px] font-medium text-brand-green-700 transition-colors hover:text-brand-green-800 dark:text-brand-green-300 dark:hover:text-brand-green-200"
+            className="mt-1 inline-flex text-[13px] font-medium text-primary transition-colors hover:text-primary/80"
           >
             {t('common.help.cta')}
           </a>

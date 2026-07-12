@@ -87,10 +87,7 @@ export function TcuDashboard() {
           <Card className="h-full">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <GraduationCap
-                  className="size-4 text-brand-green-700 dark:text-brand-green-300"
-                  aria-hidden="true"
-                />
+                <GraduationCap className="size-4 text-primary" aria-hidden="true" />
                 <div>
                   <CardDescription>{t('dashboard.tcu.assignedCourse')}</CardDescription>
                   <CardTitle as="h3">{assignedCourse.name}</CardTitle>

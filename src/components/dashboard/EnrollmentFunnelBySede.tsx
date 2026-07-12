@@ -32,10 +32,7 @@ export function EnrollmentFunnelBySede() {
       <CardHeader>
         <CardTitle as="h3">{t('dashboard.enrollmentFunnel.title')}</CardTitle>
         <CardAction>
-          <Filter
-            className="size-4 text-brand-green-700 dark:text-brand-green-300"
-            aria-hidden="true"
-          />
+          <Filter className="size-4 text-primary" aria-hidden="true" />
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col">
@@ -60,9 +57,11 @@ export function EnrollmentFunnelBySede() {
                     className="flex h-2 overflow-hidden rounded-full bg-muted"
                     aria-hidden="true"
                   >
-                    <div className="bg-brand-green-500" style={{ width: `${approvedPct}%` }} />
+                    <div className="bg-primary" style={{ width: `${approvedPct}%` }} />
+                    {/* Grey, not amber: ADR-0047's status language is two-hue
+                        (success/destructive) plus greys — pending has no hue. */}
                     <div
-                      className="bg-flame-yellow-400 dark:bg-flame-yellow-600"
+                      className="bg-muted-foreground"
                       style={{ width: `${100 - approvedPct}%` }}
                     />
                   </div>
@@ -75,7 +74,7 @@ export function EnrollmentFunnelBySede() {
       <CardFooter>
         <Link
           to="/app/enrollments"
-          className="inline-flex items-center gap-1 text-sm font-medium text-brand-green-700 dark:text-brand-green-300 hover:underline"
+          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
         >
           {t('dashboard.enrollmentFunnel.viewAll')}
           <ArrowRight className="size-4" aria-hidden="true" />

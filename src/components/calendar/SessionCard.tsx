@@ -90,7 +90,7 @@ export function SessionCard({
         </p>
       ) : null}
       {showAction ? (
-        <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-green-700 dark:text-brand-green-300">
+        <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary">
           {t('calendar.card.markAttendance')}
           <ArrowRight className="size-3" aria-hidden="true" />
         </span>
@@ -101,7 +101,7 @@ export function SessionCard({
   const className = cn(
     'block rounded-lg border border-border bg-card p-3 transition-colors',
     verdict && `border-l-[3px] ${VERDICT_RAIL[verdict]}`,
-    time === 'today' && 'ring-1 ring-inset ring-brand-green-200 dark:ring-brand-green-900',
+    time === 'today' && 'ring-1 ring-inset ring-primary/30',
     time === 'past' && !verdict && 'opacity-80'
   )
 
@@ -116,10 +116,7 @@ export function SessionCard({
           <Link
             to={`/app/courses/${course.id}/sessions/${session.date}/mark`}
             aria-label={course.name}
-            className={cn(
-              className,
-              'hover:border-brand-green-400 hover:bg-brand-green-50 dark:hover:bg-brand-green-950/30'
-            )}
+            className={cn(className, 'hover:border-primary hover:bg-accent')}
           >
             {content}
           </Link>

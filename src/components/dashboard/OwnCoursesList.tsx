@@ -25,10 +25,7 @@ export function OwnCoursesList() {
     <Card className="h-full" data-testid="own-courses-list">
       <CardHeader>
         <CardTitle as="h3" className="flex items-center gap-2">
-          <BookOpen
-            className="size-4 text-brand-green-700 dark:text-brand-green-300"
-            aria-hidden="true"
-          />
+          <BookOpen className="size-4 text-primary" aria-hidden="true" />
           {t('dashboard.teacher.ownCourses.title')}
         </CardTitle>
       </CardHeader>
@@ -43,7 +40,7 @@ export function OwnCoursesList() {
                   to={`/app/courses/${course.id}`}
                   className="group flex items-center justify-between gap-3 rounded-md py-1"
                 >
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-primary group-hover:underline">
                     {shortCourseName(course)}
                   </span>
                   <CourseStateBadge course={course} className="shrink-0" />

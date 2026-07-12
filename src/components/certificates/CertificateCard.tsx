@@ -60,7 +60,7 @@ export function CertificateCard({ cert, onOpen, className }: Props) {
         <FileText
           size={48}
           className={cn(
-            'relative text-brand-green-500 transition-transform duration-300',
+            'relative text-primary transition-transform duration-300',
             clickable && 'group-hover:scale-105'
           )}
           aria-hidden="true"

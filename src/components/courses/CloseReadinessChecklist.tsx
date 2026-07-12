@@ -53,12 +53,9 @@ export function CloseReadinessChecklist({ readiness }: { readiness: CloseReadine
             className="flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm text-foreground"
           >
             {check.pass ? (
-              <CheckCircle2
-                aria-hidden="true"
-                className="size-4 shrink-0 text-brand-green-700 dark:text-brand-green-300"
-              />
+              <CheckCircle2 aria-hidden="true" className="size-4 shrink-0 text-primary" />
             ) : (
-              <XCircle aria-hidden="true" className="size-4 shrink-0 text-flame-red-500" />
+              <XCircle aria-hidden="true" className="size-4 shrink-0 text-destructive" />
             )}
             <span>{check.pass ? check.passLabel : check.failLabel}</span>
           </li>

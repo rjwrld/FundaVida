@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ClipboardCheck } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { useCourses } from '@/hooks/api/courses'
@@ -50,17 +51,14 @@ export function NeedsMarkingWorklist() {
     <Card className="h-full" data-testid="needs-marking-worklist">
       <CardHeader>
         <CardTitle as="h3" className="flex items-center gap-2">
-          <ClipboardCheck
-            className="size-4 text-brand-green-700 dark:text-brand-green-300"
-            aria-hidden="true"
-          />
+          <ClipboardCheck className="size-4 text-primary" aria-hidden="true" />
           {t('dashboard.teacher.needsMarking.title')}
         </CardTitle>
         {worklist.length > 0 && (
           <CardAction>
-            <span className="rounded-full bg-brand-green-100 px-2 py-0.5 text-xs font-medium tabular-nums text-brand-green-800 dark:bg-brand-green-500/20 dark:text-brand-green-100">
+            <Badge variant="secondary" className="tabular-nums">
               {worklist.length}
-            </span>
+            </Badge>
           </CardAction>
         )}
       </CardHeader>
@@ -77,7 +75,7 @@ export function NeedsMarkingWorklist() {
                   to={`/app/courses/${group.courseId}/sessions/${group.oldestDate}/mark`}
                   className="group flex items-center gap-3 rounded-md py-1"
                 >
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-brand-green-700 dark:group-hover:text-brand-green-300 group-hover:underline">
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-primary group-hover:underline">
                     {shortCourseName({ name: group.courseName, sede: group.sede })}
                   </span>
                   <span className="shrink-0 text-xs text-muted-foreground">

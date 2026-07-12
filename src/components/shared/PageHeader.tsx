@@ -26,7 +26,7 @@ export function PageHeader({
     >
       <div className="flex min-w-0 flex-col gap-1">
         {eyebrow ? (
-          <span className="text-[12px] font-medium uppercase tracking-wider text-brand-green-700 dark:text-brand-green-300">
+          <span className="text-[12px] font-medium uppercase tracking-wider text-primary">
             {eyebrow}
           </span>
         ) : null}

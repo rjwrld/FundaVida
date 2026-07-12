@@ -129,7 +129,7 @@ export function WeekCanvas({
                 data-today={isToday ? 'true' : undefined}
                 className={cn(
                   'flex shrink-0 basis-[75vw] snap-center flex-col gap-2 rounded-lg p-2 md:basis-auto',
-                  isToday && 'bg-brand-green-50 dark:bg-brand-green-950/20'
+                  isToday && 'bg-primary/5'
                 )}
               >
                 <div className="flex items-baseline justify-between px-1">
