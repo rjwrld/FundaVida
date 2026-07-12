@@ -13,12 +13,20 @@ import {
 import { NoResults } from '@/components/shared/NoResults'
 import { Pager } from '@/components/ui/pager'
 import { usePagination } from '@/hooks/usePagination'
-import { fadeUp, staggerContainer, transitionFast } from '@/lib/motion'
+import { fadeUp, fadeUpHidden, staggerContainer, transitionFast } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 // Animate row presence through the shared motion tokens (ADR-0027). Rows fade
 // and rise in on mount (staggered by the body) and fade out on removal; under
 // prefers-reduced-motion the body opts out entirely so nothing animates.
+//
+// The rows carry no `initial`/`animate` of their own: they inherit the body's,
+// which is what subjects them to its `staggerChildren`. That inheritance is
+// fragile in two ways framer does not warn about (#349) — a *string* variant
+// label in any variant prop (`exit` included) makes the row variant-controlling
+// and severs it, hence `fadeUpHidden`; and an `<AnimatePresence initial={false}>`
+// would suppress the entrance of every child present at its first mount, which
+// — inside a body that remounts per page — is every row of every page.
 const MotionTableBody = motion.create(TableBody)
 const MotionTableRow = motion.create(TableRow)
 
@@ -207,13 +215,13 @@ export function DataTable<T>({
             initial={reduce ? false : 'hidden'}
             animate={reduce ? false : 'visible'}
           >
-            <AnimatePresence initial={false}>
+            <AnimatePresence>
               {pageItems.map((row) => (
                 <MotionTableRow
                   key={getRowKey(row)}
                   className="h-12 hover:bg-muted/40"
                   variants={reduce ? undefined : fadeUp}
-                  exit={reduce ? undefined : 'hidden'}
+                  exit={reduce ? undefined : fadeUpHidden}
                   transition={transitionFast}
                 >
                   {columns.map((col) => (
@@ -239,12 +247,12 @@ export function DataTable<T>({
           initial={reduce ? false : 'hidden'}
           animate={reduce ? false : 'visible'}
         >
-          <AnimatePresence initial={false}>
+          <AnimatePresence>
             {pageItems.map((row) => (
               <motion.li
                 key={getRowKey(row)}
                 variants={reduce ? undefined : fadeUp}
-                exit={reduce ? undefined : 'hidden'}
+                exit={reduce ? undefined : fadeUpHidden}
                 transition={transitionFast}
               >
                 {renderCard(row)}

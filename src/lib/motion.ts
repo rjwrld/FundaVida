@@ -1,12 +1,21 @@
-import type { Transition, Variants } from 'framer-motion'
+import type { TargetAndTransition, Transition, Variants } from 'framer-motion'
 
 export const fadeIn: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
 }
 
+/**
+ * `fadeUp`'s hidden state as a standalone target — hand this to `exit` on a child
+ * that inherits its `initial`/`animate` from a parent (e.g. a `staggerContainer`).
+ * Passing the `"hidden"` label instead would classify the child as
+ * variant-controlling, which severs that inheritance — and the stagger with it.
+ * An object target does not.
+ */
+export const fadeUpHidden: TargetAndTransition = { opacity: 0, y: 8 }
+
 export const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 8 },
+  hidden: fadeUpHidden,
   visible: { opacity: 1, y: 0 },
 }
 
