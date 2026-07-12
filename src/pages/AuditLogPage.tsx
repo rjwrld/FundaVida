@@ -13,6 +13,7 @@ import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
 import { listViewState } from '@/lib/listViewState'
+import { AUDIT_ACTION_VARIANT } from '@/lib/statusVariant'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { AuditLogsEmpty } from '@/components/empty-states/AuditLogsEmpty'
 import { useAuditLog } from '@/hooks/api'
@@ -40,16 +41,6 @@ const ENTITIES: AuditEntity[] = [
   'emailCampaign',
 ]
 
-function actionVariant(
-  action: AuditAction
-): 'success' | 'info' | 'destructive' | 'warning' | 'neutral' {
-  if (action === 'create' || action === 'enroll' || action === 'approve') return 'success'
-  if (action === 'update') return 'info'
-  if (action === 'delete') return 'destructive'
-  if (action === 'grade') return 'warning'
-  return 'neutral'
-}
-
 export function AuditLogPage() {
   const { t } = useTranslation()
   const { formatDateTime } = useFormat()
@@ -76,7 +67,7 @@ export function AuditLogPage() {
       id: 'action',
       header: t('auditLog.columns.action'),
       cell: (e) => (
-        <Badge variant={actionVariant(e.action)}>{t(`auditLog.actions.${e.action}`)}</Badge>
+        <Badge variant={AUDIT_ACTION_VARIANT[e.action]}>{t(`auditLog.actions.${e.action}`)}</Badge>
       ),
     },
     {

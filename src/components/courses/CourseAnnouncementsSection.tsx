@@ -85,7 +85,7 @@ export function CourseAnnouncementsSection({
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 {announcement.kind === 'sessionChange' && (
-                  <Badge variant="info">
+                  <Badge variant="neutral">
                     {t('courses.detail.announcements.kind.sessionChange')}
                   </Badge>
                 )}

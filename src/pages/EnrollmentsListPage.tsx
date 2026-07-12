@@ -32,6 +32,7 @@ import { useFormat } from '@/hooks/useFormat'
 import { can } from '@/permissions'
 import { shortCourseName } from '@/lib/courseName'
 import { fullName } from '@/lib/personName'
+import { ENROLLMENT_VARIANT } from '@/lib/statusVariant'
 import { SEDES } from '@/constants/sede'
 import type { Course, Enrollment, EnrollmentStatus, Student, Teacher } from '@/types'
 
@@ -39,16 +40,6 @@ const ANY_SEDE = '__all__'
 // Status filter values: 'active' (the default) hides rejected enrollments; the
 // other values narrow to a single status; 'all' shows everything.
 type StatusFilter = 'active' | 'all' | EnrollmentStatus
-
-function statusVariant(
-  status: EnrollmentStatus
-): 'success' | 'warning' | 'destructive' | 'neutral' {
-  if (status === 'approved') return 'success'
-  if (status === 'pending') return 'warning'
-  if (status === 'rejected') return 'destructive'
-  // `neutral`, not `outline`: every pill in this column needs its status dot.
-  return 'neutral'
-}
 
 export function EnrollmentsListPage() {
   const { t } = useTranslation()
@@ -348,7 +339,9 @@ function CourseEnrollmentGroup({
               <span className="font-mono text-xs text-muted-foreground tabular-nums">
                 {formatDate(e.enrolledAt)}
               </span>
-              <Badge variant={statusVariant(e.status)}>{t(`enrollments.status.${e.status}`)}</Badge>
+              <Badge variant={ENROLLMENT_VARIANT[e.status]}>
+                {t(`enrollments.status.${e.status}`)}
+              </Badge>
               <div className="flex gap-1">
                 {e.status === 'pending' && canApprove && (
                   <>

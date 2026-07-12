@@ -29,17 +29,11 @@ import { listViewState } from '@/lib/listViewState'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { tcuHoursByStatus, TCU_TARGET_HOURS } from '@/lib/tcuHours'
 import { fullName } from '@/lib/personName'
+import { TCU_VARIANT } from '@/lib/statusVariant'
 import { useFormat } from '@/hooks/useFormat'
 import { useStore } from '@/data/store'
 import { LogTcuActivityDialog } from '@/components/tcu/LogTcuActivityDialog'
 import type { TcuFilters } from '@/data/api/tcu'
-import type { TcuActivityStatus } from '@/types'
-
-function statusVariant(status: TcuActivityStatus): 'success' | 'warning' | 'destructive' {
-  if (status === 'approved') return 'success'
-  if (status === 'pending') return 'warning'
-  return 'destructive'
-}
 
 export function TcuListPage() {
   const { t } = useTranslation()
@@ -244,7 +238,7 @@ export function TcuListPage() {
                       </TableCell>
                       <TableCell>{formatDate(a.date)}</TableCell>
                       <TableCell>
-                        <Badge variant={statusVariant(a.status)}>
+                        <Badge variant={TCU_VARIANT[a.status]}>
                           {t(`tcu.list.status.${a.status}`)}
                         </Badge>
                       </TableCell>
