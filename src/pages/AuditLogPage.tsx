@@ -21,15 +21,24 @@ import { useFormat } from '@/hooks/useFormat'
 import type { AuditLogFilters } from '@/data/api/auditLog'
 import type { AuditAction, AuditEntity, AuditLogEntry } from '@/types'
 
+// Every AuditAction the store can emit, so the filter can reach every row the
+// log can actually contain (#345). Ordered as the enum declares them.
 const ACTIONS: AuditAction[] = [
   'create',
   'update',
   'delete',
   'enroll',
+  'requestEnroll',
   'unenroll',
+  'withdraw',
   'grade',
   'approve',
+  'close',
+  'log',
 ]
+// Likewise every AuditEntity: `announcement`, `attendance` and `tcuActivity` are
+// all written to the log but were absent here, so their rows could not be
+// filtered to at all (#345).
 const ENTITIES: AuditEntity[] = [
   'student',
   'teacher',
@@ -37,8 +46,11 @@ const ENTITIES: AuditEntity[] = [
   'enrollment',
   'grade',
   'certificate',
+  'attendance',
   'session',
+  'announcement',
   'emailCampaign',
+  'tcuActivity',
 ]
 
 export function AuditLogPage() {

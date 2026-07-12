@@ -100,15 +100,23 @@ t('validation.selectValue')
 // --- Task 4 (Tier 3) dynamic key references ---
 
 // Keys referenced dynamically via t(`auditLog.actions.${entry.action}`)
+// One line per AuditAction member — the store emits all of them, and a member
+// with no line here renders as its own raw key in the badge (#345).
 t('auditLog.actions.create')
 t('auditLog.actions.update')
 t('auditLog.actions.delete')
 t('auditLog.actions.enroll')
+t('auditLog.actions.requestEnroll')
 t('auditLog.actions.unenroll')
+t('auditLog.actions.withdraw')
 t('auditLog.actions.grade')
 t('auditLog.actions.approve')
+t('auditLog.actions.close')
+t('auditLog.actions.log')
 
 // Keys referenced dynamically via t(`auditLog.entities.${entry.entity}`)
+// One line per AuditEntity member, same rule as the actions above. `tcuActivity`
+// was misspelled `tcu` here, so it never matched the enum and rendered raw (#345).
 t('auditLog.entities.student')
 t('auditLog.entities.teacher')
 t('auditLog.entities.course')
@@ -116,9 +124,10 @@ t('auditLog.entities.enrollment')
 t('auditLog.entities.grade')
 t('auditLog.entities.certificate')
 t('auditLog.entities.attendance')
-t('auditLog.entities.tcu')
+t('auditLog.entities.tcuActivity')
 t('auditLog.entities.emailCampaign')
 t('auditLog.entities.session')
+t('auditLog.entities.announcement')
 
 // Keys referenced dynamically via t(`auditLog.filter.${action}`) in the filter dropdown
 t('auditLog.filter.create')

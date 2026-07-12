@@ -55,12 +55,16 @@
   "auditLog": {
     "actions": {
       "approve": "Aprobar",
+      "close": "Cerrar",
       "create": "Crear",
       "delete": "Eliminar",
       "enroll": "Matricular",
       "grade": "Calificar",
+      "log": "Registrar",
+      "requestEnroll": "Solicitar matrícula",
       "unenroll": "Desmatricular",
-      "update": "Actualizar"
+      "update": "Actualizar",
+      "withdraw": "Retirarse"
     },
     "columns": {
       "action": "Acción",
@@ -74,6 +78,7 @@
       "heading": "Aún no hay registros de auditoría"
     },
     "entities": {
+      "announcement": "Anuncio",
       "attendance": "Asistencia",
       "certificate": "Certificado",
       "course": "Curso",
@@ -82,7 +87,7 @@
       "grade": "Calificación",
       "session": "Sesión",
       "student": "Estudiante",
-      "tcu": "TCU",
+      "tcuActivity": "TCU",
       "teacher": "Docente"
     },
     "filter": {
