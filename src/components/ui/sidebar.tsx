@@ -20,7 +20,12 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
-const SIDEBAR_COOKIE_NAME = 'sidebar_state'
+// Local extension (ADR-0047): stock keeps this private, because the registry's Next.js recipe
+// reads the cookie server-side and never needs the name in client code. This SPA has no server,
+// so `lib/sidebarState` reads it in the browser instead — and it must read the name the writer
+// below actually wrote. Exporting it makes a re-pull that renames the cookie a type error at the
+// reader rather than a silent "the rail always re-expands on reload".
+export const SIDEBAR_COOKIE_NAME = 'sidebar_state'
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = '16rem'
 const SIDEBAR_WIDTH_MOBILE = '18rem'
