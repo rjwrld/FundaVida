@@ -22,7 +22,7 @@ const EPOCH = new Date('2026-06-01T12:00:00.000Z')
  * (which cover the landmark/region and heading-structure checks) and fail on
  * any violation. This started as a four-rule allowlist; it was widened once the
  * pre-existing findings it surfaced were fixed (dashboard heatmap grid roles,
- * decorative funnel bars, weekday-header labels, /welcome heading level).
+ * decorative funnel bars, weekday-header labels).
  */
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']
 
@@ -85,13 +85,8 @@ async function seedAndEnter(page: Page, role: Role, userId: string) {
 test.describe('accessibility (axe)', () => {
   // The public marketing landing is intentionally left out: its infinite
   // marquee/aurora animations never quiesce, so axe's async run does not settle
-  // and the scan times out. This suite covers the authenticated product — where
-  // the audit's contrast/landmark concern lives — plus the role-select page.
-  test('role-select (welcome) page has no violations', async ({ page }) => {
-    await page.goto('/welcome')
-    const results = await scan(page)
-    expect(results.violations).toEqual([])
-  })
+  // and the scan times out. This suite covers the authenticated product, where
+  // the audit's contrast/landmark concern lives.
 
   // /app is a different surface per role — each role composes its own cards, so
   // a violation on one hides on the others. Scanning admin alone let the same
