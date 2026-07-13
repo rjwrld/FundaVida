@@ -11,6 +11,7 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
+import { Kbd } from '@/components/ui/kbd'
 import { navItemsForRole } from '@/constants/nav'
 import { useStore } from '@/data/store'
 import { useTheme, type Theme } from '@/hooks/useTheme'
@@ -89,16 +90,14 @@ export function CommandPalette() {
       </CommandList>
       <CommandFooter>
         <div className="flex items-center gap-3">
+          {/* Same bordered treatment as the header's ⌘K hint (SiteHeader): the
+              stock bg-muted fill fails the axe AA gate at this text size. */}
           <span className="flex items-center gap-1">
-            <kbd className="inline-flex h-4 items-center rounded-sm border border-border/60 bg-background px-1 font-mono text-[10px]">
-              ↵
-            </kbd>
+            <Kbd className="border bg-background">↵</Kbd>
             {t('common.commandPalette.hints.select')}
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="inline-flex h-4 items-center rounded-sm border border-border/60 bg-background px-1 font-mono text-[10px]">
-              Esc
-            </kbd>
+            <Kbd className="border bg-background">Esc</Kbd>
             {t('common.commandPalette.hints.close')}
           </span>
         </div>

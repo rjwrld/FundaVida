@@ -10,6 +10,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { NAV_ITEMS } from '@/constants/nav'
+import { cn } from '@/lib/utils'
 import { useStudents, useTeachers, usePrograms, useCourses } from '@/hooks/api'
 import { fullName } from '@/lib/personName'
 
@@ -116,8 +117,12 @@ export function Breadcrumbs() {
       <BreadcrumbList className="flex-nowrap gap-1.5 sm:gap-1.5">
         {crumbs.map((crumb, idx) => (
           <Fragment key={`${crumb.label}-${idx}`}>
-            {idx > 0 ? <BreadcrumbSeparator /> : null}
-            <BreadcrumbItem className="min-w-0">
+            {/* The block's header-slot pattern: below `md` only the current page
+                shows — ancestors and their separators wait for the wider header. */}
+            {idx > 0 ? <BreadcrumbSeparator className="hidden md:block" /> : null}
+            <BreadcrumbItem
+              className={cn('min-w-0', idx < crumbs.length - 1 && 'hidden md:inline-flex')}
+            >
               {crumb.to && idx < crumbs.length - 1 ? (
                 <BreadcrumbLink asChild className="truncate">
                   <Link to={crumb.to}>{crumb.label}</Link>

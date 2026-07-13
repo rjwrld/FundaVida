@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useLocation, useOutlet } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { AppHeader } from './AppHeader'
+import { SiteHeader } from './SiteHeader'
 import { AppSidebar } from './AppSidebar'
 import { AppFooter } from './AppFooter'
 import { DemoBanner } from '@/components/demo/DemoBanner'
@@ -71,7 +71,7 @@ export function AppLayout() {
             nested inside `main`. The inset's own styling only matters to `variant=inset`. */}
         <div className="flex min-w-0 flex-1 flex-col">
           <DemoBanner />
-          <AppHeader />
+          <SiteHeader />
           <main
             id="main-content"
             ref={mainRef}
