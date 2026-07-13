@@ -614,7 +614,7 @@
       "sedeLabel": "Sede"
     },
     "teacher": {
-      "markAttendance": "Marcar",
+      "markAttendance": "Registrar asistencia",
       "needsMarking": {
         "empty": "No hay nada por marcar. Estás al día.",
         "title": "Por marcar"

@@ -607,7 +607,7 @@
       "sedeLabel": "Campus"
     },
     "teacher": {
-      "markAttendance": "Mark",
+      "markAttendance": "Mark attendance",
       "needsMarking": {
         "empty": "Nothing needs marking. You're all caught up.",
         "title": "Needs marking"
