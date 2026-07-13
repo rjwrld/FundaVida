@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
 import { setDemoEpoch } from '@/lib/clock'
+import { api } from '@/data/api'
+import { delay } from '@/data/api/_delay'
 import { useStore } from '@/data/store'
 import type { Course, Enrollment } from '@/types'
 import { EnrollmentFunnelBySede } from '../EnrollmentFunnelBySede'
@@ -59,6 +61,7 @@ describe('EnrollmentFunnelBySede', () => {
   })
   afterEach(() => {
     useStore.setState(snapshot)
+    vi.restoreAllMocks()
   })
 
   it('shows per-Sede pending vs approved counts and links to the enrollments page', async () => {
@@ -75,14 +78,39 @@ describe('EnrollmentFunnelBySede', () => {
     })
 
     const { container } = renderCard()
-    const card = container.querySelector('[data-slot="card"]') as HTMLElement
 
-    expect(await within(card).findByText('Hatillo')).toBeInTheDocument()
+    // The card is gated behind resolveQueries (ADR-0030), so the first paint is
+    // a skeleton; wait for the data to land before scoping to the card.
+    expect(await screen.findByText('Hatillo')).toBeInTheDocument()
+    const card = container.querySelector('[data-slot="card"]') as HTMLElement
     // rejected is excluded: 3 approved, 2 pending.
     expect(within(card).getByText('3 approved · 2 pending')).toBeInTheDocument()
 
     const link = screen.getByRole('link', { name: /review enrollments/i })
     expect(link).toHaveAttribute('href', '/app/enrollments')
+  })
+
+  it('holds a skeleton until both queries resolve — never flashes the empty state (ADR-0030)', async () => {
+    // Hold the Courses read open past the enrollments so an ungated funnel
+    // would paint "No enrollment activity yet" before the Sede mapping lands.
+    const listCourses = api.courses.list
+    vi.spyOn(api.courses, 'list').mockImplementation(async (...args) => {
+      await delay(400)
+      return listCourses(...args)
+    })
+    useStore.setState({
+      courses: [makeCourse('cou-h', 'Hatillo')],
+      enrollments: [enr('cou-h', 'approved', 1)],
+    })
+
+    renderCard()
+
+    // First synchronous paint: gate pending → skeleton, no title, no empty copy.
+    expect(screen.queryByText('Enrollment funnel by campus')).not.toBeInTheDocument()
+    expect(screen.queryByText('No enrollment activity yet.')).not.toBeInTheDocument()
+
+    expect(await screen.findByText('Hatillo')).toBeInTheDocument()
+    expect(screen.getByText('Enrollment funnel by campus')).toBeInTheDocument()
   })
 
   it('shows the empty state when there is no pending or approved activity', async () => {

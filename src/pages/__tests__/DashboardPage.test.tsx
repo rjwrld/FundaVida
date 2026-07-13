@@ -72,7 +72,7 @@ describe('<DashboardPage /> (admin)', () => {
       [/tcu hours/i, deltas.tcuHours],
     ]
     for (const [label, delta] of cases) {
-      const card = screen.getByText(label).closest('div.group') as HTMLElement
+      const card = screen.getByText(label).closest('[data-slot="card"]') as HTMLElement
       if (delta === null) {
         expect(within(card).queryByText(/vs last month/i)).toBeNull()
       } else {
@@ -84,14 +84,15 @@ describe('<DashboardPage /> (admin)', () => {
     }
   })
 
-  it('renders the actionable supporting cards (courses to close, at-risk, funnel)', () => {
+  it('renders the actionable supporting cards (courses to close, at-risk, funnel)', async () => {
     renderDashboard()
     // The filler TopCourses/RecentActivity cards are replaced by role-scoped,
     // actionable cards (issue #155).
     expect(screen.getByRole('heading', { name: /courses to close/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /students at risk/i })).toBeInTheDocument()
+    // The funnel gates on its queries (ADR-0030), so its heading paints async.
     expect(
-      screen.getByRole('heading', { name: /enrollment funnel by campus/i })
+      await screen.findByRole('heading', { name: /enrollment funnel by campus/i })
     ).toBeInTheDocument()
   })
 

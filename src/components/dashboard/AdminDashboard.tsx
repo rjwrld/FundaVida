@@ -37,11 +37,15 @@ export function AdminDashboard() {
         transition={transitionDefaults}
         className="grid grid-cols-1 gap-4 lg:grid-cols-2"
       >
-        <CoursesToClose />
-        <CertsThisEpoch />
-        <AtRiskStudents />
+        {/* First row mirrors the approved phase-5 screenshot: the funnel chart
+            beside the close worklist. */}
         <EnrollmentFunnelBySede />
-        <DashboardAnnouncementsFeed />
+        <CoursesToClose />
+        <AtRiskStudents />
+        <CertsThisEpoch />
+        <div className="lg:col-span-2">
+          <DashboardAnnouncementsFeed />
+        </div>
       </motion.div>
     </DashboardShell>
   )
