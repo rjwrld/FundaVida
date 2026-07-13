@@ -17,21 +17,21 @@ describe('<RoleRequired />', () => {
     useStore.getState().resetDemo()
   })
 
-  it('redirects to /welcome when no role is selected', () => {
+  it('redirects to / when no role is selected', () => {
     render(
       <MemoryRouter
         initialEntries={['/app']}
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       >
         <Routes>
-          <Route path="/welcome" element={<div>welcome</div>} />
+          <Route path="/" element={<div>landing</div>} />
           <Route element={<RoleRequired />}>
             <Route path="/app" element={<div>protected</div>} />
           </Route>
         </Routes>
       </MemoryRouter>
     )
-    expect(screen.getByText('welcome')).toBeInTheDocument()
+    expect(screen.getByText('landing')).toBeInTheDocument()
   })
 
   it('renders the protected outlet when a role is set', () => {

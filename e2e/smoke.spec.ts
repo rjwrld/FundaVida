@@ -20,4 +20,10 @@ test.describe('smoke', () => {
     await expect(page.getByRole('heading', { name: '404' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Back to home' })).toBeVisible()
   })
+
+  test('deep-linking into /app with no role redirects to the landing', async ({ page }) => {
+    await page.goto('/app/students')
+    await expect(page).toHaveURL(/\/$/)
+    await expect(page.getByRole('heading', { name: 'Hope changes everything.' })).toBeVisible()
+  })
 })
