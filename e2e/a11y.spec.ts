@@ -44,6 +44,17 @@ async function scan(page: Page) {
   return new AxeBuilder({ page }).withTags(TAGS).analyze()
 }
 
+/**
+ * Wait out the loading skeletons — the role="status" elements labelled
+ * "Loading…" (the Pager's live region is one too, and it never clears). None
+ * survives settled content, and scan()'s fade-wait only sees elements already
+ * fading: a scan started while a skeleton is still up races the real content's
+ * entrance fade, and axe reads mid-fade text as a contrast failure.
+ */
+async function settleSkeletons(page: Page) {
+  await expect(page.locator('[role="status"][aria-label^="Loading"]')).toHaveCount(0)
+}
+
 /** Resolve once the element's colour pair has stopped changing. */
 async function settleColorTransition(target: Locator) {
   const read = () =>
@@ -99,10 +110,7 @@ test.describe('accessibility (axe)', () => {
       await seedAndEnter(page, role, USER_ID_FOR_ROLE[role])
       await page.goto('/app')
       await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
-      // Skeletons are the role="status" elements labelled "Loading…" (the Pager's
-      // live region is one too, and it never clears). None survives a settled
-      // dashboard, so waiting them out scans the loaded cards, not placeholders.
-      await expect(page.locator('[role="status"][aria-label^="Loading"]')).toHaveCount(0)
+      await settleSkeletons(page)
       const results = await scan(page)
       expect(results.violations).toEqual([])
     })
@@ -161,6 +169,7 @@ test.describe('accessibility (axe)', () => {
       await page.goto(path)
       // Wait for the page's own heading so the scan runs against settled content.
       await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
+      await settleSkeletons(page)
       const results = await scan(page)
       expect(results.violations).toEqual([])
     })

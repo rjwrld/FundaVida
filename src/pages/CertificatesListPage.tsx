@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { pdf } from '@react-pdf/renderer'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Search } from 'lucide-react'
@@ -24,7 +23,6 @@ import { CertificatePreviewDialog } from '@/components/certificates/CertificateP
 import { useStore } from '@/data/store'
 import { useCertificates } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
-import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
 import { fadeUpHidden, staggerEntrance } from '@/lib/motion'
 import { fullName } from '@/lib/personName'
 
@@ -123,10 +121,9 @@ export function CertificatesListPage() {
     [items, selectedId]
   )
 
-  // Pre-generate the PDF as a blob URL when a certificate is selected. The blob is
-  // typed as application/octet-stream so headless Chromium treats it as a pure
-  // download and respects the anchor's `download` attribute (PDFs would otherwise
-  // route through the built-in viewer, which ignores it).
+  // Pre-generate the PDF as an opaque blob URL when a certificate is selected.
+  // The renderer module is dynamically imported so the @react-pdf graph loads
+  // only on first preview, never with the route chunk (#353).
   useEffect(() => {
     if (!selected) {
       setDataUrl(null)
@@ -134,20 +131,19 @@ export function CertificatesListPage() {
     }
     let cancelled = false
     let createdUrl: string | null = null
-    pdf(
-      <CertificateTemplate
-        studentName={selected.studentName}
-        courseName={selected.courseName}
-        programName={selected.programName}
-        score={selected.score}
-        issuedAt={selected.issuedAtIso}
-      />
-    )
-      .toBlob()
+    import('@/lib/pdf/renderCertificate')
+      .then(({ renderCertificateBlob }) =>
+        renderCertificateBlob({
+          studentName: selected.studentName,
+          courseName: selected.courseName,
+          programName: selected.programName,
+          score: selected.score,
+          issuedAt: selected.issuedAtIso,
+        })
+      )
       .then((blob) => {
         if (cancelled) return
-        const opaque = new Blob([blob], { type: 'application/octet-stream' })
-        createdUrl = URL.createObjectURL(opaque)
+        createdUrl = URL.createObjectURL(blob)
         setDataUrl(createdUrl)
       })
     return () => {

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { pdf } from '@react-pdf/renderer'
 import { useTranslation } from 'react-i18next'
 import { CertificateCard } from '@/components/certificates/CertificateCard'
 import { NoResults } from '@/components/shared/NoResults'
@@ -7,7 +6,6 @@ import { CertificatePreviewDialog } from '@/components/certificates/CertificateP
 import { useStore } from '@/data/store'
 import { useCertificates } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
-import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
 import { fullName } from '@/lib/personName'
 import type { Course } from '@/types'
 
@@ -62,7 +60,8 @@ export function CourseCertificatesSection({ course }: { course: Course }) {
   )
 
   // Pre-generate the PDF as an opaque blob URL when a certificate is selected,
-  // matching the global gallery's download behavior.
+  // matching the global gallery's download behavior. The renderer module is
+  // dynamically imported so the @react-pdf graph loads only on first preview (#353).
   useEffect(() => {
     if (!selected) {
       setDataUrl(null)
@@ -70,20 +69,19 @@ export function CourseCertificatesSection({ course }: { course: Course }) {
     }
     let cancelled = false
     let createdUrl: string | null = null
-    pdf(
-      <CertificateTemplate
-        studentName={selected.studentName}
-        courseName={course.name}
-        programName={selected.programName}
-        score={selected.score}
-        issuedAt={selected.issuedAtIso}
-      />
-    )
-      .toBlob()
+    import('@/lib/pdf/renderCertificate')
+      .then(({ renderCertificateBlob }) =>
+        renderCertificateBlob({
+          studentName: selected.studentName,
+          courseName: course.name,
+          programName: selected.programName,
+          score: selected.score,
+          issuedAt: selected.issuedAtIso,
+        })
+      )
       .then((blob) => {
         if (cancelled) return
-        const opaque = new Blob([blob], { type: 'application/octet-stream' })
-        createdUrl = URL.createObjectURL(opaque)
+        createdUrl = URL.createObjectURL(blob)
         setDataUrl(createdUrl)
       })
     return () => {

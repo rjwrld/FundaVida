@@ -3,7 +3,7 @@ import { formatDate } from '@/lib/format'
 import { FundaVidaMark } from './FundaVidaMark'
 import { CERTIFICATE_COLORS as C } from './certificateTheme'
 
-interface Props {
+export interface CertificatePayload {
   studentName: string
   courseName: string
   programName: string
@@ -44,7 +44,7 @@ export function CertificateTemplate({
   programName,
   score,
   issuedAt,
-}: Props) {
+}: CertificatePayload) {
   // The PDF body is intentionally English (stakeholder decision); route the date through
   // the official formatter to keep the Intl-call audit clean.
   const issued = formatDate(issuedAt, 'en')
