@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useReducedMotion } from 'framer-motion'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
 import { AppSidebar } from '@/components/layout/AppSidebar'
@@ -12,6 +13,15 @@ import {
   clearPersistedRole,
   clearPersistedState,
 } from '@/data/persistence'
+
+// The gliding active pill (ADR-0047 phase 6a) opts out through framer's
+// `useReducedMotion()`, which latches the media query module-wide — so, per the
+// data-table/tabs precedent, the hook is the mocked seam and the rest of the
+// module stays real.
+vi.mock('framer-motion', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('framer-motion')>()),
+  useReducedMotion: vi.fn(() => false),
+}))
 
 function LocationDisplay() {
   const location = useLocation()
@@ -52,6 +62,7 @@ async function openDrawer(user: ReturnType<typeof userEvent.setup>) {
 
 describe('<AppSidebar />', () => {
   beforeEach(() => {
+    vi.mocked(useReducedMotion).mockReturnValue(false)
     clearPersistedState()
     clearPersistedRole()
     clearPersistedCurrentUser()
@@ -114,6 +125,50 @@ describe('<AppSidebar />', () => {
 
     expect(screen.getByRole('link', { name: 'Courses' })).toHaveAttribute('data-active', 'true')
     expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('data-active', 'false')
+  })
+
+  // Phase 6a: the active highlight is one shared-layoutId pill that glides
+  // between items on route change; reduced motion drops the pill and leaves the
+  // block's static data-active styling in charge.
+  describe('active pill', () => {
+    const PILL = '[data-slot="sidebar-active-pill"]'
+
+    it('renders exactly one pill, inside the active item', () => {
+      useStore.getState().setRole('admin')
+      renderSidebar()
+
+      expect(document.querySelectorAll(PILL)).toHaveLength(1)
+      const item = document.querySelector(PILL)?.closest('li')
+      expect(item).not.toBeNull()
+      expect(within(item as HTMLElement).getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+        'data-active',
+        'true'
+      )
+    })
+
+    it('moves the pill to the newly followed item', async () => {
+      const user = userEvent.setup()
+      useStore.getState().setRole('admin')
+      renderSidebar()
+
+      await user.click(screen.getByRole('link', { name: 'Courses' }))
+
+      expect(document.querySelectorAll(PILL)).toHaveLength(1)
+      const item = document.querySelector(PILL)?.closest('li')
+      expect(within(item as HTMLElement).getByRole('link', { name: 'Courses' })).toHaveAttribute(
+        'data-active',
+        'true'
+      )
+    })
+
+    it('skips the pill under prefers-reduced-motion — static active styling stands in', () => {
+      vi.mocked(useReducedMotion).mockReturnValue(true)
+      useStore.getState().setRole('admin')
+      renderSidebar()
+
+      expect(document.querySelector(PILL)).not.toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('data-active', 'true')
+    })
   })
 
   it('renders the brand lockup and the persona footer', () => {

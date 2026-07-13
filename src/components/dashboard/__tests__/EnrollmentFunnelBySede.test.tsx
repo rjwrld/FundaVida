@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
+import { useReducedMotion } from 'framer-motion'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
 import { setDemoEpoch } from '@/lib/clock'
@@ -9,6 +10,14 @@ import { delay } from '@/data/api/_delay'
 import { useStore } from '@/data/store'
 import type { Course, Enrollment } from '@/types'
 import { EnrollmentFunnelBySede } from '../EnrollmentFunnelBySede'
+
+// The chart draw-in (phase 6a) reads framer's `useReducedMotion()` and hands
+// recharts its animation props; mock the hook (data-table/tabs precedent) so
+// the reduced-motion path can be driven from a test.
+vi.mock('framer-motion', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('framer-motion')>()),
+  useReducedMotion: vi.fn(() => false),
+}))
 
 const EPOCH = new Date('2026-06-15T12:00:00.000Z')
 
@@ -54,6 +63,7 @@ describe('EnrollmentFunnelBySede', () => {
   let snapshot: { courses: Course[]; enrollments: Enrollment[] }
 
   beforeEach(() => {
+    vi.mocked(useReducedMotion).mockReturnValue(false)
     setDemoEpoch(EPOCH)
     useStore.getState().setRole('admin')
     const s = useStore.getState()
@@ -111,6 +121,25 @@ describe('EnrollmentFunnelBySede', () => {
 
     expect(await screen.findByText('Hatillo')).toBeInTheDocument()
     expect(screen.getByText('Enrollment funnel by campus')).toBeInTheDocument()
+  })
+
+  it('still renders the chart under prefers-reduced-motion — only the draw-in is dropped', async () => {
+    // The animation props themselves are pinned in lib/__tests__/motion.test.ts
+    // (chartDrawIn); this drives the same hook the component reads and checks the
+    // chart surface still mounts. (jsdom gives ResponsiveContainer no box, so the
+    // SVG itself never paints here — the container and the sr-only summary are
+    // what can be observed.)
+    vi.mocked(useReducedMotion).mockReturnValue(true)
+    useStore.setState({
+      courses: [makeCourse('cou-h', 'Hatillo')],
+      enrollments: [enr('cou-h', 'approved', 1), enr('cou-h', 'pending', 2)],
+    })
+
+    const { container } = renderCard()
+
+    expect(await screen.findByText('Hatillo')).toBeInTheDocument()
+    expect(container.querySelector('[data-chart]')).toBeInTheDocument()
+    expect(screen.getByText('1 approved · 1 pending')).toBeInTheDocument()
   })
 
   it('shows the empty state when there is no pending or approved activity', async () => {

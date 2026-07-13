@@ -103,6 +103,10 @@
 @theme {
   --shadow-elevated: 0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 2px 10px -2px rgba(0, 0, 0, 0.04);
 
+  /* The CSS twin of lib/motion's transitionDefaults ease (phase 6a) — one token
+     for every CSS-driven transition that wants the shared curve (`ease-out-quint`). */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+
   --animate-fade-in: fade-in 0.2s ease-out;
   --animate-fade-up: fade-up 0.3s ease-out;
   --animate-aurora-drift: aurora-drift 20s ease-in-out infinite;
@@ -298,6 +302,22 @@
     .float {
       animation: none !important;
     }
+  }
+}
+
+/* Phase 6a (ADR-0047): CSS-driven motion — tw-animate dialog/sheet enter/exit, the
+   sidebar width transition, hover transitions — cannot ride framer's MotionConfig,
+   so it collapses here. Durations go to ~0 rather than `none` because Radix keeps
+   closed overlays mounted until `animationend`; a near-zero animation still fires
+   the event, `animation: none` never would. Framer-driven motion opts out through
+   `useReducedMotion()`/MotionConfig instead (ADR-0027). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

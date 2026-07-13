@@ -3,6 +3,7 @@ import { render, screen, fireEvent, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useReducedMotion } from 'framer-motion'
 import { I18nProvider } from '@/lib/i18n'
 import { fullName } from '@/lib/personName'
 import { CertificatesListPage } from '@/pages/CertificatesListPage'
@@ -14,9 +15,12 @@ import {
 } from '@/data/persistence'
 import type { Certificate } from '@/types'
 
+// Reduced by default (the historical behavior of this suite); individual tests
+// flip it to false to exercise the staggered gallery entrance (phase 6a) — the
+// vi.fn seam per the data-table/tabs precedent.
 vi.mock('framer-motion', async () => {
   const actual = await vi.importActual<typeof import('framer-motion')>('framer-motion')
-  return { ...actual, useReducedMotion: () => true }
+  return { ...actual, useReducedMotion: vi.fn(() => true) }
 })
 
 function renderPage(entry = '/app/certificates') {
@@ -56,6 +60,7 @@ function injectCertificate(): Certificate {
 
 describe('<CertificatesListPage />', () => {
   beforeEach(() => {
+    vi.mocked(useReducedMotion).mockReturnValue(true)
     clearPersistedState()
     clearPersistedRole()
     clearPersistedCurrentUser()
@@ -64,6 +69,17 @@ describe('<CertificatesListPage />', () => {
   })
 
   it('shows an admin a gallery of previewable certificate cards', async () => {
+    useStore.getState().setRole('admin')
+    injectCertificate()
+    renderPage()
+
+    expect(await screen.findByRole('button', { name: /open preview/i })).toBeInTheDocument()
+  })
+
+  // Phase 6a: the gallery enters through the staggered card-grid pattern; the
+  // animated path must render the same cards the reduced path does.
+  it('renders the gallery through the staggered entrance when motion is allowed', async () => {
+    vi.mocked(useReducedMotion).mockReturnValue(false)
     useStore.getState().setRole('admin')
     injectCertificate()
     renderPage()

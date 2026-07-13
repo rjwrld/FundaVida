@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -22,6 +23,8 @@ import { NeedHelpCard } from '@/components/layout/NeedHelpCard'
 import { SidebarUser } from '@/components/layout/SidebarUser'
 import { groupNavByRole, isNavItemActive } from '@/constants/nav'
 import { useStore } from '@/data/store'
+import { transitionGlide } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 
 /**
  * The app shell's nav, on the registry Sidebar block (ADR-0047 phase 4a). One component
@@ -44,6 +47,7 @@ export function AppSidebar() {
   const { pathname } = useLocation()
   const { isMobile, setOpenMobile } = useSidebar()
   const { t } = useTranslation()
+  const reduce = useReducedMotion()
 
   // Defensive close: any route change (back button, a programmatic navigate) drops the
   // drawer. A link tap also closes via its own onClick, which covers navigating to the
@@ -99,27 +103,46 @@ export function AppSidebar() {
               <SidebarGroupLabel>{t(`nav.sections.${group.section}`)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {group.items.map((item) => (
-                    <SidebarMenuItem key={item.to}>
-                      {/* The drawer's links carry the ≥44px touch target (#292); the desktop
+                  {group.items.map((item) => {
+                    const active = isNavItemActive(pathname, item.to)
+                    return (
+                      <SidebarMenuItem key={item.to}>
+                        {/* Phase 6a (ADR-0047): the active highlight is a shared `layoutId`
+                          pill, so a route change glides it to the new item instead of
+                          swapping backgrounds. The button's own active bg goes transparent
+                          only while the pill carries it; under prefers-reduced-motion both
+                          fall back to the block's static styling. `relative` keeps the link
+                          content painting above the absolutely-positioned pill. */}
+                        {active && !reduce && (
+                          <motion.span
+                            layoutId="sidebar-active-pill"
+                            transition={transitionGlide}
+                            aria-hidden="true"
+                            data-slot="sidebar-active-pill"
+                            className="pointer-events-none absolute inset-0 rounded-md bg-sidebar-accent"
+                          />
+                        )}
+                        {/* The drawer's links carry the ≥44px touch target (#292); the desktop
                         rail keeps the block's default density. */}
-                      <SidebarMenuButton
-                        asChild
-                        size={isMobile ? 'lg' : 'default'}
-                        isActive={isNavItemActive(pathname, item.to)}
-                        tooltip={t(item.labelKey)}
-                      >
-                        <NavLink
-                          to={item.to}
-                          end={item.to === '/app'}
-                          onClick={() => setOpenMobile(false)}
+                        <SidebarMenuButton
+                          asChild
+                          size={isMobile ? 'lg' : 'default'}
+                          isActive={active}
+                          tooltip={t(item.labelKey)}
+                          className={cn('relative', !reduce && 'data-[active=true]:bg-transparent')}
                         >
-                          <item.icon />
-                          <span>{t(item.labelKey)}</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                          <NavLink
+                            to={item.to}
+                            end={item.to === '/app'}
+                            onClick={() => setOpenMobile(false)}
+                          >
+                            <item.icon />
+                            <span>{t(item.labelKey)}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
