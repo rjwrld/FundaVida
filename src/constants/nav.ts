@@ -155,6 +155,18 @@ export function navItemsForRole(role: Role): NavItem[] {
   })
 }
 
+/**
+ * Whether `to` is the nav entry the current `pathname` sits under. The Sidebar block
+ * needs this as a value (`SidebarMenuButton isActive`), so it cannot ride `NavLink`'s
+ * own render-prop — `asChild` hands the button's className to the link, and NavLink's
+ * function form would collide with it. Detail routes keep their section lit
+ * (/app/courses/12 → Courses); /app matches exactly, since every route is under it.
+ */
+export function isNavItemActive(pathname: string, to: string): boolean {
+  if (to === '/app') return pathname === '/app'
+  return pathname === to || pathname.startsWith(`${to}/`)
+}
+
 export function groupNavByRole(role: Role): { section: NavSection; items: NavItem[] }[] {
   const items = navItemsForRole(role)
   return NAV_SECTIONS.map((section) => ({

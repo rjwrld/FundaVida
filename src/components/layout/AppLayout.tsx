@@ -8,7 +8,9 @@ import { AppFooter } from './AppFooter'
 import { DemoBanner } from '@/components/demo/DemoBanner'
 import { CommandPalette } from '@/components/shared/CommandPalette'
 import { CommandPaletteProvider } from '@/components/shared/CommandPaletteProvider'
+import { SidebarProvider } from '@/components/ui/sidebar'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
+import { readSidebarState } from '@/lib/sidebarState'
 
 function AnimatedOutlet() {
   const { pathname } = useLocation()
@@ -53,17 +55,23 @@ export function AppLayout() {
 
   return (
     <CommandPaletteProvider>
-      <div className="flex min-h-screen flex-col">
+      {/* The rail's expanded/collapsed state is persisted by the block as a cookie; the
+          registry reads it back server-side, which this SPA has no chance to do — so we
+          read it here and seed the provider with it (lib/sidebarState). */}
+      <SidebarProvider defaultOpen={readSidebarState()}>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:shadow-sm focus:ring-2 focus:ring-ring"
         >
           {t('common.a11y.skipToMain')}
         </a>
-        <DemoBanner />
-        <AppHeader />
-        <div className="flex flex-1">
-          <AppSidebar />
+        <AppSidebar />
+        {/* Deliberately not the block's `SidebarInset`: that renders a `<main>`, and this
+            column also holds the banner, header and footer — landmarks that must not be
+            nested inside `main`. The inset's own styling only matters to `variant=inset`. */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <DemoBanner />
+          <AppHeader />
           <main
             id="main-content"
             ref={mainRef}
@@ -72,10 +80,10 @@ export function AppLayout() {
           >
             <AnimatedOutlet />
           </main>
+          <AppFooter />
         </div>
-        <AppFooter />
         <CommandPalette />
-      </div>
+      </SidebarProvider>
     </CommandPaletteProvider>
   )
 }

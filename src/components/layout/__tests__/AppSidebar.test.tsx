@@ -1,14 +1,54 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { act, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter, useLocation } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
 import { AppSidebar } from '@/components/layout/AppSidebar'
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { useStore } from '@/data/store'
+import { axe } from '@/test/axe'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
   clearPersistedState,
 } from '@/data/persistence'
+
+function LocationDisplay() {
+  const location = useLocation()
+  return <div data-testid="location">{location.pathname}</div>
+}
+
+/**
+ * The block reads `window.innerWidth` (through `useIsMobile`) to choose between the
+ * desktop rail and the sheet, so the viewport is the only switch these tests need.
+ * jsdom's default 1024 is the desktop case; `{ mobile: true }` drops it below the md
+ * breakpoint, where the nav only exists once the trigger opens the drawer.
+ */
+function renderSidebar({
+  mobile = false,
+  route = '/app',
+}: { mobile?: boolean; route?: string } = {}) {
+  window.innerWidth = mobile ? 500 : 1024
+  return render(
+    <I18nProvider>
+      <MemoryRouter
+        initialEntries={[route]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <SidebarProvider>
+          <SidebarTrigger aria-label="Toggle navigation" />
+          <AppSidebar />
+          <LocationDisplay />
+        </SidebarProvider>
+      </MemoryRouter>
+    </I18nProvider>
+  )
+}
+
+async function openDrawer(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: 'Toggle navigation' }))
+  return screen.getByRole('dialog')
+}
 
 describe('<AppSidebar />', () => {
   beforeEach(() => {
@@ -19,43 +59,195 @@ describe('<AppSidebar />', () => {
     useStore.getState().setLocale('en')
   })
 
+  afterEach(() => {
+    window.innerWidth = 1024
+  })
+
   it('renders nothing when no role is selected', () => {
-    const { container } = render(
-      <I18nProvider>
-        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <AppSidebar />
-        </MemoryRouter>
-      </I18nProvider>
-    )
-    expect(container).toBeEmptyDOMElement()
+    renderSidebar()
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
   })
 
-  it('shows dashboard, students, courses, certificates for admin', () => {
+  it('groups the role nav under its section labels', () => {
     useStore.getState().setRole('admin')
-    render(
-      <I18nProvider>
-        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <AppSidebar />
-        </MemoryRouter>
-      </I18nProvider>
+    renderSidebar()
+
+    const nav = screen.getByRole('navigation', { name: 'Navigation' })
+    expect(within(nav).getByRole('link', { name: 'Dashboard' })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: 'Students' })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: 'Courses' })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: 'Certificates' })).toBeInTheDocument()
+
+    const labels = Array.from(nav.querySelectorAll('[data-slot="sidebar-group-label"]')).map(
+      (label) => label.textContent
     )
-    expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Students' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Courses' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Certificates' })).toBeInTheDocument()
+    expect(labels).toEqual(['Programs', 'People', 'Reports'])
   })
 
-  it('hides students for student role', () => {
+  // The block is presentation; the matrix is truth (ADR-0010). A role without the
+  // `students` view permission cannot derive the entry, let alone see it.
+  it('derives the visible items from the role (no Students for a student)', () => {
     useStore.getState().setRole('student')
-    render(
-      <I18nProvider>
-        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <AppSidebar />
-        </MemoryRouter>
-      </I18nProvider>
-    )
-    expect(screen.queryByRole('link', { name: 'Students' })).not.toBeInTheDocument()
+    renderSidebar()
+
     expect(screen.getByRole('link', { name: 'Courses' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Certificates' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Students' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'My profile' })).toBeInTheDocument()
+  })
+
+  it('re-derives the items when the role switches', () => {
+    useStore.getState().setRole('admin')
+    renderSidebar()
+    expect(screen.getByRole('link', { name: 'Audit Logs' })).toBeInTheDocument()
+
+    act(() => useStore.getState().setRole('student'))
+
+    expect(screen.queryByRole('link', { name: 'Audit Logs' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'My profile' })).toBeInTheDocument()
+  })
+
+  // A detail route keeps its section lit; the Dashboard — which every route sits under —
+  // must not stay lit alongside it.
+  it('marks the section of the current route active, including its detail routes', () => {
+    useStore.getState().setRole('admin')
+    renderSidebar({ route: '/app/courses/12' })
+
+    expect(screen.getByRole('link', { name: 'Courses' })).toHaveAttribute('data-active', 'true')
+    expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('data-active', 'false')
+  })
+
+  it('renders the brand lockup and the persona footer', () => {
+    useStore.getState().setRole('teacher')
+    renderSidebar()
+
+    const nav = screen.getByRole('navigation', { name: 'Navigation' })
+    expect(within(nav).getByRole('link', { name: 'FundaVida' })).toBeInTheDocument()
+
+    // The teacher persona (tea-1) resolves to a real person; the footer is its menu.
+    const teacher = useStore.getState().teachers.find((t) => t.id === 'tea-1')
+    if (!teacher) throw new Error('seed should carry the tea-1 persona')
+    expect(
+      within(nav).getByRole('button', { name: new RegExp(teacher.firstName, 'i') })
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the Need-help card on the desktop rail', () => {
+    useStore.getState().setRole('admin')
+    renderSidebar()
+    expect(screen.getByText('Need help?')).toBeInTheDocument()
+  })
+
+  it('has no axe violations', async () => {
+    useStore.getState().setRole('admin')
+    const { container } = renderSidebar()
+    expect(await axe(container)).toHaveNoViolations()
+  })
+
+  describe('below the md breakpoint', () => {
+    it('keeps the nav closed until the trigger opens the drawer', () => {
+      useStore.getState().setRole('admin')
+      renderSidebar({ mobile: true })
+      expect(screen.queryByRole('link', { name: 'Courses' })).not.toBeInTheDocument()
+    })
+
+    it('opens the drawer with the same role-derived nav', async () => {
+      const user = userEvent.setup()
+      useStore.getState().setRole('student')
+      renderSidebar({ mobile: true })
+
+      const drawer = await openDrawer(user)
+      expect(within(drawer).getByRole('link', { name: 'Courses' })).toBeInTheDocument()
+      expect(within(drawer).queryByRole('link', { name: 'Students' })).not.toBeInTheDocument()
+    })
+
+    // The landmark has to be inside the block's children, not on `<Sidebar>`: below md the
+    // block spreads its props onto Radix's Dialog root, which drops every prop it does not
+    // know — so a role/aria-label handed to the block would reach the desktop rail's DOM and
+    // silently vanish here, leaving the drawer's nav in no landmark at all.
+    it('carries the nav landmark into the drawer', async () => {
+      const user = userEvent.setup()
+      useStore.getState().setRole('admin')
+      renderSidebar({ mobile: true })
+
+      const drawer = await openDrawer(user)
+      const nav = within(drawer).getByRole('navigation', { name: 'Navigation' })
+      expect(within(nav).getByRole('link', { name: 'Courses' })).toBeInTheDocument()
+    })
+
+    it('has no axe violations with the drawer open', async () => {
+      const user = userEvent.setup()
+      useStore.getState().setRole('admin')
+      const { baseElement } = renderSidebar({ mobile: true })
+
+      await openDrawer(user)
+      expect(await axe(baseElement)).toHaveNoViolations()
+    })
+
+    // #292: the drawer's links must clear the ~44px touch minimum, and the desktop rail
+    // must keep its density. The block carries the size through its `lg` variant (h-12);
+    // jsdom has no layout, so the variant is what can be pinned here — the real box is
+    // measured in e2e/app-shell.spec.ts.
+    it('sizes the drawer links for touch, leaving the desktop rail dense', async () => {
+      const user = userEvent.setup()
+      useStore.getState().setRole('admin')
+      renderSidebar({ mobile: true })
+
+      const drawer = await openDrawer(user)
+      expect(within(drawer).getByRole('link', { name: 'Courses' })).toHaveAttribute(
+        'data-size',
+        'lg'
+      )
+    })
+
+    it('renders the brand row with a close button and closes on it', async () => {
+      const user = userEvent.setup()
+      useStore.getState().setRole('admin')
+      renderSidebar({ mobile: true })
+
+      const drawer = await openDrawer(user)
+      const lockup = within(drawer).getByRole('link', { name: 'FundaVida' })
+      const close = within(drawer).getByRole('button', { name: 'Close' })
+      expect(lockup.parentElement).toBe(close.parentElement)
+
+      await user.click(close)
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    it('closes the drawer when a nav link is followed', async () => {
+      const user = userEvent.setup()
+      useStore.getState().setRole('admin')
+      renderSidebar({ mobile: true })
+
+      const drawer = await openDrawer(user)
+      await user.click(within(drawer).getByRole('link', { name: 'Courses' }))
+
+      expect(screen.getByTestId('location')).toHaveTextContent('/app/courses')
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    // Tapping the lockup while already on /app produces no pathname change for the route
+    // effect to react to, so the lockup closes the drawer itself.
+    it('closes the drawer when the lockup is tapped on the current route', async () => {
+      const user = userEvent.setup()
+      useStore.getState().setRole('admin')
+      renderSidebar({ mobile: true })
+
+      const drawer = await openDrawer(user)
+      await user.click(within(drawer).getByRole('link', { name: 'FundaVida' }))
+
+      expect(screen.getByTestId('location')).toHaveTextContent('/app')
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    // The card ate ~150px of a phone screen and pushed the last section behind the scroll
+    // edge (#272). It stays on the desktop rail only.
+    it('leaves the Need-help card out of the drawer', async () => {
+      const user = userEvent.setup()
+      useStore.getState().setRole('admin')
+      renderSidebar({ mobile: true })
+
+      await openDrawer(user)
+      expect(screen.queryByText('Need help?')).not.toBeInTheDocument()
+    })
   })
 })

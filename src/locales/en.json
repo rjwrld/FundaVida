@@ -857,13 +857,11 @@
   },
   "roleSwitcher": {
     "choose": "Choose role",
-    "current": "Role: {{role}}",
     "switch": "Switch role"
   },
   "sidebar": {
     "navAriaLabel": "Navigation",
-    "openNav": "Open navigation menu",
-    "sectionsAriaLabel": "Sections"
+    "toggle": "Toggle navigation"
   },
   "students": {
     "detail": {

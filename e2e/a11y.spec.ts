@@ -113,6 +113,45 @@ test.describe('accessibility (axe)', () => {
     })
   }
 
+  /**
+   * Every scan above runs at the desktop viewport, where the sidebar is the icon rail — none
+   * of them ever renders the mobile drawer, the surface phase 4a rebuilt on the block's sheet
+   * (#307/#292). It gets its own scan, at a phone width, with the drawer open.
+   *
+   * Two things this test must NOT do, both learned the hard way:
+   *
+   * - It cannot use `scan()`. That helper waits out framer-motion's fades with
+   *   `page.waitForFunction`, which polls on `requestAnimationFrame` — and rAF polling stalls
+   *   indefinitely while a Radix modal is open (observed: a 4s poll still unresolved at 45s,
+   *   hanging the whole test). The sheet animates via CSS keyframes anyway, which that poll
+   *   cannot see; `getAnimations()` through an `evaluate` is both the correct wait and one
+   *   that survives the modal.
+   * - It cannot scan the whole page. An open modal dims the page behind its scrim, and axe
+   *   reads the dimmed dashboard cards as contrast failures — an artifact of the overlay, not
+   *   a defect (the same cards pass in the un-scrimmed dashboard scans above). The subject
+   *   here is the drawer, so the scan is scoped to it.
+   */
+  test('the mobile nav drawer has no violations', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await seedAndEnter(page, 'admin', 'admin')
+    await page.goto('/app')
+    await page.getByRole('button', { name: 'Toggle navigation' }).click()
+
+    const drawer = page.getByRole('dialog')
+    await expect(drawer).toBeVisible()
+    await expect
+      .poll(async () =>
+        drawer.evaluate((el) => el.getAnimations().every((a) => a.playState === 'finished'))
+      )
+      .toBe(true)
+
+    const results = await new AxeBuilder({ page })
+      .include('[role="dialog"]')
+      .withTags(TAGS)
+      .analyze()
+    expect(results.violations).toEqual([])
+  })
+
   // Admin-only list surfaces.
   const authed: { name: string; path: string }[] = [
     { name: 'students list', path: '/app/students' },
