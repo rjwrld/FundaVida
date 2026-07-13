@@ -34,9 +34,9 @@ const keysFile = path.resolve(here, '../keys.ts')
  */
 const DYNAMIC_CALL = /\bt\(\s*`([^`]*)`/g
 /** A `t()` call in keys.ts, however its argument is written. */
-const DECLARATION = /\bt\(/g
+const DECLARED_CALL = /\bt\(/g
 /** A `t()` call in keys.ts whose argument is a plain quoted key this test can read. */
-const STATIC_DECLARATION = /\bt\('([^']+)'\)/g
+const DECLARED_KEY_LITERAL = /\bt\('([^']+)'\)/g
 
 /**
  * keys.ts with its commentary removed. The declarations must be read from code alone:
@@ -67,7 +67,9 @@ function collectDynamicCalls(): { file: string; template: string; prefix: string
 
 const dynamicCalls = collectDynamicCalls()
 const keysSource = codeOnly(readFileSync(keysFile, 'utf8'))
-const declaredKeys = [...keysSource.matchAll(STATIC_DECLARATION)].map((match) => match[1] as string)
+const declaredKeys = [...keysSource.matchAll(DECLARED_KEY_LITERAL)].map(
+  (match) => match[1] as string
+)
 
 describe('dynamic translation keys', () => {
   it('finds the dynamic call sites and the keys.ts declarations', () => {
@@ -80,7 +82,7 @@ describe('dynamic translation keys', () => {
   // so the prefix check below could pass a family that keys.ts no longer really covers.
   // Fail loudly instead — keys.ts is a parser fixture, and every line must stay literal.
   it('writes every keys.ts declaration as a static literal', () => {
-    const declared = keysSource.match(DECLARATION)?.length ?? 0
+    const declared = keysSource.match(DECLARED_CALL)?.length ?? 0
     expect(declaredKeys.length).toBe(declared)
   })
 
