@@ -84,6 +84,19 @@ t('courses.displayState.finished')
 t('courses.list.columns.status')
 t('courses.list.publishButton')
 
+// Keys referenced dynamically via t(`courses.form.weekdays.${day}`) — TcuDashboard,
+// StudentCoursesTable and TeachersDetailPage all map over `meetingDays`. They reached the
+// dictionaries only because CourseFormDialog happens to spell all seven out as literals;
+// fold that block into a .map() and the parser would prune the family out from under the
+// three consumers above (#329). One line per Weekday member.
+t('courses.form.weekdays.mon')
+t('courses.form.weekdays.tue')
+t('courses.form.weekdays.wed')
+t('courses.form.weekdays.thu')
+t('courses.form.weekdays.fri')
+t('courses.form.weekdays.sat')
+t('courses.form.weekdays.sun')
+
 // Keys referenced dynamically via t(`attendance.list.status.${status}`)
 t('attendance.list.status.present')
 t('attendance.list.status.absent')
