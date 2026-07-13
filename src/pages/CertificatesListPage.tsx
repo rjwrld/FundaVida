@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { pdf } from '@react-pdf/renderer'
 import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { NoResults } from '@/components/shared/NoResults'
@@ -25,7 +25,7 @@ import { useStore } from '@/data/store'
 import { useCertificates } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
-import { fadeUp, transitionDefaults } from '@/lib/motion'
+import { fadeUp, staggerContainer, transitionFast } from '@/lib/motion'
 import { fullName } from '@/lib/personName'
 
 interface CardItem {
@@ -56,6 +56,7 @@ const ALL_COURSES = '__all__'
  */
 export function CertificatesListPage() {
   const { t } = useTranslation()
+  const reduce = useReducedMotion()
   const { formatDate, formatGrade } = useFormat()
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
@@ -223,25 +224,35 @@ export function CertificatesListPage() {
         content={
           <div className="space-y-5">
             {filtersRow}
+            {/* Staggered card entrance on the DataTable card-grid pattern (phase
+                6a): remount per page so each page re-runs the stagger, each card
+                fades up, and reduced motion opts the whole grid out. */}
             <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              transition={transitionDefaults}
+              key={pagination.page}
+              variants={reduce ? undefined : staggerContainer}
+              initial={reduce ? false : 'hidden'}
+              animate={reduce ? false : 'visible'}
               className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
               {pagination.pageItems.map((c) => (
-                <CertificateCard
+                <motion.div
                   key={c.id}
-                  cert={{
-                    id: c.id,
-                    studentName: c.studentName,
-                    courseName: c.courseName,
-                    issuedAt: c.issuedAt,
-                    grade: c.grade,
-                  }}
-                  onOpen={() => setSelectedId(c.id)}
-                />
+                  className="h-full"
+                  variants={reduce ? undefined : fadeUp}
+                  transition={transitionFast}
+                >
+                  <CertificateCard
+                    className="h-full"
+                    cert={{
+                      id: c.id,
+                      studentName: c.studentName,
+                      courseName: c.courseName,
+                      issuedAt: c.issuedAt,
+                      grade: c.grade,
+                    }}
+                    onOpen={() => setSelectedId(c.id)}
+                  />
+                </motion.div>
               ))}
             </motion.div>
             {pagination.pageCount > 1 && (

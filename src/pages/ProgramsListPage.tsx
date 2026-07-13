@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { NoResults } from '@/components/shared/NoResults'
@@ -8,12 +9,14 @@ import { ListView } from '@/components/shared/ListView'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { usePrograms } from '@/hooks/api'
 import { listViewState } from '@/lib/listViewState'
+import { fadeUp, staggerContainer, transitionFast } from '@/lib/motion'
 
 // The read-only Program catalog (ADR-0015). Data comes through the scope seam
 // (usePrograms → programsApi → applyScope), never a raw store read. Programs are
 // a fixed, org-wide taxonomy, so there is no create/edit/delete here.
 export function ProgramsListPage() {
   const { t } = useTranslation()
+  const reduce = useReducedMotion()
   const { data: programs = [], isLoading } = usePrograms()
 
   return (
@@ -25,9 +28,21 @@ export function ProgramsListPage() {
         skeleton={<SkeletonTable rows={6} columns={1} />}
         noResults={<NoResults message={t('programs.list.empty')} />}
         content={
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          // Staggered card entrance on the DataTable card-grid pattern (phase
+          // 6a): the grid staggers its children, each card fades up, and
+          // reduced motion opts the whole grid out.
+          <motion.ul
+            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            variants={reduce ? undefined : staggerContainer}
+            initial={reduce ? false : 'hidden'}
+            animate={reduce ? false : 'visible'}
+          >
             {programs.map((program) => (
-              <li key={program.id}>
+              <motion.li
+                key={program.id}
+                variants={reduce ? undefined : fadeUp}
+                transition={transitionFast}
+              >
                 <Link
                   to={`/app/programs/${program.id}`}
                   className="group block h-full focus-visible:outline-hidden"
@@ -49,9 +64,9 @@ export function ProgramsListPage() {
                     </CardContent>
                   </Card>
                 </Link>
-              </li>
+              </motion.li>
             ))}
-          </ul>
+          </motion.ul>
         }
       />
     </div>

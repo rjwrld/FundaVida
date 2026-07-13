@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,6 +14,7 @@ import {
 } from '@/components/ui/chart'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { enrollmentFunnelBySede } from '@/lib/dashboard'
+import { chartDrawIn } from '@/lib/motion'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { useEnrollments } from '@/hooks/api/enrollments'
 import { useCourses } from '@/hooks/api/courses'
@@ -27,6 +29,9 @@ import { useCourses } from '@/hooks/api/courses'
  */
 export function EnrollmentFunnelBySede() {
   const { t } = useTranslation()
+  // Phase 6a chart draw-in: recharts animates outside framer's MotionConfig,
+  // so the reduced-motion read is passed to each series explicitly.
+  const drawIn = chartDrawIn(useReducedMotion())
   const enrollmentsQuery = useEnrollments()
   const coursesQuery = useCourses()
   const gate = resolveQueries([enrollmentsQuery, coursesQuery])
@@ -74,12 +79,14 @@ export function EnrollmentFunnelBySede() {
                   stackId="funnel"
                   fill="var(--color-approved)"
                   radius={[0, 0, 4, 4]}
+                  {...drawIn}
                 />
                 <Bar
                   dataKey="pending"
                   stackId="funnel"
                   fill="var(--color-pending)"
                   radius={[4, 4, 0, 0]}
+                  {...drawIn}
                 />
               </BarChart>
             </ChartContainer>
