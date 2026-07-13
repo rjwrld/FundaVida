@@ -1,7 +1,8 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, it, expect } from 'vitest'
+import { readSourceFiles } from '@/test/sourceFiles'
 
 /**
  * `makeEntityMutation` resolves its `toastKey` dynamically (`t(config.toastKey)`),
@@ -25,18 +26,7 @@ const STATIC_DECLARATION = /toastKey:\s*(['"])([^'"]+)\1/g
 /** The factory declares `toastKey: string` on its config type; it is not a call site. */
 const FACTORY = 'makeEntityMutation.ts'
 
-/** Hook sources, recursively, minus `__tests__` — mirrors i18next-parser's `input` globs. */
-function hookSources(dir: string): { file: string; source: string }[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const full = path.join(dir, entry.name)
-    if (entry.isDirectory()) return entry.name === '__tests__' ? [] : hookSources(full)
-    if (entry.name === FACTORY) return []
-    if (!entry.name.endsWith('.ts') && !entry.name.endsWith('.tsx')) return []
-    return [{ file: path.relative(hooksDir, full), source: readFileSync(full, 'utf8') }]
-  })
-}
-
-const sources = hookSources(hooksDir)
+const sources = readSourceFiles(hooksDir, [FACTORY])
 
 function collectToastKeys(): { file: string; key: string }[] {
   return sources.flatMap(({ file, source }) =>
