@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { CelebrationSweep } from '@/components/shared/CelebrationSweep'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -14,10 +15,16 @@ interface Props {
   }
   /** Open the PDF preview. A Certificate exists iff its PDF is available (ADR-0024). */
   onOpen?: () => void
+  /**
+   * Plays the one-shot issuance shimmer (ADR-0047 phase 6b). The caller owns
+   * the "just issued" verdict — only certificates that appeared after mount
+   * qualify, never a page (re)load showing existing ones.
+   */
+  justIssued?: boolean
   className?: string
 }
 
-export function CertificateCard({ cert, onOpen, className }: Props) {
+export function CertificateCard({ cert, onOpen, justIssued = false, className }: Props) {
   const { t } = useTranslation()
   const clickable = Boolean(onOpen)
 
@@ -50,6 +57,7 @@ export function CertificateCard({ cert, onOpen, className }: Props) {
         className
       )}
     >
+      {justIssued && <CelebrationSweep delay={0.3} className="z-10" />}
       <div className="relative flex aspect-4/3 items-center justify-center overflow-hidden bg-card">
         <span
           aria-hidden="true"

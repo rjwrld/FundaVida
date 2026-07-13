@@ -321,6 +321,17 @@
   }
 }
 
+/* Phase 6b (ADR-0047): the theme-toggle wipe drives ::view-transition-new(root)
+   itself with a clip-path circle (lib/themeWipe.ts); the browser's default
+   crossfade would fight it — the old snapshot must sit fully opaque underneath
+   while the circle reveals the new one. Only the theme toggle starts view
+   transitions, so scoping this to root is scoping it to the wipe. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 @media print {
   /* `[data-slot='sidebar']` is the Sidebar block's outer element — the one that also owns
      the in-flow spacer the fixed rail is offset against. Hiding an inner `[data-sidebar]`

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useReducedMotion } from 'framer-motion'
 import { parseISO } from 'date-fns'
 import { I18nProvider } from '@/lib/i18n'
 import { formatGrade } from '@/lib/format'
@@ -22,6 +23,19 @@ import {
   clearPersistedState,
 } from '@/data/persistence'
 import type { Course, Role } from '@/types'
+
+// The close celebration (ADR-0047 phase 6b) opts out through the page's own
+// `useReducedMotion()` read — mock the hook, not `MotionConfig`, which only
+// steers framer's animation engine, never this verdict. Default false so every
+// existing test keeps its real-motion behavior.
+vi.mock('framer-motion', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('framer-motion')>()),
+  useReducedMotion: vi.fn(() => false),
+}))
+
+// Closing a course emits certificates on this same page, whose section then
+// fires confetti — jsdom has no canvas, so stub the module out entirely.
+vi.mock('@/lib/confetti', () => ({ fireConfetti: vi.fn() }))
 
 function renderPage(courseId: string) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
@@ -733,6 +747,69 @@ describe('<CoursesDetailPage /> — close course action (ADR-0024)', () => {
     // A closed cohort derives the Finished display state (ADR-0042).
     expect(screen.getByText('Finished')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Close course' })).not.toBeInTheDocument()
+  })
+})
+
+describe('<CoursesDetailPage /> — close celebration (ADR-0047 phase 6b)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+    vi.mocked(useReducedMotion).mockReturnValue(false)
+  })
+
+  async function confirmClose() {
+    fireEvent.click(await screen.findByRole('button', { name: 'Close course' }))
+    const dialog = await screen.findByRole('alertdialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close course' }))
+  }
+
+  it('morphs the button to a checkmark and cascades the checklist, then tears both down', async () => {
+    const { publishedOwnCourse } = fixtures()
+    asRole('admin')
+    renderPage(publishedOwnCourse.id)
+
+    // The checklist is on screen pre-close (published + Term ended + closable).
+    expect(await screen.findByTestId('close-readiness-verdict')).toBeInTheDocument()
+    await confirmClose()
+
+    // The celebration window: the button morphs — its accessible name flips to
+    // "Course closed" the instant the close lands, so "Close course" is gone.
+    const morphed = await screen.findByRole('button', { name: 'Course closed' })
+    expect(morphed).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Close course' })).not.toBeInTheDocument()
+
+    // The checklist stays mounted from its close-time snapshot and cascades:
+    // one sweep per checklist row (certificate cards may add their own).
+    expect(screen.getByTestId('close-readiness-verdict')).toBeInTheDocument()
+    expect(screen.getAllByTestId('celebration-sweep').length).toBeGreaterThanOrEqual(2)
+
+    // …and the window closes on its own: button and checklist both exit.
+    await waitFor(
+      () => {
+        expect(screen.queryByRole('button', { name: 'Course closed' })).not.toBeInTheDocument()
+        expect(screen.queryByTestId('close-readiness-verdict')).not.toBeInTheDocument()
+      },
+      { timeout: 5000 }
+    )
+  })
+
+  it('skips the celebration window entirely under prefers-reduced-motion', async () => {
+    vi.mocked(useReducedMotion).mockReturnValue(true)
+    const { publishedOwnCourse } = fixtures()
+    asRole('admin')
+    renderPage(publishedOwnCourse.id)
+
+    await confirmClose()
+
+    // The close applies instantly: no morphed state, the action just leaves.
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Close course' })).not.toBeInTheDocument()
+    })
+    expect(screen.queryByRole('button', { name: 'Course closed' })).not.toBeInTheDocument()
+    expect(screen.queryAllByTestId('celebration-sweep')).toHaveLength(0)
   })
 })
 
