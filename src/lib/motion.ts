@@ -51,6 +51,28 @@ export const transitionGlide: Transition = {
 }
 
 /**
+ * The staggered grid entrance shared by card grids (phase 6a) on the DataTable
+ * pattern: spread `container` onto the grid and `item` onto each card. Callers
+ * pass their own `useReducedMotion()` read; under it both collapse to a static
+ * render. Grids whose items can leave without a page change also wrap the items
+ * in `<AnimatePresence>` and hand each an `exit` of `fadeUpHidden` (an object
+ * target, for the variant-inheritance reason documented above).
+ */
+export function staggerEntrance(reduce: boolean | null) {
+  return {
+    container: {
+      variants: reduce ? undefined : staggerContainer,
+      initial: reduce ? (false as const) : ('hidden' as const),
+      animate: reduce ? (false as const) : ('visible' as const),
+    },
+    item: {
+      variants: reduce ? undefined : fadeUp,
+      transition: transitionFast,
+    },
+  }
+}
+
+/**
  * Recharts animation props for a chart draw-in (phase 6a). Recharts animates
  * outside framer, so the reduced-motion opt-out cannot ride `MotionConfig` —
  * callers pass their own `useReducedMotion()` read and spread the result onto

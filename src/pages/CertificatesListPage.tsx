@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { pdf } from '@react-pdf/renderer'
 import { useTranslation } from 'react-i18next'
-import { motion, useReducedMotion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { NoResults } from '@/components/shared/NoResults'
@@ -25,7 +25,7 @@ import { useStore } from '@/data/store'
 import { useCertificates } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
-import { fadeUp, staggerContainer, transitionFast } from '@/lib/motion'
+import { fadeUpHidden, staggerEntrance } from '@/lib/motion'
 import { fullName } from '@/lib/personName'
 
 interface CardItem {
@@ -57,6 +57,7 @@ const ALL_COURSES = '__all__'
 export function CertificatesListPage() {
   const { t } = useTranslation()
   const reduce = useReducedMotion()
+  const entrance = staggerEntrance(reduce)
   const { formatDate, formatGrade } = useFormat()
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
@@ -226,34 +227,37 @@ export function CertificatesListPage() {
             {filtersRow}
             {/* Staggered card entrance on the DataTable card-grid pattern (phase
                 6a): remount per page so each page re-runs the stagger, each card
-                fades up, and reduced motion opts the whole grid out. */}
+                fades up, a card filtered away fades out through AnimatePresence
+                (the `exit` is `fadeUpHidden`, an object target, for the
+                variant-inheritance reason documented in lib/motion), and reduced
+                motion opts the whole grid out. */}
             <motion.div
               key={pagination.page}
-              variants={reduce ? undefined : staggerContainer}
-              initial={reduce ? false : 'hidden'}
-              animate={reduce ? false : 'visible'}
               className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              {...entrance.container}
             >
-              {pagination.pageItems.map((c) => (
-                <motion.div
-                  key={c.id}
-                  className="h-full"
-                  variants={reduce ? undefined : fadeUp}
-                  transition={transitionFast}
-                >
-                  <CertificateCard
+              <AnimatePresence>
+                {pagination.pageItems.map((c) => (
+                  <motion.div
+                    key={c.id}
                     className="h-full"
-                    cert={{
-                      id: c.id,
-                      studentName: c.studentName,
-                      courseName: c.courseName,
-                      issuedAt: c.issuedAt,
-                      grade: c.grade,
-                    }}
-                    onOpen={() => setSelectedId(c.id)}
-                  />
-                </motion.div>
-              ))}
+                    exit={reduce ? undefined : fadeUpHidden}
+                    {...entrance.item}
+                  >
+                    <CertificateCard
+                      className="h-full"
+                      cert={{
+                        id: c.id,
+                        studentName: c.studentName,
+                        courseName: c.courseName,
+                        issuedAt: c.issuedAt,
+                        grade: c.grade,
+                      }}
+                      onOpen={() => setSelectedId(c.id)}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </motion.div>
             {pagination.pageCount > 1 && (
               <Pager pagination={pagination} pageSizeOptions={[12, 24, 48]} />

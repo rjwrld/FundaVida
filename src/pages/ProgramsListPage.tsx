@@ -9,14 +9,14 @@ import { ListView } from '@/components/shared/ListView'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { usePrograms } from '@/hooks/api'
 import { listViewState } from '@/lib/listViewState'
-import { fadeUp, staggerContainer, transitionFast } from '@/lib/motion'
+import { staggerEntrance } from '@/lib/motion'
 
 // The read-only Program catalog (ADR-0015). Data comes through the scope seam
 // (usePrograms → programsApi → applyScope), never a raw store read. Programs are
 // a fixed, org-wide taxonomy, so there is no create/edit/delete here.
 export function ProgramsListPage() {
   const { t } = useTranslation()
-  const reduce = useReducedMotion()
+  const entrance = staggerEntrance(useReducedMotion())
   const { data: programs = [], isLoading } = usePrograms()
 
   return (
@@ -30,19 +30,11 @@ export function ProgramsListPage() {
         content={
           // Staggered card entrance on the DataTable card-grid pattern (phase
           // 6a): the grid staggers its children, each card fades up, and
-          // reduced motion opts the whole grid out.
-          <motion.ul
-            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-            variants={reduce ? undefined : staggerContainer}
-            initial={reduce ? false : 'hidden'}
-            animate={reduce ? false : 'visible'}
-          >
+          // reduced motion opts the whole grid out. No exit handling — the
+          // Program taxonomy is fixed and unfiltered, so items never leave.
+          <motion.ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" {...entrance.container}>
             {programs.map((program) => (
-              <motion.li
-                key={program.id}
-                variants={reduce ? undefined : fadeUp}
-                transition={transitionFast}
-              >
+              <motion.li key={program.id} {...entrance.item}>
                 <Link
                   to={`/app/programs/${program.id}`}
                   className="group block h-full focus-visible:outline-hidden"

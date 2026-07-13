@@ -119,7 +119,7 @@ export function AppSidebar() {
                             transition={transitionGlide}
                             aria-hidden="true"
                             data-slot="sidebar-active-pill"
-                            className="absolute inset-0 rounded-md bg-sidebar-accent"
+                            className="pointer-events-none absolute inset-0 rounded-md bg-sidebar-accent"
                           />
                         )}
                         {/* The drawer's links carry the ≥44px touch target (#292); the desktop
