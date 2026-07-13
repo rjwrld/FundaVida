@@ -125,7 +125,7 @@ export interface StoreState {
   }) => EmailCampaign
 }
 
-function userIdForRole(role: Role): string {
+export function userIdForRole(role: Role): string {
   switch (role) {
     case 'admin':
       return 'admin'
@@ -136,6 +136,46 @@ function userIdForRole(role: Role): string {
     case 'tcu':
       return 'tcu-1'
   }
+}
+
+type PeopleGraph = Pick<StoreState, 'students' | 'teachers' | 'tcuTrainees'>
+
+/** Does `userId` name someone who can act as `role`? Admin is a sentinel id, not a record. */
+function idHoldsRole(role: Role, userId: string, graph: PeopleGraph): boolean {
+  switch (role) {
+    case 'admin':
+      return userId === 'admin'
+    case 'teacher':
+      return graph.teachers.some((t) => t.id === userId)
+    case 'student':
+      return graph.students.some((s) => s.id === userId)
+    case 'tcu':
+      return graph.tcuTrainees.some((t) => t.id === userId)
+  }
+}
+
+/**
+ * Reconcile the session pair at hydration (#355). `role` and `currentUserId`
+ * persist under two independent localStorage keys, so either can go missing on
+ * its own (cleared by the browser, left behind by an older build) — and a role
+ * with no identity silently narrows every self-scoped read and audits as
+ * 'system'. A role whose id is absent, names nobody in the graph, or names
+ * someone of another role re-derives it via {@link userIdForRole} — the same
+ * binding `setRole` writes — and an id without a role is dropped, so the pair
+ * can only ever boot in step.
+ */
+export function reconcileSession(
+  role: Role | null,
+  currentUserId: string | null,
+  graph: PeopleGraph
+): { role: Role | null; currentUserId: string | null } {
+  if (role === null) {
+    return { role: null, currentUserId: null }
+  }
+  if (currentUserId !== null && idHoldsRole(role, currentUserId, graph)) {
+    return { role, currentUserId }
+  }
+  return { role, currentUserId: userIdForRole(role) }
 }
 
 /**
@@ -163,8 +203,9 @@ function makeAuditEntry(state: StoreState, entry: AuditDescriptor): AuditLogEntr
   return {
     id: nextId('log', state.auditLog),
     // The `'system'` fallback is defensive only (ADR-0025): every set role maps to a
-    // concrete `currentUserId` via `userIdForRole`, and `assertCan` throws when no
-    // role is set (ADR-0009), so no in-app mutation actually attributes to 'system'.
+    // concrete `currentUserId` via `userIdForRole`, hydration reconciles the persisted
+    // pair (#355), and `assertCan` throws when no role is set (ADR-0009), so no
+    // in-app mutation actually attributes to 'system'.
     actorId: state.currentUserId ?? 'system',
     timestamp: clock.now().toISOString(),
     ...entry,
@@ -234,8 +275,6 @@ function initialState(): Pick<
   | 'currentUserId'
   | 'locale'
 > {
-  const role = loadPersistedRole()
-  const currentUserId = loadPersistedCurrentUser()
   const locale = detectInitialLocale()
   // Boot from the persisted snapshot if it is still valid, else seed fresh at a
   // new Demo Epoch — one of the only two real-wall-time reads (ADR-0014, the
@@ -243,6 +282,15 @@ function initialState(): Pick<
   // so business "now" is the frozen instant the seeded dates were anchored to.
   const snapshot = loadPersistedState() ?? seedDemo(new Date())
   setDemoEpoch(snapshot.demoEpoch, snapshot.offset)
+  // The session pair hydrates from two independent keys, so reconcile it against
+  // the snapshot's people graph (#355) — and persist the repair so the next boot
+  // starts in step without re-reconciling.
+  const persistedUserId = loadPersistedCurrentUser()
+  const { role, currentUserId } = reconcileSession(loadPersistedRole(), persistedUserId, snapshot)
+  if (currentUserId !== persistedUserId) {
+    if (currentUserId === null) clearPersistedCurrentUser()
+    else savePersistedCurrentUser(currentUserId)
+  }
   return {
     demoEpoch: snapshot.demoEpoch,
     offset: snapshot.offset,
