@@ -15,16 +15,19 @@ import { useCommandPaletteContext } from '@/hooks/useCommandPaletteContext'
  * The shell's header, on the registry block's header slot (ADR-0047 phase 4b):
  * trigger + separator + breadcrumbs on the left, the ⌘K trigger and the toggles
  * behind `ml-auto`. The height collapses with the rail via the block's
- * `group/sidebar-wrapper` selector. The old AppHeader's custom chrome — sticky,
- * backdrop blur, translucent background — retires with it: stock block headers
- * scroll with the page.
+ * `group/sidebar-wrapper` selector.
+ *
+ * One behavioral deviation from the stock block, kept on purpose: the header
+ * stays sticky (the shadcn.com site-header pattern — translucent background
+ * with a backdrop-filter fallback) so the trigger and search stay reachable on
+ * long tables. Stock block headers scroll with the page.
  */
 export function SiteHeader() {
   const { t } = useTranslation()
   const { setOpen } = useCommandPaletteContext()
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur transition-[width,height] ease-linear supports-[backdrop-filter]:bg-background/60 group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
       <div className="flex w-full min-w-0 items-center gap-2 px-4 lg:px-6">
         {/*
           The brand cluster is shrink-0 so it can never be crushed to zero
