@@ -38,3 +38,28 @@ export const transitionFast: Transition = {
   duration: 0.2,
   ease: 'easeOut',
 }
+
+/**
+ * The glide shared by the sliding active indicators (tabs, sidebar nav pill):
+ * a stiff spring that settles in ~200ms — inside the phase-6a 150–250ms band —
+ * with just enough damping to land without wobble.
+ */
+export const transitionGlide: Transition = {
+  type: 'spring',
+  stiffness: 500,
+  damping: 40,
+}
+
+/**
+ * Recharts animation props for a chart draw-in (phase 6a). Recharts animates
+ * outside framer, so the reduced-motion opt-out cannot ride `MotionConfig` —
+ * callers pass their own `useReducedMotion()` read and spread the result onto
+ * each series (`<Bar>`, `<Line>`, …).
+ */
+export function chartDrawIn(reduce: boolean | null) {
+  return {
+    isAnimationActive: !reduce,
+    animationDuration: 250,
+    animationEasing: 'ease-out',
+  } as const
+}

@@ -301,6 +301,22 @@
   }
 }
 
+/* Phase 6a (ADR-0047): CSS-driven motion — tw-animate dialog/sheet enter/exit, the
+   sidebar width transition, hover transitions — cannot ride framer's MotionConfig,
+   so it collapses here. Durations go to ~0 rather than `none` because Radix keeps
+   closed overlays mounted until `animationend`; a near-zero animation still fires
+   the event, `animation: none` never would. Framer-driven motion opts out through
+   `useReducedMotion()`/MotionConfig instead (ADR-0027). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media print {
   /* `[data-slot='sidebar']` is the Sidebar block's outer element — the one that also owns
      the in-flow spacer the fixed rail is offset against. Hiding an inner `[data-sidebar]`
