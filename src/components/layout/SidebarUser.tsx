@@ -45,15 +45,20 @@ const ROLE_ICONS: Record<Role, LucideIcon> = {
  * account menu. Admin has no person record — it renders as the role alone, one line.
  */
 export function SidebarUser() {
-  const persona = useCurrentPersona()
+  // Gated on the role, not on the persona: `role` and `currentUserId` hydrate from two
+  // independent storage keys (data/persistence.ts), so a half-written localStorage boots with
+  // a role and no persona id — and this footer is the app's only role switch now that the
+  // header's has gone. Gating on the id would hide the one control that repairs that state.
+  // The person record is the enrichment it already is everywhere else: absent for admin too.
+  const role = useStore((s) => s.role)
+  const person = useCurrentPersona()?.person
   const setRole = useStore((s) => s.setRole)
   const { isMobile, setOpenMobile } = useSidebar()
   const navigate = useNavigate()
   const { t } = useTranslation()
 
-  if (!persona) return null
+  if (!role) return null
 
-  const { role, person } = persona
   const current = ROLES.find((r) => r.value === role)
   const roleLabel = current ? t(current.labelKey) : t('roleSwitcher.choose')
   // Admin is a seat, not a person in the graph: it names itself with its role, on one line.

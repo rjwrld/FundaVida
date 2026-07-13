@@ -71,6 +71,28 @@ describe('<SidebarUser />', () => {
     expect(trigger).toBeInTheDocument()
   })
 
+  /**
+   * `role` and `currentUserId` hydrate from two independent localStorage keys with no
+   * cross-validation (data/persistence.ts), so a half-written storage boots the app with a
+   * role and no persona id. The footer must still render: it is the app's only role switch
+   * since the header's left (#307), and gating it on the persona id would strand the user
+   * in the very state a role switch repairs.
+   */
+  it('still offers the role switch when the persona id is missing', async () => {
+    const user = userEvent.setup()
+    useStore.setState({ role: 'teacher', currentUserId: null })
+    renderUser()
+
+    // No person record to name, so it falls back to the role — the same shape admin uses.
+    const trigger = screen.getByRole('button', { name: 'Teacher' })
+    expect(trigger).toBeInTheDocument()
+
+    // ...and switching repairs the state, because setRole rebinds the persona id.
+    await user.click(trigger)
+    await user.click(screen.getByRole('menuitem', { name: /admin/i }))
+    expect(useStore.getState().currentUserId).toBe('admin')
+  })
+
   it('opens the role menu, switches role, and navigates', async () => {
     const user = userEvent.setup()
     useStore.getState().setRole('admin')
