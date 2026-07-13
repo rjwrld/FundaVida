@@ -1085,10 +1085,5 @@
     "required": "{{field}} is required",
     "selectValue": "Select a value for the chosen filter",
     "termEndAfterStart": "Term end must be on or after term start"
-  },
-  "welcome": {
-    "eyebrow": "FundaVida",
-    "heading": "Welcome back.",
-    "subtitle": "Choose your community center and role to continue."
   }
 }
