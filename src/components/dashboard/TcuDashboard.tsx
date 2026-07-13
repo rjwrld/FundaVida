@@ -46,13 +46,13 @@ export function TcuDashboard() {
     // the activity list — so resolving the gate doesn't shift the page.
     return (
       <DashboardShell sectionTitle={t('dashboard.tcu.sectionTitle')}>
-        <div className="grid grid-cols-1 gap-6">
-          <SkeletonCard lines={4} />
+        <SkeletonCard lines={4} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <SkeletonStatCard />
           <SkeletonStatCard />
           <SkeletonStatCard />
-          <SkeletonCard lines={3} />
         </div>
+        <SkeletonCard lines={3} />
       </DashboardShell>
     )
   }
@@ -128,42 +128,39 @@ export function TcuDashboard() {
         </motion.div>
       )}
 
-      {/* Hours completed (approved) toward the 300-hour target. */}
-      <motion.div variants={fadeUp} transition={transitionDefaults}>
+      {/* The hour stats as one stat row (stock section-card composition):
+          approved-only progress toward the 300-hour target, with pending hours
+          shown separately, not folded into progress (ADR-0036). */}
+      <motion.div
+        variants={fadeUp}
+        transition={transitionDefaults}
+        className="grid grid-cols-1 gap-4 sm:grid-cols-3"
+      >
         <StatCard
           label={t('dashboard.tcu.hoursCompleted')}
           value={approvedHours}
           format={(v) => `${v}h`}
-          icon={<Clock className="size-4" aria-hidden="true" />}
         />
-      </motion.div>
-
-      <motion.div variants={fadeUp} transition={transitionDefaults}>
         <StatCard
           label={t('dashboard.tcu.hoursRemaining')}
           value={remainingHours}
           format={(v) => `${v}h`}
-          icon={<Clock className="size-4" aria-hidden="true" />}
         />
-      </motion.div>
-
-      {/* Pending hours shown separately, not folded into progress (ADR-0036). */}
-      <motion.div variants={fadeUp} transition={transitionDefaults}>
         <StatCard
           label={t('tcu.dashboard.pendingHours')}
           value={pendingHours}
           format={(v) => `${v}h`}
-          icon={<Clock className="size-4" aria-hidden="true" />}
         />
       </motion.div>
 
-      {/* Supporting: the assigned Course's announcements (ADR-0040/0043). */}
-      <motion.div variants={fadeUp} transition={transitionDefaults}>
+      {/* Supporting pair: the assigned Course's announcements (ADR-0040/0043)
+          and the recent activities list. */}
+      <motion.div
+        variants={fadeUp}
+        transition={transitionDefaults}
+        className="grid grid-cols-1 gap-4 lg:grid-cols-2"
+      >
         <DashboardAnnouncementsFeed courseId={assignedCourse?.id} />
-      </motion.div>
-
-      {/* Supporting: Recent Activities List */}
-      <motion.div variants={fadeUp} transition={transitionDefaults}>
         <TcuActivityList activities={activities} />
       </motion.div>
 

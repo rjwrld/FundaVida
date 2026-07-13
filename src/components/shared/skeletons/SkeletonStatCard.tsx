@@ -1,26 +1,19 @@
 import * as React from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
+import { Card, CardFooter, CardHeader } from '@/components/ui/card'
 
-// Mirrors StatCard's own shell (rounded-lg tile, no shadow) rather than the Card
-// primitive, since StatCard isn't a Card. bg-card is a separate class — exactly as
-// StatCard keeps it in its variant map — so the loading placeholder matches the
-// loaded fill without re-forming the hand-rolled shell combo the phase-2b grep bans.
+// Mirrors StatCard's stock composition (label row, big value, footer line) so
+// resolving a gate swaps skeleton for content without shifting the layout.
 export function SkeletonStatCard({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      role="status"
-      aria-label="Loading stat"
-      className={cn(
-        'flex flex-col gap-3 rounded-lg border border-border p-5',
-        'bg-card',
-        className
-      )}
-      {...props}
-    >
-      <Skeleton className="h-2.5 w-1/2" aria-hidden="true" />
-      <Skeleton className="h-8 w-2/3" aria-hidden="true" />
-      <Skeleton className="h-2.5 w-1/3" aria-hidden="true" />
-    </div>
+    <Card role="status" aria-label="Loading stat" className={className} {...props}>
+      <CardHeader>
+        <Skeleton className="h-4 w-1/2" aria-hidden="true" />
+        <Skeleton className="h-8 w-2/3" aria-hidden="true" />
+      </CardHeader>
+      <CardFooter className="mt-auto">
+        <Skeleton className="h-4 w-1/3" aria-hidden="true" />
+      </CardFooter>
+    </Card>
   )
 }

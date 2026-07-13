@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import { Award, Clock, GraduationCap, Users } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { StatCard, type StatCardDelta } from '@/components/shared/StatCard'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
@@ -38,11 +37,9 @@ export function StatRow({
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
         <StatCard
-          variant="primary"
           label={t('dashboard.stats.students')}
           value={totalStudents}
           format={numberFormat}
-          icon={<Users className="size-4" aria-hidden="true" />}
           delta={deltaProp(deltas.totalStudents)}
         />
       </motion.div>
@@ -51,7 +48,6 @@ export function StatRow({
           label={t('dashboard.stats.activeCourses')}
           value={activeCourses}
           format={numberFormat}
-          icon={<GraduationCap className="size-4" aria-hidden="true" />}
           delta={deltaProp(deltas.activeCourses)}
         />
       </motion.div>
@@ -60,7 +56,6 @@ export function StatRow({
           label={t('dashboard.stats.certificatesIssued')}
           value={certsIssued}
           format={numberFormat}
-          icon={<Award className="size-4" aria-hidden="true" />}
           delta={deltaProp(deltas.certsIssued)}
         />
       </motion.div>
@@ -69,7 +64,6 @@ export function StatRow({
           label={t('dashboard.stats.tcuHours')}
           value={tcuHours}
           format={numberFormat}
-          icon={<Clock className="size-4" aria-hidden="true" />}
           delta={deltaProp(deltas.tcuHours)}
         />
       </motion.div>

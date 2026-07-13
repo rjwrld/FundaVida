@@ -50,11 +50,12 @@ describe('AdminDashboard — hero + supporting layout', () => {
     expect(headings[0]?.tagName).toBe('H2')
   })
 
-  it('renders the actionable supporting cards (courses to close, certs, at-risk, funnel)', () => {
+  it('renders the actionable supporting cards (courses to close, certs, at-risk, funnel)', async () => {
     renderDashboard()
     expect(screen.getByText(/courses to close/i)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /certificates this epoch/i })).toBeInTheDocument()
     expect(screen.getByText(/students at risk/i)).toBeInTheDocument()
-    expect(screen.getByText(/enrollment funnel by campus/i)).toBeInTheDocument()
+    // The funnel gates on its queries (ADR-0030), so its title paints async.
+    expect(await screen.findByText(/enrollment funnel by campus/i)).toBeInTheDocument()
   })
 })

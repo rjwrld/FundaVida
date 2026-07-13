@@ -2,9 +2,8 @@ import * as React from 'react'
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardAction, CardDescription, CardFooter, CardHeader } from '@/components/ui/card'
 import { AnimatedNumber } from './AnimatedNumber'
-
-export type StatCardVariant = 'default' | 'primary'
 
 export interface StatCardDelta {
   value: number
@@ -13,30 +12,21 @@ export interface StatCardDelta {
   trend?: { up: string; down: string; flat?: string }
 }
 
-export interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface StatCardProps extends React.ComponentProps<typeof Card> {
   label: string
   value: number
   format?: (value: number) => string
   delta?: StatCardDelta
-  icon?: React.ReactNode
-  variant?: StatCardVariant
 }
 
-const variantClasses: Record<StatCardVariant, string> = {
-  default: 'bg-card',
-  primary: 'bg-card',
-}
-
-export function StatCard({
-  label,
-  value,
-  format,
-  delta,
-  icon,
-  variant = 'default',
-  className,
-  ...props
-}: StatCardProps) {
+/**
+ * The registry's stat-card composition (ADR-0047 phase 5a, dashboard-01's
+ * SectionCards): label as CardDescription, the value as the big tabular figure,
+ * and the trend Badge in CardAction. The value is deliberately NOT a CardTitle —
+ * a bare number makes a meaningless heading, and the card's accessible name is
+ * the label above it.
+ */
+export function StatCard({ label, value, format, delta, className, ...props }: StatCardProps) {
   // Direction is keyed off the rounded percentage we actually display, so a
   // value that rounds to 0% always reads as flat (no false up/down arrow).
   const deltaRounded = delta ? Math.round(delta.value * 100) : 0
@@ -51,48 +41,44 @@ export function StatCard({
     : null
 
   return (
-    <div
+    <Card
       className={cn(
-        'group relative flex h-full flex-col overflow-hidden rounded-lg border border-border p-5 transition-colors hover:border-foreground/30',
-        variantClasses[variant],
+        '@container/card h-full bg-gradient-to-t from-primary/5 to-card dark:bg-card',
         className
       )}
       {...props}
     >
-      <div className="flex min-h-9 items-start justify-between gap-3">
-        <span className="text-[12px] uppercase tracking-[0.08em] text-muted-foreground">
-          {label}
-        </span>
-        {icon ? <span className="text-muted-foreground">{icon}</span> : null}
-      </div>
-      <div className="mt-3">
+      <CardHeader>
+        <CardDescription>{label}</CardDescription>
         <AnimatedNumber
           value={value}
           format={format}
-          className="font-mono text-[32px] font-semibold tabular-nums text-foreground"
+          className="text-2xl font-semibold text-foreground tabular-nums @[250px]/card:text-3xl"
         />
-      </div>
-      {delta && (
-        <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-4 text-[13px]">
-          <Badge
-            variant={
-              direction === 'up' ? 'success' : direction === 'down' ? 'destructive' : 'neutral'
-            }
-            className="gap-1 tabular-nums"
-          >
-            {direction === 'up' ? (
-              <ArrowUpRight className="size-3.5" aria-hidden="true" />
-            ) : direction === 'down' ? (
-              <ArrowDownRight className="size-3.5" aria-hidden="true" />
-            ) : (
-              <Minus className="size-3.5" aria-hidden="true" />
-            )}
-            {trendWord ? <span className="sr-only">{trendWord} </span> : null}
-            {deltaPct}
-          </Badge>
-          {delta.label ? <span className="text-muted-foreground">{delta.label}</span> : null}
-        </div>
+        {delta && (
+          <CardAction>
+            <Badge
+              variant={
+                direction === 'up' ? 'success' : direction === 'down' ? 'destructive' : 'neutral'
+              }
+              className="tabular-nums"
+            >
+              {direction === 'up' ? (
+                <ArrowUpRight aria-hidden="true" />
+              ) : direction === 'down' ? (
+                <ArrowDownRight aria-hidden="true" />
+              ) : (
+                <Minus aria-hidden="true" />
+              )}
+              {trendWord ? <span className="sr-only">{trendWord} </span> : null}
+              {deltaPct}
+            </Badge>
+          </CardAction>
+        )}
+      </CardHeader>
+      {delta?.label && (
+        <CardFooter className="mt-auto text-sm text-muted-foreground">{delta.label}</CardFooter>
       )}
-    </div>
+    </Card>
   )
 }

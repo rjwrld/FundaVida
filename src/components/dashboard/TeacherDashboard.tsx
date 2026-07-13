@@ -31,7 +31,9 @@ export function TeacherDashboard() {
 
   return (
     <DashboardShell sectionTitle={t('dashboard.teacher.sectionTitle')}>
-      {/* Worklists first — the time-sensitive jobs. */}
+      {/* Worklists first — the time-sensitive jobs. The table-backed approval
+          queues keep the full width (their columns overflow a half column);
+          only the two supporting list cards pair up (phase-5a density). */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <NeedsMarkingWorklist />
       </motion.div>
@@ -49,11 +51,12 @@ export function TeacherDashboard() {
       </motion.div>
 
       {/* Supporting reads. */}
-      <motion.div variants={fadeUp} transition={transitionDefaults}>
+      <motion.div
+        variants={fadeUp}
+        transition={transitionDefaults}
+        className="grid grid-cols-1 gap-4 lg:grid-cols-2"
+      >
         <NextSessionsList courses={courses} />
-      </motion.div>
-
-      <motion.div variants={fadeUp} transition={transitionDefaults}>
         <OwnCoursesList />
       </motion.div>
 

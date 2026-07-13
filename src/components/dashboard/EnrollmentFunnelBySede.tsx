@@ -1,74 +1,97 @@
-import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, Filter } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
+import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  Card,
-  CardAction,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart'
+import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { enrollmentFunnelBySede } from '@/lib/dashboard'
+import { resolveQueries } from '@/lib/resolveQueries'
 import { useEnrollments } from '@/hooks/api/enrollments'
 import { useCourses } from '@/hooks/api/courses'
 
 /**
  * The enrollment funnel — pending → approved — grouped by Sede (see
- * {@link enrollmentFunnelBySede}). Reads the role-scoped enrollments and courses
- * queries. Each Sede row shows a stacked bar (approved vs pending) and its
- * counts, and the card links onward to the enrollments worklist.
+ * {@link enrollmentFunnelBySede}), drawn as a stacked bar per Sede on the shadcn
+ * Chart wrapper (ADR-0047 phase 5a). Reads the role-scoped enrollments and
+ * courses queries behind {@link resolveQueries} (ADR-0030) so a default-`[]`
+ * window never flashes the empty state. The card links onward to the
+ * enrollments worklist.
  */
 export function EnrollmentFunnelBySede() {
   const { t } = useTranslation()
-  const { data: enrollments = [] } = useEnrollments()
-  const { data: courses = [] } = useCourses()
+  const enrollmentsQuery = useEnrollments()
+  const coursesQuery = useCourses()
+  const gate = resolveQueries([enrollmentsQuery, coursesQuery])
 
-  const funnel = useMemo(() => enrollmentFunnelBySede(enrollments, courses), [enrollments, courses])
+  if (gate.isPending) {
+    return <SkeletonCard lines={4} />
+  }
+
+  const [enrollments, courses] = gate.data
+  const funnel = enrollmentFunnelBySede(enrollments, courses)
+
+  // Approved wears the chart ramp's lead green; pending is grey on purpose —
+  // ADR-0047's status language is two-hue (success/destructive) plus greys.
+  const chartConfig = {
+    approved: { label: t('enrollments.status.approved'), color: 'var(--chart-1)' },
+    pending: { label: t('enrollments.status.pending'), color: 'var(--muted-foreground)' },
+  } satisfies ChartConfig
 
   return (
     <Card className="h-full">
       <CardHeader>
         <CardTitle as="h3">{t('dashboard.enrollmentFunnel.title')}</CardTitle>
-        <CardAction>
-          <Filter className="size-4 text-primary" aria-hidden="true" />
-        </CardAction>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col">
         {funnel.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('dashboard.enrollmentFunnel.empty')}</p>
         ) : (
-          <ul className="flex flex-1 flex-col gap-4">
-            {funnel.map(({ sede, pending, approved }) => {
-              const total = pending + approved
-              const approvedPct = total === 0 ? 0 : Math.round((approved / total) * 100)
-              return (
-                <li key={sede} className="flex flex-col gap-1.5">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="truncate text-sm font-medium text-foreground">{sede}</span>
-                    <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                      {t('dashboard.enrollmentFunnel.summary', { approved, pending })}
-                    </span>
-                  </div>
-                  {/* Decorative: the approved/pending split is already announced
-                      by the summary text above, so the bar is hidden from AT. */}
-                  <div
-                    className="flex h-2 overflow-hidden rounded-full bg-muted"
-                    aria-hidden="true"
-                  >
-                    <div className="bg-primary" style={{ width: `${approvedPct}%` }} />
-                    {/* Grey, not amber: ADR-0047's status language is two-hue
-                        (success/destructive) plus greys — pending has no hue. */}
-                    <div
-                      className="bg-muted-foreground"
-                      style={{ width: `${100 - approvedPct}%` }}
-                    />
-                  </div>
+          <>
+            {/* Decorative: the approved/pending split per Sede is announced by
+                the sr-only list below, so the chart is hidden from AT (and the
+                recharts accessibility layer stays off — an aria-hidden subtree
+                must not contain focusable elements). */}
+            <ChartContainer
+              config={chartConfig}
+              className="aspect-auto h-56 w-full"
+              aria-hidden="true"
+            >
+              <BarChart accessibilityLayer={false} data={funnel}>
+                <CartesianGrid vertical={false} />
+                <XAxis dataKey="sede" tickLine={false} tickMargin={10} axisLine={false} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartLegend content={<ChartLegendContent />} />
+                <Bar
+                  dataKey="approved"
+                  stackId="funnel"
+                  fill="var(--color-approved)"
+                  radius={[0, 0, 4, 4]}
+                />
+                <Bar
+                  dataKey="pending"
+                  stackId="funnel"
+                  fill="var(--color-pending)"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ChartContainer>
+            <ul className="sr-only">
+              {funnel.map(({ sede, pending, approved }) => (
+                <li key={sede}>
+                  <span>{sede}</span>{' '}
+                  <span>{t('dashboard.enrollmentFunnel.summary', { approved, pending })}</span>
                 </li>
-              )
-            })}
-          </ul>
+              ))}
+            </ul>
+          </>
         )}
       </CardContent>
       <CardFooter>
