@@ -24,13 +24,14 @@ export function AppFooter() {
               org: (
                 // eslint-disable-next-line jsx-a11y/anchor-has-content -- content is injected by <Trans> at runtime
                 <a
+                  key="org"
                   href={ORG_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 underline hover:text-foreground"
                 />
               ),
-              mark: <LogoMark variant="mark" tone="muted" size="xs" alt="" />,
+              mark: <LogoMark key="mark" variant="mark" tone="muted" size="xs" alt="" />,
             }}
           />
         </p>
