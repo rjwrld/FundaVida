@@ -13,17 +13,33 @@ export function shortCourseName(course: Pick<Course, 'name' | 'sede'>): string {
 }
 
 /**
+ * Drop the trailing "({mon yyyy})" cohort period the seed appends
+ * (`… — {Sede} ({mon yyyy})`). Teacher-authored names without one pass through
+ * unchanged.
+ */
+function dropCohortPeriod(name: string): string {
+  return name.replace(/\s*\([^)]*\)\s*$/, '').trim()
+}
+
+/**
  * The calendar card's title: {@link shortCourseName} with the trailing
  * "({mon yyyy})" cohort period also dropped (ADR-0044). A calendar already
  * communicates *when*, so the card spends its two lines on the Program + Level
- * and lets the tooltip / accessible name carry the full canonical name. The
- * cohort suffix is the last parenthetical segment the seed appends
- * (`… — {Sede} ({mon yyyy})`); teacher-authored names without one are returned
- * unchanged. `shortCourseName` is untouched — other surfaces still want the
- * Sede-stripped name *with* the period.
+ * and lets the tooltip / accessible name carry the full canonical name.
+ * `shortCourseName` is untouched — other surfaces still want the Sede-stripped
+ * name *with* the period.
  */
 export function calendarCardName(course: Pick<Course, 'name' | 'sede'>): string {
-  return shortCourseName(course)
-    .replace(/\s*\([^)]*\)\s*$/, '')
-    .trim()
+  return dropCohortPeriod(shortCourseName(course))
+}
+
+/**
+ * The month term map's milestone-row name (ADR-0048): the cohort period dropped,
+ * the Sede **kept** — "Inglés Primaria — Linda Vista · starts Jul 6". The list
+ * shows no Sede column of its own, and stripping it collides the seeded cohorts
+ * into a handful of identical labels (ADR-0021 permits the strip only where the
+ * Sede is already on screen).
+ */
+export function milestoneCourseName(course: Pick<Course, 'name'>): string {
+  return dropCohortPeriod(course.name)
 }

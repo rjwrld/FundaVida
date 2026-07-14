@@ -183,6 +183,17 @@
     "emptyWeekPrev": "Anterior: {{session}}",
     "jumpToWeek": "Ir a esa semana",
     "month": {
+      "milestones": {
+        "cancelled": "{{course}} · cancelada el {{date}}",
+        "cohortEnd": "{{course}} · termina el {{date}}",
+        "cohortStart": "{{course}} · comienza el {{date}}",
+        "empty": "No hay hitos este mes.",
+        "emptyNext": "Siguiente: {{milestone}}",
+        "emptyPrev": "Anterior: {{milestone}}",
+        "rescheduledFrom": "{{course}} · movida del {{date}}",
+        "rescheduledTo": "{{course}} · movida al {{date}}",
+        "title": "Este mes"
+      },
       "next": "Mes siguiente",
       "previous": "Mes anterior",
       "todayLabel": "Hoy, {{date}}"

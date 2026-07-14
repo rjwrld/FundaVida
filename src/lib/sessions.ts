@@ -62,8 +62,13 @@ export function sessionsFor(course: Course): Session[] {
   return sessions
 }
 
-/** Local-midnight ISO anchor, matching how {@link sessionsFor} stamps base dates. */
-function anchor(date: string): string {
+/**
+ * Local-midnight ISO anchor, matching how {@link sessionsFor} stamps base dates.
+ * Exported because the month term map (ADR-0048) stamps its milestone days the
+ * same way — a second copy of the formula could drift from the one every Session
+ * date is anchored with.
+ */
+export function dayAnchor(date: string): string {
   return startOfDay(parseISO(date)).toISOString()
 }
 
@@ -104,10 +109,10 @@ export function effectiveSessions(course: Course, exceptions: SessionException[]
       continue
     }
     const move = rescheduled.find((r) => isSameDay(parseISO(r.date), sessionDate))
-    dates.push(move?.newDate ? anchor(move.newDate) : session.date)
+    dates.push(move?.newDate ? dayAnchor(move.newDate) : session.date)
   }
   for (const e of extra) {
-    dates.push(anchor(e.date))
+    dates.push(dayAnchor(e.date))
   }
 
   return dates

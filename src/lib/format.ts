@@ -16,6 +16,19 @@ export function formatDate(iso: string, locale: Locale): string {
   }).format(date)
 }
 
+/**
+ * Month + day, no year — the month term map's milestone rows ("starts Jul 6"),
+ * which sit under a caption already naming the year (ADR-0048). Intl orders the
+ * parts per locale, so `es-CR` reads "6 jul" rather than an anglicized "jul 6".
+ */
+export function formatDayMonth(iso: string, locale: Locale): string {
+  const date = new Date(iso)
+  return new Intl.DateTimeFormat(localeTag[locale], {
+    month: 'short',
+    day: 'numeric',
+  }).format(date)
+}
+
 export function formatDateTime(iso: string, locale: Locale): string {
   const date = new Date(iso)
   return new Intl.DateTimeFormat(localeTag[locale], {

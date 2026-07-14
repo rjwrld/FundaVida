@@ -1,8 +1,14 @@
 import { test, expect, type Page } from '@playwright/test'
+import { addMonths, parseISO } from 'date-fns'
 import { seedDemo } from '../src/data/seed'
 import { STATE_KEY } from '../src/data/persistence'
 import { calendarCardName } from '../src/lib/courseName'
-import { weekAgendaDays } from '../src/lib/weekAgenda'
+import {
+  milestonesFor,
+  milestonesInMonth,
+  nearestMilestonesAround,
+} from '../src/lib/monthMilestones'
+import { startOfWeekMonday, weekAgendaDays } from '../src/lib/weekAgenda'
 import { buildAgenda } from '../src/lib/agenda'
 
 // Storage keys must match src/data/persistence.ts.
@@ -107,6 +113,60 @@ if (weekSessionCount([SHARED_COURSE_ID], twoWeeksLater) === 0) {
     `seed drift: ${SHARED_COURSE_ID} has no sessions two weeks after ${NOW.toDateString()}`
   )
 }
+
+// The term map (ADR-0048): the milestones the epoch's calendar month shows a given
+// scope. Derived through the very lib the page renders from, so a seed change that
+// empties a persona's month fails loudly here rather than silently blanking the list.
+const monthMilestonesOf = (courseIds: string[]) =>
+  milestonesInMonth(
+    milestonesFor(
+      seedSnapshot.courses.filter((c) => courseIds.includes(c.id)),
+      seedSnapshot.sessionExceptions
+    ),
+    NOW
+  )
+
+const roleMilestones = {
+  teacher: monthMilestonesOf(teacherCourseIds),
+  student: monthMilestonesOf(studentCourseIds),
+  tcu: monthMilestonesOf([tcuCourse.id]),
+  admin: monthMilestonesOf(seedSnapshot.courses.map((c) => c.id)),
+}
+// Every role's landing month is live — the ADR-0048 seed guarantee (#376).
+for (const [role, milestones] of Object.entries(roleMilestones)) {
+  if (milestones.length === 0) {
+    throw new Error(`seed drift: a ${role}'s landing month carries no milestone (ADR-0048)`)
+  }
+}
+
+// The row the navigation spec taps: a milestone in a DIFFERENT week than the one
+// the canvas opens on (so landing on it proves a move), whose Course has a Session
+// in that week (so the canvas has a dated link to assert the landing week from).
+const ROW_INDEX = roleMilestones.admin.findIndex((milestone) => {
+  const week = startOfWeekMonday(parseISO(milestone.date))
+  return (
+    week.getTime() !== startOfWeekMonday(NOW).getTime() &&
+    weekSessionCount([milestone.courseId], parseISO(milestone.date)) > 0
+  )
+})
+const rowMilestone = roleMilestones.admin[ROW_INDEX]
+if (!rowMilestone) {
+  throw new Error('seed drift: no admin milestone outside the current week with a live week')
+}
+const ROW_WEEK = startOfWeekMonday(parseISO(rowMilestone.date))
+
+// The quiet-state anchor: the first month ahead that the tcu persona's single
+// pinned cohort never touches, and the jumps its term map can honestly offer from
+// there (one per direction that actually has a milestone).
+const tcuMilestones = milestonesFor([tcuCourse], seedSnapshot.sessionExceptions)
+const QUIET_OFFSET = (() => {
+  for (let i = 1; i <= 24; i++) {
+    if (milestonesInMonth(tcuMilestones, addMonths(NOW, i)).length === 0) return i
+  }
+  throw new Error('seed drift: the tcu persona’s cohort has no quiet month within two years')
+})()
+const quietNearest = nearestMilestonesAround(tcuMilestones, addMonths(NOW, QUIET_OFFSET))
+const QUIET_JUMPS = [quietNearest.prev, quietNearest.next].filter(Boolean).length
 
 async function seedAndEnter(page: Page, snapshot: Snapshot, role: string, userId: string) {
   await page.goto('/')
@@ -258,6 +318,64 @@ test.describe('calendar navigation (ADR-0044)', () => {
     await expect(canvasLinks.first()).toBeVisible()
     const afterHref = await canvasLinks.first().getAttribute('href')
     expect(afterHref).not.toBe(beforeHref)
+  })
+})
+
+test.describe('the month is a term map (ADR-0048)', () => {
+  for (const { role, userId } of [
+    { role: 'teacher', userId: TEACHER_ID },
+    { role: 'student', userId: STUDENT_ID },
+    { role: 'tcu', userId: TCU_ID },
+    { role: 'admin', userId: 'admin' },
+  ] as const) {
+    test(`a ${role}'s landing month reads at least one milestone`, async ({ page }) => {
+      await seedAndEnter(page, seedSnapshot, role, userId)
+      await page.getByRole('button', { name: 'Month', exact: true }).click()
+
+      // The list is the reading layer AND the legend — one row per milestone, each
+      // a button performing the navigator move.
+      const list = page.getByRole('region', { name: 'This month' })
+      await expect(list).toBeVisible()
+      await expect(list.getByRole('button')).toHaveCount(roleMilestones[role].length)
+    })
+  }
+
+  test('a milestone row lands the week canvas on that milestone’s week', async ({ page }) => {
+    await seedAndEnter(page, seedSnapshot, 'admin', 'admin')
+    await page.getByRole('button', { name: 'Month', exact: true }).click()
+
+    const list = page.getByRole('region', { name: 'This month' })
+    await list.getByRole('button').nth(ROW_INDEX).click()
+
+    // Back on the week canvas — the same navigator move a day tap is.
+    await expect(page.getByRole('heading', { name: 'June 2026' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Today' })).toBeVisible()
+
+    // …and landed on the milestone's week: every Session link the canvas paints
+    // carries a date inside it (an admin's cards deep-link into Mark Attendance).
+    const link = page.getByRole('main').getByRole('link').first()
+    await expect(link).toBeVisible()
+    const href = (await link.getAttribute('href')) ?? ''
+    const match = href.match(/\/sessions\/([^/]+)\/mark/)
+    expect(match).not.toBeNull()
+    const landedOn = new Date(decodeURIComponent(match?.[1] ?? ''))
+    expect(startOfWeekMonday(landedOn).toDateString()).toBe(ROW_WEEK.toDateString())
+  })
+
+  test('a quiet month points at the nearest milestone instead of dead-ending', async ({ page }) => {
+    await seedAndEnter(page, seedSnapshot, 'tcu', TCU_ID)
+    await page.getByRole('button', { name: 'Month', exact: true }).click()
+
+    // Walk forward to the first month the tcu's single pinned cohort never touches.
+    for (let i = 0; i < QUIET_OFFSET; i++) {
+      await page.getByRole('button', { name: 'Next month' }).click()
+    }
+
+    const list = page.getByRole('region', { name: 'This month' })
+    await expect(list.getByText('No milestones this month.')).toBeVisible()
+    // It names the nearest milestone in each direction that exists and offers the
+    // jump — never a dead end, never a fabricated date.
+    await expect(list.getByRole('button', { name: /Jump to that week/ })).toHaveCount(QUIET_JUMPS)
   })
 })
 

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { enUS, es } from 'date-fns/locale'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
@@ -9,7 +9,9 @@ import { Calendar, CalendarDayButton } from '@/components/ui/calendar'
 import { useFormat } from '@/hooks/useFormat'
 import { clock } from '@/lib/clock'
 import { transitionDefaults } from '@/lib/motion'
+import type { Milestone } from '@/lib/monthMilestones'
 import { cn } from '@/lib/utils'
+import { MilestoneGlyph, SessionDot } from './MilestoneGlyph'
 
 // Month change: a quiet fade + small x-slide (no bounce). Reuses the app's
 // transitionDefaults curve — reduced-motion is handled by the app-level MotionConfig.
@@ -21,16 +23,20 @@ const monthGrid: Variants = {
 
 const DAY_KEY = 'yyyy-MM-dd'
 
-/** Day → number of scoped Sessions on it, keyed by `DAY_KEY`. */
-const EventCountsContext = React.createContext<ReadonlyMap<string, number>>(new Map())
+/** The most glyphs a cell renders before it collapses the rest into a "+". */
+const MAX_GLYPHS = 2
 
-// The month is a navigator (ADR-0044): an event mark widens with the day's
-// Session count so the term's shape is legible at arm's length. Capped at 4 so
-// a heavy day never overruns the cell.
-const EVENT_BAR_WIDTH = ['w-1.5', 'w-2.5', 'w-3.5', 'w-4'] as const
-function eventBarWidth(count: number) {
-  return EVENT_BAR_WIDTH[Math.min(count, EVENT_BAR_WIDTH.length) - 1]
+interface MonthMarks {
+  /** Day → its notable milestones, in glyph priority order. Keyed by `DAY_KEY`. */
+  milestones: ReadonlyMap<string, Milestone[]>
+  /** The days carrying an ordinary Session — the baseline dots. */
+  sessionDays: ReadonlySet<string>
 }
+
+const MonthMarksContext = React.createContext<MonthMarks>({
+  milestones: new Map(),
+  sessionDays: new Set(),
+})
 
 /**
  * The month caption as a heading. DayPicker ships it as a `role="status"` span,
@@ -87,38 +93,58 @@ function AnimatedMonthGrid({
   )
 }
 
-/** A day cell carrying its Session-density mark under the date. */
-function DensityDayButton({
+/**
+ * A day cell of the term map (ADR-0048). An ordinary Session day carries the
+ * baseline dot; a notable *replaces* it — a day is either narrating a deviation
+ * or it is just another day of the term, never both. Three or more notables
+ * render two glyphs and a "+", never a pile: the names live in the reading layer
+ * beside the grid, and the cell stays glyph-only.
+ */
+function TermMapDayButton({
   className,
   day,
   modifiers,
   children,
   ...props
 }: React.ComponentProps<typeof CalendarDayButton>) {
-  const eventCounts = React.useContext(EventCountsContext)
-  const count = eventCounts.get(format(day.date, DAY_KEY)) ?? 0
+  const marks = React.useContext(MonthMarksContext)
+  const key = format(day.date, DAY_KEY)
+  const notables = marks.milestones.get(key) ?? []
+  const hasSession = marks.sessionDays.has(key)
 
   return (
     <CalendarDayButton
       day={day}
       modifiers={modifiers}
       // The registry cell dims its `<span>` children — that treatment is for a
-      // secondary label, not for the density mark.
+      // secondary label, not for the glyphs.
       className={cn('relative [&>span]:opacity-100', className)}
       {...props}
     >
       {children}
-      {count > 0 ? (
-        <span
-          aria-hidden="true"
-          data-event-bar
-          data-event-count={count}
-          className={cn(
-            'absolute bottom-1 left-1/2 h-0.5 -translate-x-1/2 rounded-full bg-primary/70',
-            eventBarWidth(count)
-          )}
-        />
-      ) : null}
+      <span className="absolute inset-x-0 bottom-1 flex items-center justify-center gap-0.5">
+        {notables.length > 0 ? (
+          <>
+            {notables.slice(0, MAX_GLYPHS).map((milestone) => (
+              <MilestoneGlyph
+                key={`${milestone.kind}-${milestone.courseId}`}
+                kind={milestone.kind}
+              />
+            ))}
+            {notables.length > MAX_GLYPHS ? (
+              <span
+                aria-hidden="true"
+                data-milestone-overflow
+                className="text-[0.5rem] font-medium leading-none text-muted-foreground"
+              >
+                +
+              </span>
+            ) : null}
+          </>
+        ) : hasSession ? (
+          <SessionDot />
+        ) : null}
+      </span>
     </CalendarDayButton>
   )
 }
@@ -126,44 +152,69 @@ function DensityDayButton({
 const MONTH_COMPONENTS = {
   CaptionLabel: MonthHeading,
   MonthGrid: AnimatedMonthGrid,
-  DayButton: DensityDayButton,
+  DayButton: TermMapDayButton,
 }
 
 export interface MonthNavigatorProps {
-  /** One Date per scoped Session; repeats on a day widen that day's mark. */
-  events?: Date[]
+  /** One Date per scoped effective Session — the baseline texture. Repeats are ignored. */
+  sessionDays?: Date[]
+  /** The month's notables (ADR-0048); each replaces the baseline dot on its day. */
+  milestones?: Milestone[]
+  /** The displayed month. Controlled by the caller, which reads it for the milestone list. */
+  month?: Date
+  onMonthChange?: (month: Date) => void
   /** A day tap is a navigator move — the caller decides where it lands. */
   onSelect?: (date: Date) => void
   className?: string
 }
 
 /**
- * The month view of the calendar (ADR-0044): a navigator, not a second detail
- * surface. Built on the registry `ui/calendar` (react-day-picker), which owns
- * the grid semantics, roving focus, and keyboard navigation; this adds the
- * Session-density marks, the month-change motion, and the ES/EN localization.
+ * The month view of the calendar: a **term map**, not a density plot (ADR-0048).
+ * Sessions derive from Term × Meeting Days (ADR-0001), so every in-term weekday
+ * carries one — a density scale over that has no shape to reveal. The grid instead
+ * narrates what actually varies across a month: the cohort boundaries, the Session
+ * exceptions, and today. It stays a navigator (ADR-0044) — a day tap lands the week
+ * canvas on that week, and no day-detail panel returns.
+ *
+ * Built on the registry `ui/calendar` (react-day-picker), which owns the grid
+ * semantics, roving focus, and keyboard navigation; this adds the glyphs, the
+ * month-change motion, and the ES/EN localization.
  */
-export function MonthNavigator({ events = [], onSelect, className }: MonthNavigatorProps) {
+export function MonthNavigator({
+  sessionDays = [],
+  milestones = [],
+  month,
+  onMonthChange,
+  onSelect,
+  className,
+}: MonthNavigatorProps) {
   const defaultClassNames = getDefaultClassNames()
   const { t } = useTranslation()
   const { locale } = useFormat()
   const dfLocale = locale === 'es' ? es : enUS
 
-  const eventCounts = React.useMemo(() => {
-    const counts = new Map<string, number>()
-    for (const event of events) {
-      const key = format(event, DAY_KEY)
-      counts.set(key, (counts.get(key) ?? 0) + 1)
+  // `milestonesFor` already sorts by day then glyph priority, so bucketing by day
+  // preserves the priority order the cell slices its first two glyphs from.
+  const marks = React.useMemo<MonthMarks>(() => {
+    const byDay = new Map<string, Milestone[]>()
+    for (const milestone of milestones) {
+      const key = format(parseISO(milestone.date), DAY_KEY)
+      const day = byDay.get(key)
+      if (day) day.push(milestone)
+      else byDay.set(key, [milestone])
     }
-    return counts
-  }, [events])
+    return {
+      milestones: byDay,
+      sessionDays: new Set(sessionDays.map((date) => format(date, DAY_KEY))),
+    }
+  }, [milestones, sessionDays])
 
   // "Today" is the frozen today (ADR-0014), so the marker stays on the Demo
   // Epoch's timeline instead of drifting to wall-clock time.
   const today = clock.today()
 
   return (
-    <EventCountsContext.Provider value={eventCounts}>
+    <MonthMarksContext.Provider value={marks}>
       <Calendar
         className={className}
         // The registry sizes its root `w-fit` for a popover; here the calendar is
@@ -171,7 +222,9 @@ export function MonthNavigator({ events = [], onSelect, className }: MonthNaviga
         // re-attach the `rdp-root` hook its RTL/animation selectors key off.
         classNames={{ root: cn('w-full', defaultClassNames.root) }}
         today={today}
+        month={month}
         defaultMonth={today}
+        onMonthChange={onMonthChange}
         weekStartsOn={1}
         locale={dfLocale}
         labels={{
@@ -185,6 +238,6 @@ export function MonthNavigator({ events = [], onSelect, className }: MonthNaviga
         components={MONTH_COMPONENTS}
         onDayClick={(day) => onSelect?.(day)}
       />
-    </EventCountsContext.Provider>
+    </MonthMarksContext.Provider>
   )
 }
