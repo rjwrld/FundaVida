@@ -294,11 +294,6 @@
     "confirmDelete": {
       "title": "Confirm deletion"
     },
-    "help": {
-      "body": "Have questions about the rebuild? The source is on GitHub.",
-      "cta": "View the repo →",
-      "title": "Need help?"
-    },
     "language": {
       "label": "Language"
     },

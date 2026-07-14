@@ -298,11 +298,6 @@
     "confirmDelete": {
       "title": "Confirmar eliminación"
     },
-    "help": {
-      "body": "¿Preguntas sobre la rearquitectura? El código está en GitHub.",
-      "cta": "Ver el repo →",
-      "title": "¿Necesitas ayuda?"
-    },
     "language": {
       "label": "Idioma"
     },

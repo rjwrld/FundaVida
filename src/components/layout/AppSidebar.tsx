@@ -19,7 +19,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { BrandLockup } from '@/components/brand/BrandLockup'
-import { NeedHelpCard } from '@/components/layout/NeedHelpCard'
 import { SidebarUser } from '@/components/layout/SidebarUser'
 import { groupNavByRole, isNavItemActive } from '@/constants/nav'
 import { useStore } from '@/data/store'
@@ -150,9 +149,6 @@ export function AppSidebar() {
         </SidebarContent>
 
         <SidebarFooter>
-          {/* Desktop only: on a phone the card ate ~150px and pushed the last nav section
-              behind the scroll edge (#272), and it has no sensible collapsed-rail form. */}
-          {!isMobile && <NeedHelpCard className="m-0 group-data-[collapsible=icon]:hidden" />}
           <SidebarUser />
         </SidebarFooter>
       </nav>
