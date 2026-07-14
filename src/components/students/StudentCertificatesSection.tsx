@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CertificateCard } from '@/components/certificates/CertificateCard'
 import { NoResults } from '@/components/shared/NoResults'
 import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog'
 import { useStore } from '@/data/store'
 import { useCertificates } from '@/hooks/api'
+import { useCertificateBlobUrl } from '@/hooks/useCertificateBlobUrl'
 import { useFormat } from '@/hooks/useFormat'
+import type { CertificatePayload } from '@/lib/pdf/renderCertificate'
 import { fullName } from '@/lib/personName'
 import type { Student } from '@/types'
 
@@ -34,7 +36,6 @@ export function StudentCertificatesSection({ student }: { student: Student }) {
   const studentName = fullName(student)
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [dataUrl, setDataUrl] = useState<string | null>(null)
 
   const items = useMemo<CardItem[]>(() => {
     const courseById = new Map(courses.map((c) => [c.id, c]))
@@ -61,36 +62,20 @@ export function StudentCertificatesSection({ student }: { student: Student }) {
     [items, selectedId]
   )
 
-  // Pre-generate the PDF as an opaque blob URL when a certificate is selected,
-  // matching the gallery's download behavior. The renderer module is dynamically
-  // imported so the @react-pdf graph loads only on first preview (#353).
-  useEffect(() => {
-    if (!selected) {
-      setDataUrl(null)
-      return
-    }
-    let cancelled = false
-    let createdUrl: string | null = null
-    import('@/lib/pdf/renderCertificate')
-      .then(({ renderCertificateBlob }) =>
-        renderCertificateBlob({
-          studentName,
-          courseName: selected.courseName,
-          programName: selected.programName,
-          score: selected.score,
-          issuedAt: selected.issuedAtIso,
-        })
-      )
-      .then((blob) => {
-        if (cancelled) return
-        createdUrl = URL.createObjectURL(blob)
-        setDataUrl(createdUrl)
-      })
-    return () => {
-      cancelled = true
-      if (createdUrl) URL.revokeObjectURL(createdUrl)
-    }
-  }, [selected, studentName])
+  const payload = useMemo<CertificatePayload | null>(
+    () =>
+      selected
+        ? {
+            studentName,
+            courseName: selected.courseName,
+            programName: selected.programName,
+            score: selected.score,
+            issuedAt: selected.issuedAtIso,
+          }
+        : null,
+    [selected, studentName]
+  )
+  const dataUrl = useCertificateBlobUrl(payload)
 
   return (
     <section className="space-y-3">
@@ -119,17 +104,7 @@ export function StudentCertificatesSection({ student }: { student: Student }) {
 
       <CertificatePreviewDialog
         open={selected !== null}
-        payload={
-          selected
-            ? {
-                studentName,
-                courseName: selected.courseName,
-                programName: selected.programName,
-                score: selected.score,
-                issuedAt: selected.issuedAtIso,
-              }
-            : null
-        }
+        payload={payload}
         dataUrl={dataUrl}
         downloadName={selected ? `certificate-${selected.id}.pdf` : 'certificate.pdf'}
         onClose={() => setSelectedId(null)}
