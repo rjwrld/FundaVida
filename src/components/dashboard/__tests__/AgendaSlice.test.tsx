@@ -93,6 +93,10 @@ describe('<AgendaSlice />', () => {
         grades: await api.grades.list(),
         enrollments: await api.enrollments.list(),
         certificates: await api.certificates.list(),
+        // The seed cancels and moves Sessions on every live cohort (ADR-0048), and
+        // the component reads that overlay — so the expectation must too, or it
+        // names a Session the effective schedule no longer has.
+        sessionExceptions: await api.sessionExceptions.list(),
         now: clock.now(),
       })
       if (agenda.role !== 'teacher') throw new Error('expected the teacher agenda variant')

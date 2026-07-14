@@ -8,8 +8,12 @@ import {
   addDays,
   addWeeks,
   differenceInDays,
+  endOfMonth,
   format,
+  max as maxDate,
+  min as minDate,
   startOfDay,
+  startOfMonth,
   subDays,
   subWeeks,
 } from 'date-fns'
@@ -34,7 +38,12 @@ import type {
   Announcement,
   Weekday,
 } from '@/types'
-import { sessionsFor, isSessionRecordable } from '@/lib/sessions'
+import {
+  effectiveSessions,
+  sessionsFor,
+  isSessionRecordable,
+  weekdayToNumber,
+} from '@/lib/sessions'
 import { courseDisplayState } from '@/lib/courseDisplayState'
 import { emitCertificatesForClose } from '@/lib/certificates'
 import { resolveRecipients } from '@/lib/emailRecipients'
@@ -600,16 +609,24 @@ function pickAttendanceStatus(): AttendanceStatus {
 
 /**
  * The Sessions of a Course that seed attendance is recorded for (ADR-0001,
- * ADR-0044). In-progress Courses (Term contains the epoch) are the calendar's
- * live worklist, so every recordable Session is marked *except the most recent
- * one* — leaving a single fresh class to mark per active Course, the "well-run
- * school with a little left to do" story instead of an all-time backlog. Every
- * other Course keeps the historic pattern: the ten most recent strictly-past
- * Sessions (a term-ended Course's older gaps stay unmarked, which is
- * close-readiness's business, not the calendar's).
+ * ADR-0044). Read off the *effective* schedule (ADR-0039), so a cancelled class
+ * carries no attendance and a rescheduled one carries its attendance to the day it
+ * actually met — the overlay is part of what happened, not a later edit to it.
+ *
+ * In-progress Courses (Term contains the epoch) are the calendar's live worklist,
+ * so every recordable Session is marked *except the most recent one* — leaving a
+ * single fresh class to mark per active Course, the "well-run school with a little
+ * left to do" story instead of an all-time backlog. Every other Course keeps the
+ * historic pattern: the ten most recent strictly-past Sessions (a term-ended
+ * Course's older gaps stay unmarked, which is close-readiness's business, not the
+ * calendar's).
  */
-function markedSessionsFor(course: Course, epoch: Date): ReturnType<typeof sessionsFor> {
-  const sessions = sessionsFor(course)
+function markedSessionsFor(
+  course: Course,
+  epoch: Date,
+  exceptions: SessionException[]
+): ReturnType<typeof sessionsFor> {
+  const sessions = effectiveSessions(course, exceptions)
   if (courseDisplayState(course, epoch) === 'inProgress') {
     const recordable = sessions.filter((s) => isSessionRecordable(s, epoch))
     return recordable.slice(0, Math.max(0, recordable.length - 1))
@@ -623,12 +640,14 @@ function markedSessionsFor(course: Course, epoch: Date): ReturnType<typeof sessi
 /**
  * Attendance is recorded per derived Session (ADR-0001): for every enrollment,
  * the Sessions {@link markedSessionsFor} selects. Records bind to real Sessions
- * by construction, so an attendance date can never land where no class met.
+ * by construction, so an attendance date can never land where no class met — not
+ * even on a Session the overlay cancelled or moved (ADR-0039).
  */
 function buildAttendance(
   epoch: Date,
   enrollments: Enrollment[],
-  courses: Course[]
+  courses: Course[],
+  exceptions: SessionException[]
 ): AttendanceRecord[] {
   const courseById = new Map(courses.map((c) => [c.id, c]))
   const records: AttendanceRecord[] = []
@@ -637,7 +656,7 @@ function buildAttendance(
   enrollments.forEach((enrollment) => {
     const course = courseById.get(enrollment.courseId)
     if (!course) return
-    markedSessionsFor(course, epoch).forEach((session) => {
+    markedSessionsFor(course, epoch, exceptions).forEach((session) => {
       records.push({
         id: `att-${(counter += 1)}`,
         courseId: enrollment.courseId,
@@ -1053,6 +1072,49 @@ function buildTcuActivities(epoch: Date, trainees: TcuTrainee[], courses: Course
   return activities
 }
 
+// Notes for the top-up deviations, cycled by position so the month's milestone
+// list (ADR-0048) reads like a real term's, not like a template. Spanish
+// catalog-style content, never passed through t() — the same rule the Course
+// names and announcement bodies follow (ADR-0021).
+const CANCELLED_NOTES = [
+  'Feriado',
+  'Feriado nacional',
+  'Cierre por mantenimiento',
+  'Suspensión por lluvias',
+]
+const RESCHEDULED_NOTES = [
+  'Aula no disponible',
+  'Cambio de horario',
+  'Capacitación docente',
+  'Actividad institucional',
+]
+
+/** How far past a Session a reschedule may search for a free landing slot: six days. */
+const RESCHEDULE_SEARCH_DAYS = 6
+
+/**
+ * The first day after `from` that this cohort never meets on and no other
+ * exception of the same Course already claims — so a reschedule target can never
+ * collide with another effective Session (the store's own landing guard, ADR-0039,
+ * enforced here at build time). `null` when the whole search window runs past the
+ * Term's end, in which case the caller cancels the Session instead of moving it.
+ */
+function freeRescheduleTarget(course: Course, from: Date, claimed: Set<number>): Date | null {
+  // The same mapping `sessionsFor` derives Sessions with, so "never a Meeting Day"
+  // here means exactly "no base Session lands there".
+  const meetingDays = new Set(course.meetingDays.map(weekdayToNumber))
+  const termEnd = startOfDay(new Date(course.term.end))
+
+  for (let offset = 1; offset <= RESCHEDULE_SEARCH_DAYS; offset += 1) {
+    const candidate = addDays(from, offset)
+    if (candidate > termEnd) return null
+    if (meetingDays.has(candidate.getDay())) continue
+    if (claimed.has(candidate.getTime())) continue
+    return candidate
+  }
+  return null
+}
+
 /**
  * Build the entire demo world in one deterministic, causally-ordered pass.
  * Entity identities are fixed by `faker.seed(42)`; every date floats relative
@@ -1062,50 +1124,139 @@ function buildTcuActivities(epoch: Date, trainees: TcuTrainee[], courses: Course
  * 9 Teachers (3 per Sede), 84 Students (28 per Sede), 15 TCU Volunteers.
  */
 /**
- * A small overlay of Session deviations (ADR-0039) so the calendar and the
- * Sessions surface demonstrate cancel/reschedule without manual setup. Both land
- * on the teacher persona's upcoming cohort — every Session is future, so they
- * satisfy the store's future-only + attendance-free guards. Deterministic (no
- * faker draw), so the RNG sequence and every seeded count are unchanged.
+ * The overlay of Session deviations (ADR-0039), in two parts — deterministic
+ * throughout (no faker draw), so placement itself never perturbs the RNG stream.
+ *
+ * The two fixed exceptions (`sxc-1`/`sxc-2`) land on the teacher persona's
+ * upcoming cohort: every Session there is future, so they satisfy the store's
+ * future-only + attendance-free guards and keep backing the week canvas's
+ * exception rendering and its e2e.
+ *
+ * The top-up (ADR-0048) gives every in-progress Course one or two more, placed
+ * inside the epoch's calendar month *and* within ±3 weeks of the epoch. Because
+ * every persona's scope holds an in-progress Course (ADR-0044's seed guarantee),
+ * every role's landing month has milestones to narrate — and, being epoch-relative,
+ * the demo never decays (ADR-0002).
  */
 function buildSessionExceptions(epoch: Date, courses: Course[]): SessionException[] {
   const epochDay = startOfDay(epoch)
+  const exceptions: SessionException[] = []
+
   const demoCourse = courses.find(
     (c) =>
       c.teacherId === `tea-${TEACHER_PERSONA_INDEX + 1}` &&
       startOfDay(new Date(c.term.start)) > epochDay
   )
-  if (!demoCourse) return []
+  if (demoCourse) {
+    const sessions = sessionsFor(demoCourse)
+    const toCancel = sessions[1]
+    const toReschedule = sessions[3]
+    if (toCancel && toReschedule) {
+      // A day after the base Session: never a Meeting Day for this cohort's pattern,
+      // so the reschedule target never collides with another effective Session.
+      const rescheduledTo = addDays(startOfDay(new Date(toReschedule.date)), 1).toISOString()
+      const createdAt = subDays(epochDay, 1).toISOString()
 
-  const sessions = sessionsFor(demoCourse)
-  const toCancel = sessions[1]
-  const toReschedule = sessions[3]
-  if (!toCancel || !toReschedule) return []
+      exceptions.push(
+        {
+          id: 'sxc-1',
+          courseId: demoCourse.id,
+          type: 'cancelled',
+          date: toCancel.date,
+          note: 'Feriado',
+          createdAt,
+        },
+        {
+          id: 'sxc-2',
+          courseId: demoCourse.id,
+          type: 'rescheduled',
+          date: toReschedule.date,
+          newDate: rescheduledTo,
+          note: 'Aula no disponible',
+          createdAt,
+        }
+      )
+    }
+  }
 
-  // A day after the base Session: never a Meeting Day for this cohort's pattern,
-  // so the reschedule target never collides with another effective Session.
-  const rescheduledTo = addDays(startOfDay(new Date(toReschedule.date)), 1).toISOString()
-  const createdAt = subDays(epochDay, 1).toISOString()
+  // The placement window: the epoch's own month, clipped to ±3 weeks around it. The
+  // month bound is what makes the term map live for every persona on landing; the
+  // ±3-week bound keeps the deviations near "now" instead of at a month's far edge.
+  // In-progress Terms straddle the epoch by at least two weeks either side, so this
+  // window always holds several of each live cohort's Sessions.
+  const windowStart = maxDate([subWeeks(epochDay, 3), startOfMonth(epochDay)])
+  const windowEnd = minDate([addWeeks(epochDay, 3), endOfMonth(epochDay)])
 
-  return [
-    {
-      id: 'sxc-1',
-      courseId: demoCourse.id,
-      type: 'cancelled',
-      date: toCancel.date,
-      note: 'Feriado',
-      createdAt,
-    },
-    {
-      id: 'sxc-2',
-      courseId: demoCourse.id,
-      type: 'rescheduled',
-      date: toReschedule.date,
-      newDate: rescheduledTo,
-      note: 'Aula no disponible',
-      createdAt,
-    },
-  ]
+  let seq = exceptions.length
+
+  courses
+    .filter((course) => courseDisplayState(course, epoch) === 'inProgress')
+    .forEach((course, courseIndex) => {
+      const candidates = sessionsFor(course).filter((session) => {
+        const day = startOfDay(new Date(session.date))
+        return day >= windowStart && day <= windowEnd
+      })
+      if (candidates.length === 0) return
+
+      // Two exceptions on every other live cohort, one on the rest — spread across
+      // the window (at its thirds) so a month never shows them piled on one week.
+      const wanted = courseIndex % 2 === 0 ? 2 : 1
+      const picked = new Set<number>()
+      for (let i = 1; i <= wanted; i += 1) {
+        picked.add(Math.floor((candidates.length * i) / (wanted + 1)))
+      }
+
+      // Every day this Course has already spoken for: a moved Session must not land
+      // on another exception's target.
+      const claimed = new Set<number>()
+
+      Array.from(picked).forEach((index, i) => {
+        const session = candidates[index]
+        if (!session) return
+        const sessionDay = startOfDay(new Date(session.date))
+
+        // A deviation is announced ahead of the class it changes, and never in the
+        // future: three days before the Session, or the day before the epoch for a
+        // Session still to come.
+        const announced = subDays(sessionDay, 3)
+        const yesterday = subDays(epochDay, 1)
+        const createdAt = (announced < yesterday ? announced : yesterday).toISOString()
+
+        // Alternate the type by position so the seeded month mixes both kinds.
+        const wantsReschedule = (courseIndex + i) % 2 === 1
+        const target = wantsReschedule ? freeRescheduleTarget(course, sessionDay, claimed) : null
+        const noteIndex = courseIndex + i
+        seq += 1
+
+        if (target) {
+          claimed.add(target.getTime())
+          exceptions.push({
+            id: `sxc-${seq}`,
+            courseId: course.id,
+            type: 'rescheduled',
+            date: session.date,
+            newDate: target.toISOString(),
+            note: RESCHEDULED_NOTES[noteIndex % RESCHEDULED_NOTES.length] as string,
+            createdAt,
+          })
+          return
+        }
+
+        // No free landing slot inside the Term (the cohort meets on every following
+        // day the search reaches, or the Term ends first) — the class is cancelled,
+        // which needs no target at all.
+        exceptions.push({
+          id: `sxc-${seq}`,
+          courseId: course.id,
+          type: 'cancelled',
+          date: session.date,
+          note: CANCELLED_NOTES[noteIndex % CANCELLED_NOTES.length] as string,
+          createdAt,
+        })
+      })
+    })
+
+  return exceptions
 }
 
 // A couple of manual announcements per live cohort so no feed is empty on first
@@ -1182,7 +1333,13 @@ export function seedDemo(epoch: Date): SeedSnapshot {
     }
   })
 
-  const attendance = buildAttendance(epoch, enrollments, courses)
+  // The Session overlay is deterministic and reads only the Courses, so it is built
+  // before attendance and passed in: a cancelled class carries no attendance, and a
+  // rescheduled one carries its attendance to the day it actually met (ADR-0039).
+  // Placing it here draws nothing from faker, so the RNG stream is unmoved by the
+  // reorder itself.
+  const sessionExceptions = buildSessionExceptions(epoch, courses)
+  const attendance = buildAttendance(epoch, enrollments, courses, sessionExceptions)
 
   // The golden-path Course is the one just-ended cohort the teacher persona has
   // yet to grade; every other ended Course is graded.
@@ -1258,7 +1415,7 @@ export function seedDemo(epoch: Date): SeedSnapshot {
     tcuTrainees,
     tcuActivities,
     attendance,
-    sessionExceptions: buildSessionExceptions(epoch, courses),
+    sessionExceptions,
     announcements: buildAnnouncements(epoch, courses),
     auditLog,
     emailCampaigns,

@@ -31,9 +31,20 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v15 key', () => {
+  it('persists state under the v16 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v15:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v16:state')).not.toBeNull()
+  })
+
+  it('reseeds from a stale v15 snapshot and removes the stale v15 state key (ADR-0048)', () => {
+    // A returning v15 visitor's world carries the old two-exception overlay, so their
+    // month term map has nothing to narrate. The snapshot is structurally valid —
+    // only the key bump makes it stale — so it is dropped and the world reseeds with
+    // an exception on every live cohort.
+    window.localStorage.setItem('fundavida:v15:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v15:state')).toBeNull()
   })
 
   it('reseeds from a stale v14 snapshot and removes the stale v14 state key (ADR-0045)', () => {
