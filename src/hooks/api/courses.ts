@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/data/api'
 import { useStore } from '@/data/store'
-import type { Course } from '@/types'
+import type { Course, Role } from '@/types'
 import type { CourseFilters } from '@/data/api/courses'
 import { makeEntityMutation } from './makeEntityMutation'
 import { COURSES_KEY } from './queryKeys'
@@ -20,11 +20,22 @@ export function useCourses(filters: CourseFilters = {}) {
   })
 }
 
+/**
+ * The single Course read as options, so a prefetcher can warm exactly the entry
+ * {@link useCourse} will read back — key and fetcher come from here, not from a
+ * hand-mirrored copy that could drift (the ADR-0029 rationale, applied to reads).
+ */
+export function courseQueryOptions(id: string, role: Role | null) {
+  return {
+    queryKey: [...courseKey(id), role],
+    queryFn: () => api.courses.get(id),
+  }
+}
+
 export function useCourse(id: string) {
   const role = useStore((s) => s.role)
   return useQuery({
-    queryKey: [...courseKey(id), role],
-    queryFn: () => api.courses.get(id),
+    ...courseQueryOptions(id, role),
     enabled: id.length > 0,
   })
 }

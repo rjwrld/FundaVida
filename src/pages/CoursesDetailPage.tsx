@@ -34,6 +34,7 @@ import {
   useAnnouncements,
 } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
+import { useCourseMorphTarget } from '@/hooks/useCourseMorph'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { effectiveSessions, findSession } from '@/lib/sessions'
@@ -110,6 +111,12 @@ export function CoursesDetailPage() {
   // The browse query is conditionally disabled — resolveQueries gates on
   // isLoading, which a disabled query never sets, so it does not hang (ADR-0030).
   const { isPending: isLoading } = resolveQueries([courseQuery, browseableQuery, enrollmentsQuery])
+  // The other end of the course→detail morph (ADR-0047 phase 6c). Armed only when
+  // that gate was already clear on this mount's first render — the heading then
+  // commits in the same pass the list unmounts in, which is the only pass where
+  // framer still holds the box of the card/row it grew out of. Cold mounts (and
+  // reduced motion) get a plain heading and a plain navigation.
+  const morphLayoutId = useCourseMorphTarget(id, isLoading)
   const { data: scopedStudents = [] } = useStudents()
   const { data: scopedTrainees = [] } = useTcuTrainees()
   const gradesQuery = useGrades({ courseId: id ?? '' })
@@ -288,6 +295,7 @@ export function CoursesDetailPage() {
       <PageHeader
         eyebrow={t('courses.detail.title')}
         title={shortCourseName(course)}
+        titleLayoutId={morphLayoutId}
         description={programName}
         action={
           <>

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -108,5 +108,70 @@ describe('<CoursesListPage />', () => {
     const bodyRows = within(table).getAllByRole('row').slice(1)
     expect(bodyRows).toHaveLength(10)
     expect(screen.getByText(`Page 1 of ${Math.ceil(total / 10)}`)).toBeInTheDocument()
+  })
+})
+
+describe('<CoursesListPage /> — shared-element morph source (ADR-0047 phase 6c)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+    useStore.getState().setRole('admin')
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  /** Pins the viewport so `useDataTableSurface` resolves to one branch or the other. */
+  function matchViewport(matches: boolean) {
+    const noop = vi.fn()
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query: string) =>
+        ({
+          matches,
+          media: query,
+          addEventListener: noop,
+          removeEventListener: noop,
+          addListener: noop,
+          removeListener: noop,
+          dispatchEvent: () => false,
+          onchange: null,
+        }) as unknown as MediaQueryList
+    )
+  }
+
+  /**
+   * The DataTable renders every row twice — the real table plus a `display:none`
+   * stacked card — so a `layoutId` set unconditionally in the name cell would
+   * register two nodes per Course, and framer could lead the morph from the hidden,
+   * zero-area one. Exactly one node per Course may carry it, on the live surface.
+   */
+  it('registers the shared element once per Course, on the table surface', async () => {
+    matchViewport(true) // ≥ sm: the table is the live render
+    const { container } = renderPage()
+
+    await screen.findByRole('table')
+    const morphNodes = Array.from(container.querySelectorAll('[data-morph-id]'))
+    const ids = morphNodes.map((node) => node.getAttribute('data-morph-id'))
+
+    expect(morphNodes.length).toBeGreaterThan(0)
+    expect(new Set(ids).size).toBe(ids.length)
+    morphNodes.forEach((node) => expect(node.closest('table')).not.toBeNull())
+  })
+
+  it('hands the shared element to the stacked cards below sm', async () => {
+    matchViewport(false) // < sm: the cards are the live render
+    const { container } = renderPage()
+
+    await screen.findByRole('table')
+    const morphNodes = Array.from(container.querySelectorAll('[data-morph-id]'))
+    const ids = morphNodes.map((node) => node.getAttribute('data-morph-id'))
+
+    expect(morphNodes.length).toBeGreaterThan(0)
+    expect(new Set(ids).size).toBe(ids.length)
+    morphNodes.forEach((node) => expect(node.closest('table')).toBeNull())
   })
 })

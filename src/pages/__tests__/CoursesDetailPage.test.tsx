@@ -14,6 +14,9 @@ import { courseDisplayState, isOpenForEnrollment } from '@/lib/courseDisplayStat
 import { clock } from '@/lib/clock'
 import { SEDES } from '@/constants/sede'
 import { CoursesDetailPage } from '@/pages/CoursesDetailPage'
+import { courseMorphLayoutId } from '@/lib/courseMorph'
+import { courseQueryOptions } from '@/hooks/api/courses'
+import { enrollmentsQueryOptions } from '@/hooks/api/enrollments'
 import { api } from '@/data/api'
 import { delay } from '@/data/api/_delay'
 import { useStore } from '@/data/store'
@@ -37,8 +40,10 @@ vi.mock('framer-motion', async (importOriginal) => ({
 // fires confetti — jsdom has no canvas, so stub the module out entirely.
 vi.mock('@/lib/confetti', () => ({ fireConfetti: vi.fn() }))
 
-function renderPage(courseId: string) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
+function renderPage(
+  courseId: string,
+  client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
+) {
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
@@ -1216,5 +1221,68 @@ describe('<CoursesDetailPage /> — sessions surface & roster (issue 153, ADR-00
     const badge = await screen.findByTestId('course-status-badge')
     expect(badge).toHaveTextContent(expected)
     expect(badge).not.toHaveTextContent('Finished')
+  })
+})
+
+describe('<CoursesDetailPage /> — shared-element morph (ADR-0047 phase 6c)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+    vi.mocked(useReducedMotion).mockReturnValue(false)
+  })
+
+  /**
+   * A client warmed exactly as `usePrefetchCourseDetail` warms it on hover — the
+   * page's gating queries (ADR-0030) served from cache, so the heading paints on
+   * the first commit instead of behind the loading gate.
+   */
+  async function warmedClient(course: Course, role: Role) {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
+    await client.prefetchQuery(courseQueryOptions(course.id, role))
+    await client.prefetchQuery(enrollmentsQueryOptions({ courseId: course.id }, role))
+    return client
+  }
+
+  it('carries the shared element when it paints its heading from cache', async () => {
+    const { gradedCourse } = fixtures()
+    asRole('admin')
+    const client = await warmedClient(gradedCourse, 'admin')
+
+    const { container } = renderPage(gradedCourse.id, client)
+
+    // Synchronously on the first paint — a heading that appears later has nothing
+    // left to morph from.
+    const heading = screen.getByRole('heading', { name: shortCourseName(gradedCourse) })
+    expect(
+      heading.querySelector(`[data-morph-id="${courseMorphLayoutId(gradedCourse.id)}"]`)
+    ).not.toBeNull()
+    expect(container.querySelectorAll('[data-morph-id]')).toHaveLength(1)
+  })
+
+  it('leaves the heading plain when the page opens on its loading gate', async () => {
+    const { gradedCourse } = fixtures()
+    asRole('admin')
+
+    // Cold client: the page paints "Loading…" first, so the list it was navigated
+    // from is already gone — arming the morph now would animate from nothing.
+    const { container } = renderPage(gradedCourse.id)
+
+    await screen.findByRole('heading', { name: shortCourseName(gradedCourse) })
+    expect(container.querySelector('[data-morph-id]')).toBeNull()
+  })
+
+  it('leaves the heading plain under prefers-reduced-motion, cache or not', async () => {
+    vi.mocked(useReducedMotion).mockReturnValue(true)
+    const { gradedCourse } = fixtures()
+    asRole('admin')
+    const client = await warmedClient(gradedCourse, 'admin')
+
+    const { container } = renderPage(gradedCourse.id, client)
+
+    await screen.findByRole('heading', { name: shortCourseName(gradedCourse) })
+    expect(container.querySelector('[data-morph-id]')).toBeNull()
   })
 })
