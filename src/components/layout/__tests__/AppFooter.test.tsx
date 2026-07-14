@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { I18nProvider } from '@/lib/i18n'
 import { AppFooter } from '../AppFooter'
@@ -12,6 +12,20 @@ function renderFooter() {
 }
 
 describe('<AppFooter />', () => {
+  // Must run first: React only warns once per process, so a later render would pass vacuously.
+  it('renders the byline without React key warnings', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      renderFooter()
+      const keyWarnings = errorSpy.mock.calls.filter((args) =>
+        String(args[0]).includes('unique "key" prop')
+      )
+      expect(keyWarnings).toEqual([])
+    } finally {
+      errorSpy.mockRestore()
+    }
+  })
+
   it('is a contentinfo landmark', () => {
     renderFooter()
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
