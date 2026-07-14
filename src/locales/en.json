@@ -972,10 +972,6 @@
       },
       "empty": "No activities logged yet.",
       "emptyFiltered": "No activities match your filter.",
-      "filters": {
-        "anyTrainee": "Any trainee",
-        "traineePlaceholder": "Trainee"
-      },
       "status": {
         "approved": "Approved",
         "pending": "Pending",
@@ -983,6 +979,16 @@
       },
       "subtitle": "Community service hours logged by trainees toward their 300-hour requirement.",
       "title": "TCU activities"
+    },
+    "roster": {
+      "columns": {
+        "approved": "Approved",
+        "course": "Course",
+        "pending": "Pending",
+        "progress": "Progress"
+      },
+      "filterBy": "Show only {{name}}'s activities",
+      "title": "Trainee progress"
     }
   },
   "teachers": {
