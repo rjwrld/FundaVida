@@ -159,7 +159,15 @@ test('lowering a passing grade below 70 after close revokes the certificate (ADR
   await page.getByRole('link', { name: 'Certificates', exact: true }).click()
   await page.getByRole('combobox', { name: 'Filter by course' }).click()
   await page.getByRole('option', { name: revocableCourse.name }).click()
-  await expect(page.getByText(revokedStudentName)).toBeVisible()
+  // The just-applied filter is still fading the other courses' cards out
+  // (AnimatePresence keeps them in the DOM mid-exit), and a bare name matches
+  // the same Student's card on another course — a strict-mode violation that
+  // does not retry. The full aria name pins student AND course.
+  await expect(
+    page.getByRole('button', {
+      name: `Open preview for ${revokedStudentName} — ${revocableCourse.name}`,
+    })
+  ).toBeVisible()
   await expect(page.getByRole('button', { name: /open preview/i })).toHaveCount(
     REVOCABLE_CERT_COUNT
   )
