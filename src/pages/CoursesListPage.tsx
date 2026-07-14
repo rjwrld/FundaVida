@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
+import { useDataTableSurface } from '@/hooks/useDataTableSurface'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
 import { listViewState } from '@/lib/listViewState'
@@ -23,6 +24,7 @@ import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { CoursesEmpty } from '@/components/empty-states/CoursesEmpty'
 import { CourseFormDialog } from '@/components/courses/CourseFormDialog'
 import { CourseStateBadge } from '@/components/courses/CourseStateBadge'
+import { CourseTitleLink } from '@/components/courses/CourseTitleLink'
 import { useCourses, useDeleteCourse, usePublishCourse } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
 import { can } from '@/permissions'
@@ -31,11 +33,11 @@ import { SEDES } from '@/constants/sede'
 import type { CourseFilters } from '@/data/api/courses'
 import type { Course } from '@/types'
 import { useStore } from '@/data/store'
-import { shortCourseName } from '@/lib/courseName'
 import { fullName } from '@/lib/personName'
 
 export function CoursesListPage() {
   const { t } = useTranslation()
+  const surface = useDataTableSurface()
   const [filters, setFilters] = useState<CourseFilters>({})
   const { data = [], isLoading } = useCourses(filters)
   const deleteCourse = useDeleteCourse()
@@ -78,11 +80,7 @@ export function CoursesListPage() {
       header: t('courses.list.columns.name'),
       sortable: true,
       sortAccessor: (c) => c.name,
-      cell: (c) => (
-        <Link to={`/app/courses/${c.id}`} className="hover:underline">
-          {shortCourseName(c)}
-        </Link>
-      ),
+      cell: (c) => <CourseTitleLink course={c} shared={surface === 'table'} />,
     },
     {
       id: 'program',
@@ -132,6 +130,19 @@ export function CoursesListPage() {
       },
     })
   }
+
+  // The stacked-card render of the same rows (below `sm`). It differs in exactly
+  // one cell: the shared element the title link registers for the course→detail
+  // morph belongs to whichever of the two renders the viewport is actually showing,
+  // and only one node per Course may claim it (see `useDataTableSurface`).
+  const cardColumns: DataTableColumn<Course>[] = columns.map((column) =>
+    column.id === 'name'
+      ? {
+          ...column,
+          cell: (c: Course) => <CourseTitleLink course={c} shared={surface === 'card'} />,
+        }
+      : column
+  )
 
   return (
     <div className="space-y-6">
@@ -218,7 +229,7 @@ export function CoursesListPage() {
             renderCard={(c) => (
               <DataTableCard
                 row={c}
-                columns={columns}
+                columns={cardColumns}
                 titleColumnId="name"
                 actionsColumnId="actions"
               />

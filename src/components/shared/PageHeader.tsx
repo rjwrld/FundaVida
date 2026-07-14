@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { MorphSpan } from '@/components/shared/MorphSpan'
 import { cn } from '@/lib/utils'
 
 export interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -6,6 +7,13 @@ export interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   description?: string
   eyebrow?: string
   action?: React.ReactNode
+  /**
+   * Pairs this heading with the identically-id'd node it was navigated from — the
+   * Course list's title link — so framer morphs one into the other (ADR-0047 phase
+   * 6c). Callers arm it only for a mount that paints from cache; see
+   * `useCourseMorphTarget`, which is the only thing that should be producing this.
+   */
+  titleLayoutId?: string
 }
 
 export function PageHeader({
@@ -13,6 +21,7 @@ export function PageHeader({
   description,
   eyebrow,
   action,
+  titleLayoutId,
   className,
   ...props
 }: PageHeaderProps) {
@@ -30,7 +39,9 @@ export function PageHeader({
             {eyebrow}
           </span>
         ) : null}
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          {titleLayoutId ? <MorphSpan layoutId={titleLayoutId}>{title}</MorphSpan> : title}
+        </h1>
         {description ? (
           <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>
         ) : null}

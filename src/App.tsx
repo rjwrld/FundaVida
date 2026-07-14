@@ -5,6 +5,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { LandingPage } from '@/pages/LandingPage'
 import { RoleRequired } from '@/components/demo/RoleRequired'
 import { RoleGate } from '@/components/demo/RoleGate'
+import { coursesDetailRoute } from '@/pages/coursesDetailRoute'
 
 // Every /app page is code-split into its own chunk (#353): the landing page is
 // the entry surface and stays eager, while the heavy leaves (recharts on the
@@ -39,9 +40,6 @@ const EnrollmentsListPage = lazy(() =>
 )
 const CoursesListPage = lazy(() =>
   import('@/pages/CoursesListPage').then((m) => ({ default: m.CoursesListPage }))
-)
-const CoursesDetailPage = lazy(() =>
-  import('@/pages/CoursesDetailPage').then((m) => ({ default: m.CoursesDetailPage }))
 )
 const BrowseCoursesPage = lazy(() =>
   import('@/pages/BrowseCoursesPage').then((m) => ({ default: m.BrowseCoursesPage }))
@@ -113,7 +111,11 @@ export function App() {
               <Route element={<RoleGate resource="courses" />}>
                 <Route path="courses" element={<CoursesListPage />} />
                 <Route path="courses/browse" element={<BrowseCoursesPage />} />
-                <Route path="courses/:id" element={<CoursesDetailPage />} />
+                {/* Preloadable rather than plain-lazy: the list warms this route on
+                    hover so the detail page mounts without the extra suspended commit
+                    `React.lazy` costs on its first render — the commit that would
+                    otherwise cost the session's first Course its morph. */}
+                <Route path="courses/:id" element={<coursesDetailRoute.Route />} />
               </Route>
               <Route element={<RoleGate resource="grades" />}>
                 <Route path="grades" element={<GradesListPage />} />

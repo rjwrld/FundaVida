@@ -81,6 +81,11 @@ export interface DataTableProps<T> {
    * Renders each windowed row as a card. When provided, the desktop table is
    * hidden below `sm` and these cards stack instead — preserving the existing
    * mobile card-stack path. When omitted, the table scrolls horizontally.
+   *
+   * Both renders sit in the DOM at every width; only CSS hides one. A page whose
+   * cells register anything viewport-global (a `layoutId`, say) must therefore
+   * give the two renders different columns and let `useDataTableSurface` — which
+   * mirrors the `sm` breakpoint used here — say which one is live.
    */
   renderCard?: (row: T) => React.ReactNode
 }
