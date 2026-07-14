@@ -55,7 +55,11 @@ describe('AdminDashboard — hero + supporting layout', () => {
     expect(screen.getByText(/courses to close/i)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /certificates this epoch/i })).toBeInTheDocument()
     expect(screen.getByText(/students at risk/i)).toBeInTheDocument()
-    // The funnel gates on its queries (ADR-0030), so its title paints async.
-    expect(await screen.findByText(/enrollment funnel by campus/i)).toBeInTheDocument()
+    // The funnel gates on its queries (ADR-0030) AND arrives through a lazy
+    // chunk (#353), so its title paints two async layers late — past findBy's
+    // default 1s on a slow CI runner.
+    expect(
+      await screen.findByText(/enrollment funnel by campus/i, {}, { timeout: 4000 })
+    ).toBeInTheDocument()
   })
 })

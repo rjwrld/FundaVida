@@ -90,9 +90,15 @@ describe('<DashboardPage /> (admin)', () => {
     // actionable cards (issue #155).
     expect(screen.getByRole('heading', { name: /courses to close/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /students at risk/i })).toBeInTheDocument()
-    // The funnel gates on its queries (ADR-0030), so its heading paints async.
+    // The funnel gates on its queries (ADR-0030) AND arrives through a lazy
+    // chunk (#353), so its heading paints two async layers late — past findBy's
+    // default 1s on a slow CI runner.
     expect(
-      await screen.findByRole('heading', { name: /enrollment funnel by campus/i })
+      await screen.findByRole(
+        'heading',
+        { name: /enrollment funnel by campus/i },
+        { timeout: 4000 }
+      )
     ).toBeInTheDocument()
   })
 
