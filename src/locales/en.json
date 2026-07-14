@@ -517,6 +517,7 @@
   "dashboard": {
     "announcements": {
       "compose": {
+        "cta": "Post",
         "heading": "Post an announcement",
         "selectCourse": "Choose a course"
       },

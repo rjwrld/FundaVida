@@ -3,16 +3,10 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Megaphone } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CourseStateBadge } from '@/components/courses/CourseStateBadge'
-import { AnnouncementComposer } from '@/components/announcements/AnnouncementComposer'
+import { PostAnnouncementDialog } from '@/components/announcements/PostAnnouncementDialog'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { useAnnouncements } from '@/hooks/api/announcements'
 import { useCourses } from '@/hooks/api/courses'
@@ -30,9 +24,10 @@ const FEED_LIMIT = 4
  * latest few posts across the viewer's scoped Courses (admin all, teacher own,
  * student enrolled, TCU the assigned Course — the scope seam, ADR-0040), newest
  * first. Each row deep-links to its Course, where the full feed lives. Roles that
- * may compose (teacher/admin) also get an inline composer (#266): a picker over
- * their non-closed cohorts plus the shared {@link AnnouncementComposer}, so posting
- * a note takes no detour through a Course detail page.
+ * may compose (teacher/admin) also get a Post button in the header (#367) opening
+ * {@link PostAnnouncementDialog} — a picker over their non-closed cohorts plus the
+ * shared composer — so posting a note takes no detour through a Course detail page
+ * while the feed card itself stays reading-only.
  *
  * Derives from two scoped reads — the feed and the Courses (for the row's Course
  * name and the picker) — held behind {@link resolveQueries} (ADR-0030) so a
@@ -43,7 +38,7 @@ export function DashboardAnnouncementsFeed({ courseId }: { courseId?: string }) 
   const { formatDate } = useFormat()
   const announcementsQuery = useAnnouncements(courseId ? { courseId } : {})
   const coursesQuery = useCourses()
-  const [pickedCourseId, setPickedCourseId] = useState('')
+  const [composeOpen, setComposeOpen] = useState(false)
 
   // Whether to offer the inline composer. Admin composes unconditionally; a
   // Teacher composes on Courses they own — and the scoped Courses read here is
@@ -67,17 +62,13 @@ export function DashboardAnnouncementsFeed({ courseId }: { courseId?: string }) 
   const courseById = new Map<string, Course>(courses.map((c) => [c.id, c]))
   const items = announcements.slice(0, FEED_LIMIT)
 
-  // The picker's Courses: the composer's own/all cohorts that are still live — the
+  // The Dialog's Courses: the composer's own/all cohorts that are still live — the
   // same terminal-cohort gate the detail-page compose box uses (`canManageAnnouncements`,
   // ADR-0040), via the shared {@link isLiveCohort} predicate. With none composable
-  // (e.g. every owned cohort closed), there is nowhere to post, so the composer is
-  // withheld. A sole composable Course is preselected so a single-cohort Teacher posts
-  // without touching the picker; with several, the picker stays on its "choose"
-  // placeholder until one is chosen — posting has no undo (ADR-0040), so we never
-  // silently aim the box at an unread cohort.
+  // (e.g. every owned cohort closed), there is nowhere to post, so the Post button
+  // is withheld.
   const composableCourses = courses.filter(isLiveCohort)
-  const soleCourseId = composableCourses.length === 1 ? (composableCourses[0]?.id ?? '') : ''
-  const selectedCourseId = pickedCourseId || soleCourseId
+  const showCompose = canCompose && composableCourses.length > 0
 
   return (
     // `Card` renders a plain div, so the named region the old `<section>` carried
@@ -93,6 +84,13 @@ export function DashboardAnnouncementsFeed({ courseId }: { courseId?: string }) 
           <Megaphone className="size-4 text-primary" aria-hidden="true" />
           {t('dashboard.announcements.title')}
         </CardTitle>
+        {showCompose && (
+          <CardAction>
+            <Button size="sm" variant="outline" onClick={() => setComposeOpen(true)}>
+              {t('dashboard.announcements.compose.cta')}
+            </Button>
+          </CardAction>
+        )}
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col">
@@ -112,25 +110,12 @@ export function DashboardAnnouncementsFeed({ courseId }: { courseId?: string }) 
         )}
       </CardContent>
 
-      {canCompose && composableCourses.length > 0 && (
-        <CardFooter className="flex-col items-stretch gap-2 border-t">
-          <h4 className="text-sm font-medium text-foreground">
-            {t('dashboard.announcements.compose.heading')}
-          </h4>
-          <Select value={selectedCourseId} onValueChange={setPickedCourseId}>
-            <SelectTrigger aria-label={t('dashboard.announcements.compose.selectCourse')}>
-              <SelectValue placeholder={t('dashboard.announcements.compose.selectCourse')} />
-            </SelectTrigger>
-            <SelectContent>
-              {composableCourses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {shortCourseName(course)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <AnnouncementComposer courseId={selectedCourseId} />
-        </CardFooter>
+      {showCompose && (
+        <PostAnnouncementDialog
+          open={composeOpen}
+          onClose={() => setComposeOpen(false)}
+          courses={composableCourses}
+        />
       )}
     </Card>
   )

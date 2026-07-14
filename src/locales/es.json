@@ -523,6 +523,7 @@
   "dashboard": {
     "announcements": {
       "compose": {
+        "cta": "Publicar",
         "heading": "Publicar un anuncio",
         "selectCourse": "Elige un curso"
       },
