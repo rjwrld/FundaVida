@@ -1,6 +1,8 @@
-import { useMemo, useState, Fragment } from 'react'
+import { useEffect, useMemo, useState, Fragment } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NoResults } from '@/components/shared/NoResults'
 import { Badge } from '@/components/ui/badge'
@@ -36,7 +38,8 @@ import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { effectiveSessions, findSession } from '@/lib/sessions'
 import { resolveQueries } from '@/lib/resolveQueries'
-import { closeReadiness, isTermEnded } from '@/lib/closeReadiness'
+import { closeReadiness, isTermEnded, type CloseReadiness } from '@/lib/closeReadiness'
+import { fadeUpHidden, transitionFast, transitionGlide } from '@/lib/motion'
 import { isOpenForEnrollment, isLiveCohort } from '@/lib/courseDisplayState'
 import { clock } from '@/lib/clock'
 import { CloseReadinessChecklist } from '@/components/courses/CloseReadinessChecklist'
@@ -130,6 +133,24 @@ export function CoursesDetailPage() {
   } | null>(null)
   const [confirmClose, setConfirmClose] = useState(false)
   const [messageClassOpen, setMessageClassOpen] = useState(false)
+
+  // The close celebration window (ADR-0047 phase 6b): for a beat after the
+  // close lands, the Close button stays mounted as a checkmark morph and the
+  // readiness checklist replays as a cascade, then both exit. The readiness is
+  // snapshotted at close time — the live derivation can flip to null once the
+  // course stops being closable. Under reduced motion the window never opens
+  // and the close re-renders instantly, exactly as before.
+  const reduce = useReducedMotion()
+  const [justClosed, setJustClosed] = useState(false)
+  const [closedReadiness, setClosedReadiness] = useState<CloseReadiness | null>(null)
+  useEffect(() => {
+    if (!justClosed) return
+    const timer = setTimeout(() => {
+      setJustClosed(false)
+      setClosedReadiness(null)
+    }, 2400)
+    return () => clearTimeout(timer)
+  }, [justClosed])
 
   const canViewRoster = useCan('view', 'enrollments', { course: course || undefined })
   const canEdit = useCan('edit', 'courses')
@@ -245,6 +266,9 @@ export function CoursesDetailPage() {
   // `readiness` object but surfaces for any marker, mid-Term gaps included.
   const showChecklist =
     !!readiness && canClose && course.status === 'published' && isTermEnded(course, clock.now())
+  // During the celebration window the checklist renders from the close-time
+  // snapshot; outside it, from the live derivation (or not at all).
+  const checklistReadiness = justClosed ? closedReadiness : showChecklist ? readiness : null
   // Sessions are derived from Term × Meeting Days (ADR-0001), then the stored
   // exceptions overlay is applied last (ADR-0039) — one composed seam every
   // surface reads.
@@ -275,11 +299,39 @@ export function CoursesDetailPage() {
                 {t('courses.detail.edit')}
               </Button>
             )}
-            {canClose && course.status === 'published' && (
-              <Button variant="outline" onClick={() => setConfirmClose(true)}>
-                {t('courses.detail.close')}
-              </Button>
-            )}
+            <AnimatePresence>
+              {canClose && (course.status === 'published' || justClosed) && (
+                <motion.span
+                  key="close-action"
+                  layout={reduce ? false : true}
+                  className="inline-flex"
+                  exit={reduce ? undefined : fadeUpHidden}
+                  transition={transitionFast}
+                >
+                  <Button
+                    variant="outline"
+                    disabled={justClosed}
+                    // The morphed state swaps the accessible name with the icon:
+                    // "Close course" is gone the instant the close lands.
+                    aria-label={justClosed ? t('courses.detail.closed') : undefined}
+                    onClick={() => setConfirmClose(true)}
+                  >
+                    {justClosed ? (
+                      <motion.span
+                        className="inline-flex"
+                        initial={{ scale: 0.3, rotate: -90 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={transitionGlide}
+                      >
+                        <Check aria-hidden="true" />
+                      </motion.span>
+                    ) : (
+                      t('courses.detail.close')
+                    )}
+                  </Button>
+                </motion.span>
+              )}
+            </AnimatePresence>
             {canMessageClass && (
               <Button variant="outline" onClick={() => setMessageClassOpen(true)}>
                 {t('courses.detail.messageClass')}
@@ -289,7 +341,17 @@ export function CoursesDetailPage() {
         }
       />
 
-      {showChecklist && <CloseReadinessChecklist readiness={readiness} />}
+      <AnimatePresence>
+        {checklistReadiness && (
+          <motion.div
+            key="close-readiness"
+            exit={reduce ? undefined : fadeUpHidden}
+            transition={transitionFast}
+          >
+            <CloseReadinessChecklist readiness={checklistReadiness} celebrate={justClosed} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* The outbox sits directly under the header that carries "Message the class"
           (ADR-0046), so compose and sent history read as one channel. The
@@ -626,7 +688,19 @@ export function CoursesDetailPage() {
         title={t('courses.detail.closeConfirm.title')}
         description={t('courses.detail.closeConfirm.description')}
         confirmLabel={t('courses.detail.close')}
-        onConfirm={() => closeCourse.mutate({ courseId: course.id })}
+        onConfirm={() =>
+          closeCourse.mutate(
+            { courseId: course.id },
+            {
+              onSuccess: () => {
+                if (reduce) return
+                setJustClosed(true)
+                // Celebrate the checklist only if it was on screen for the close.
+                setClosedReadiness(showChecklist ? readiness : null)
+              },
+            }
+          )
+        }
         onOpenChange={(o) => {
           if (!o) setConfirmClose(false)
         }}

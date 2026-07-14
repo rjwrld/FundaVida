@@ -51,6 +51,15 @@ export const transitionGlide: Transition = {
 }
 
 /**
+ * The one-shot celebration sheen's glide (phase 6b): slow enough to read as a
+ * deliberate sweep across the celebrated card or row, done inside a second.
+ */
+export const transitionSweep: Transition = {
+  duration: 0.9,
+  ease: 'easeInOut',
+}
+
+/**
  * The staggered grid entrance shared by card grids (phase 6a) on the DataTable
  * pattern: spread `container` onto the grid and `item` onto each card. Callers
  * pass their own `useReducedMotion()` read; under it both collapse to a static

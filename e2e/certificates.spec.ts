@@ -159,10 +159,12 @@ test('lowering a passing grade below 70 after close revokes the certificate (ADR
   await page.getByRole('link', { name: 'Certificates', exact: true }).click()
   await page.getByRole('combobox', { name: 'Filter by course' }).click()
   await page.getByRole('option', { name: revocableCourse.name }).click()
-  // The just-applied filter is still fading the other courses' cards out
-  // (AnimatePresence keeps them in the DOM mid-exit), and a bare name matches
-  // the same Student's card on another course — a strict-mode violation that
-  // does not retry. The full aria name pins student AND course.
+  // Assert the exact card (student — course), not the bare student name: cards
+  // filtered away exit through a ~200ms fade (phase 6a AnimatePresence), and
+  // when the seed gives this student a certificate in another closed course,
+  // the bare-name locator catches the exiting card too — a strict-mode
+  // violation, which is terminal, not retried. Whether that happens depends on
+  // the wall-clock seed date, which is why it only bites on some days/TZs.
   await expect(
     page.getByRole('button', {
       name: `Open preview for ${revokedStudentName} — ${revocableCourse.name}`,

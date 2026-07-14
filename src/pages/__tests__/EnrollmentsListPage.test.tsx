@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useReducedMotion } from 'framer-motion'
 import { I18nProvider } from '@/lib/i18n'
 import { shortCourseName } from '@/lib/courseName'
 import { fullName } from '@/lib/personName'
@@ -12,6 +13,13 @@ import {
   clearPersistedRole,
   clearPersistedState,
 } from '@/data/persistence'
+
+// The approval sweep opts out through `useReducedMotion()` (ADR-0027) — mock
+// the hook, not `MotionConfig`, which only steers framer's animation engine.
+vi.mock('framer-motion', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('framer-motion')>()),
+  useReducedMotion: vi.fn(() => false),
+}))
 
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
@@ -136,5 +144,70 @@ describe('<EnrollmentsListPage /> — admin oversight by Sede → Course (ADR-00
     await screen.findAllByRole('button', { name: /enrollment$/i })
     // The default ('active') view excludes rejected rows, so no Rejected badge shows.
     expect(screen.queryByText('Rejected')).not.toBeInTheDocument()
+  })
+})
+
+describe('<EnrollmentsListPage /> — approval sweep (ADR-0047 phase 6b)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+    useStore.getState().setRole('admin')
+    vi.mocked(useReducedMotion).mockReturnValue(false)
+  })
+
+  function pendingFixture() {
+    const s = useStore.getState()
+    const pending = req(
+      s.enrollments.find((e) => e.status === 'pending'),
+      'seed: no pending enrollment'
+    )
+    const student = req(
+      s.students.find((st) => st.id === pending.studentId),
+      'seed: pending enrollment student missing'
+    )
+    return { pending, student }
+  }
+
+  it('plays one green sweep on the approved row', async () => {
+    const { pending, student } = pendingFixture()
+    renderPage()
+
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: new RegExp(`approve ${fullName(student)}'s enrollment`, 'i'),
+      })
+    )
+
+    // The sweep mounts on approval success, on exactly one row — the approved
+    // one: it lives inside the <li> that carries the student's name.
+    const sweep = await screen.findByTestId('celebration-sweep')
+    expect(sweep.closest('li')).toHaveTextContent(fullName(student))
+    await waitFor(() => {
+      expect(useStore.getState().enrollments.find((e) => e.id === pending.id)?.status).toBe(
+        'approved'
+      )
+    })
+  })
+
+  it('approves without any sweep under prefers-reduced-motion', async () => {
+    vi.mocked(useReducedMotion).mockReturnValue(true)
+    const { pending, student } = pendingFixture()
+    renderPage()
+
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: new RegExp(`approve ${fullName(student)}'s enrollment`, 'i'),
+      })
+    )
+
+    await waitFor(() => {
+      expect(useStore.getState().enrollments.find((e) => e.id === pending.id)?.status).toBe(
+        'approved'
+      )
+    })
+    expect(screen.queryByTestId('celebration-sweep')).not.toBeInTheDocument()
   })
 })

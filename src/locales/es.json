@@ -374,6 +374,7 @@
         "description": "Esto registra el curso como finalizado. No se puede reabrir.",
         "title": "¿Cerrar este curso?"
       },
+      "closed": "Curso cerrado",
       "deleteConfirm": "¿Eliminar este curso?",
       "edit": "Editar",
       "enrollButton": "Matricular estudiante",
