@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
-import { FileText } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { CelebrationSweep } from '@/components/shared/CelebrationSweep'
+import { LogoMark } from '@/components/brand/LogoMark'
+import { CERTIFICATE_COLORS as C } from '@/lib/pdf/certificateTheme'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -58,36 +58,45 @@ export function CertificateCard({ cert, onOpen, justIssued = false, className }:
       )}
     >
       {justIssued && <CelebrationSweep delay={0.3} className="z-10" />}
-      <div className="relative flex aspect-4/3 items-center justify-center overflow-hidden bg-card">
-        <span
-          aria-hidden="true"
-          className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-muted ring-2 ring-border"
+      {/* Miniature of the certificate itself (#367): the shared print-fixed
+          palette and field order of CertificateTemplate / CertificatePreview, so
+          the gallery previews what actually downloads. Paper stays white in dark
+          mode — the certificate is a print artifact, not a themed surface — and
+          the copy stays English to match the artifact (the CertificatePreview
+          precedent). The Card's aria-label already narrates student + course,
+          and the date/grade footer below is live text, so the miniature is
+          decoration to assistive tech. */}
+      <div
+        aria-hidden="true"
+        className="relative m-3 mb-0 flex aspect-11/8.5 flex-col items-center justify-center gap-1.5 border-2 px-4 py-3 text-center"
+        style={{ backgroundColor: C.paper, borderColor: C.navy }}
+      >
+        <div
+          className={cn('transition-transform duration-300', clickable && 'group-hover:scale-110')}
+          style={{ color: C.navy }}
         >
-          <span className="h-2 w-2 rounded-full bg-foreground" />
-        </span>
-        <FileText
-          size={48}
-          className={cn(
-            'relative text-primary transition-transform duration-300',
-            clickable && 'group-hover:scale-105'
-          )}
-          aria-hidden="true"
-        />
-      </div>
-      <CardContent className="flex flex-1 flex-col p-4 pt-4">
-        <p className="truncate text-sm font-semibold text-foreground">{cert.studentName}</p>
-        <p className="truncate text-xs text-muted-foreground">{cert.courseName}</p>
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <div className="flex min-w-0 items-baseline gap-2">
-            <span className="font-mono text-xs tabular-nums text-muted-foreground">
-              {cert.issuedAt}
-            </span>
-            <span className="font-mono text-xs font-semibold tabular-nums text-foreground">
-              {cert.grade}
-            </span>
-          </div>
-          <Badge variant="success">{t('certificates.status.issued')}</Badge>
+          <LogoMark variant="mark" size="xs" alt="" />
         </div>
+        <p className="text-[9px] tracking-[0.18em]" style={{ color: C.muted }}>
+          CERTIFICATE OF COMPLETION
+        </p>
+        <p
+          className="line-clamp-1 w-full text-base font-bold leading-tight"
+          style={{ color: C.navy }}
+        >
+          {cert.studentName}
+        </p>
+        <p className="line-clamp-2 w-full text-[11px] leading-snug" style={{ color: C.slate }}>
+          {cert.courseName}
+        </p>
+      </div>
+      <CardContent className="flex flex-1 items-center justify-between gap-2 p-4 pt-3">
+        <span className="font-mono text-xs tabular-nums text-muted-foreground">
+          {cert.issuedAt}
+        </span>
+        <span className="font-mono text-xs font-semibold tabular-nums text-foreground">
+          {cert.grade}
+        </span>
       </CardContent>
     </Card>
   )
