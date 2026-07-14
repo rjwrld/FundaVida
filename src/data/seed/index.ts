@@ -38,8 +38,12 @@ import type {
   Announcement,
   Weekday,
 } from '@/types'
-import { WEEKDAYS } from '@/types'
-import { effectiveSessions, sessionsFor, isSessionRecordable } from '@/lib/sessions'
+import {
+  effectiveSessions,
+  sessionsFor,
+  isSessionRecordable,
+  weekdayToNumber,
+} from '@/lib/sessions'
 import { courseDisplayState } from '@/lib/courseDisplayState'
 import { emitCertificatesForClose } from '@/lib/certificates'
 import { resolveRecipients } from '@/lib/emailRecipients'
@@ -1085,13 +1089,8 @@ const RESCHEDULED_NOTES = [
   'Actividad institucional',
 ]
 
-/** The one-week worth of days a reschedule may search for a free landing slot. */
+/** How far past a Session a reschedule may search for a free landing slot: six days. */
 const RESCHEDULE_SEARCH_DAYS = 6
-
-/** JS day numbers (0=Sun) of a Course's Meeting Days. */
-function meetingDayNumbers(course: Course): Set<number> {
-  return new Set(course.meetingDays.map((day) => (WEEKDAYS.indexOf(day) + 1) % 7))
-}
 
 /**
  * The first day after `from` that this cohort never meets on and no other
@@ -1101,7 +1100,9 @@ function meetingDayNumbers(course: Course): Set<number> {
  * Term's end, in which case the caller cancels the Session instead of moving it.
  */
 function freeRescheduleTarget(course: Course, from: Date, claimed: Set<number>): Date | null {
-  const meetingDays = meetingDayNumbers(course)
+  // The same mapping `sessionsFor` derives Sessions with, so "never a Meeting Day"
+  // here means exactly "no base Session lands there".
+  const meetingDays = new Set(course.meetingDays.map(weekdayToNumber))
   const termEnd = startOfDay(new Date(course.term.end))
 
   for (let offset = 1; offset <= RESCHEDULE_SEARCH_DAYS; offset += 1) {

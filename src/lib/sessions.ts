@@ -203,8 +203,12 @@ export function upcomingSessions(
 /**
  * Convert weekday literal to JS day number.
  * mon=1, tue=2, ..., sun=0
+ *
+ * Exported because the seed needs the same mapping to place a reschedule on a day
+ * its cohort never meets (ADR-0048); a second copy of the formula could drift from
+ * the one `sessionsFor` derives Sessions with.
  */
-function weekdayToNumber(weekday: Weekday): number {
+export function weekdayToNumber(weekday: Weekday): number {
   const index = WEEKDAYS.indexOf(weekday)
   // WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
   // JS days: 0=Sun, 1=Mon, ..., 6=Sat
