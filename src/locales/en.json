@@ -370,6 +370,7 @@
         "description": "This records the course as complete. It can't be reopened.",
         "title": "Close this course?"
       },
+      "closed": "Course closed",
       "deleteConfirm": "Delete this course?",
       "edit": "Edit",
       "enrollButton": "Enroll student",

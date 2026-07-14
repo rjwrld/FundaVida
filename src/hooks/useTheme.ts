@@ -11,9 +11,20 @@ function resolveSystem(): 'light' | 'dark' {
     : 'light'
 }
 
-function applyTheme(theme: Theme) {
+/**
+ * Exported for the theme-wipe path (ADR-0047 phase 6b): the View Transition
+ * callback must flip the root class synchronously — `setTheme`'s effect lands
+ * on React's schedule, after the transition has already captured the "new"
+ * state. Idempotent, so the effect re-applying it later is harmless.
+ */
+export function applyTheme(theme: Theme) {
   const resolved = theme === 'system' ? resolveSystem() : theme
   document.documentElement.classList.toggle('dark', resolved === 'dark')
+}
+
+/** Whether a Theme choice resolves to dark right now (system reads the OS). */
+export function resolvesDark(theme: Theme): boolean {
+  return (theme === 'system' ? resolveSystem() : theme) === 'dark'
 }
 
 function isTheme(value: string | null): value is Theme {

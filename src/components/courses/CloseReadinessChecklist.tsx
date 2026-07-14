@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next'
+import { motion, useReducedMotion } from 'framer-motion'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { CelebrationSweep } from '@/components/shared/CelebrationSweep'
+import { transitionGlide } from '@/lib/motion'
 import type { CloseReadiness } from '@/lib/closeReadiness'
 
 /**
@@ -8,9 +11,22 @@ import type { CloseReadiness } from '@/lib/closeReadiness'
  * (issue #204): what still blocks a clean close, per {@link CloseReadiness}.
  * Purely presentational — the caller derives readiness and gates visibility,
  * and the close action is never disabled by it.
+ *
+ * `celebrate` plays the close cascade (ADR-0047 phase 6b): each row's icon
+ * pops back in on a stagger behind a green sweep. The caller flips it on for
+ * the moment the close lands and owns tearing the checklist down afterwards;
+ * under reduced motion the cascade renders as the plain static list.
  */
-export function CloseReadinessChecklist({ readiness }: { readiness: CloseReadiness }) {
+export function CloseReadinessChecklist({
+  readiness,
+  celebrate = false,
+}: {
+  readiness: CloseReadiness
+  celebrate?: boolean
+}) {
   const { t } = useTranslation()
+  const reduce = useReducedMotion()
+  const cascade = celebrate && !reduce
 
   const checks = [
     {
@@ -47,19 +63,32 @@ export function CloseReadinessChecklist({ readiness }: { readiness: CloseReadine
         </Badge>
       </div>
       <ul className="space-y-2">
-        {checks.map((check) => (
-          <li
-            key={check.key}
-            className="flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm text-foreground"
-          >
-            {check.pass ? (
-              <CheckCircle2 aria-hidden="true" className="size-4 shrink-0 text-primary" />
-            ) : (
-              <XCircle aria-hidden="true" className="size-4 shrink-0 text-destructive" />
-            )}
-            <span>{check.pass ? check.passLabel : check.failLabel}</span>
-          </li>
-        ))}
+        {checks.map((check, index) => {
+          const delay = 0.15 + index * 0.25
+          return (
+            <li
+              key={check.key}
+              className="relative flex items-center gap-2 overflow-hidden rounded-md border bg-card px-3 py-2 text-sm text-foreground"
+            >
+              {cascade && <CelebrationSweep delay={delay} />}
+              <motion.span
+                // Remounting on the celebrate flip is what replays the pop.
+                key={cascade ? 'cascade' : 'static'}
+                className="flex shrink-0"
+                initial={cascade ? { scale: 0.3, opacity: 0 } : false}
+                animate={cascade ? { scale: 1, opacity: 1 } : undefined}
+                transition={{ ...transitionGlide, delay }}
+              >
+                {check.pass ? (
+                  <CheckCircle2 aria-hidden="true" className="size-4 shrink-0 text-primary" />
+                ) : (
+                  <XCircle aria-hidden="true" className="size-4 shrink-0 text-destructive" />
+                )}
+              </motion.span>
+              <span>{check.pass ? check.passLabel : check.failLabel}</span>
+            </li>
+          )
+        })}
       </ul>
     </section>
   )

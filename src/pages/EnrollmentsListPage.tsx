@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { NoResults } from '@/components/shared/NoResults'
@@ -17,6 +18,8 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
 import { listViewState } from '@/lib/listViewState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { CelebrationSweep } from '@/components/shared/CelebrationSweep'
+import { fadeUpHidden, transitionFast } from '@/lib/motion'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { EnrollmentsEmpty } from '@/components/empty-states/EnrollmentsEmpty'
 import { Pager } from '@/components/ui/pager'
@@ -58,6 +61,17 @@ export function EnrollmentsListPage() {
   const [sedeFilter, setSedeFilter] = useState<string>(ANY_SEDE)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('active')
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null)
+  // The enrollment just approved (ADR-0047 phase 6b): its row plays one green
+  // sweep while the status flips under it. The id clears on a fixed timer, not
+  // the animation's completion — the row can unmount mid-sweep (a filter that
+  // hides approved rows) and a stuck id would replay the sweep on remount,
+  // turning a filter toggle into a fake celebration.
+  const [sweepId, setSweepId] = useState<string | null>(null)
+  useEffect(() => {
+    if (sweepId === null) return
+    const timer = setTimeout(() => setSweepId(null), 1500)
+    return () => clearTimeout(timer)
+  }, [sweepId])
 
   const canDelete = role
     ? can(role, 'delete', 'enrollments', { userId: currentUserId ?? undefined })
@@ -247,9 +261,10 @@ export function EnrollmentsListPage() {
                     canDelete={canDelete}
                     approveDisabled={approve.isPending}
                     rejectDisabled={reject.isPending}
-                    onApprove={(id) => approve.mutate(id)}
+                    onApprove={(id) => approve.mutate(id, { onSuccess: () => setSweepId(id) })}
                     onReject={(id) => reject.mutate(id)}
                     onUnenroll={(payload) => setPendingDelete(payload)}
+                    sweepId={sweepId}
                   />
                 ))}
               </section>
@@ -287,6 +302,8 @@ interface CourseEnrollmentGroupProps {
   onApprove: (enrollmentId: string) => void
   onReject: (enrollmentId: string) => void
   onUnenroll: (payload: { id: string; name: string }) => void
+  /** The enrollment whose approval is being celebrated, if any (phase 6b). */
+  sweepId: string | null
 }
 
 /**
@@ -307,9 +324,11 @@ function CourseEnrollmentGroup({
   onApprove,
   onReject,
   onUnenroll,
+  sweepId,
 }: CourseEnrollmentGroupProps) {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
+  const reduce = useReducedMotion()
   const pagination = usePagination(rows, { pageSize: 10 })
   const coursePending = rows.filter((e) => e.status === 'pending').length
 
@@ -329,55 +348,67 @@ function CourseEnrollmentGroup({
         )}
       </div>
       <ul className="divide-y divide-border/60">
-        {pagination.pageItems.map((e) => {
-          const student = studentById.get(e.studentId)
-          if (!student) return null
-          const name = fullName(student)
-          return (
-            <li key={e.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5">
-              <span className="min-w-0 flex-1 truncate text-sm">{name}</span>
-              <span className="font-mono text-xs text-muted-foreground tabular-nums">
-                {formatDate(e.enrolledAt)}
-              </span>
-              <Badge variant={ENROLLMENT_VARIANT[e.status]}>
-                {t(`enrollments.status.${e.status}`)}
-              </Badge>
-              <div className="flex gap-1">
-                {e.status === 'pending' && canApprove && (
-                  <>
-                    <Button
-                      size="sm"
-                      onClick={() => onApprove(e.id)}
-                      disabled={approveDisabled}
-                      aria-label={t('enrollments.list.approveAria', { student: name })}
-                    >
-                      {t('common.actions.approve')}
-                    </Button>
+        {/* Rows leave (a rejection under the default filter) through a fade
+            while the survivors glide up via the layout animation (phase 6b). */}
+        <AnimatePresence>
+          {pagination.pageItems.map((e) => {
+            const student = studentById.get(e.studentId)
+            if (!student) return null
+            const name = fullName(student)
+            return (
+              <motion.li
+                key={e.id}
+                layout={reduce ? false : true}
+                initial={false}
+                exit={reduce ? undefined : fadeUpHidden}
+                transition={transitionFast}
+                className="relative flex flex-wrap items-center gap-x-3 gap-y-2 overflow-hidden px-4 py-2.5"
+              >
+                {sweepId === e.id && <CelebrationSweep />}
+                <span className="min-w-0 flex-1 truncate text-sm">{name}</span>
+                <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                  {formatDate(e.enrolledAt)}
+                </span>
+                <Badge variant={ENROLLMENT_VARIANT[e.status]}>
+                  {t(`enrollments.status.${e.status}`)}
+                </Badge>
+                <div className="flex gap-1">
+                  {e.status === 'pending' && canApprove && (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => onApprove(e.id)}
+                        disabled={approveDisabled}
+                        aria-label={t('enrollments.list.approveAria', { student: name })}
+                      >
+                        {t('common.actions.approve')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => onReject(e.id)}
+                        disabled={rejectDisabled}
+                        aria-label={t('enrollments.list.rejectAria', { student: name })}
+                      >
+                        {t('common.actions.reject')}
+                      </Button>
+                    </>
+                  )}
+                  {e.status === 'approved' && canDelete && (
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => onReject(e.id)}
-                      disabled={rejectDisabled}
-                      aria-label={t('enrollments.list.rejectAria', { student: name })}
+                      onClick={() => onUnenroll({ id: e.id, name })}
+                      aria-label={t('common.actions.deleteItem', { name })}
                     >
-                      {t('common.actions.reject')}
+                      {t('enrollments.list.unenroll')}
                     </Button>
-                  </>
-                )}
-                {e.status === 'approved' && canDelete && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => onUnenroll({ id: e.id, name })}
-                    aria-label={t('common.actions.deleteItem', { name })}
-                  >
-                    {t('enrollments.list.unenroll')}
-                  </Button>
-                )}
-              </div>
-            </li>
-          )
-        })}
+                  )}
+                </div>
+              </motion.li>
+            )
+          })}
+        </AnimatePresence>
       </ul>
       {pagination.pageCount > 1 && (
         <div className="border-t border-border/60 px-4 py-3">
