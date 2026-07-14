@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useReducedMotion } from 'framer-motion'
 import { courseMorphLayoutId } from '@/lib/courseMorph'
-import { useCourseMorphTarget } from '@/hooks/useCourseMorph'
+import { useCourseMorphTarget } from '@/hooks/useCourseMorphTarget'
 
 // The morph opts out through the hook's own `useReducedMotion()` read — mock the
 // hook, not `MotionConfig`, which only steers framer's animation engine and would

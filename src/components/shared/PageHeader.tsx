@@ -1,6 +1,5 @@
 import * as React from 'react'
-import { motion } from 'framer-motion'
-import { transitionDefaults } from '@/lib/motion'
+import { MorphSpan } from '@/components/shared/MorphSpan'
 import { cn } from '@/lib/utils'
 
 export interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -41,18 +40,7 @@ export function PageHeader({
           </span>
         ) : null}
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          {titleLayoutId ? (
-            <motion.span
-              layoutId={titleLayoutId}
-              data-morph-id={titleLayoutId}
-              className="inline-block"
-              transition={transitionDefaults}
-            >
-              {title}
-            </motion.span>
-          ) : (
-            title
-          )}
+          {titleLayoutId ? <MorphSpan layoutId={titleLayoutId}>{title}</MorphSpan> : title}
         </h1>
         {description ? (
           <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>

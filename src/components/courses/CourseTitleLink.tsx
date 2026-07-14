@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { useReducedMotion } from 'framer-motion'
+import { MorphSpan } from '@/components/shared/MorphSpan'
 import { usePrefetchCourseDetail } from '@/hooks/api/prefetch'
 import { courseMorphLayoutId } from '@/lib/courseMorph'
 import { shortCourseName } from '@/lib/courseName'
-import { transitionDefaults } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import type { Course } from '@/types'
 
@@ -39,20 +39,7 @@ export function CourseTitleLink({ course, shared, className }: CourseTitleLinkPr
       onPointerEnter={() => prefetchDetail(course.id)}
       onFocus={() => prefetchDetail(course.id)}
     >
-      {layoutId ? (
-        <motion.span
-          layoutId={layoutId}
-          // framer keeps `layoutId` out of the DOM, so the pairing — and the
-          // one-node-per-Course invariant — would otherwise be unassertable.
-          data-morph-id={layoutId}
-          className="inline-block"
-          transition={transitionDefaults}
-        >
-          {name}
-        </motion.span>
-      ) : (
-        name
-      )}
+      {layoutId ? <MorphSpan layoutId={layoutId}>{name}</MorphSpan> : name}
     </Link>
   )
 }

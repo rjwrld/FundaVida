@@ -34,7 +34,7 @@ import {
   useAnnouncements,
 } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
-import { useCourseMorphTarget } from '@/hooks/useCourseMorph'
+import { useCourseMorphTarget } from '@/hooks/useCourseMorphTarget'
 import { useStore } from '@/data/store'
 import { useFormat } from '@/hooks/useFormat'
 import { effectiveSessions, findSession } from '@/lib/sessions'
@@ -112,10 +112,10 @@ export function CoursesDetailPage() {
   // isLoading, which a disabled query never sets, so it does not hang (ADR-0030).
   const { isPending: isLoading } = resolveQueries([courseQuery, browseableQuery, enrollmentsQuery])
   // The other end of the course→detail morph (ADR-0047 phase 6c). Armed only when
-  // that gate was already clear on this mount's first render — the heading then
-  // commits in the same pass the list unmounts in, which is the only pass where
-  // framer still holds the box of the card/row it grew out of. Cold mounts (and
-  // reduced motion) get a plain heading and a plain navigation.
+  // that gate was already clear on this mount's first render: the heading then
+  // paints straight out of the row it was clicked in, instead of arriving late and
+  // flying up from a stale position once the queries land. Cold mounts (and reduced
+  // motion) get a plain heading and a plain navigation.
   const morphLayoutId = useCourseMorphTarget(id, isLoading)
   const { data: scopedStudents = [] } = useStudents()
   const { data: scopedTrainees = [] } = useTcuTrainees()
