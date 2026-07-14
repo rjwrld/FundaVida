@@ -39,6 +39,9 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 
+# Bundle analysis (npm run build:analyze)
+stats.html
+
 # Test and coverage
 coverage/
 playwright-report/

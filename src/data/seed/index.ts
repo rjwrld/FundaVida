@@ -1,4 +1,9 @@
-import { faker, Faker, en } from '@faker-js/faker'
+// The deep `locale/en` entry instead of the root barrel (#353): the barrel
+// statically re-exports every locale, and any chunk-splitting rule whose
+// closure touches it force-includes them all (~2.7 MB minified vs ~450 kB).
+// The `Faker` type import is erased at runtime, so it keeps the graph clean.
+import { faker } from '@faker-js/faker/locale/en'
+import type { Faker, LocaleDefinition } from '@faker-js/faker'
 import {
   addDays,
   addWeeks,
@@ -286,7 +291,16 @@ function makePersonEmail(firstName: string, lastName: string, seen: Set<string>)
 // whole graph. Canton is drawn from the student's own province so the pair stays
 // coherent (replaces the prior random global-city value).
 function localizePeople(teachers: Teacher[], students: Student[], trainees: TcuTrainee[]): void {
-  const nameRng = new Faker({ locale: [en] })
+  // The Faker class is reached through the singleton's constructor rather than
+  // the root barrel (see the import note at the top of this file). The locale
+  // passed here is irrelevant to the stream — every nameRng draw is
+  // locale-independent (helpers/string) — and the seeded Mersenne sequence is
+  // identical to the previous `new Faker({ locale: [en] })`, so the seeded
+  // world stays byte-for-byte the same.
+  const FakerClass = faker.constructor as new (options: {
+    locale: LocaleDefinition | LocaleDefinition[]
+  }) => Faker
+  const nameRng = new FakerClass({ locale: faker.rawDefinitions })
   nameRng.seed(42)
   const emails = new Set<string>()
 

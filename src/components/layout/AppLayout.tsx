@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { Suspense, useEffect, useRef } from 'react'
 import { useLocation, useOutlet } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -28,7 +28,11 @@ function AnimatedOutlet() {
         exit="hidden"
         transition={transitionDefaults}
       >
-        {outlet}
+        {/* Pages are code-split (#353); the boundary sits inside the shell so a
+            loading chunk blanks only the content area, never the sidebar/header.
+            Client-side navigations rarely hit it — the router wraps them in
+            startTransition, which keeps the old page until the chunk arrives. */}
+        <Suspense fallback={null}>{outlet}</Suspense>
       </motion.div>
     </AnimatePresence>
   )

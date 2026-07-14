@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { pdf } from '@react-pdf/renderer'
 import { useReducedMotion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { CertificateCard } from '@/components/certificates/CertificateCard'
@@ -7,9 +6,10 @@ import { NoResults } from '@/components/shared/NoResults'
 import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog'
 import { useStore } from '@/data/store'
 import { useCertificates } from '@/hooks/api'
+import { useCertificateBlobUrl } from '@/hooks/useCertificateBlobUrl'
 import { useFormat } from '@/hooks/useFormat'
 import { fireConfetti } from '@/lib/confetti'
-import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
+import type { CertificatePayload } from '@/lib/pdf/renderCertificate'
 import { fullName } from '@/lib/personName'
 import type { Course } from '@/types'
 
@@ -38,7 +38,6 @@ export function CourseCertificatesSection({ course }: { course: Course }) {
   const { data: certificates = [] } = certificatesQuery
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [dataUrl, setDataUrl] = useState<string | null>(null)
 
   // The issuance celebration (ADR-0047 phase 6b). Closing the Course is what
   // emits Certificates (ADR-0024), and the close's write-set invalidation
@@ -96,36 +95,20 @@ export function CourseCertificatesSection({ course }: { course: Course }) {
     [items, selectedId]
   )
 
-  // Pre-generate the PDF as an opaque blob URL when a certificate is selected,
-  // matching the global gallery's download behavior.
-  useEffect(() => {
-    if (!selected) {
-      setDataUrl(null)
-      return
-    }
-    let cancelled = false
-    let createdUrl: string | null = null
-    pdf(
-      <CertificateTemplate
-        studentName={selected.studentName}
-        courseName={course.name}
-        programName={selected.programName}
-        score={selected.score}
-        issuedAt={selected.issuedAtIso}
-      />
-    )
-      .toBlob()
-      .then((blob) => {
-        if (cancelled) return
-        const opaque = new Blob([blob], { type: 'application/octet-stream' })
-        createdUrl = URL.createObjectURL(opaque)
-        setDataUrl(createdUrl)
-      })
-    return () => {
-      cancelled = true
-      if (createdUrl) URL.revokeObjectURL(createdUrl)
-    }
-  }, [selected, course.name])
+  const payload = useMemo<CertificatePayload | null>(
+    () =>
+      selected
+        ? {
+            studentName: selected.studentName,
+            courseName: course.name,
+            programName: selected.programName,
+            score: selected.score,
+            issuedAt: selected.issuedAtIso,
+          }
+        : null,
+    [selected, course.name]
+  )
+  const dataUrl = useCertificateBlobUrl(payload)
 
   return (
     <section className="space-y-3">
@@ -155,17 +138,7 @@ export function CourseCertificatesSection({ course }: { course: Course }) {
 
       <CertificatePreviewDialog
         open={selected !== null}
-        payload={
-          selected
-            ? {
-                studentName: selected.studentName,
-                courseName: course.name,
-                programName: selected.programName,
-                score: selected.score,
-                issuedAt: selected.issuedAtIso,
-              }
-            : null
-        }
+        payload={payload}
         dataUrl={dataUrl}
         downloadName={selected ? `certificate-${selected.id}.pdf` : 'certificate.pdf'}
         onClose={() => setSelectedId(null)}

@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
-import { pdf } from '@react-pdf/renderer'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Search } from 'lucide-react'
@@ -23,8 +22,9 @@ import { CertificateCard } from '@/components/certificates/CertificateCard'
 import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog'
 import { useStore } from '@/data/store'
 import { useCertificates } from '@/hooks/api'
+import { useCertificateBlobUrl } from '@/hooks/useCertificateBlobUrl'
 import { useFormat } from '@/hooks/useFormat'
-import { CertificateTemplate } from '@/lib/pdf/CertificateTemplate'
+import type { CertificatePayload } from '@/lib/pdf/renderCertificate'
 import { fadeUpHidden, staggerEntrance } from '@/lib/motion'
 import { fullName } from '@/lib/personName'
 
@@ -67,7 +67,6 @@ export function CertificatesListPage() {
   const [query, setQuery] = useState('')
   const [courseId, setCourseId] = useState<string>(ALL_COURSES)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [dataUrl, setDataUrl] = useState<string | null>(null)
 
   const items = useMemo<CardItem[]>(() => {
     const studentById = new Map(students.map((s) => [s.id, s]))
@@ -123,50 +122,22 @@ export function CertificatesListPage() {
     [items, selectedId]
   )
 
-  // Pre-generate the PDF as a blob URL when a certificate is selected. The blob is
-  // typed as application/octet-stream so headless Chromium treats it as a pure
-  // download and respects the anchor's `download` attribute (PDFs would otherwise
-  // route through the built-in viewer, which ignores it).
-  useEffect(() => {
-    if (!selected) {
-      setDataUrl(null)
-      return
-    }
-    let cancelled = false
-    let createdUrl: string | null = null
-    pdf(
-      <CertificateTemplate
-        studentName={selected.studentName}
-        courseName={selected.courseName}
-        programName={selected.programName}
-        score={selected.score}
-        issuedAt={selected.issuedAtIso}
-      />
-    )
-      .toBlob()
-      .then((blob) => {
-        if (cancelled) return
-        const opaque = new Blob([blob], { type: 'application/octet-stream' })
-        createdUrl = URL.createObjectURL(opaque)
-        setDataUrl(createdUrl)
-      })
-    return () => {
-      cancelled = true
-      if (createdUrl) URL.revokeObjectURL(createdUrl)
-    }
-  }, [selected])
+  const previewPayload = useMemo<CertificatePayload | null>(
+    () =>
+      selected
+        ? {
+            studentName: selected.studentName,
+            courseName: selected.courseName,
+            programName: selected.programName,
+            score: selected.score,
+            issuedAt: selected.issuedAtIso,
+          }
+        : null,
+    [selected]
+  )
+  const dataUrl = useCertificateBlobUrl(previewPayload)
 
   const downloadName = selected ? `certificate-${selected.id}.pdf` : 'certificate.pdf'
-
-  const previewPayload = selected
-    ? {
-        studentName: selected.studentName,
-        courseName: selected.courseName,
-        programName: selected.programName,
-        score: selected.score,
-        issuedAt: selected.issuedAtIso,
-      }
-    : null
 
   const hasFilters = query.trim() !== '' || courseId !== ALL_COURSES
 
