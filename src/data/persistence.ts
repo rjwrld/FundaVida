@@ -7,7 +7,7 @@ import { COURSE_LEVELS, COURSE_STATUSES } from '@/constants/course'
 // hand-mirroring it — the drift class that silently voided the pin when it lagged
 // (ADR-0039; the v3→v10 drift). A stale mirror not only no-ops the pin but sits in
 // the legacy purge list below, actively deleting the injected snapshot at boot.
-export const STATE_KEY = 'fundavida:v15:state'
+export const STATE_KEY = 'fundavida:v16:state'
 const ROLE_KEY = 'fundavida:v2:role'
 
 // Stale pre-v4 snapshot keys this layer owns. They are not migrated (ADR-0003,
@@ -36,6 +36,13 @@ const ROLE_KEY = 'fundavida:v2:role'
 // so they are deliberately left untouched. The v2 role, current-user, and locale
 // keys are unchanged by this slice and stay in use.
 //
+// The v16 key bump tops the Session overlay up (ADR-0048): every in-progress Course
+// now carries one or two exceptions inside the epoch's month, so every persona's
+// month term map has milestones to narrate. A v15 snapshot is *structurally* valid —
+// it just holds the old two-exception world (and the attendance that went with it,
+// which now derives from the effective schedule) — so isValidSnapshot cannot reject
+// it: only the key bump reseeds a returning visitor into the live month.
+//
 // The v15 key bump rewrites the seeded campaign subjects and bodies as the Spanish
 // emails a Costa Rican non-profit actually sends (ADR-0045). A v14 snapshot is
 // *structurally* valid — the copy is just strings — so isValidSnapshot cannot
@@ -61,6 +68,7 @@ const LEGACY_SNAPSHOT_KEYS = [
   'fundavida:v12:state',
   'fundavida:v13:state',
   'fundavida:v14:state',
+  'fundavida:v15:state',
 ]
 
 export type PersistedState = SeedSnapshot

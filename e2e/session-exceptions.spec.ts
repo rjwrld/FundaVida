@@ -10,9 +10,11 @@ const EPOCH = new Date('2026-06-15T12:00:00.000Z')
 const world = seedDemo(EPOCH)
 
 // The seed plants a cancelled + rescheduled exception on the teacher persona's
-// upcoming cohort (ADR-0039). Derive the anchor and the expected count from the
-// SAME lib the app runs, over the seed's own arrays — concrete, not hand-guessed.
-const demoCourseId = world.sessionExceptions[0]?.courseId
+// upcoming cohort (ADR-0039) — `sxc-1`/`sxc-2`, named here rather than taken by
+// position, since the ADR-0048 top-up fills the same array with the live cohorts'
+// deviations. Derive the anchor and the expected count from the SAME lib the app
+// runs, over the seed's own arrays — concrete, not hand-guessed.
+const demoCourseId = world.sessionExceptions.find((e) => e.id === 'sxc-1')?.courseId
 const demoCourse = world.courses.find((c) => c.id === demoCourseId)
 if (!demoCourse) throw new Error('seed must plant a session exception on a course')
 

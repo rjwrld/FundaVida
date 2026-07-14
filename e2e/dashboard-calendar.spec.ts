@@ -31,6 +31,10 @@ test.describe('teacher dashboard agenda slice', () => {
       grades: world.grades,
       enrollments: world.enrollments,
       certificates: world.certificates,
+      // The seed deviates a Session on every live cohort (ADR-0048) and the page
+      // reads that overlay, so the derived anchor must too — otherwise it names a
+      // Session the effective schedule cancelled or moved.
+      sessionExceptions: world.sessionExceptions,
       now: EPOCH,
     })
     if (agenda.role !== 'teacher' || agenda.needsMarking.length === 0) {
@@ -71,6 +75,7 @@ test.describe('student dashboard agenda slice', () => {
       grades: world.grades,
       enrollments: studentEnrollments,
       certificates: world.certificates.filter((c) => c.studentId === 'stu-1'),
+      sessionExceptions: world.sessionExceptions,
       now: EPOCH,
     })
     if (agenda.role !== 'student' || agenda.progress.length === 0) {
@@ -121,6 +126,7 @@ test.describe('admin dashboard agenda slice', () => {
       grades: world.grades,
       enrollments: world.enrollments,
       certificates: world.certificates,
+      sessionExceptions: world.sessionExceptions,
       now: EPOCH,
     })
     if (agenda.role !== 'admin') throw new Error('expected the admin agenda variant')

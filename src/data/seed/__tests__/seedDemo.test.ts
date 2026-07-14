@@ -1,11 +1,14 @@
 import { describe, it, expect } from 'vitest'
-import { differenceInDays, isBefore, startOfDay, subDays } from 'date-fns'
+import { differenceInDays, isBefore, isSameDay, isSameMonth, startOfDay, subDays } from 'date-fns'
 import { seedDemo } from '@/data/seed'
+import { applyScope } from '@/data/api/scope'
+import { userIdForRole } from '@/data/store'
+import { scopeFor } from '@/permissions'
+import type { Course, Role } from '@/types'
 import { dashboardStatDeltas, TRAILING_WINDOW_DAYS } from '@/lib/stats'
 import { courseDisplayState } from '@/lib/courseDisplayState'
 import {
   effectiveSessions,
-  findSession,
   isSessionMarked,
   isSessionRecordable,
   sessionsFor,
@@ -85,7 +88,7 @@ describe('seedDemo — causal seed story', () => {
 })
 
 describe('seedDemo — attendance binds to real Sessions (ADR-0001)', () => {
-  it('every attendance record lands on a real derived Session of its Course, in the past', () => {
+  it('every attendance record lands on a real Session of its Course, in the past', () => {
     const world = seedDemo(EPOCH)
     const epochDay = startOfDay(EPOCH)
     const courseById = new Map(world.courses.map((c) => [c.id, c]))
@@ -94,8 +97,13 @@ describe('seedDemo — attendance binds to real Sessions (ADR-0001)', () => {
     world.attendance.forEach((record) => {
       const course = courseById.get(record.courseId)
       if (!course) throw new Error(`no course for attendance record ${record.id}`)
-      const session = findSession(course, record.sessionDate)
-      expect(session).not.toBeNull()
+      // Against the *effective* schedule (ADR-0039): a rescheduled class met on its
+      // new day, which the base derivation never produces, so `findSession` alone
+      // would call that record homeless.
+      const session = effectiveSessions(course, world.sessionExceptions).find((s) =>
+        isSameDay(new Date(s.date), new Date(record.sessionDate))
+      )
+      expect(session).toBeDefined()
       expect(isBefore(startOfDay(new Date(record.sessionDate)), epochDay)).toBe(true)
     })
   })
@@ -1029,5 +1037,145 @@ describe('seedDemo — every persona lands on a live week (ADR-0044)', () => {
       return days >= 1 && days <= 14 && c.teacherId === 'tea-1'
     })
     expect(justEnded).toHaveLength(1)
+  })
+})
+
+describe('seedDemo — every persona lands on a live month (ADR-0048)', () => {
+  // The term map narrates boundaries, exceptions and today. Boundaries are already
+  // staggered monthly, so the seed's job is exceptions: enough of them, close
+  // enough to the epoch, in every persona's scope. Three epochs — mid-month, the
+  // first, the last — pin the placement window against the month's edges.
+  const EPOCHS = [
+    new Date('2026-06-23T12:00:00.000Z'),
+    new Date('2026-06-01T12:00:00.000Z'),
+    new Date('2026-06-30T12:00:00.000Z'),
+  ]
+
+  const inProgress = (world: ReturnType<typeof seedDemo>, epoch: Date) =>
+    world.courses.filter((c) => courseDisplayState(c, epoch) === 'inProgress')
+
+  /** The overlay the top-up adds, i.e. everything but the two fixed demo exceptions. */
+  const topUp = (world: ReturnType<typeof seedDemo>) =>
+    world.sessionExceptions.filter((e) => e.id !== 'sxc-1' && e.id !== 'sxc-2')
+
+  it('keeps the two fixed exceptions on the teacher persona’s upcoming cohort', () => {
+    const world = seedDemo(EPOCH)
+    const fixed = world.sessionExceptions.filter((e) => e.id === 'sxc-1' || e.id === 'sxc-2')
+    expect(fixed).toHaveLength(2)
+
+    const [cancelled, rescheduled] = fixed
+    expect(cancelled?.type).toBe('cancelled')
+    expect(rescheduled?.type).toBe('rescheduled')
+
+    const course = world.courses.find((c) => c.id === cancelled?.courseId)
+    expect(course?.teacherId).toBe('tea-1')
+    expect(courseDisplayState(course as Course, EPOCH)).toBe('startsSoon')
+  })
+
+  it.each(EPOCHS)('gives every in-progress Course 1–2 exceptions (epoch %s)', (epoch) => {
+    const world = seedDemo(epoch)
+    const live = inProgress(world, epoch)
+    expect(live.length).toBeGreaterThan(0)
+
+    live.forEach((course) => {
+      const own = world.sessionExceptions.filter((e) => e.courseId === course.id)
+      expect(own.length).toBeGreaterThanOrEqual(1)
+      expect(own.length).toBeLessThanOrEqual(2)
+    })
+  })
+
+  it.each(EPOCHS)(
+    'places every top-up exception in the epoch’s month, within ±3 weeks (epoch %s)',
+    (epoch) => {
+      const world = seedDemo(epoch)
+      const epochDay = startOfDay(epoch)
+      const added = topUp(world)
+      expect(added.length).toBeGreaterThan(0)
+
+      added.forEach((exception) => {
+        const day = startOfDay(new Date(exception.date))
+        expect(isSameMonth(day, epochDay)).toBe(true)
+        expect(Math.abs(differenceInDays(day, epochDay))).toBeLessThanOrEqual(21)
+        // The deviation is announced before the class it changes, never in the future.
+        expect(startOfDay(new Date(exception.createdAt)).getTime()).toBeLessThanOrEqual(
+          epochDay.getTime()
+        )
+      })
+    }
+  )
+
+  it('mixes cancelled and rescheduled, with varied notes', () => {
+    const world = seedDemo(EPOCH)
+    const added = topUp(world)
+
+    expect(added.some((e) => e.type === 'cancelled')).toBe(true)
+    expect(added.some((e) => e.type === 'rescheduled')).toBe(true)
+    added.forEach((e) => expect(e.note).toBeTruthy())
+    expect(new Set(added.map((e) => e.note)).size).toBeGreaterThan(1)
+  })
+
+  it.each(EPOCHS)('never lands a reschedule on another effective Session (epoch %s)', (epoch) => {
+    const world = seedDemo(epoch)
+
+    world.courses.forEach((course) => {
+      const days = effectiveSessions(course, world.sessionExceptions).map((s) =>
+        startOfDay(new Date(s.date)).getTime()
+      )
+      // A collision would fuse two Sessions onto one day: the effective schedule
+      // stays one Session per day.
+      expect(new Set(days).size).toBe(days.length)
+
+      const rescheduled = world.sessionExceptions.filter(
+        (e) => e.courseId === course.id && e.type === 'rescheduled'
+      )
+      rescheduled.forEach((e) => {
+        const target = startOfDay(new Date(e.newDate as string)).getTime()
+        expect(days).toContain(target)
+      })
+    })
+  })
+
+  it.each(EPOCHS)(
+    'records attendance only on Sessions that survived the overlay (epoch %s)',
+    (epoch) => {
+      const world = seedDemo(epoch)
+      const courseById = new Map(world.courses.map((c) => [c.id, c]))
+
+      world.attendance.forEach((record) => {
+        const course = courseById.get(record.courseId)
+        expect(course).toBeDefined()
+        if (!course) return
+        const effective = effectiveSessions(course, world.sessionExceptions)
+        expect(
+          effective.some((s) => isSameDay(new Date(s.date), new Date(record.sessionDate)))
+        ).toBe(true)
+      })
+    }
+  )
+
+  it.each(EPOCHS)('shows every persona ≥1 exception in the epoch’s month (epoch %s)', (epoch) => {
+    const world = seedDemo(epoch)
+    const epochDay = startOfDay(epoch)
+    const ctx = {
+      currentUserId: null as string | null,
+      courses: world.courses,
+      enrollments: world.enrollments,
+      students: world.students,
+      tcuTrainees: world.tcuTrainees,
+    }
+
+    // Session exceptions ride the Courses scope token (ADR-0039), so this is the
+    // exact set the api layer hands each persona's month view.
+    const roles: Role[] = ['admin', 'teacher', 'student', 'tcu']
+    roles.forEach((role) => {
+      const scoped = applyScope(
+        'sessionExceptions',
+        scopeFor(role).courses,
+        world.sessionExceptions,
+        { ...ctx, currentUserId: userIdForRole(role) }
+      )
+      const thisMonth = scoped.filter((e) => isSameMonth(startOfDay(new Date(e.date)), epochDay))
+      expect(thisMonth.length).toBeGreaterThanOrEqual(1)
+    })
   })
 })
