@@ -4,12 +4,27 @@ import userEvent from '@testing-library/user-event'
 import { I18nProvider } from '@/lib/i18n'
 import { useStore } from '@/data/store'
 import { setDemoEpoch } from '@/lib/clock'
+import type { Milestone, MilestoneKind } from '@/lib/monthMilestones'
 import { MonthNavigator } from '../MonthNavigator'
 
 const NOW = new Date(2026, 5, 17) // Wednesday, June 17, 2026
 
 function renderNavigator(ui: React.ReactElement) {
   return render(<I18nProvider>{ui}</I18nProvider>)
+}
+
+/** A day cell, by the full date its accessible name carries. */
+function cell(name: string): HTMLElement {
+  return screen.getByRole('button', { name: new RegExp(name) })
+}
+
+function milestone(kind: MilestoneKind, dayOfJune: number, courseId = 'cou-A'): Milestone {
+  return {
+    kind,
+    date: new Date(2026, 5, dayOfJune).toISOString(),
+    courseId,
+    courseName: 'Inglés Primaria — Linda Vista',
+  }
 }
 
 describe('<MonthNavigator />', () => {
@@ -46,32 +61,109 @@ describe('<MonthNavigator />', () => {
     ).toBeInTheDocument()
   })
 
-  it('scales the event bar with the day’s session count (ADR-0044 density)', () => {
-    const events = [
-      new Date(2026, 5, 10),
-      new Date(2026, 5, 10),
-      new Date(2026, 5, 10),
-      new Date(2026, 5, 13),
-    ]
-    renderNavigator(<MonthNavigator events={events} />)
+  it('gives every ordinary session day the same baseline dot (no density)', () => {
+    // Two Sessions on the 10th, one on the 11th: the term map does NOT scale — a
+    // periodic schedule has no density shape to reveal (ADR-0048).
+    renderNavigator(
+      <MonthNavigator
+        sessionDays={[new Date(2026, 5, 10), new Date(2026, 5, 10), new Date(2026, 5, 11)]}
+      />
+    )
 
-    const busy = screen
-      .getByRole('button', { name: /Wednesday, June 10th, 2026/ })
-      .querySelector('[data-event-bar]')
-    const quiet = screen
-      .getByRole('button', { name: /Saturday, June 13th, 2026/ })
-      .querySelector('[data-event-bar]')
+    const busy = cell('Wednesday, June 10th, 2026').querySelector('[data-session-dot]')
+    const quiet = cell('Thursday, June 11th, 2026').querySelector('[data-session-dot]')
 
-    expect(busy?.getAttribute('data-event-count')).toBe('3')
-    expect(quiet?.getAttribute('data-event-count')).toBe('1')
-    expect(busy?.className).not.toEqual(quiet?.className)
+    expect(busy).not.toBeNull()
+    expect(busy?.className).toEqual(quiet?.className)
   })
 
   it('leaves days with no session unmarked', () => {
-    renderNavigator(<MonthNavigator events={[new Date(2026, 5, 10)]} />)
+    renderNavigator(<MonthNavigator sessionDays={[new Date(2026, 5, 10)]} />)
 
-    const quiet = screen.getByRole('button', { name: /Saturday, June 13th, 2026/ })
-    expect(quiet.querySelector('[data-event-bar]')).toBeNull()
+    expect(cell('Saturday, June 13th, 2026').querySelector('[data-session-dot]')).toBeNull()
+  })
+
+  it('replaces the baseline dot with the day’s notable glyph', () => {
+    renderNavigator(
+      <MonthNavigator
+        sessionDays={[new Date(2026, 5, 10)]}
+        milestones={[milestone('cancelled', 10)]}
+      />
+    )
+
+    const day = cell('Wednesday, June 10th, 2026')
+    expect(day.querySelector('[data-milestone="cancelled"]')).not.toBeNull()
+    // A day is narrating a deviation OR it is an ordinary term day — never both.
+    expect(day.querySelector('[data-session-dot]')).toBeNull()
+  })
+
+  it('renders each milestone kind with its own glyph', () => {
+    renderNavigator(
+      <MonthNavigator
+        milestones={[
+          milestone('cohortStart', 1),
+          milestone('cohortEnd', 24),
+          milestone('rescheduledFrom', 8),
+          milestone('rescheduledTo', 12),
+        ]}
+      />
+    )
+
+    expect(
+      cell('Monday, June 1st, 2026').querySelector('[data-milestone="cohortStart"]')
+    ).toHaveClass('bg-success')
+    expect(
+      cell('Wednesday, June 24th, 2026').querySelector('[data-milestone="cohortEnd"]')
+    ).not.toBeNull()
+    // Both days of a reschedule are marked — the vacated one and the target.
+    expect(
+      cell('Monday, June 8th, 2026').querySelector('[data-milestone="rescheduledFrom"]')
+    ).not.toBeNull()
+    expect(
+      cell('Friday, June 12th, 2026').querySelector('[data-milestone="rescheduledTo"]')
+    ).not.toBeNull()
+  })
+
+  it('stacks at most two glyphs then a "+", never a pile', () => {
+    renderNavigator(
+      <MonthNavigator
+        milestones={[
+          milestone('cohortStart', 10, 'cou-A'),
+          milestone('cohortEnd', 10, 'cou-B'),
+          milestone('cancelled', 10, 'cou-C'),
+        ]}
+      />
+    )
+
+    const day = cell('Wednesday, June 10th, 2026')
+    expect(day.querySelectorAll('[data-milestone]')).toHaveLength(2)
+    expect(day.querySelector('[data-milestone-overflow]')?.textContent).toBe('+')
+    // The first two are the caller's priority order, which `milestonesFor` sorts.
+    expect(day.querySelector('[data-milestone="cohortStart"]')).not.toBeNull()
+    expect(day.querySelector('[data-milestone="cancelled"]')).toBeNull()
+  })
+
+  it('shows no "+" when a day carries exactly two notables', () => {
+    renderNavigator(
+      <MonthNavigator
+        milestones={[milestone('cohortStart', 10, 'cou-A'), milestone('cohortEnd', 10, 'cou-B')]}
+      />
+    )
+
+    const day = cell('Wednesday, June 10th, 2026')
+    expect(day.querySelectorAll('[data-milestone]')).toHaveLength(2)
+    expect(day.querySelector('[data-milestone-overflow]')).toBeNull()
+  })
+
+  it('reports the month the user navigated to', async () => {
+    const user = userEvent.setup()
+    const onMonthChange = vi.fn()
+    renderNavigator(<MonthNavigator month={NOW} onMonthChange={onMonthChange} />)
+
+    await user.click(screen.getByRole('button', { name: 'Next month' }))
+
+    expect(onMonthChange).toHaveBeenCalledTimes(1)
+    expect(onMonthChange).toHaveBeenCalledWith(new Date(2026, 6, 1))
   })
 
   it('navigates months with the labelled prev/next buttons', async () => {

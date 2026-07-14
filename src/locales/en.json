@@ -182,6 +182,17 @@
     "emptyWeekPrev": "Previous: {{session}}",
     "jumpToWeek": "Jump to that week",
     "month": {
+      "milestones": {
+        "cancelled": "{{course}} · cancelled {{date}}",
+        "cohortEnd": "{{course}} · ends {{date}}",
+        "cohortStart": "{{course}} · starts {{date}}",
+        "empty": "No milestones this month.",
+        "emptyNext": "Next: {{milestone}}",
+        "emptyPrev": "Previous: {{milestone}}",
+        "rescheduledFrom": "{{course}} · moved from {{date}}",
+        "rescheduledTo": "{{course}} · moved to {{date}}",
+        "title": "This month"
+      },
       "next": "Next month",
       "previous": "Previous month",
       "todayLabel": "Today, {{date}}"

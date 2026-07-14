@@ -1,5 +1,12 @@
 import { useStore } from '@/data/store'
-import { formatDate, formatDateTime, formatNumber, formatPercent, formatGrade } from '@/lib/format'
+import {
+  formatDate,
+  formatDateTime,
+  formatDayMonth,
+  formatNumber,
+  formatPercent,
+  formatGrade,
+} from '@/lib/format'
 
 export function useFormat() {
   const locale = useStore((s) => s.locale)
@@ -7,6 +14,7 @@ export function useFormat() {
     locale,
     formatDate: (iso: string) => formatDate(iso, locale),
     formatDateTime: (iso: string) => formatDateTime(iso, locale),
+    formatDayMonth: (iso: string) => formatDayMonth(iso, locale),
     formatNumber: (n: number, opts?: Intl.NumberFormatOptions) => formatNumber(n, locale, opts),
     formatPercent: (n: number) => formatPercent(n, locale),
     formatGrade: (n: number) => formatGrade(n, locale),

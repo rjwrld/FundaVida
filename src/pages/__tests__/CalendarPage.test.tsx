@@ -194,6 +194,50 @@ describe('<CalendarPage />', () => {
     expect(screen.getByRole('button', { name: 'Today' })).toBeInTheDocument()
   })
 
+  it('reads the month as a term map: the scoped cohorts’ milestones (ADR-0048)', async () => {
+    useStore.getState().setRole('student')
+    renderPage()
+
+    await screen.findAllByText('Matemáticas')
+    fireEvent.click(screen.getByRole('button', { name: 'Month' }))
+
+    // The "This month" list narrates the student's own cohort boundaries…
+    expect(screen.getByRole('heading', { name: 'This month' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Matemáticas · starts Jun 1' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Matemáticas · ends Jun 30' })).toBeInTheDocument()
+    // …and never Historia's: the term map rides the existing Courses scope.
+    expect(screen.queryByRole('button', { name: /Historia/ })).not.toBeInTheDocument()
+  })
+
+  it('a milestone row is the same navigator move a day tap is', async () => {
+    useStore.getState().setRole('student')
+    renderPage()
+
+    await screen.findAllByText('Matemáticas')
+    fireEvent.click(screen.getByRole('button', { name: 'Month' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Matemáticas · starts Jun 1' }))
+
+    // Back on the week canvas, landed on the week of June 1 (Mon Jun 1 – Fri Jun 5).
+    expect(screen.queryByText('June 2026')).not.toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Today' })).toBeInTheDocument()
+    expect(screen.getByText('1')).toBeInTheDocument()
+  })
+
+  it('points somewhere from a month the term map never touches', async () => {
+    useStore.getState().setRole('student')
+    renderPage()
+
+    await screen.findAllByText('Matemáticas')
+    fireEvent.click(screen.getByRole('button', { name: 'Month' }))
+    // August 2026: cou-A ended in June, so the month is quiet — but not a dead end.
+    fireEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next month' }))
+
+    expect(screen.getByText('No milestones this month.')).toBeInTheDocument()
+    expect(screen.getByText(/Previous: Matemáticas · ends Jun 30/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Jump to that week/ })).toBeInTheDocument()
+  })
+
   it('shows an empty state when the viewer has no scoped courses', async () => {
     useStore.getState().setRole('student')
     useStore.setState({ courses: [courseB], enrollments: [] })

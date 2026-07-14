@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { AgendaSidebar } from '@/components/calendar/AgendaSidebar'
+import { MonthMilestones } from '@/components/calendar/MonthMilestones'
 import { MonthNavigator } from '@/components/calendar/MonthNavigator'
 import { WeekCanvas, type CalendarViewMode } from '@/components/calendar/WeekCanvas'
 import { type SessionCardStatus } from '@/components/calendar/SessionCard'
@@ -20,6 +21,7 @@ import {
 } from '@/hooks/api'
 import { buildAgenda } from '@/lib/agenda'
 import { clock } from '@/lib/clock'
+import { milestonesFor, milestonesInMonth, nearestMilestonesAround } from '@/lib/monthMilestones'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { effectiveSessions, isSessionMarked, isSessionRecordable } from '@/lib/sessions'
 import { cn } from '@/lib/utils'
@@ -27,9 +29,11 @@ import { cn } from '@/lib/utils'
 /**
  * The role-divergent calendar (ADR-0044). Week is the default: a workweek
  * `WeekCanvas` beside a role-conditioned `AgendaSidebar`. The Week|Month toggle
- * swaps in `MonthNavigator` as a *navigator* — density-scaled marks whose day-tap
- * jumps the week canvas onto that week (no second day-detail view). Responsive is
- * a ladder with one render path: at `lg+` the sidebar-plus-canvas split; below,
+ * swaps in the term map (ADR-0048): a `MonthNavigator` whose glyphs narrate the
+ * cohort boundaries and Session exceptions, read beside a `MonthMilestones` list.
+ * Both stay *navigators* — every tap jumps the week canvas onto that week, and no
+ * day-detail view returns. Responsive is a ladder with one render path: at `lg+`
+ * the sidebar-plus-canvas split (which the term map's geometry mirrors); below,
  * the sidebar compresses to a one-row banner above the canvas with the full
  * buckets following. Rides the existing Courses scope — no new permission, no
  * `RoleGate` (ADR-0010/0013).
@@ -39,6 +43,9 @@ export function CalendarPage() {
   const role = useStore((s) => s.role)
   const [view, setView] = useState<CalendarViewMode>('week')
   const [weekOf, setWeekOf] = useState<Date>(() => clock.today())
+  // The displayed month lives here, not inside the navigator: the milestone list
+  // beside the grid reads the same month the grid is showing (ADR-0048).
+  const [month, setMonth] = useState<Date>(() => clock.today())
 
   const coursesQuery = useCourses()
   const attendanceQuery = useAttendance()
@@ -87,10 +94,17 @@ export function CalendarPage() {
   const linkToMark = role === 'admin' || role === 'teacher'
   const now = clock.today()
 
-  // One Date per scoped Session — the density the month navigator scales its marks by.
-  const events = courses.flatMap((course) =>
+  // The month term map (ADR-0048), derived from the two reads already on the page:
+  // the effective Session days are the grid's baseline texture, and the milestones
+  // — cohort boundaries plus the exception deviations — are what a month actually
+  // has to narrate. Exceptions inherit Course visibility (ADR-0039), so both ride
+  // the existing Courses scope with no new permission (ADR-0010/0013).
+  const sessionDays = courses.flatMap((course) =>
     effectiveSessions(course, sessionExceptions).map((session) => parseISO(session.date))
   )
+  const milestones = milestonesFor(courses, sessionExceptions)
+  const thisMonth = milestonesInMonth(milestones, month)
+  const nearest = nearestMilestonesAround(milestones, month)
 
   const agenda = buildAgenda({
     role,
@@ -190,8 +204,28 @@ export function CalendarPage() {
         </div>
       ) : (
         <Card>
-          <CardContent>
-            <MonthNavigator events={events} onSelect={handleMonthSelect} />
+          {/* The term map's geometry mirrors the week view's: the reading layer in
+              the lg left column, the grid as the hero on the right; below lg the
+              list follows the grid (ADR-0048). */}
+          <CardContent className="flex flex-col gap-6 lg:grid lg:grid-cols-[300px_minmax(0,1fr)]">
+            <div className="lg:order-2">
+              <MonthNavigator
+                sessionDays={sessionDays}
+                // Every milestone, not just this month's: the grid also paints the
+                // adjacent months' outside days.
+                milestones={milestones}
+                month={month}
+                onMonthChange={setMonth}
+                onSelect={handleMonthSelect}
+              />
+            </div>
+            <div className="lg:order-1">
+              <MonthMilestones
+                milestones={thisMonth}
+                nearest={nearest}
+                onSelect={handleMonthSelect}
+              />
+            </div>
           </CardContent>
         </Card>
       )}
