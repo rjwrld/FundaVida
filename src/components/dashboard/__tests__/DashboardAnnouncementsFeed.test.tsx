@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
@@ -55,7 +55,7 @@ describe('<DashboardAnnouncementsFeed /> — cross-course feed (ADR-0040/0043)',
     expect(await screen.findByRole('region', { name: 'Announcements' })).toBeInTheDocument()
   })
 
-  it('lists the latest posts with their Course name and the inline composer for composers', async () => {
+  it('lists the latest posts with their Course name and the Post button for composers', async () => {
     const course = useStore.getState().courses[0]
     if (!course) throw new Error('seed: no courses')
     const announcement: Announcement = {
@@ -70,31 +70,30 @@ describe('<DashboardAnnouncementsFeed /> — cross-course feed (ADR-0040/0043)',
     renderFeed()
 
     expect(await screen.findByText(/class moves to the annex/i)).toBeInTheDocument()
-    // Admin may compose, so the inline composer renders (heading + post button).
-    expect(screen.getByRole('heading', { name: /post an announcement/i })).toBeInTheDocument()
+    // Admin may compose, so the header carries the Post button (#367); the
+    // composer itself lives in a Dialog and is absent until opened.
     expect(screen.getByRole('button', { name: /^post$/i })).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('offers the inline composer to a Teacher (owns Courses) but not to a Student', async () => {
+  it('offers the Post button to a Teacher (owns Courses) but not to a Student', async () => {
     // Teacher: create rides `courseOwned`, and every scoped Course is owned, so
-    // the composer shows.
+    // the Post button shows.
     useStore.getState().setRole('teacher')
     const { unmount } = renderFeed()
     expect(await screen.findByRole('heading', { name: /announcements/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /post an announcement/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^post$/i })).toBeInTheDocument()
     unmount()
 
-    // Student: view-only, no create cell — never a composer.
+    // Student: view-only, no create cell — never a compose affordance.
     useStore.getState().setRole('student')
     renderFeed()
     expect(await screen.findByRole('heading', { name: /announcements/i })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: /post an announcement/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^post$/i })).not.toBeInTheDocument()
   })
 
-  it('posts through the inline composer to the preselected Course', async () => {
-    // Scope the store to a single non-closed cohort so the composer preselects a
+  it('posts through the Dialog to the preselected Course and closes it', async () => {
+    // Scope the store to a single non-closed cohort so the Dialog preselects a
     // known target and the posted announcement is unambiguous.
     const course: Course = {
       id: 'cou-solo',
@@ -114,9 +113,11 @@ describe('<DashboardAnnouncementsFeed /> — cross-course feed (ADR-0040/0043)',
 
     renderFeed()
 
-    const textarea = await screen.findByPlaceholderText(/share an update with the class/i)
+    await userEvent.click(await screen.findByRole('button', { name: /^post$/i }))
+    const dialog = await screen.findByRole('dialog', { name: /post an announcement/i })
+    const textarea = within(dialog).getByPlaceholderText(/share an update with the class/i)
     await userEvent.type(textarea, 'Reminder: quiz on Friday.')
-    await userEvent.click(screen.getByRole('button', { name: /^post$/i }))
+    await userEvent.click(within(dialog).getByRole('button', { name: /^post$/i }))
 
     const posted = useStore.getState().announcements
     expect(posted).toHaveLength(1)
@@ -125,6 +126,8 @@ describe('<DashboardAnnouncementsFeed /> — cross-course feed (ADR-0040/0043)',
       body: 'Reminder: quiz on Friday.',
       kind: 'manual',
     })
+    // A successful post closes the Dialog.
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('leaves the picker on its placeholder (no preselection) with several composable Courses', async () => {
@@ -150,16 +153,15 @@ describe('<DashboardAnnouncementsFeed /> — cross-course feed (ADR-0040/0043)',
 
     renderFeed()
 
-    // Composer shows, but the trigger reads the "choose" placeholder — with two
+    // The Dialog shows, but the trigger reads the "choose" placeholder — with two
     // cohorts nothing is silently preselected, so Post stays disabled until a pick.
-    expect(
-      await screen.findByRole('heading', { name: /post an announcement/i })
-    ).toBeInTheDocument()
-    expect(screen.getByRole('combobox')).toHaveTextContent(/choose a course/i)
-    expect(screen.getByRole('button', { name: /^post$/i })).toBeDisabled()
+    await userEvent.click(await screen.findByRole('button', { name: /^post$/i }))
+    const dialog = await screen.findByRole('dialog', { name: /post an announcement/i })
+    expect(within(dialog).getByRole('combobox')).toHaveTextContent(/choose a course/i)
+    expect(within(dialog).getByRole('button', { name: /^post$/i })).toBeDisabled()
   })
 
-  it('withholds the composer when every scoped Course is closed — nowhere to post', async () => {
+  it('withholds the Post button when every scoped Course is closed — nowhere to post', async () => {
     const closed: Course = {
       id: 'cou-closed',
       name: 'Math 101',
@@ -179,7 +181,6 @@ describe('<DashboardAnnouncementsFeed /> — cross-course feed (ADR-0040/0043)',
     renderFeed()
 
     expect(await screen.findByRole('heading', { name: /announcements/i })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: /post an announcement/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^post$/i })).not.toBeInTheDocument()
   })
 

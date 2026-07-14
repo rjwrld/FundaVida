@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -108,5 +109,45 @@ describe('<TcuListPage /> — roster multi-query gate (ADR-0030)', () => {
     expect(
       ['Pending', 'Approved', 'Rejected'].some((label) => roster.textContent?.includes(label))
     ).toBe(true)
+  })
+
+  // The trainee-progress roster (#367) replaces the old trainee dropdown: one row
+  // per scoped trainee with the approved/pending split, and selecting a row is the
+  // activity log's filter.
+  it('shows per-trainee hours and filters the log by roster selection (toggle to clear)', async () => {
+    useStore.getState().setRole('admin')
+    const { tcuActivities, tcuTrainees } = useStore.getState()
+    const activity = tcuActivities[0]
+    if (!activity) throw new Error('seed: no TCU activities')
+    const trainee = tcuTrainees.find((tr) => tr.id === activity.traineeId)
+    if (!trainee) throw new Error('seed: activity without trainee')
+    const name = fullName(trainee)
+    const ownCount = tcuActivities.filter((a) => a.traineeId === trainee.id).length
+    const totalCount = tcuActivities.length
+
+    renderPage()
+
+    // The roster row carries the approved/pending derivation (same split as the
+    // volunteer's own card — tcuHoursByStatus).
+    const toggle = await screen.findByRole('button', {
+      name: `Show only ${name}'s activities`,
+    })
+    const rosterRow = toggle.closest('tr')
+    if (!rosterRow) throw new Error('roster row not found')
+    const approved = tcuActivities
+      .filter((a) => a.traineeId === trainee.id && a.status === 'approved')
+      .reduce((sum, a) => sum + a.hours, 0)
+    expect(within(rosterRow).getByText(`${approved}/300`)).toBeInTheDocument()
+
+    // Select: the log narrows to the trainee's activities — every row names them.
+    await userEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    const log = rosterTable()
+    if (!log) throw new Error('activity log table not found')
+    expect(within(log).getAllByRole('row')).toHaveLength(ownCount + 1) // + header row
+    // Toggle again: the filter clears and the full log returns.
+    await userEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    expect(within(log).getAllByRole('row')).toHaveLength(totalCount + 1)
   })
 })

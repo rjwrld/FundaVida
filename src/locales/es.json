@@ -298,11 +298,6 @@
     "confirmDelete": {
       "title": "Confirmar eliminación"
     },
-    "help": {
-      "body": "¿Preguntas sobre la rearquitectura? El código está en GitHub.",
-      "cta": "Ver el repo →",
-      "title": "¿Necesitas ayuda?"
-    },
     "language": {
       "label": "Idioma"
     },
@@ -528,6 +523,7 @@
   "dashboard": {
     "announcements": {
       "compose": {
+        "cta": "Publicar",
         "heading": "Publicar un anuncio",
         "selectCourse": "Elige un curso"
       },
@@ -984,10 +980,6 @@
       },
       "empty": "Aún no hay actividades registradas.",
       "emptyFiltered": "Ninguna actividad coincide con el filtro.",
-      "filters": {
-        "anyTrainee": "Cualquier becario",
-        "traineePlaceholder": "Becario"
-      },
       "status": {
         "approved": "Aprobada",
         "pending": "Pendiente",
@@ -995,6 +987,16 @@
       },
       "subtitle": "Horas de servicio comunitario registradas por becarios hacia su requisito de 300 horas.",
       "title": "Actividades TCU"
+    },
+    "roster": {
+      "columns": {
+        "approved": "Aprobadas",
+        "course": "Curso",
+        "pending": "Pendientes",
+        "progress": "Progreso"
+      },
+      "filterBy": "Mostrar solo las actividades de {{name}}",
+      "title": "Progreso de becarios"
     }
   },
   "teachers": {

@@ -13,9 +13,16 @@ export const BODY_MAX = 2000
  * and clears on success. Used both on the course-scoped feed (fixed Course, ADR-0040)
  * and the dashboard composer (Course chosen from a picker, #266) so the compose block
  * lives in one place. An empty `courseId` (the dashboard picker before a Course is
- * chosen) disables the post button — there is nowhere to post to yet.
+ * chosen) disables the post button — there is nowhere to post to yet. `onPosted`
+ * fires after a successful post so a Dialog host can close itself.
  */
-export function AnnouncementComposer({ courseId }: { courseId: string }) {
+export function AnnouncementComposer({
+  courseId,
+  onPosted,
+}: {
+  courseId: string
+  onPosted?: () => void
+}) {
   const { t } = useTranslation()
   const createAnnouncement = useCreateAnnouncement()
   const [body, setBody] = useState('')
@@ -25,7 +32,15 @@ export function AnnouncementComposer({ courseId }: { courseId: string }) {
 
   const submit = () => {
     if (!canSubmit) return
-    createAnnouncement.mutate({ courseId, body: trimmed }, { onSuccess: () => setBody('') })
+    createAnnouncement.mutate(
+      { courseId, body: trimmed },
+      {
+        onSuccess: () => {
+          setBody('')
+          onPosted?.()
+        },
+      }
+    )
   }
 
   return (

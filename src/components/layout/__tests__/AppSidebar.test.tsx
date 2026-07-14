@@ -186,10 +186,12 @@ describe('<AppSidebar />', () => {
     ).toBeInTheDocument()
   })
 
-  it('keeps the Need-help card on the desktop rail', () => {
+  // The Need-help card was deleted in #367 — the repo link lives on the landing
+  // page and the app footer; the sidebar footer carries only the role switcher.
+  it('renders no Need-help card', () => {
     useStore.getState().setRole('admin')
     renderSidebar()
-    expect(screen.getByText('Need help?')).toBeInTheDocument()
+    expect(screen.queryByText('Need help?')).not.toBeInTheDocument()
   })
 
   it('has no axe violations', async () => {
@@ -292,17 +294,6 @@ describe('<AppSidebar />', () => {
 
       expect(screen.getByTestId('location')).toHaveTextContent('/app')
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    })
-
-    // The card ate ~150px of a phone screen and pushed the last section behind the scroll
-    // edge (#272). It stays on the desktop rail only.
-    it('leaves the Need-help card out of the drawer', async () => {
-      const user = userEvent.setup()
-      useStore.getState().setRole('admin')
-      renderSidebar({ mobile: true })
-
-      await openDrawer(user)
-      expect(screen.queryByText('Need help?')).not.toBeInTheDocument()
     })
   })
 })

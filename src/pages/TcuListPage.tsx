@@ -1,12 +1,5 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { NoResults } from '@/components/shared/NoResults'
 import {
   Table,
@@ -33,7 +26,7 @@ import { TCU_VARIANT } from '@/lib/statusVariant'
 import { useFormat } from '@/hooks/useFormat'
 import { useStore } from '@/data/store'
 import { LogTcuActivityDialog } from '@/components/tcu/LogTcuActivityDialog'
-import type { TcuFilters } from '@/data/api/tcu'
+import { TraineeProgressRoster } from '@/components/tcu/TraineeProgressRoster'
 
 export function TcuListPage() {
   const { t } = useTranslation()
@@ -41,12 +34,15 @@ export function TcuListPage() {
   const role = useStore((s) => s.role)
   const userId = useStore((s) => s.currentUserId)
   const courses = useStore((s) => s.courses)
-  const [filters, setFilters] = useState<TcuFilters>({})
+  // The activity log's filter is the roster selection (#367): activities load
+  // unfiltered (the same scoped read the roster derives hours from) and the log
+  // narrows client-side, so selecting a trainee never refetches.
+  const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(null)
   const [logDialogOpen, setLogDialogOpen] = useState(false)
-  const activitiesQuery = useTcuActivities(filters)
+  const activitiesQuery = useTcuActivities({})
   const traineesQuery = useTcuTrainees()
   const { data = [] } = activitiesQuery
-  const { data: trainees = [], isLoading: traineesLoading } = traineesQuery
+  const { data: trainees = [] } = traineesQuery
   // Both name-rendering tables (the roster and the approval queue) read trainee
   // names from the separate trainees query, so their data dependency is BOTH
   // queries — gate on both, not activities alone (ADR-0030). Gating on activities
@@ -55,8 +51,11 @@ export function TcuListPage() {
   const approveMutation = useApproveTcuActivity()
 
   const { approved: approvedHours, pending: pendingHours } = tcuHoursByStatus(data)
-  const hasFilters = Boolean(filters.traineeId)
-  const count = data.length
+  const visibleActivities = selectedTraineeId
+    ? data.filter((a) => a.traineeId === selectedTraineeId)
+    : data
+  const hasFilters = selectedTraineeId !== null
+  const count = visibleActivities.length
 
   // For TCU role, show self progress; for admin, show selected trainee or all
   const isTcuRole = role === 'tcu'
@@ -184,27 +183,11 @@ export function TcuListPage() {
         </section>
       )}
 
-      {!isTcuRole && !traineesLoading && trainees.length > 0 && (
-        <section aria-label={t('common.a11y.filters')}>
-          <Select
-            value={filters.traineeId ?? 'any'}
-            onValueChange={(v) =>
-              setFilters((f) => ({ ...f, traineeId: v === 'any' ? undefined : v }))
-            }
-          >
-            <SelectTrigger className="w-full sm:w-64">
-              <SelectValue placeholder={t('tcu.list.filters.traineePlaceholder')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="any">{t('tcu.list.filters.anyTrainee')}</SelectItem>
-              {trainees.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {fullName(t)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </section>
+      {!isTcuRole && (
+        <TraineeProgressRoster
+          selectedTraineeId={selectedTraineeId}
+          onSelect={(id) => setSelectedTraineeId((prev) => (prev === id ? null : id))}
+        />
       )}
 
       <ListView
@@ -228,7 +211,7 @@ export function TcuListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.map((a) => {
+                {visibleActivities.map((a) => {
                   const trainee = trainees.find((x) => x.id === a.traineeId)
                   return (
                     <TableRow key={a.id} className="h-12 hover:bg-muted/40">
