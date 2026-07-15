@@ -52,11 +52,8 @@ test-results/
 # Misc
 *.local
 
-# Claude Code local settings (plugin state, untracked by intent)
-.claude/*
-!.claude/settings.json
+# Claude Code / agent tooling — kept locally, never published
+.claude/
 CLAUDE.md
-
-# Agent pod run artifacts (bootstrap script itself stays tracked)
-.agents/runs/
-.agents/evidence/
+.agents/
+.impeccable/
