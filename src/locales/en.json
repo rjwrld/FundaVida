@@ -760,6 +760,19 @@
       "secondaryCta": "View on GitHub",
       "subhead": "Built and delivered to Fundación Vida Nueva as a production platform — then rearchitected to run with no backend, no login, no server. Pick a role and walk in."
     },
+    "marquee": {
+      "head": "A few screens from inside",
+      "openApp": "Open the app",
+      "shotAlt": "The {{label}} screen inside the app",
+      "shots": {
+        "calendar": "Calendar",
+        "certificate": "Certificate",
+        "course": "Course",
+        "dashboard": "Dashboard",
+        "markSession": "Attendance",
+        "students": "Students"
+      }
+    },
     "nav": {
       "github": "GitHub",
       "openApp": "Open app"

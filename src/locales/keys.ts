@@ -223,6 +223,15 @@ t('landing.qa.stats.tests')
 t('landing.qa.stats.locales')
 t('landing.qa.stats.backends')
 
+// Keys referenced dynamically in the landing proof marquee (ProofMarquee):
+// per-shot labels via t(`landing.marquee.shots.${shot.key}`)
+t('landing.marquee.shots.dashboard')
+t('landing.marquee.shots.calendar')
+t('landing.marquee.shots.students')
+t('landing.marquee.shots.certificate')
+t('landing.marquee.shots.course')
+t('landing.marquee.shots.markSession')
+
 // Mutation success toasts passed as `toastKey` to makeEntityMutation (resolved via
 // t(config.toastKey) in the factory, so the parser can't see them at the call sites)
 t('toasts.studentCreated')
