@@ -30,7 +30,8 @@ t('nav.auditLog')
 t('nav.bulkEmail')
 t('nav.myProfile')
 
-// Keys referenced via ROLES[].labelKey and ROLES[].blurbKey in LandingPage and RoleSwitcher
+// Keys referenced via ROLES[].labelKey and ROLES[].blurbKey in RoleSwitcher,
+// and via t(`roles.${role}.label`) on the landing Hero's persona badges
 t('roles.admin.label')
 t('roles.admin.blurb')
 t('roles.teacher.label')
@@ -39,6 +40,12 @@ t('roles.student.label')
 t('roles.student.blurb')
 t('roles.tcu.label')
 t('roles.tcu.blurb')
+
+// Keys referenced via t(`landing.badges.${role}.desc`) on the landing Hero
+t('landing.badges.admin.desc')
+t('landing.badges.teacher.desc')
+t('landing.badges.student.desc')
+t('landing.badges.tcu.desc')
 
 // Keys declared in the dictionary skeleton for future tasks but not yet in use
 t('common.actions.cancel')

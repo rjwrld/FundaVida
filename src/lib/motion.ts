@@ -82,6 +82,30 @@ export function staggerEntrance(reduce: boolean | null) {
 }
 
 /**
+ * The landing persona badge's deal-in (ADR-0049): rises with a rotation settle
+ * from `tiltIn` down to its resting `tilt`, like a card dealt onto a desk. A
+ * factory because every badge carries its own tilt pair; callers pass their
+ * own `useReducedMotion()` read separately and render static at the resting
+ * tilt under it.
+ */
+export function badgeDealIn(tiltIn: number, tilt: number): Variants {
+  return {
+    hidden: { opacity: 0, y: 26, rotate: tiltIn, scale: 0.96 },
+    visible: { opacity: 1, y: 0, rotate: tilt, scale: 1 },
+  }
+}
+
+/**
+ * The highlighter smear's draw-on (ADR-0049): scaleX 0→1. Callers anchor the
+ * origin to the left edge (`originX: 0`) so the smear draws the way a
+ * highlighter moves.
+ */
+export const drawOn: Variants = {
+  hidden: { scaleX: 0 },
+  visible: { scaleX: 1 },
+}
+
+/**
  * Recharts animation props for a chart draw-in (phase 6a). Recharts animates
  * outside framer, so the reduced-motion opt-out cannot ride `MotionConfig` —
  * callers pass their own `useReducedMotion()` read and spread the result onto

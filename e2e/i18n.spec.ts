@@ -8,16 +8,18 @@ test.describe('i18n', () => {
 
   test('landing starts in English when no preference set', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: 'Hope changes everything.' })).toBeVisible()
-    await expect(page.getByText(/browser-only portfolio demo/)).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Run a school from your browser.' })
+    ).toBeVisible()
+    await expect(page.getByText(/then rearchitected to run with no backend/)).toBeVisible()
   })
 
   test('toggling to ES on landing renders Spanish copy and persists', async ({ page }) => {
     await page.getByRole('radio', { name: 'es' }).click()
-    await expect(page.getByText(/demo de portafolio sin backend/)).toBeVisible()
+    await expect(page.getByText(/rearquitecturada para correr sin backend/)).toBeVisible()
 
     await page.reload()
-    await expect(page.getByText(/demo de portafolio sin backend/)).toBeVisible()
+    await expect(page.getByText(/rearquitecturada para correr sin backend/)).toBeVisible()
   })
 
   test('new landing sections render in both locales', async ({ page }) => {

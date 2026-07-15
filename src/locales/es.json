@@ -735,6 +735,20 @@
     }
   },
   "landing": {
+    "badges": {
+      "admin": {
+        "desc": "Control total — cursos, certificados y bitácora."
+      },
+      "student": {
+        "desc": "Tus matrículas, progreso y certificados."
+      },
+      "tcu": {
+        "desc": "Tu curso asignado y registro de trabajo comunal."
+      },
+      "teacher": {
+        "desc": "Tus cursos, asistencia y calificaciones."
+      }
+    },
     "featureBento": {
       "bilingual": {
         "caption": "Cada módulo se publica en inglés y español. i18n:check protege el CI.",
@@ -766,13 +780,17 @@
       "rearchitected": "Demo de portafolio rearquitecturizada de {{org}}"
     },
     "hero": {
-      "eyebrow": "Gestión educativa · Costa Rica",
-      "headline": "La esperanza lo cambia todo.",
-      "illustrationAlt": "Ilustración isométrica del panel FundaVida con un certificado y motivo de llama",
+      "eyebrow": "Entregado a una fundación real · 2025 <muted>→ reconstruido para el navegador · 2026</muted>",
+      "footnote": "Sin registro · Los datos viven en <green>localStorage</green> · Sembrado con <green>faker(42)</green>",
+      "headline": "Dirige una <smear>escuela</smear> desde tu <accent>navegador.</accent>",
       "noSignup": "Sin registro · Los datos viven en tu navegador",
       "primaryCta": "Ingresar como administrador",
       "secondaryCta": "Ver en GitHub",
-      "subhead": "Una plataforma educativa de producción, rearquitecturada como demo de portafolio sin backend. Sin servidor. Sin autenticación. Solo oficio."
+      "subhead": "Construida y entregada a la Fundación Vida Nueva como plataforma de producción — luego rearquitecturada para correr sin backend, sin login y sin servidor. Elige un rol y entra."
+    },
+    "nav": {
+      "github": "GitHub",
+      "openApp": "Abrir la app"
     },
     "rearchitecture": {
       "headline": "De respaldo en Supabase a solo navegador.",
