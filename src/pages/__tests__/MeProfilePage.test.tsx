@@ -19,10 +19,7 @@ function renderMe() {
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
-        <MemoryRouter
-          initialEntries={['/app/me']}
-          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-        >
+        <MemoryRouter initialEntries={['/app/me']}>
           <Routes>
             <Route path="/app" element={<div>DASHBOARD</div>} />
             <Route path="/app/me" element={<MeProfilePage />} />

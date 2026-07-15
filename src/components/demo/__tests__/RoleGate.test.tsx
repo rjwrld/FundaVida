@@ -20,10 +20,7 @@ describe('<RoleGate />', () => {
   it('allows a teacher to view the students resource', () => {
     useStore.getState().setRole('teacher')
     render(
-      <MemoryRouter
-        initialEntries={['/students']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/students']}>
         <Routes>
           <Route path="/app" element={<div>dashboard</div>} />
           <Route element={<RoleGate resource="students" />}>
@@ -38,10 +35,7 @@ describe('<RoleGate />', () => {
   it('redirects a student away from the students resource', () => {
     useStore.getState().setRole('student')
     render(
-      <MemoryRouter
-        initialEntries={['/students']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/students']}>
         <Routes>
           <Route path="/app" element={<div>dashboard</div>} />
           <Route element={<RoleGate resource="students" />}>
@@ -57,10 +51,7 @@ describe('<RoleGate />', () => {
   it('allows an admin to view the bulkEmail resource', () => {
     useStore.getState().setRole('admin')
     render(
-      <MemoryRouter
-        initialEntries={['/bulk-email']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/bulk-email']}>
         <Routes>
           <Route path="/app" element={<div>dashboard</div>} />
           <Route element={<RoleGate resource="bulkEmail" />}>
@@ -75,10 +66,7 @@ describe('<RoleGate />', () => {
   it('denies a teacher from viewing the bulkEmail resource', () => {
     useStore.getState().setRole('teacher')
     render(
-      <MemoryRouter
-        initialEntries={['/bulk-email']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/bulk-email']}>
         <Routes>
           <Route path="/app" element={<div>dashboard</div>} />
           <Route element={<RoleGate resource="bulkEmail" />}>
@@ -94,10 +82,7 @@ describe('<RoleGate />', () => {
   it('allows teacher to view the courses resource', () => {
     useStore.getState().setRole('teacher')
     render(
-      <MemoryRouter
-        initialEntries={['/courses']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/courses']}>
         <Routes>
           <Route path="/app" element={<div>dashboard</div>} />
           <Route element={<RoleGate resource="courses" />}>
@@ -112,10 +97,7 @@ describe('<RoleGate />', () => {
   it('allows student to view the courses resource', () => {
     useStore.getState().setRole('student')
     render(
-      <MemoryRouter
-        initialEntries={['/courses']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/courses']}>
         <Routes>
           <Route path="/app" element={<div>dashboard</div>} />
           <Route element={<RoleGate resource="courses" />}>
@@ -130,10 +112,7 @@ describe('<RoleGate />', () => {
   it('allows a teacher through a create-gated courses route (ADR-0016)', () => {
     useStore.getState().setRole('teacher')
     render(
-      <MemoryRouter
-        initialEntries={['/courses/new']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/courses/new']}>
         <Routes>
           <Route path="/app" element={<div>dashboard</div>} />
           <Route element={<RoleGate resource="courses" action="create" />}>
@@ -149,10 +128,7 @@ describe('<RoleGate />', () => {
   it('allows an admin through a create-gated courses route', () => {
     useStore.getState().setRole('admin')
     render(
-      <MemoryRouter
-        initialEntries={['/courses/new']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/courses/new']}>
         <Routes>
           <Route path="/app" element={<div>dashboard</div>} />
           <Route element={<RoleGate resource="courses" action="create" />}>
@@ -167,10 +143,7 @@ describe('<RoleGate />', () => {
   it('redirects a teacher away from an edit-gated students route', () => {
     useStore.getState().setRole('teacher')
     render(
-      <MemoryRouter
-        initialEntries={['/students/stu-1/edit']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/students/stu-1/edit']}>
         <Routes>
           <Route path="/app" element={<div>dashboard</div>} />
           <Route element={<RoleGate resource="students" action="edit" />}>

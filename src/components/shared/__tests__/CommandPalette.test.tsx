@@ -30,7 +30,7 @@ function TriggerButton() {
 function renderPalette() {
   return render(
     <I18nProvider>
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MemoryRouter>
         <CommandPaletteProvider>
           <TriggerButton />
           <CommandPalette />

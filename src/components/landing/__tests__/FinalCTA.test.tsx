@@ -20,10 +20,7 @@ function LocationDisplay() {
 function renderFinalCTA() {
   return render(
     <I18nProvider>
-      <MemoryRouter
-        initialEntries={['/']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/']}>
         <FinalCTA />
         <LocationDisplay />
       </MemoryRouter>

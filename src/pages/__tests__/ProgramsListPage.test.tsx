@@ -25,10 +25,7 @@ function renderPage() {
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
-        <MemoryRouter
-          initialEntries={['/app/programs']}
-          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-        >
+        <MemoryRouter initialEntries={['/app/programs']}>
           <ProgramsListPage />
         </MemoryRouter>
       </QueryClientProvider>

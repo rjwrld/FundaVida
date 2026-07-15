@@ -41,10 +41,7 @@ function renderSidebar({
   window.innerWidth = mobile ? 500 : 1024
   return render(
     <I18nProvider>
-      <MemoryRouter
-        initialEntries={[route]}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={[route]}>
         <SidebarProvider>
           <SidebarTrigger aria-label="Toggle navigation" />
           <AppSidebar />

@@ -47,10 +47,7 @@ function renderPage(
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
-        <MemoryRouter
-          initialEntries={[`/app/courses/${courseId}`]}
-          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-        >
+        <MemoryRouter initialEntries={[`/app/courses/${courseId}`]}>
           <Routes>
             <Route path="/app/courses/:id" element={<CoursesDetailPage />} />
           </Routes>

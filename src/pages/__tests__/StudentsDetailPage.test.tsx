@@ -21,10 +21,7 @@ function renderDetail(id: string) {
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
-        <MemoryRouter
-          initialEntries={[`/app/students/${id}`]}
-          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-        >
+        <MemoryRouter initialEntries={[`/app/students/${id}`]}>
           <Routes>
             <Route path="/app/students/:id" element={<StudentsDetailPage />} />
           </Routes>

@@ -50,7 +50,7 @@ function renderCard() {
   return render(
     <I18nProvider>
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <MemoryRouter>
           <AtRiskStudents />
         </MemoryRouter>
       </QueryClientProvider>

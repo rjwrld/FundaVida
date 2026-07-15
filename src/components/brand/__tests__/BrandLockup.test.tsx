@@ -6,7 +6,7 @@ import { BrandLockup } from '@/components/brand/BrandLockup'
 
 function renderLockup(props?: Parameters<typeof BrandLockup>[0]) {
   return render(
-    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <MemoryRouter>
       <BrandLockup {...props} />
     </MemoryRouter>
   )

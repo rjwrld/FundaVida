@@ -82,7 +82,7 @@ function renderPage() {
     <I18nProvider>
       <QueryClientProvider client={client}>
         <TooltipProvider>
-          <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <MemoryRouter>
             <CalendarPage />
           </MemoryRouter>
         </TooltipProvider>

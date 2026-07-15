@@ -68,7 +68,7 @@ function renderDashboard() {
   return render(
     <I18nProvider>
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <MemoryRouter>
           <TcuDashboard />
         </MemoryRouter>
       </QueryClientProvider>

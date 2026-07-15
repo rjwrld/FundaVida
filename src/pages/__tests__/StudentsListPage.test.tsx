@@ -17,10 +17,7 @@ function renderList(entry = '/app/students') {
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
-        <MemoryRouter
-          initialEntries={[entry]}
-          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-        >
+        <MemoryRouter initialEntries={[entry]}>
           <Routes>
             <Route path="/app/students" element={<StudentsListPage />} />
           </Routes>

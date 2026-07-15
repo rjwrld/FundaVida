@@ -22,10 +22,7 @@ function LocationDisplay() {
 function renderUser() {
   return render(
     <I18nProvider>
-      <MemoryRouter
-        initialEntries={['/app']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/app']}>
         <SidebarProvider>
           <SidebarUser />
           <LocationDisplay />

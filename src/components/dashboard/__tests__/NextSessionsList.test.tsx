@@ -31,7 +31,7 @@ const courseMWF: Course = {
 function renderList(courses: Course[]) {
   return render(
     <I18nProvider>
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MemoryRouter>
         <NextSessionsList courses={courses} />
       </MemoryRouter>
     </I18nProvider>
