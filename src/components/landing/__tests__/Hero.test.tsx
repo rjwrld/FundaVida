@@ -58,7 +58,7 @@ describe('<Hero />', () => {
     renderHero()
     expect(screen.getByText(/Shipped to a real foundation · 2025/)).toBeInTheDocument()
     expect(
-      screen.getByText(/delivered to Fundación Vida Nueva as a production platform/)
+      screen.getByText(/delivered to Fundación Vida as a production platform/)
     ).toBeInTheDocument()
   })
 
