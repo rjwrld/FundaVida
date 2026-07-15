@@ -92,7 +92,7 @@ function InfraDelta() {
 function StatChips() {
   const { t } = useTranslation()
   return (
-    <dl className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <dl className="mt-6 grid grid-cols-2 gap-4">
       {STATS.map((stat) => (
         <div key={stat.key} className="flex flex-col rounded-lg border bg-card px-4 py-3">
           <dt className="order-2 mt-1 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground">
