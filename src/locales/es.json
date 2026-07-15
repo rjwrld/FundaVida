@@ -768,6 +768,19 @@
       "secondaryCta": "Ver en GitHub",
       "subhead": "Construida y entregada a la Fundación Vida Nueva como plataforma de producción — luego rearquitecturada para correr sin backend, sin login y sin servidor. Elige un rol y entra."
     },
+    "marquee": {
+      "head": "Algunas pantallas desde dentro",
+      "openApp": "Abrir la app",
+      "shotAlt": "La pantalla de {{label}} dentro de la app",
+      "shots": {
+        "calendar": "Calendario",
+        "certificate": "Certificado",
+        "course": "Curso",
+        "dashboard": "Panel",
+        "markSession": "Asistencia",
+        "students": "Estudiantes"
+      }
+    },
     "nav": {
       "github": "GitHub",
       "openApp": "Abrir la app"

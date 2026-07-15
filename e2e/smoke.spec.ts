@@ -92,6 +92,20 @@ test.describe('smoke', () => {
     await expect(page.getByText('TanStack Table', { exact: true })).toBeVisible()
   })
 
+  // The proof marquee (ADR-0049, #386) sits between the hero and the Q&A: a
+  // browser-framed row of real app screenshots. Assert the head, that a framed
+  // shot renders, and that "Open the app" walks the visitor in as admin.
+  test('the proof marquee renders and its head link enters as admin', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.getByText('A few screens from inside')).toBeVisible()
+    // The marquee duplicates its row for the seamless loop, so shots repeat.
+    await expect(page.getByRole('img', { name: /screen inside the app/i }).first()).toBeVisible()
+
+    await page.getByRole('button', { name: 'Open the app' }).click()
+    await expect(page).toHaveURL(/\/app$/)
+    await expect(page.getByRole('heading', { level: 1, name: /signed in as/i })).toBeVisible()
+  })
+
   // The final CTA (ADR-0049, #385) reprises the persona badges small — same
   // entry as the hero. The mini badge has no capability line, so its exact aria
   // name (role + persona) disambiguates it from the hero's full badge.

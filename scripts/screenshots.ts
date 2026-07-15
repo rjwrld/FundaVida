@@ -27,11 +27,50 @@ type Locale = 'en' | 'es'
 
 interface Shot {
   name: string
-  path: string
+  /**
+   * The route to land on before `capture` runs. Omitted for shots whose
+   * `capture` navigates itself (e.g. click-through to a course detail whose id
+   * is only known at runtime).
+   */
+  path?: string
   width: number
   height: number
   locales: Locale[]
+  /** Emulated color scheme; the app's `system` theme resolves against it. */
+  theme?: 'light' | 'dark'
   capture: (page: Page) => Promise<void>
+}
+
+/**
+ * Navigates to the first course carrying a markable/recordable session and
+ * returns its `/mark` href. The course id and session date are seed-derived, so
+ * we discover them by walking the courses list rather than hard-coding ids that
+ * would drift on the next reseed.
+ */
+async function markSessionHref(page: Page): Promise<string> {
+  await page.goto(`${DEV_URL}/app/courses`)
+  await page.waitForLoadState('networkidle')
+  const courseHrefs: string[] = await page
+    .locator('a[href^="/app/courses/"]:not([href$="/browse"])')
+    .evaluateAll((els) =>
+      Array.from(
+        new Set(
+          els
+            .map((el) => el.getAttribute('href') ?? '')
+            .filter((href) => href && !href.includes('/sessions/'))
+        )
+      )
+    )
+  for (const href of courseHrefs) {
+    await page.goto(`${DEV_URL}${href}`)
+    await page.waitForLoadState('networkidle')
+    const marks = page.locator('a[href*="/sessions/"][href*="/mark"]')
+    if ((await marks.count()) > 0) {
+      const markHref = await marks.first().getAttribute('href')
+      if (markHref) return markHref
+    }
+  }
+  throw new Error('no course with a markable session found in the seed')
 }
 
 const SHOTS: Shot[] = [
@@ -92,6 +131,35 @@ const SHOTS: Shot[] = [
       await delay(1000)
     },
   },
+  {
+    name: 'course',
+    width: 1440,
+    height: 900,
+    locales: ['en', 'es'],
+    capture: async (page) => {
+      // The course id is seed-derived; reach a detail page by clicking the first
+      // real course in the list rather than hard-coding an id that would drift.
+      await page.goto(`${DEV_URL}/app/courses`)
+      await page.waitForLoadState('networkidle')
+      await page.locator('a[href^="/app/courses/"]:not([href$="/browse"])').first().click()
+      await page.waitForURL(/\/app\/courses\/[^/]+$/)
+      await page.waitForLoadState('networkidle')
+      await delay(500)
+    },
+  },
+  {
+    name: 'mark-session',
+    width: 1440,
+    height: 900,
+    locales: ['en'],
+    // The one dark-mode capture in the set (ADR-0049 "both themes ship").
+    theme: 'dark',
+    capture: async (page) => {
+      await page.goto(`${DEV_URL}${await markSessionHref(page)}`)
+      await page.waitForLoadState('networkidle')
+      await delay(500)
+    },
+  },
 ]
 
 async function startDevServer(): Promise<ChildProcess> {
@@ -147,14 +215,19 @@ async function captureShot(page: Page, shot: Shot, locale: Locale) {
   const outPath = join(SHOTS_DIR, filename)
 
   await page.setViewportSize({ width: shot.width, height: shot.height })
+  // Emulate the color scheme before the app mounts: the app's `system` theme
+  // (the default after localStorage.clear()) resolves against this media query.
+  await page.emulateMedia({ colorScheme: shot.theme ?? 'light' })
   await enterAsAdmin(page, locale)
-  await page.goto(`${DEV_URL}${shot.path}`)
+  if (shot.path) await page.goto(`${DEV_URL}${shot.path}`)
   await shot.capture(page)
   await page.screenshot({ path: outPath, fullPage: false })
   console.log(`wrote ${filename}`)
 }
 
 async function captureOgImage(page: Page) {
+  // A prior shot may have emulated dark; the OG card is always the light hero.
+  await page.emulateMedia({ colorScheme: 'light' })
   await page.setViewportSize({ width: 1200, height: 630 })
   await page.goto(DEV_URL)
   await page.evaluate(() => localStorage.clear())
