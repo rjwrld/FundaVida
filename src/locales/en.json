@@ -741,25 +741,6 @@
         "desc": "Your courses, attendance, and grading."
       }
     },
-    "featureBento": {
-      "bilingual": {
-        "caption": "Every module ships in English and Spanish. i18n:check gates the CI.",
-        "title": "Bilingual from day one"
-      },
-      "crud": {
-        "caption": "Students, courses, and certificates with optimistic updates, localized validation, and keyboard navigation.",
-        "title": "CRUD hero modules"
-      },
-      "deterministic": {
-        "caption": "faker.seed(42) means every visitor sees the same students, courses, and grades.",
-        "title": "Deterministic demo data"
-      },
-      "heading": "Built with the same craft as production.",
-      "pdf": {
-        "caption": "Generated and downloaded client-side via @react-pdf/renderer.",
-        "title": "PDF certificates in the browser"
-      }
-    },
     "finalCta": {
       "cta": "Enter as admin",
       "headline": "Ready to explore?",
@@ -784,34 +765,60 @@
       "github": "GitHub",
       "openApp": "Open app"
     },
-    "rearchitecture": {
-      "headline": "From Supabase-backed to browser-only.",
-      "rows": [
-        {
-          "after": "Role switcher (no login)",
-          "before": "Supabase Auth + RLS"
+    "qa": {
+      "eyebrow": "Common questions",
+      "heading": "The questions you're <smear>probably</smear> about to ask.",
+      "items": {
+        "backend": {
+          "a": "There isn't one. Every read and write runs against Zustand and <code>localStorage</code> in your browser, and a role switcher stands in for auth. Even the certificate PDFs are generated client-side with <code>@react-pdf/renderer</code> — what shipped on Supabase in 2025 now runs with no server at all.",
+          "category": "Architecture",
+          "q": "Where's the backend?"
         },
-        {
-          "after": "Zustand + localStorage",
-          "before": "PostgreSQL + Storage"
+        "bilingual": {
+          "a": "The foundation works in Spanish; the reviewers reading this work in English. Every string ships in both, and <code>i18n:check</code> fails the build the moment a key is missing from either locale.",
+          "category": "Localization",
+          "q": "Why is everything bilingual?"
         },
-        {
-          "after": "Simulated (logged to audit)",
-          "before": "Resend email delivery"
+        "break": {
+          "a": "Please try. Everything lives in <code>localStorage</code> — clear your site data and the seed rebuilds the entire world on the next load. Nothing you do here reaches anyone else.",
+          "category": "Reset",
+          "q": "Can I break it?"
         },
-        {
-          "after": "Vercel only",
-          "before": "Vercel + Supabase hosting"
+        "data": {
+          "a": "Synthetic, but deterministic. <code>faker.seed(42)</code> means every visitor sees the exact same students, courses, and grades — realistic to demo, with no real people and no PII.",
+          "category": "Data",
+          "q": "Is the data real?"
         },
-        {
-          "after": "Bilingual EN / ES",
-          "before": "Spanish-only UI"
+        "product": {
+          "a": "Yes. It was built and delivered to Fundación Vida Nueva in 2025 as a production platform, then deliberately rearchitected in 2026 to run entirely in the browser so anyone can tour it. Here's what moved:",
+          "category": "Provenance",
+          "delta": [
+            {
+              "after": "Role switcher (no login)",
+              "before": "Supabase Auth + RLS"
+            },
+            {
+              "after": "Zustand + localStorage",
+              "before": "PostgreSQL + Storage"
+            },
+            {
+              "after": "Simulated (logged to audit)",
+              "before": "Resend email delivery"
+            },
+            {
+              "after": "Vercel only",
+              "before": "Vercel + Supabase hosting"
+            },
+            {
+              "after": "Bilingual EN / ES",
+              "before": "Spanish-only UI"
+            }
+          ],
+          "q": "Is this a real product?"
         }
-      ]
-    },
-    "trustStrip": {
-      "headline": "Rearchitected from a production platform",
-      "stat": {
+      },
+      "readSource": "Read the source",
+      "stats": {
         "backends": "Backends",
         "locales": "Locales",
         "modules": "Modules",

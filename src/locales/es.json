@@ -749,25 +749,6 @@
         "desc": "Tus cursos, asistencia y calificaciones."
       }
     },
-    "featureBento": {
-      "bilingual": {
-        "caption": "Cada módulo se publica en inglés y español. i18n:check protege el CI.",
-        "title": "Bilingüe desde el día uno"
-      },
-      "crud": {
-        "caption": "Estudiantes, cursos y certificados con actualizaciones optimistas, validación localizada y navegación por teclado.",
-        "title": "Módulos CRUD principales"
-      },
-      "deterministic": {
-        "caption": "faker.seed(42) hace que cada visitante vea los mismos estudiantes, cursos y notas.",
-        "title": "Datos de demo deterministas"
-      },
-      "heading": "Construido con el mismo oficio que producción.",
-      "pdf": {
-        "caption": "Generados y descargados desde el cliente vía @react-pdf/renderer.",
-        "title": "Certificados PDF en el navegador"
-      }
-    },
     "finalCta": {
       "cta": "Ingresar como administrador",
       "headline": "¿Listo para explorar?",
@@ -792,34 +773,60 @@
       "github": "GitHub",
       "openApp": "Abrir la app"
     },
-    "rearchitecture": {
-      "headline": "De respaldo en Supabase a solo navegador.",
-      "rows": [
-        {
-          "after": "Selector de rol (sin login)",
-          "before": "Supabase Auth + RLS"
+    "qa": {
+      "eyebrow": "Preguntas frecuentes",
+      "heading": "Las preguntas que <smear>probablemente</smear> estás por hacer.",
+      "items": {
+        "backend": {
+          "a": "No hay. Cada lectura y escritura corre contra Zustand y <code>localStorage</code> en tu navegador, y un selector de rol reemplaza la autenticación. Hasta los PDF de los certificados se generan en el navegador con <code>@react-pdf/renderer</code> — lo que se lanzó en Supabase en 2025 ahora corre sin ningún servidor.",
+          "category": "Arquitectura",
+          "q": "¿Dónde está el backend?"
         },
-        {
-          "after": "Zustand + localStorage",
-          "before": "PostgreSQL + Storage"
+        "bilingual": {
+          "a": "La fundación trabaja en español; quienes revisan esto trabajan en inglés. Cada texto se entrega en ambos idiomas, y <code>i18n:check</code> hace fallar la compilación en cuanto una clave falta en cualquiera de los dos.",
+          "category": "Localización",
+          "q": "¿Por qué todo es bilingüe?"
         },
-        {
-          "after": "Simulada (registrada en auditoría)",
-          "before": "Entrega de correo Resend"
+        "break": {
+          "a": "Inténtalo. Todo vive en <code>localStorage</code> — borra los datos del sitio y la semilla reconstruye el mundo entero en la siguiente carga. Nada de lo que hagas aquí afecta a nadie más.",
+          "category": "Reinicio",
+          "q": "¿Puedo romperlo?"
         },
-        {
-          "after": "Solo Vercel",
-          "before": "Hosting Vercel + Supabase"
+        "data": {
+          "a": "Sintéticos, pero deterministas. <code>faker.seed(42)</code> hace que cada visitante vea exactamente los mismos estudiantes, cursos y calificaciones — realistas para la demo, sin personas reales ni datos personales.",
+          "category": "Datos",
+          "q": "¿Los datos son reales?"
         },
-        {
-          "after": "Bilingüe EN / ES",
-          "before": "UI solo en español"
+        "product": {
+          "a": "Sí. Se construyó y entregó a la Fundación Vida Nueva en 2025 como plataforma de producción, y luego se rearquitecturó a propósito en 2026 para correr por completo en el navegador y que cualquiera pueda recorrerlo. Esto es lo que cambió:",
+          "category": "Procedencia",
+          "delta": [
+            {
+              "after": "Selector de rol (sin login)",
+              "before": "Supabase Auth + RLS"
+            },
+            {
+              "after": "Zustand + localStorage",
+              "before": "PostgreSQL + Storage"
+            },
+            {
+              "after": "Simulada (registrada en auditoría)",
+              "before": "Entrega de correo Resend"
+            },
+            {
+              "after": "Solo Vercel",
+              "before": "Hosting Vercel + Supabase"
+            },
+            {
+              "after": "Bilingüe EN / ES",
+              "before": "UI solo en español"
+            }
+          ],
+          "q": "¿Es un producto real?"
         }
-      ]
-    },
-    "trustStrip": {
-      "headline": "Rearquitecturada desde una plataforma de producción",
-      "stat": {
+      },
+      "readSource": "Lee el código fuente",
+      "stats": {
         "backends": "Backends",
         "locales": "Idiomas",
         "modules": "Módulos",
