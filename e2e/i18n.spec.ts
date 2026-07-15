@@ -27,7 +27,7 @@ test.describe('i18n', () => {
       page.getByRole('heading', { name: "The questions you're probably about to ask." })
     ).toBeVisible()
     await expect(page.getByRole('heading', { name: "Where's the backend?" })).toBeVisible()
-    await expect(page.getByText('React 18').first()).toBeVisible()
+    await expect(page.getByText('Recharts', { exact: true })).toBeVisible()
     await expect(page.getByRole('link', { name: 'FundaVida org' })).toBeVisible()
 
     await page.getByRole('radio', { name: 'es' }).click()
@@ -36,7 +36,7 @@ test.describe('i18n', () => {
       page.getByRole('heading', { name: 'Las preguntas que probablemente estás por hacer.' })
     ).toBeVisible()
     await expect(page.getByRole('heading', { name: '¿Dónde está el backend?' })).toBeVisible()
-    await expect(page.getByText('React 18').first()).toBeVisible()
+    await expect(page.getByText('Recharts', { exact: true })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Fundación FundaVida' })).toBeVisible()
   })
 

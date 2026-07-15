@@ -743,8 +743,8 @@
     },
     "finalCta": {
       "cta": "Enter as admin",
-      "headline": "Ready to explore?",
-      "subline": "Open the admin demo. Everything runs locally in your browser."
+      "eyebrow": "Four roles, one demo",
+      "headline": "Pick a badge. <smear>Walk in.</smear>"
     },
     "footer": {
       "github": "Source",
@@ -756,7 +756,6 @@
       "eyebrow": "Shipped to a real foundation · 2025 <muted>→ rebuilt for the browser · 2026</muted>",
       "footnote": "No signup · Data lives in <green>localStorage</green> · Seeded with <green>faker(42)</green>",
       "headline": "Run a <smear>school</smear> from your <accent>browser.</accent>",
-      "noSignup": "No signup · Data lives in your browser",
       "primaryCta": "Enter as admin",
       "secondaryCta": "View on GitHub",
       "subhead": "Built and delivered to Fundación Vida Nueva as a production platform — then rearchitected to run with no backend, no login, no server. Pick a role and walk in."
@@ -824,6 +823,11 @@
         "modules": "Modules",
         "tests": "Tests"
       }
+    },
+    "stack": {
+      "eyebrow": "Runs on",
+      "headline": "No backend. <smear>It's all here.</smear>",
+      "more": "Plus 40 more in package.json."
     }
   },
   "me": {
