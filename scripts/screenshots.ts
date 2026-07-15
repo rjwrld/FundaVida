@@ -77,13 +77,19 @@ const SHOTS: Shot[] = [
     },
   },
   {
-    name: 'reports',
-    path: '/app/reports',
+    name: 'calendar',
+    path: '/app/calendar',
     width: 1440,
     height: 900,
     locales: ['en', 'es'],
     capture: async (page) => {
       await page.waitForLoadState('networkidle')
+      // The calendar opens on the Week view (ADR-0044); flip to the Month term
+      // map (ADR-0048) — the surface this shot is meant to showcase.
+      await page.getByRole('button', { name: /^(month|mes)$/i }).click()
+      // The month term map animates its milestone glyphs in on mount; let the
+      // entrance transition settle before capturing so the grid is fully painted.
+      await delay(1000)
     },
   },
 ]
@@ -120,7 +126,9 @@ async function enterAsAdmin(page: Page, locale: Locale) {
   await page.goto(DEV_URL)
   await page.evaluate(() => localStorage.clear())
   await page.reload()
-  const localeButton = page.getByRole('button', { name: locale, exact: true })
+  // The landing locale switch is a Radix ToggleGroup (radiogroup of radios),
+  // not the plain buttons it used to be (#326 shadcn primitives port).
+  const localeButton = page.getByRole('radio', { name: locale, exact: true })
   await localeButton.click()
   const enterButton = page
     .getByRole('button', {

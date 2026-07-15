@@ -140,8 +140,8 @@ _Students module — CRUD with search, filters, form validation._
 ![Certificate preview](public/screenshots/certificate.en.png)
 _Certificates module — PDF preview + download._
 
-![Reports dashboard](public/screenshots/reports.en.png)
-_Reports module — client-side aggregates._
+![Calendar month term map](public/screenshots/calendar.en.png)
+_Calendar — month term map with milestone glyphs._
 
 ### Bilingual in action
 
@@ -150,6 +150,8 @@ _Reports module — client-side aggregates._
 | ![Students EN](public/screenshots/students.en.png) | ![Students ES](public/screenshots/students.es.png) |
 
 Every module ships in both locales; `npm run i18n:check` fails CI on any missing translation.
+
+> **Maintenance:** these PNGs and `public/og-image.png` are committed, not generated in CI, so they can silently drift from the live UI. Regenerate them with `npm run screenshots` whenever a shot's surface changes visually (theme, layout, seed), and commit the result.
 
 ## Getting started
 
