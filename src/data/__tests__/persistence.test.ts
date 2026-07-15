@@ -426,4 +426,30 @@ describe('persistence', () => {
     expect(loadPersistedCurrentUser()).toBeNull()
     expect(loadPersistedRole()).toBe('teacher')
   })
+
+  // A sandboxed iframe without allow-same-origin (portfolio embeds), or a browser set
+  // to "block all cookies", makes `window.localStorage` *throw* a SecurityError on the
+  // property access itself — not just on read/write. That access sits on the boot path
+  // (loadPersistedState → store creation at module-eval), so an unguarded throw white-
+  // screens the app before React mounts. Persistence must degrade to in-memory instead.
+  describe('when localStorage access throws (sandboxed iframe / blocked storage)', () => {
+    it('degrades to null/no-op instead of throwing', () => {
+      const original = Object.getOwnPropertyDescriptor(window, 'localStorage')
+      Object.defineProperty(window, 'localStorage', {
+        configurable: true,
+        get() {
+          throw new DOMException('The operation is insecure.', 'SecurityError')
+        },
+      })
+      try {
+        expect(() => loadPersistedState()).not.toThrow()
+        expect(loadPersistedState()).toBeNull()
+        expect(() => loadPersistedRole()).not.toThrow()
+        expect(loadPersistedRole()).toBeNull()
+        expect(() => savePersistedRole('admin')).not.toThrow()
+      } finally {
+        if (original) Object.defineProperty(window, 'localStorage', original)
+      }
+    })
+  })
 })

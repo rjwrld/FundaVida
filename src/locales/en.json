@@ -695,6 +695,11 @@
       "withdrawn": "Withdrawn"
     }
   },
+  "errorBoundary": {
+    "message": "An unexpected error interrupted the app. Reloading the page usually fixes it.",
+    "reload": "Reload the page",
+    "title": "Something went wrong"
+  },
   "grades": {
     "dialog": {
       "editTitle": "Edit grade",
