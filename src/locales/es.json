@@ -751,8 +751,8 @@
     },
     "finalCta": {
       "cta": "Ingresar como administrador",
-      "headline": "¿Listo para explorar?",
-      "subline": "Abrí la demo de administrador. Todo corre localmente en tu navegador."
+      "eyebrow": "Cuatro roles, una demo",
+      "headline": "Elige una credencial. <smear>Entra.</smear>"
     },
     "footer": {
       "github": "Código",
@@ -764,7 +764,6 @@
       "eyebrow": "Entregado a una fundación real · 2025 <muted>→ reconstruido para el navegador · 2026</muted>",
       "footnote": "Sin registro · Los datos viven en <green>localStorage</green> · Sembrado con <green>faker(42)</green>",
       "headline": "Dirige una <smear>escuela</smear> desde tu <accent>navegador.</accent>",
-      "noSignup": "Sin registro · Los datos viven en tu navegador",
       "primaryCta": "Ingresar como administrador",
       "secondaryCta": "Ver en GitHub",
       "subhead": "Construida y entregada a la Fundación Vida Nueva como plataforma de producción — luego rearquitecturada para correr sin backend, sin login y sin servidor. Elige un rol y entra."
@@ -832,6 +831,11 @@
         "modules": "Módulos",
         "tests": "Pruebas"
       }
+    },
+    "stack": {
+      "eyebrow": "Funciona con",
+      "headline": "Sin backend. <smear>Todo está aquí.</smear>",
+      "more": "Y 40 más en package.json."
     }
   },
   "me": {

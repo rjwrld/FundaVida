@@ -81,6 +81,46 @@ test.describe('smoke', () => {
     await expect(page.getByRole('link', { name: 'Read the source' })).toBeVisible()
   })
 
+  // The stack grid (ADR-0049, #385) replaces the marquee: a bordered cell grid
+  // of the real dependencies with the message in its center 2×2 cell.
+  test('the stack grid renders its dependencies and the center message', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: /It's all here\./i })).toBeVisible()
+    // Exact match: these names live only in the grid, but "Zustand"/"Playwright"
+    // also appear in the Q&A prose above.
+    await expect(page.getByText('Recharts', { exact: true })).toBeVisible()
+    await expect(page.getByText('TanStack Table', { exact: true })).toBeVisible()
+  })
+
+  // The final CTA (ADR-0049, #385) reprises the persona badges small — same
+  // entry as the hero. The mini badge has no capability line, so its exact aria
+  // name (role + persona) disambiguates it from the hero's full badge.
+  test('the final-CTA mini badge signs in and walks the visitor in', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: `Student ${fullName(student)}`, exact: true }).click()
+    await expect(page).toHaveURL(/\/app$/)
+    await expect(page.getByRole('heading', { level: 1, name: /signed in as/i })).toBeVisible()
+  })
+
+  test('the footer links out to the source, LinkedIn, and the foundation', async ({ page }) => {
+    await page.goto('/')
+    // Scope by the element: the footer sits inside <main>, so it is not exposed
+    // as the contentinfo landmark, and "source" also matches the Q&A link.
+    const footer = page.locator('footer')
+    await expect(footer.getByRole('link', { name: /source/i })).toHaveAttribute(
+      'href',
+      'https://github.com/rjwrld/FundaVida'
+    )
+    await expect(footer.getByRole('link', { name: /linkedin/i })).toHaveAttribute(
+      'href',
+      'https://www.linkedin.com/in/rjwrld/'
+    )
+    await expect(footer.getByRole('link', { name: /fundavida org/i })).toHaveAttribute(
+      'href',
+      'https://www.fundavida.org/'
+    )
+  })
+
   test('unknown route renders 404 with a back link', async ({ page }) => {
     await page.goto('/this-does-not-exist')
     await expect(page.getByRole('heading', { name: '404' })).toBeVisible()

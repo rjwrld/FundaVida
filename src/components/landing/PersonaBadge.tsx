@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import type { Role } from '@/types'
 import { badgeDealIn, transitionDefaults } from '@/lib/motion'
+import { initials } from './initials'
 
 export interface PersonaBadgeProps {
   role: Role
@@ -14,16 +15,6 @@ export interface PersonaBadgeProps {
   tiltIn: number
   delay: number
   onEnter: (role: Role) => void
-}
-
-/** First letter of the first two words — "Sofía Rojas" → "SR". */
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0] ?? '')
-    .join('')
-    .toUpperCase()
 }
 
 /**

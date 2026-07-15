@@ -1,22 +1,13 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import { Trans, useTranslation } from 'react-i18next'
+import { Trans } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { useStore, userIdForRole } from '@/data/store'
-import { landingPathForRole } from '@/lib/roleLanding'
-import { fullName } from '@/lib/personName'
 import { staggerEntrance } from '@/lib/motion'
 import type { Role } from '@/types'
 import { GithubMark } from './GithubMark'
 import { HighlighterSmear } from './HighlighterSmear'
 import { PersonaBadge } from './PersonaBadge'
-
-/**
- * Admin is a sentinel id, not a seeded person (ADR-0049), so its badge names
- * the office. A proper noun, never passed through t() (the ADR-0017 rule).
- */
-const ADMIN_OFFICE = 'Fundación Vida Nueva'
+import { useRoleEntry } from './useRoleEntry'
 
 interface BadgeSpec {
   role: Role
@@ -36,53 +27,8 @@ const RIGHT_BADGES: BadgeSpec[] = [
 ]
 
 export function Hero() {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
   const reduce = useReducedMotion()
-  const setRole = useStore((s) => s.setRole)
-  const teachers = useStore((s) => s.teachers)
-  const students = useStore((s) => s.students)
-  const tcuTrainees = useStore((s) => s.tcuTrainees)
-  const courses = useStore((s) => s.courses)
-  const enrollments = useStore((s) => s.enrollments)
-  const grades = useStore((s) => s.grades)
-
-  const personaName = (role: Role): string => {
-    const id = userIdForRole(role)
-    switch (role) {
-      case 'admin':
-        return ADMIN_OFFICE
-      case 'teacher': {
-        const person = teachers.find((x) => x.id === id)
-        return person ? fullName(person) : ''
-      }
-      case 'student': {
-        const person = students.find((x) => x.id === id)
-        return person ? fullName(person) : ''
-      }
-      case 'tcu': {
-        const person = tcuTrainees.find((x) => x.id === id)
-        return person ? fullName(person) : ''
-      }
-    }
-  }
-
-  // The badge entry: sign in as the role, then land where the role should
-  // land — the teacher badge inherits the golden-path drop onto its gradeable
-  // Course (ADR-0007) via landingPathForRole.
-  const enterAs = (role: Role) => {
-    setRole(role)
-    navigate(
-      landingPathForRole(role, { courses, enrollments, grades, currentUserId: userIdForRole(role) })
-    )
-  }
-
-  // The admin fast path — the other explicit admin CTA (with the nav pill)
-  // allowed to hard-code the role (ADR-0049).
-  const enterAsAdmin = () => {
-    setRole('admin')
-    navigate('/app')
-  }
+  const { t, personaName, enterAs, enterAsAdmin } = useRoleEntry()
 
   const center = staggerEntrance(reduce)
 
