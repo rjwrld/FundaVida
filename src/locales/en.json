@@ -727,6 +727,20 @@
     }
   },
   "landing": {
+    "badges": {
+      "admin": {
+        "desc": "Full control — courses, certificates, audit log."
+      },
+      "student": {
+        "desc": "Your enrollments, progress, and certificates."
+      },
+      "tcu": {
+        "desc": "Your assigned course and community-work log."
+      },
+      "teacher": {
+        "desc": "Your courses, attendance, and grading."
+      }
+    },
     "featureBento": {
       "bilingual": {
         "caption": "Every module ships in English and Spanish. i18n:check gates the CI.",
@@ -758,13 +772,17 @@
       "rearchitected": "Rearchitected portfolio demo of {{org}}"
     },
     "hero": {
-      "eyebrow": "Educational management · Costa Rica",
-      "headline": "Hope changes everything.",
-      "illustrationAlt": "Isometric illustration of the FundaVida dashboard with a certificate and flame motif",
+      "eyebrow": "Shipped to a real foundation · 2025 <muted>→ rebuilt for the browser · 2026</muted>",
+      "footnote": "No signup · Data lives in <green>localStorage</green> · Seeded with <green>faker(42)</green>",
+      "headline": "Run a <smear>school</smear> from your <accent>browser.</accent>",
       "noSignup": "No signup · Data lives in your browser",
       "primaryCta": "Enter as admin",
       "secondaryCta": "View on GitHub",
-      "subhead": "A production educational platform, rearchitected as a browser-only portfolio demo. No backend. No auth. Just craft."
+      "subhead": "Built and delivered to Fundación Vida Nueva as a production platform — then rearchitected to run with no backend, no login, no server. Pick a role and walk in."
+    },
+    "nav": {
+      "github": "GitHub",
+      "openApp": "Open app"
     },
     "rearchitecture": {
       "headline": "From Supabase-backed to browser-only.",

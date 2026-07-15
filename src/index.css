@@ -109,8 +109,6 @@
 
   --animate-fade-in: fade-in 0.2s ease-out;
   --animate-fade-up: fade-up 0.3s ease-out;
-  --animate-aurora-drift: aurora-drift 20s ease-in-out infinite;
-  --animate-float: float 4s ease-in-out infinite;
 
   @keyframes fade-in {
     0% {
@@ -130,24 +128,6 @@
       transform: translateY(0);
     }
   }
-  @keyframes aurora-drift {
-    0%,
-    100% {
-      transform: translate(0, 0) rotate(0deg);
-    }
-    50% {
-      transform: translate(-10%, -10%) rotate(2deg);
-    }
-  }
-  @keyframes float {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-6px);
-    }
-  }
 }
 
 /* Referenced only through the arbitrary [animation:marquee_…] value in
@@ -160,6 +140,16 @@
   to {
     transform: translateX(-100%);
   }
+}
+
+/* The landing's grid-paper ground (ADR-0049): faint workbook squares drawn
+   from the border token at low alpha, so both themes carry the texture without
+   a dedicated color. Applied per band (hero, marquee), never to the page. */
+@utility grid-paper {
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--border) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--border) 45%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
 }
 
 /* The v3 config's container (center + 2rem padding, no max-width until the
@@ -297,9 +287,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .aurora,
-    .marquee,
-    .float {
+    .marquee {
       animation: none !important;
     }
   }
