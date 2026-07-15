@@ -802,7 +802,7 @@
           "q": "Is the data real?"
         },
         "product": {
-          "a": "Yes. It was built and delivered to Fundación Vida Nueva in 2025 as a production platform, then deliberately rearchitected in 2026 to run entirely in the browser as a demo so anyone can tour it. Here's what moved:",
+          "a": "Yes. It was built and delivered to Fundación Vida in 2025 as a production platform, then deliberately rearchitected in 2026 to run entirely in the browser as a demo so anyone can tour it. Here's what moved:",
           "category": "Provenance",
           "delta": [
             {

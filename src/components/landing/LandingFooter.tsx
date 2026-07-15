@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { LogoMark } from '@/components/brand/LogoMark'
 import { GithubMark } from './GithubMark'
 import { LinkedinMark } from './LinkedinMark'
+import { FOUNDATION_NAME } from './useRoleEntry'
 
 /**
  * The landing footer (ADR-0049, issue #385): brand lockup + the "rearchitected
@@ -15,7 +16,7 @@ export function LandingFooter() {
         <div className="flex items-center gap-3">
           <LogoMark variant="mark" size="md" alt="" className="shrink-0" />
           <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-            {t('landing.footer.rearchitected', { org: 'Fundación Vida' })}
+            {t('landing.footer.rearchitected', { org: FOUNDATION_NAME })}
           </p>
         </div>
         <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-xs uppercase tracking-[0.12em]">

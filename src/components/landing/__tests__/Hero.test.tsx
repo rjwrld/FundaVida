@@ -87,7 +87,7 @@ describe('<Hero />', () => {
 
     expect(
       screen.getByRole('button', {
-        name: `Admin Fundación Vida Nueva Full control — courses, certificates, audit log.`,
+        name: `Admin Fundación Vida Full control — courses, certificates, audit log.`,
       })
     ).toBeInTheDocument()
     expect(
