@@ -1,8 +1,6 @@
 import { Hero } from '@/components/landing/Hero'
 import { LandingNav } from '@/components/landing/LandingNav'
-import { TrustStrip } from '@/components/landing/TrustStrip'
-import { FeatureBento } from '@/components/landing/FeatureBento'
-import { RearchitectureDelta } from '@/components/landing/RearchitectureDelta'
+import { QASection } from '@/components/landing/QASection'
 import { TechStackMarquee } from '@/components/landing/TechStackMarquee'
 import { FinalCTA } from '@/components/landing/FinalCTA'
 import { LandingFooter } from '@/components/landing/LandingFooter'
@@ -12,9 +10,7 @@ export function LandingPage() {
     <main className="relative">
       <LandingNav />
       <Hero />
-      <TrustStrip />
-      <FeatureBento />
-      <RearchitectureDelta />
+      <QASection />
       <TechStackMarquee />
       <FinalCTA />
       <LandingFooter />

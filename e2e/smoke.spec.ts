@@ -68,6 +68,19 @@ test.describe('smoke', () => {
     await expect(page).toHaveURL(new RegExp(`${teacherPath}$`))
   })
 
+  // The Q&A section (ADR-0049) answers the questions inline — no accordion. Assert
+  // the section head, a numbered question, the re-homed infra delta, and the closing
+  // source link all render on the landing.
+  test('the Q&A section renders its questions, delta, and source link', async ({ page }) => {
+    await page.goto('/')
+    await expect(
+      page.getByRole('heading', { name: "The questions you're probably about to ask." })
+    ).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Is this a real product?' })).toBeVisible()
+    await expect(page.getByText('Role switcher (no login)')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Read the source' })).toBeVisible()
+  })
+
   test('unknown route renders 404 with a back link', async ({ page }) => {
     await page.goto('/this-does-not-exist')
     await expect(page.getByRole('heading', { name: '404' })).toBeVisible()

@@ -24,16 +24,18 @@ test.describe('i18n', () => {
 
   test('new landing sections render in both locales', async ({ page }) => {
     await expect(
-      page.getByRole('heading', { name: 'Built with the same craft as production.' })
+      page.getByRole('heading', { name: "The questions you're probably about to ask." })
     ).toBeVisible()
+    await expect(page.getByRole('heading', { name: "Where's the backend?" })).toBeVisible()
     await expect(page.getByText('React 18').first()).toBeVisible()
     await expect(page.getByRole('link', { name: 'FundaVida org' })).toBeVisible()
 
     await page.getByRole('radio', { name: 'es' }).click()
 
     await expect(
-      page.getByRole('heading', { name: 'Construido con el mismo oficio que producción.' })
+      page.getByRole('heading', { name: 'Las preguntas que probablemente estás por hacer.' })
     ).toBeVisible()
+    await expect(page.getByRole('heading', { name: '¿Dónde está el backend?' })).toBeVisible()
     await expect(page.getByText('React 18').first()).toBeVisible()
     await expect(page.getByRole('link', { name: 'Fundación FundaVida' })).toBeVisible()
   })
