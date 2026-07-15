@@ -29,14 +29,12 @@ describe('LandingFooter', () => {
     expect(screen.getByRole('link', { name: /source/i })).toBeInTheDocument()
   })
 
-  it('names the full foundation in the provenance line', () => {
+  it('names the foundation in the provenance line', () => {
     render(
       <I18nProvider>
         <LandingFooter />
       </I18nProvider>
     )
-    expect(
-      screen.getByText(/Rearchitected portfolio demo of Fundación Vida Nueva/i)
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Rearchitected portfolio demo of Fundación Vida/i)).toBeInTheDocument()
   })
 })

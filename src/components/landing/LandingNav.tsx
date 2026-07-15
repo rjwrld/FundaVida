@@ -2,6 +2,7 @@ import { ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LanguageToggle } from '@/components/layout/LanguageToggle'
+import { LogoMark } from '@/components/brand/LogoMark'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { useStore } from '@/data/store'
 import { GithubMark } from './GithubMark'
@@ -25,12 +26,7 @@ export function LandingNav() {
     <nav className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur-md">
       <div className="container mx-auto flex h-14 items-center justify-between px-6 lg:px-10">
         <span className="flex items-center gap-2.5 font-display text-base font-extrabold tracking-tight">
-          <span
-            aria-hidden
-            className="grid size-7 place-items-center rounded-lg bg-primary font-black text-primary-foreground"
-          >
-            F
-          </span>
+          <LogoMark variant="mark" size="sm" alt="" className="h-7" />
           <span className="max-sm:sr-only">FundaVida</span>
         </span>
         <div className="flex items-center gap-1.5">
