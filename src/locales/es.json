@@ -766,7 +766,7 @@
       "headline": "Dirige una <smear>escuela</smear> desde tu <accent>navegador.</accent>",
       "primaryCta": "Ingresar como administrador",
       "secondaryCta": "Ver en GitHub",
-      "subhead": "Construida y entregada a la Fundación Vida Nueva como plataforma de producción — luego rearquitecturada para correr sin backend, sin login y sin servidor. Elige un rol y entra."
+      "subhead": "Construida y entregada a la Fundación Vida como plataforma de producción — luego rearquitecturada para correr sin backend, sin login y sin servidor. Elige un rol y entra."
     },
     "marquee": {
       "head": "Algunas pantallas desde dentro",
@@ -810,7 +810,7 @@
           "q": "¿Los datos son reales?"
         },
         "product": {
-          "a": "Sí. Se construyó y entregó a la Fundación Vida Nueva en 2025 como plataforma de producción, y luego se rearquitecturó a propósito en 2026 para correr por completo en el navegador y que cualquiera pueda recorrerlo. Esto es lo que cambió:",
+          "a": "Sí. Se construyó y entregó a la Fundación Vida en 2025 como plataforma de producción, y luego se rearquitecturó a propósito en 2026 para correr por completo en el navegador como demo y que cualquiera pueda recorrerlo. Esto es lo que cambió:",
           "category": "Procedencia",
           "delta": [
             {

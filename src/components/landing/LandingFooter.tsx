@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { LogoMark } from '@/components/brand/LogoMark'
 import { GithubMark } from './GithubMark'
 import { LinkedinMark } from './LinkedinMark'
 import { FOUNDATION_NAME } from './useRoleEntry'
@@ -13,12 +14,7 @@ export function LandingFooter() {
     <footer className="border-t">
       <div className="container mx-auto flex flex-col items-center gap-6 px-6 py-12 text-center lg:flex-row lg:justify-between lg:px-10 lg:text-left">
         <div className="flex items-center gap-3">
-          <span
-            aria-hidden
-            className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary font-display text-sm font-black text-primary-foreground"
-          >
-            F
-          </span>
+          <LogoMark variant="mark" size="md" alt="" className="shrink-0" />
           <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
             {t('landing.footer.rearchitected', { org: FOUNDATION_NAME })}
           </p>

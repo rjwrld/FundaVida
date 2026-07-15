@@ -58,7 +58,7 @@ describe('<Hero />', () => {
     renderHero()
     expect(screen.getByText(/Shipped to a real foundation · 2025/)).toBeInTheDocument()
     expect(
-      screen.getByText(/delivered to Fundación Vida Nueva as a production platform/)
+      screen.getByText(/delivered to Fundación Vida as a production platform/)
     ).toBeInTheDocument()
   })
 
@@ -87,7 +87,7 @@ describe('<Hero />', () => {
 
     expect(
       screen.getByRole('button', {
-        name: `Admin Fundación Vida Nueva Full control — courses, certificates, audit log.`,
+        name: `Admin Fundación Vida Full control — courses, certificates, audit log.`,
       })
     ).toBeInTheDocument()
     expect(
