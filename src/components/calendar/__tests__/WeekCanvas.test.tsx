@@ -36,9 +36,7 @@ function renderCanvas(ui: React.ReactElement) {
   return render(
     <I18nProvider>
       <TooltipProvider>
-        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          {ui}
-        </MemoryRouter>
+        <MemoryRouter>{ui}</MemoryRouter>
       </TooltipProvider>
     </I18nProvider>
   )

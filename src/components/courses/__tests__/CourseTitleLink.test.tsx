@@ -29,7 +29,7 @@ function renderLink(course: Course, shared: boolean) {
   const view = render(
     <I18nProvider>
       <QueryClientProvider client={client}>
-        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <MemoryRouter>
           <CourseTitleLink course={course} shared={shared} />
         </MemoryRouter>
       </QueryClientProvider>

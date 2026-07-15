@@ -90,7 +90,7 @@ function renderSection(props: Partial<React.ComponentProps<typeof CourseSessions
   return render(
     <QueryClientProvider client={client}>
       <I18nProvider>
-        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <MemoryRouter>
           <CourseSessionsSection
             course={course}
             sessions={sessions}

@@ -19,10 +19,7 @@ describe('<RoleRequired />', () => {
 
   it('redirects to / when no role is selected', () => {
     render(
-      <MemoryRouter
-        initialEntries={['/app']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/app']}>
         <Routes>
           <Route path="/" element={<div>landing</div>} />
           <Route element={<RoleRequired />}>
@@ -37,10 +34,7 @@ describe('<RoleRequired />', () => {
   it('renders the protected outlet when a role is set', () => {
     useStore.getState().setRole('admin')
     render(
-      <MemoryRouter
-        initialEntries={['/app']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/app']}>
         <Routes>
           <Route path="/" element={<div>landing</div>} />
           <Route element={<RoleRequired />}>

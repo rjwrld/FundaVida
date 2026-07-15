@@ -16,7 +16,7 @@ function isoDay(year: number, monthIndex: number, day: number): string {
 function renderSidebar(agenda: RoleAgenda, variant?: 'full' | 'banner') {
   return render(
     <I18nProvider>
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MemoryRouter>
         <AgendaSidebar agenda={agenda} variant={variant} />
       </MemoryRouter>
     </I18nProvider>

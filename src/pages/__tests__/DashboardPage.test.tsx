@@ -23,10 +23,7 @@ function renderDashboard() {
   return render(
     <I18nProvider>
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter
-          initialEntries={['/app']}
-          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-        >
+        <MemoryRouter initialEntries={['/app']}>
           <DashboardPage />
         </MemoryRouter>
       </QueryClientProvider>

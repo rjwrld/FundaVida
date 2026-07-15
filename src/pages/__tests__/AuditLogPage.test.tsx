@@ -16,7 +16,7 @@ function renderPage() {
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
-        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <MemoryRouter>
           <AuditLogPage />
         </MemoryRouter>
       </QueryClientProvider>

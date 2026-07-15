@@ -79,7 +79,7 @@ const NotFoundPage = lazy(() =>
 
 export function App() {
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter>
       <Toaster />
       <Suspense fallback={null}>
         <Routes>
