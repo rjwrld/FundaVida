@@ -703,6 +703,11 @@
       "withdrawn": "Retirado"
     }
   },
+  "errorBoundary": {
+    "message": "Un error inesperado interrumpió la aplicación. Recargar la página suele solucionarlo.",
+    "reload": "Recargar la página",
+    "title": "Algo salió mal"
+  },
   "grades": {
     "dialog": {
       "editTitle": "Editar calificación",

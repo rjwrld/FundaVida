@@ -82,7 +82,16 @@ export type PersistedState = SeedSnapshot
 const PERSISTED_COURSE_STATUSES = [...COURSE_STATUSES, 'closed'] as const
 
 function isBrowser() {
-  return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+  try {
+    return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+  } catch {
+    // Reading `window.localStorage` *throws* a SecurityError — not returns undefined —
+    // in a sandboxed iframe without allow-same-origin or a browser blocking all storage.
+    // This guard sits on the boot path (loadPersistedState runs at store module-eval,
+    // before React mounts), so a leaking throw white-screens the app with no boundary
+    // able to catch it. Treat storage as unavailable and let the app run in-memory.
+    return false
+  }
 }
 
 function clearLegacyKeys(): void {
