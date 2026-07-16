@@ -49,6 +49,54 @@ test('teacher bulk-marks a session with all present defaults', async ({ page }) 
   await page.waitForTimeout(500)
 })
 
+test('saving from course detail returns to the course, not the calendar', async ({ page }) => {
+  // Regression for #404: handleSave hardcoded navigate('/app/calendar'), so
+  // marking a session reached from the course detail page dumped the user on
+  // the calendar. Save now mirrors Cancel (navigate(-1)) and returns to origin.
+  await enterAs(page, 'teacher')
+
+  await page.getByRole('link', { name: 'Courses' }).click()
+  await expect(page.getByRole('heading', { name: 'Courses' })).toBeVisible()
+
+  // Walk the course list (not just the first row) for one with a recordable
+  // session, mirroring openFirstNeedsMarkingSession's whole-demo search so this
+  // stays honest rather than silently skipping when course #1 happens to be all
+  // future/closed sessions. Mark and Review actions both deep-link the mark
+  // route; match either by accessible name, keeping the file's role-based style.
+  const courseLinks = page.getByRole('table').getByRole('link')
+  const courseCount = await courseLinks.count()
+  const sessionAction = page.getByRole('link', { name: /^(Mark attendance|Review) —/ })
+
+  let courseDetailUrl = ''
+  for (let i = 0; i < courseCount; i++) {
+    await page.getByRole('table').getByRole('link').nth(i).click()
+    await expect(page).toHaveURL(/\/app\/courses\/[^/]+$/)
+    const found = await sessionAction
+      .first()
+      .waitFor({ state: 'visible', timeout: 3000 })
+      .then(() => true)
+      .catch(() => false)
+    if (found) {
+      courseDetailUrl = page.url()
+      break
+    }
+    await page.goBack()
+    await expect(page.getByRole('heading', { name: 'Courses' })).toBeVisible()
+  }
+
+  test.skip(courseDetailUrl === '', 'no course has a recordable session to mark')
+
+  await sessionAction.first().click()
+  await expect(page).toHaveURL(/\/mark$/)
+
+  const saveButton = page.getByRole('button', { name: /Save/i })
+  await expect(saveButton).toBeVisible()
+  await saveButton.click()
+
+  // The fix: land back on the course detail page we came from.
+  await expect(page).toHaveURL(courseDetailUrl)
+})
+
 test('future session is read-only in the calendar', async ({ page }) => {
   // For this test, we'd need a future session to exist in the seed data.
   // For now, verify that the calendar shows sessions but the link behavior may differ.

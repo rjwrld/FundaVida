@@ -190,8 +190,9 @@ export function MarkSessionAttendancePage() {
         sessionDate: session.date,
         attendanceByStudentId,
       })
-      // Navigate back to the calendar
-      navigate('/app/calendar')
+      // Return to the origin surface the user came from (calendar, dashboard,
+      // or course detail), mirroring Cancel. See issue #404.
+      navigate(-1)
     } catch {
       // Error is handled by the mutation's onError handler (toast)
     }
