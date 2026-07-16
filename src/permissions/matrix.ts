@@ -1,5 +1,5 @@
 import { clock } from '@/lib/clock'
-import type { Role, Course, TcuActivity } from '@/types/domain'
+import type { Role, Course, Enrollment, TcuActivity } from '@/types/domain'
 
 export type Action =
   | 'view'
@@ -43,6 +43,7 @@ export type Scope =
 export interface PermissionContext {
   userId?: string
   course?: Course
+  enrollment?: Enrollment
   activity?: TcuActivity
 }
 
@@ -146,8 +147,10 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     teachers: {},
     courses: { view: true },
     // A Student may request an enrollment (self-enroll into pending) or withdraw their own
-    // pending request (ADR-0016). Other operations are teacher/admin only.
-    enrollments: { request: true, withdraw: true },
+    // request (ADR-0016). `withdraw` gates on ownership in the cell (ADR-0007): only the
+    // Student who owns the enrollment may withdraw it — the store passes the record as
+    // context. Other operations are teacher/admin only.
+    enrollments: { request: true, withdraw: studentOwnsEnrollment },
     grades: { view: true },
     certificates: { view: true },
     attendance: { view: true },
@@ -276,6 +279,18 @@ function courseOwned(ctx: PermissionContext): boolean {
     return false
   }
   return ctx.course.teacherId === ctx.userId
+}
+
+/**
+ * Predicate: a Student owns an Enrollment (studentId matches the current user).
+ * The status invariant ('pending' only) is a state-machine rule enforced by the
+ * store mutation, not a permission condition, so it stays out of the cell.
+ */
+function studentOwnsEnrollment(ctx: PermissionContext): boolean {
+  if (!ctx.userId || !ctx.enrollment) {
+    return false
+  }
+  return ctx.enrollment.studentId === ctx.userId
 }
 
 /**

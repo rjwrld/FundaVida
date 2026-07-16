@@ -46,6 +46,13 @@ function patchCourse(courseId: string, patch: Partial<import('@/types').Course>)
   }))
 }
 
+/** Overwrite one Enrollment in the store (test-only staging of ownership/status). */
+function patchEnrollment(enrollmentId: string, patch: Partial<import('@/types').Enrollment>) {
+  useStore.setState((s) => ({
+    enrollments: s.enrollments.map((e) => (e.id === enrollmentId ? { ...e, ...patch } : e)),
+  }))
+}
+
 describe('enrollment request mutations', () => {
   beforeEach(() => {
     clearPersistedState()
@@ -280,6 +287,93 @@ describe('enrollment request mutations', () => {
       if (newState.auditLog[0]) {
         expect(newState.auditLog[0].action).toBe('withdraw')
       }
+    })
+
+    it('refuses to withdraw an enrollment the current user does not own', () => {
+      useStore.getState().setRole('student')
+      const student = getStudent()
+      const course = findOpenRequestableCourse(student)
+      const enrollment = useStore.getState().requestEnrollment(student.id, course.id)
+
+      // Re-attribute the record to another student so the ownership guard bites
+      // while the caller stays a Student (the only role with the withdraw perm).
+      patchEnrollment(enrollment.id, { studentId: 'stu-2' })
+      const countBefore = useStore.getState().auditLog.length
+
+      // Ownership is a matrix predicate (ADR-0007), so the denial is assertCan's.
+      expect(() => useStore.getState().withdrawEnrollmentRequest(enrollment.id)).toThrow(
+        /permission denied/
+      )
+      expect(useStore.getState().enrollments.find((e) => e.id === enrollment.id)?.status).toBe(
+        'pending'
+      )
+      expect(useStore.getState().auditLog.length).toBe(countBefore)
+    })
+
+    it('refuses to withdraw an enrollment that is not pending', () => {
+      useStore.getState().setRole('student')
+      const student = getStudent()
+      const course = findOpenRequestableCourse(student)
+      const enrollment = useStore.getState().requestEnrollment(student.id, course.id)
+
+      // Approve it (admin), then a Student attempt to withdraw the now-approved
+      // record must be rejected by the store, not silently flip it to withdrawn.
+      useStore.getState().setRole('admin')
+      useStore.getState().approveEnrollment(enrollment.id)
+      useStore.getState().setRole('student')
+      const countBefore = useStore.getState().auditLog.length
+
+      expect(() => useStore.getState().withdrawEnrollmentRequest(enrollment.id)).toThrow(
+        /not pending/
+      )
+      expect(useStore.getState().enrollments.find((e) => e.id === enrollment.id)?.status).toBe(
+        'approved'
+      )
+      expect(useStore.getState().auditLog.length).toBe(countBefore)
+    })
+
+    it('reconciles any derived grade / attendance rows on withdrawal', () => {
+      useStore.getState().setRole('student')
+      const student = getStudent()
+      const course = findOpenRequestableCourse(student)
+      const enrollment = useStore.getState().requestEnrollment(student.id, course.id)
+
+      // setGrade / markAttendance gate on Course ownership, not enrollment status,
+      // so a pending record can accrue derived rows. Stage some directly, then prove
+      // the withdrawal cleans them (defense-in-depth) rather than stranding them.
+      useStore.setState((s) => ({
+        grades: [
+          ...s.grades,
+          {
+            id: 'grade-withdraw-test',
+            studentId: student.id,
+            courseId: course.id,
+            score: 85,
+            issuedAt: '2025-06-01T00:00:00.000Z',
+          },
+        ],
+        attendance: [
+          ...s.attendance,
+          {
+            id: 'att-withdraw-test',
+            courseId: course.id,
+            studentId: student.id,
+            sessionDate: '2025-06-01',
+            status: 'present',
+          },
+        ],
+      }))
+
+      useStore.getState().withdrawEnrollmentRequest(enrollment.id)
+
+      const after = useStore.getState()
+      expect(after.enrollments.find((e) => e.id === enrollment.id)?.status).toBe('withdrawn')
+      expect(after.grades.some((g) => g.studentId === student.id && g.courseId === course.id)).toBe(
+        false
+      )
+      expect(
+        after.attendance.some((a) => a.studentId === student.id && a.courseId === course.id)
+      ).toBe(false)
     })
   })
 

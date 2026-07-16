@@ -305,7 +305,7 @@ describe('Permissions Matrix', () => {
           log: false,
           enter: false,
           request: true,
-          withdraw: true,
+          withdraw: 'studentOwnsEnrollment',
         },
         grades: {
           view: true,
@@ -881,7 +881,39 @@ describe('Permissions Matrix', () => {
         expect(can('tcu', 'log', 'tcu', context)).toBe(false)
       })
 
+      it('student withdraw enrollment: true when the enrollment is their own', () => {
+        const context: PermissionContext = {
+          userId: 'stu-1',
+          enrollment: {
+            id: 'enr-1',
+            studentId: 'stu-1',
+            courseId: 'course-1',
+            enrolledAt: '2025-06-01T00:00:00.000Z',
+            status: 'pending',
+            requestedAt: '2025-06-01T00:00:00.000Z',
+          },
+        }
+        expect(can('student', 'withdraw', 'enrollments', context)).toBe(true)
+      })
+
+      it('student withdraw enrollment: false when the enrollment belongs to another student', () => {
+        const context: PermissionContext = {
+          userId: 'stu-1',
+          enrollment: {
+            id: 'enr-1',
+            studentId: 'stu-2', // different student
+            courseId: 'course-1',
+            enrolledAt: '2025-06-01T00:00:00.000Z',
+            status: 'pending',
+            requestedAt: '2025-06-01T00:00:00.000Z',
+          },
+        }
+        expect(can('student', 'withdraw', 'enrollments', context)).toBe(false)
+      })
+
       it('predicate cells without context deny by default', () => {
+        // student withdraw enrollment without context — the ownership predicate denies
+        expect(can('student', 'withdraw', 'enrollments')).toBe(false)
         // teacher enter grades without context
         expect(can('teacher', 'enter', 'grades')).toBe(false)
         // teacher mark attendance without context
