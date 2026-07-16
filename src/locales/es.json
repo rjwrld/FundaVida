@@ -381,6 +381,7 @@
         "title": "¿Cerrar este curso?"
       },
       "closed": "Curso cerrado",
+      "courseFull": "Este curso está lleno. Elimina a un estudiante antes de matricular a otro.",
       "deleteConfirm": "¿Eliminar este curso?",
       "edit": "Editar",
       "enrollButton": "Matricular estudiante",

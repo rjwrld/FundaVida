@@ -406,6 +406,51 @@ describe('enrollment referential integrity', () => {
     )
     expect(useStore.getState().enrollments.length).toBe(before)
   })
+
+  it('enrollStudent throws when the course capacity is reached (ADR-0016)', () => {
+    useStore.getState().setRole('admin')
+    // A course open for enrollment (ADR-0042) with the unenrolled, eligible
+    // students (same Sede + level, ADR-0020) needed to fill and overrun it.
+    const now = clock.now()
+    const course = useStore
+      .getState()
+      .courses.find(
+        (c) => c.capacity > 0 && c.status === 'published' && isOpenForEnrollment(c, now)
+      )
+    if (!course) throw new Error('expected an open published seeded course')
+    const enrolledIds = new Set(
+      useStore
+        .getState()
+        .enrollments.filter((e) => e.courseId === course.id)
+        .map((e) => e.studentId)
+    )
+    const eligible = useStore
+      .getState()
+      .students.filter(
+        (s) =>
+          s.sede === course.sede && s.educationalLevel === course.level && !enrolledIds.has(s.id)
+      )
+    // Need two more eligible students than the course has room for.
+    const [filler, overflow] = eligible
+    if (!filler || !overflow) throw new Error('expected at least two unenrolled eligible students')
+
+    // Set capacity to one seat above the already-approved count, so a single
+    // direct enroll fills it and the next one overruns.
+    const approvedNow = useStore
+      .getState()
+      .enrollments.filter((e) => e.courseId === course.id && e.status === 'approved').length
+    useStore.getState().updateCourse(course.id, { capacity: approvedNow + 1 })
+
+    useStore.getState().enrollStudent(filler.id, course.id) // fills the last seat
+    const before = useStore.getState().enrollments.length
+
+    // The next direct enroll exceeds capacity.
+    expect(() => useStore.getState().enrollStudent(overflow.id, course.id)).toThrow(/capacity/)
+    expect(useStore.getState().enrollments.length).toBe(before)
+    expect(
+      useStore.getState().students.find((s) => s.id === overflow.id)?.enrolledCourseIds
+    ).not.toContain(course.id)
+  })
 })
 
 describe('attendance marking', () => {

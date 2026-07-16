@@ -761,6 +761,16 @@ export const useStore = create<StoreState>((set, get) => ({
         `cannot enroll student ${studentId} in course ${courseId}: not open for enrollment (${courseDisplayState(course, enrollNow)})`
       )
     }
+    // Capacity is a hard invariant (ADR-0016): a direct-enroll lands straight in
+    // 'approved', so it must honour the same seat cap as approveEnrollment.
+    const approvedCount = state.enrollments.filter(
+      (e) => e.courseId === courseId && e.status === 'approved'
+    ).length
+    if (approvedCount >= course.capacity) {
+      throw new Error(
+        `cannot enroll student ${studentId}: course ${courseId} has reached capacity (${course.capacity})`
+      )
+    }
     // A Teacher/admin direct-enroll lands straight in 'approved' (ADR-0016); the
     // current user is the deciding actor. Student self-enroll into 'pending'
     // arrives with that workflow in a later slice.
