@@ -11,7 +11,7 @@ import type { Role } from '@/types'
  * seeded person, so its badge names the office — ADR-0049) and the footer's
  * provenance line, so a rename lands in one place.
  */
-export const FOUNDATION_NAME = 'Fundación Vida'
+export const FOUNDATION_NAME = 'FundaVida'
 
 /** The four roles in badge-deal order — shared by the hero and the final CTA. */
 export const LANDING_ROLES: readonly Role[] = ['admin', 'teacher', 'student', 'tcu']
