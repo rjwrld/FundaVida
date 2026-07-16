@@ -30,6 +30,9 @@
       content="Educational management platform — rearchitected as a browser-only portfolio demo."
     />
     <meta name="twitter:image" content="/og-image.png" />
+    <!-- Inline no-FOUC theme bootstrap. The CSP in vercel.json whitelists this
+         script by sha256 hash (script-src), so editing its body requires
+         regenerating that hash or the theme flash-prevention silently stops. -->
     <script>
       ;(function () {
         try {
