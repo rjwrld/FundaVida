@@ -57,6 +57,13 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
       ? CANTONS_BY_PROVINCE[selectedProvince as keyof typeof CANTONS_BY_PROVINCE]
       : []
 
+  // A Course is taught at its Teacher's Sede (ADR-0011). Once a Teacher owns
+  // Courses, moving their Sede would strand those pairings, so lock the field
+  // (the store rejects it anyway) until the Courses are reassigned. Stay locked
+  // while the Teacher still loads, so a fast edit can never submit a stale Sede
+  // and surface the store's English guard error.
+  const sedeLocked = isEdit && (!existing || existing.courseIds.length > 0)
+
   useEffect(() => {
     if (existing) {
       reset({
@@ -132,11 +139,12 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
             onValueChange={(v) =>
               setValue('sede', v as TeacherFormValues['sede'], { shouldValidate: true })
             }
+            disabled={sedeLocked}
           >
             <SelectTrigger
               id="sede"
               aria-invalid={errors.sede !== undefined}
-              aria-describedby={errors.sede ? 'sede-error' : undefined}
+              aria-describedby={errors.sede ? 'sede-error' : sedeLocked ? 'sede-locked' : undefined}
             >
               <SelectValue placeholder={t('teachers.form.fields.sede')} />
             </SelectTrigger>
@@ -148,6 +156,11 @@ export function TeacherForm({ teacherId, onSuccess, onCancel }: TeacherFormProps
               ))}
             </SelectContent>
           </Select>
+          {sedeLocked && (
+            <p id="sede-locked" className="text-sm text-muted-foreground">
+              {t('teachers.form.sedeLocked')}
+            </p>
+          )}
           {errors.sede && (
             <p id="sede-error" role="alert" className="text-sm text-destructive">
               {errors.sede.message}

@@ -982,7 +982,8 @@
         "primaria": "Primary",
         "secundaria": "Secondary"
       },
-      "newTitle": "New student"
+      "newTitle": "New student",
+      "sedeLocked": "Unenroll this student from their courses before changing their campus."
     },
     "list": {
       "addButton": "Add student",
@@ -1086,7 +1087,8 @@
         "province": "Province",
         "sede": "Campus"
       },
-      "newTitle": "New teacher"
+      "newTitle": "New teacher",
+      "sedeLocked": "Reassign this teacher's courses before changing their campus."
     },
     "list": {
       "addButton": "Add teacher",

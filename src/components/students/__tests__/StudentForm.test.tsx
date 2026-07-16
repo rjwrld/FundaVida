@@ -126,4 +126,38 @@ describe('<StudentForm />', () => {
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(onCancel).toHaveBeenCalled()
   })
+
+  it('locks the campus field when editing a student with an active enrollment (ADR-0011)', async () => {
+    const active = useStore
+      .getState()
+      .enrollments.find((e) => e.status === 'approved' || e.status === 'pending')
+    if (!active) throw new Error('expected an active enrollment in seed')
+    renderForm({ studentId: active.studentId })
+    const campus = await screen.findByRole('combobox', { name: /campus/i })
+    await waitFor(() => expect(campus).toBeDisabled())
+    expect(campus).toHaveAccessibleDescription(/unenroll this student/i)
+  })
+
+  it('leaves the campus field editable for a student with no active enrollments', async () => {
+    const student = useStore.getState().createStudent({
+      firstName: 'Solo',
+      lastName: 'Learner',
+      email: 'solo.learner@fv.cr',
+      gender: 'F',
+      sede: 'Linda Vista',
+      province: 'San José',
+      canton: 'San José',
+      educationalLevel: 'primaria',
+      guardian: {
+        name: 'Encargado Test',
+        relationship: 'madre',
+        phone: '8888-8888',
+        email: 'enc@example.com',
+      },
+    })
+    renderForm({ studentId: student.id })
+    const campus = await screen.findByRole('combobox', { name: /campus/i })
+    // The field is locked until enrollments load, then unlocks (none active).
+    await waitFor(() => expect(campus).not.toBeDisabled())
+  })
 })

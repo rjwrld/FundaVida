@@ -431,6 +431,27 @@ export const useStore = create<StoreState>((set, get) => ({
   updateStudent: (id, patch) => {
     const existing = get()
     assertCan(existing, 'edit', 'students')
+    // A Student is bound to one Sede: they may only enrol in Courses at that Sede
+    // (ADR-0011). Moving a Student who still has active (approved/pending)
+    // enrollments would strand those pairings at the old Sede, so block the change
+    // until they are unenrolled. The edit form disables the Sede field to steer
+    // users here; this guards direct callers.
+    const target = existing.students.find((s) => s.id === id)
+    if (target && patch.sede !== undefined && patch.sede !== target.sede) {
+      const activeCourseIds = new Set(
+        existing.enrollments
+          .filter((e) => e.studentId === id && (e.status === 'approved' || e.status === 'pending'))
+          .map((e) => e.courseId)
+      )
+      const stranded = existing.courses.some(
+        (c) => activeCourseIds.has(c.id) && c.sede !== patch.sede
+      )
+      if (stranded) {
+        throw new Error(
+          `cannot change student ${id} Sede to ${patch.sede}: still has active enrollments at ${target.sede}`
+        )
+      }
+    }
     withAudit(set, (state) => ({
       next: {
         students: state.students.map((s) => (s.id === id ? { ...s, ...patch } : s)),
@@ -682,6 +703,19 @@ export const useStore = create<StoreState>((set, get) => ({
   updateTeacher: (id, patch) => {
     const existing = get()
     assertCan(existing, 'edit', 'teachers')
+    // A Course is taught at its Teacher's Sede (ADR-0011). Moving a Teacher who
+    // still owns Courses would break `course.sede === teacher.sede` for every one
+    // of them, so block the change until those Courses are reassigned. The edit
+    // form disables the Sede field to steer users here; this guards direct callers.
+    const target = existing.teachers.find((t) => t.id === id)
+    if (target && patch.sede !== undefined && patch.sede !== target.sede) {
+      const stranded = existing.courses.some((c) => c.teacherId === id && c.sede !== patch.sede)
+      if (stranded) {
+        throw new Error(
+          `cannot change teacher ${id} Sede to ${patch.sede}: still owns courses at ${target.sede}`
+        )
+      }
+    }
     withAudit(set, (state) => ({
       next: {
         teachers: state.teachers.map((t) => (t.id === id ? { ...t, ...patch } : t)),
