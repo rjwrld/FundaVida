@@ -339,6 +339,30 @@ function nextId(prefix: string, existing: { id: string }[]): string {
 }
 
 /**
+ * Assert that a Student holds an *approved* Enrollment in a Course, throwing an
+ * ADR-0009 denial otherwise. Grades and attendance attach to the approved roster
+ * only (issue #408): a pending, rejected, withdrawn, or absent enrollment must
+ * not be gradable or markable. The store is the real boundary (ADR-0009), so the
+ * marking/grading mutations assert this even though the rosters are also filtered
+ * at the read seam. `action` is the verb phrase for the message ("set grade").
+ */
+function assertApprovedEnrollment(
+  enrollments: Enrollment[],
+  studentId: string,
+  courseId: string,
+  action: string
+): void {
+  const approved = enrollments.some(
+    (e) => e.studentId === studentId && e.courseId === courseId && e.status === 'approved'
+  )
+  if (!approved) {
+    throw new Error(
+      `cannot ${action}: no approved enrollment for student ${studentId} in course ${courseId}`
+    )
+  }
+}
+
+/**
  * Reconcile one (student, course) Certificate against the latest Grade score
  * (ADR-0025). Before the Course is closed no Certificate exists, so a Grade edit
  * leaves the list untouched. Once it is closed, a passing score (re)issues the
@@ -1171,6 +1195,9 @@ export const useStore = create<StoreState>((set, get) => ({
     const existing = grades.find((g) => g.studentId === studentId && g.courseId === courseId)
     const action = existing ? 'edit' : 'enter'
     assertCan(state, action, 'grades', { userId: state.currentUserId ?? undefined, course })
+    // A Grade attaches to the approved roster only (issue #408): reject a student
+    // who is pending, rejected, withdrawn, or not enrolled at all.
+    assertApprovedEnrollment(state.enrollments, studentId, courseId, 'set grade')
     if (existing) {
       const updated: Grade = { ...existing, score, issuedAt: clock.now().toISOString() }
       withAudit(set, (state) => ({
@@ -1229,6 +1256,11 @@ export const useStore = create<StoreState>((set, get) => ({
       throw new Error(`cannot update grade: unknown course ${grade.courseId}`)
     }
     assertCan(state, 'edit', 'grades', { userId: state.currentUserId ?? undefined, course })
+    // No approved-enrollment guard here (unlike setGrade, issue #408): this edits
+    // an existing Grade by id from the already approved-filtered roster seam, and
+    // withdraw/unenroll strip a student's Grades (#396). Guarding here would also
+    // reject correcting a seeded Grade whose enrollment is non-approved, so the
+    // invariant is enforced at Grade *creation* (setGrade), not on every edit.
     withAudit(set, (state) => ({
       next: {
         grades: state.grades.map((g) =>
@@ -1376,6 +1408,9 @@ export const useStore = create<StoreState>((set, get) => ({
       throw new Error(`cannot mark attendance: unknown course ${courseId}`)
     }
     assertCan(state, 'mark', 'attendance', { userId: state.currentUserId ?? undefined, course })
+    // Attendance attaches to the approved roster only (issue #408): reject a
+    // student who is pending, rejected, withdrawn, or not enrolled at all.
+    assertApprovedEnrollment(state.enrollments, studentId, courseId, 'mark attendance')
     // Find existing record by (courseId, studentId, sessionDate) or create new one
     const existing = state.attendance.find(
       (a) => a.courseId === courseId && a.studentId === studentId && a.sessionDate === sessionDate
@@ -1426,6 +1461,13 @@ export const useStore = create<StoreState>((set, get) => ({
     // (on or before today). The route guard will also check markability, but we verify
     // here to prevent permission bypass.
     assertCan(state, 'mark', 'attendance', { userId: state.currentUserId ?? undefined, course })
+    // Attendance attaches to the approved roster only (issue #408): reject the
+    // whole batch if it carries a student who is pending, rejected, withdrawn, or
+    // not enrolled — the roster seam already filters to approved, so this is the
+    // store-boundary backstop.
+    for (const studentId of Object.keys(attendanceByStudentId)) {
+      assertApprovedEnrollment(state.enrollments, studentId, courseId, 'mark session attendance')
+    }
 
     // Bulk update/create attendance records. For each studentId, find existing record
     // or create new one, then apply the new status.

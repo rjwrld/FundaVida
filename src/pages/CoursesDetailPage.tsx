@@ -81,6 +81,12 @@ export function CoursesDetailPage() {
   })
   const { data: courseEnrollments = [] } = enrollmentsQuery
 
+  // The gradable/markable roster is the approved enrollments only (issue #408):
+  // grades and attendance attach to the approved roster, and the store rejects a
+  // non-approved student, so keep pending/rejected/withdrawn rows off the roster
+  // table as defense-in-depth.
+  const rosterEnrollments = courseEnrollments.filter((e) => e.status === 'approved')
+
   // The current Student's own enrollment in this Course, derived from the scoped
   // read above rather than a raw store filter (issue #166). "Active" = approved or
   // pending; withdrawn/rejected are treated as not-enrolled for the
@@ -257,8 +263,7 @@ export function CoursesDetailPage() {
   // Direct-enroll honours the capacity invariant (ADR-0016): once the approved
   // seats fill, the store rejects further enrolls, so gate the roster's Enroll
   // button here as defense-in-depth rather than let the action surface a raw error.
-  const approvedCount = courseEnrollments.filter((e) => e.status === 'approved').length
-  const isRosterFull = approvedCount >= course.capacity
+  const isRosterFull = rosterEnrollments.length >= course.capacity
 
   // Deny access if not viewing roster AND not enrolled AND not browseable (ADR-0012, ADR-0016)
   if (!canViewRoster && !isEnrolled && !isBrowseable) {
@@ -419,7 +424,7 @@ export function CoursesDetailPage() {
         canMark={canMark}
         readiness={readiness}
         attendance={ownAttendance}
-        enrolledCount={courseEnrollments.length}
+        enrolledCount={rosterEnrollments.length}
         canManageSessions={canManageSessions}
       />
 
@@ -451,7 +456,7 @@ export function CoursesDetailPage() {
             {canCreate && isRosterFull && (
               <p className="text-sm text-muted-foreground">{t('courses.detail.courseFull')}</p>
             )}
-            {courseEnrollments.length === 0 ? (
+            {rosterEnrollments.length === 0 ? (
               <NoResults message={t('courses.detail.sections.noStudents')} />
             ) : (
               <Table>
@@ -467,7 +472,7 @@ export function CoursesDetailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {courseEnrollments.map((e) => {
+                  {rosterEnrollments.map((e) => {
                     const student = scopedStudents.find((s) => s.id === e.studentId)
                     const grade = scopedGrades.find(
                       (g) => g.studentId === e.studentId && g.courseId === course.id

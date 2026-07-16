@@ -562,10 +562,15 @@ describe('audit log characterization', () => {
   describe('setGrade (creating new grade) audit entry', () => {
     it('appends audit entry with action "grade", entity "grade", and correct summary', () => {
       let store = useStore.getState()
-      const student = store.students[0]
-      const course = store.courses.find(
-        (c) => !store.grades.some((g) => g.studentId === student?.id && g.courseId === c.id)
+      // A grade only attaches to an approved enrollment with no grade yet (#408).
+      const enrollment = store.enrollments.find(
+        (e) =>
+          e.status === 'approved' &&
+          !store.grades.some((g) => g.studentId === e.studentId && g.courseId === e.courseId)
       )
+      if (!enrollment) throw new Error('no approved, ungraded enrollment in seed')
+      const student = store.students.find((s) => s.id === enrollment.studentId)
+      const course = store.courses.find((c) => c.id === enrollment.courseId)
       if (!student || !course) throw new Error('no suitable student or course')
       const grade = store.setGrade(student.id, course.id, 85)
       store = useStore.getState()
