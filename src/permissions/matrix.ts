@@ -1,4 +1,5 @@
 import { clock } from '@/lib/clock'
+import { isTermEnded } from '@/lib/closeReadiness'
 import type { Role, Course, Enrollment, TcuActivity } from '@/types/domain'
 
 export type Action =
@@ -311,13 +312,11 @@ function teacherCanGrade(ctx: PermissionContext): boolean {
     return false
   }
 
-  // Check if the course has ended by comparing the frozen now (ADR-0014) to the
-  // term.end date — never a live new Date(), so the predicate stays on the Demo
-  // Epoch's timeline.
-  const now = clock.now()
-  const termEnd = new Date(ctx.course.term.end)
-
-  return now >= termEnd
+  // Route the term-end check through the one shared seam (ADR-0042): isTermEnded
+  // reads term.end vs the frozen now (ADR-0014, never a live new Date()) with the
+  // same exclusive `isBefore` the close worklist and "Term ended" badge use, so the
+  // grade gate can never disagree with them.
+  return isTermEnded(ctx.course, clock.now())
 }
 
 /**

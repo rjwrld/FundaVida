@@ -185,6 +185,32 @@ describe('certificates — reconciling a grade to the latest score (ADR-0025)', 
     expect(certs[0]?.score).toBe(80)
   })
 
+  it('revokes the certificate when a post-close grade is deleted outright', () => {
+    const { course, approved } = publishedCourseWithApprovedEnrollments()
+    const [passing] = approved
+    if (!passing) throw new Error('expected an approved enrollment')
+    useStore.getState().setGrade(passing.studentId, course.id, PASSING_SCORE)
+    useStore.getState().closeCourse(course.id)
+    const grade = useStore
+      .getState()
+      .grades.find((g) => g.studentId === passing.studentId && g.courseId === course.id)
+    if (!grade) throw new Error('expected a grade')
+    expect(
+      useStore
+        .getState()
+        .certificates.some((c) => c.studentId === passing.studentId && c.courseId === course.id)
+    ).toBe(true)
+
+    // Deleting the backing grade must revoke the credential — no passing evidence remains.
+    useStore.getState().deleteGrade(grade.id)
+
+    expect(
+      useStore
+        .getState()
+        .certificates.some((c) => c.studentId === passing.studentId && c.courseId === course.id)
+    ).toBe(false)
+  })
+
   it('creates or removes no certificate when a grade is edited before the course is closed', () => {
     const { course, approved } = publishedCourseWithApprovedEnrollments()
     const [student] = approved

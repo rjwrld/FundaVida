@@ -551,6 +551,7 @@ describe('seedDemo — recent joiners create a real growth trend', () => {
     const delta = dashboardStatDeltas(
       {
         students: world.students,
+        courses: world.courses,
         enrollments: world.enrollments,
         certificates: world.certificates,
         tcuActivities: world.tcuActivities,

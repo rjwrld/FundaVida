@@ -22,9 +22,13 @@ export function useDashboardStats(): DashboardStats {
   return useMemo(() => {
     const totalStudents = students.length
 
-    // Proxy: a course is "active" if it has at least one enrollment (no status field).
+    // A course is "active" if it has at least one enrollment and has not been
+    // closed (ADR-0024): a closed cohort with history must not count as active
+    // forever. Draft/published both count while they have participants.
     const enrolledCourseIds = new Set(enrollments.map((e) => e.courseId))
-    const activeCourses = courses.filter((c) => enrolledCourseIds.has(c.id)).length
+    const activeCourses = courses.filter(
+      (c) => c.status !== 'closed' && enrolledCourseIds.has(c.id)
+    ).length
 
     // A Certificate is "issued" the moment it exists — closing its Course emits it
     // already downloadable (ADR-0024). Approval is gone, so there is no pending count.
@@ -34,7 +38,7 @@ export function useDashboardStats(): DashboardStats {
 
     // Real month-over-month trend for each headline metric (vs end of last month).
     const deltas = dashboardStatDeltas(
-      { students, enrollments, certificates, tcuActivities },
+      { students, courses, enrollments, certificates, tcuActivities },
       clock.now()
     )
 

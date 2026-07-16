@@ -1,4 +1,5 @@
 import { subDays } from 'date-fns'
+import type { CourseStatus } from '@/types/domain'
 
 /**
  * Length of the trailing window each metric's growth is measured over. A trailing
@@ -28,6 +29,7 @@ export interface StatDeltas {
 /** The dated slices of the store that the dashboard headline metrics derive from. */
 export interface StatDeltaInput {
   students: readonly { createdAt: string }[]
+  courses: readonly { id: string; status: CourseStatus }[]
   enrollments: readonly { courseId: string; enrolledAt: string }[]
   certificates: readonly { issuedAt: string }[]
   tcuActivities: readonly { hours: number; date: string }[]
@@ -45,10 +47,18 @@ export function dashboardStatDeltas(data: StatDeltaInput, now: Date): StatDeltas
   const studentsNow = data.students.length
   const studentsPrior = data.students.filter((s) => before(s.createdAt)).length
 
-  // A course is "active" once it has at least one enrollment.
-  const activeNow = new Set(data.enrollments.map((e) => e.courseId)).size
+  // A course is "active" once it has at least one enrollment and has not been
+  // closed (ADR-0024) — a closed cohort with history must not count forever. Both
+  // ends of the delta filter on the current status, so a course closed today drops
+  // from now and prior alike.
+  const openCourseIds = new Set(data.courses.filter((c) => c.status !== 'closed').map((c) => c.id))
+  const activeNow = new Set(
+    data.enrollments.filter((e) => openCourseIds.has(e.courseId)).map((e) => e.courseId)
+  ).size
   const activePrior = new Set(
-    data.enrollments.filter((e) => before(e.enrolledAt)).map((e) => e.courseId)
+    data.enrollments
+      .filter((e) => before(e.enrolledAt) && openCourseIds.has(e.courseId))
+      .map((e) => e.courseId)
   ).size
 
   // A Certificate is "issued" the moment it exists — closing its Course emits it
