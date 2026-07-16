@@ -66,7 +66,7 @@ describe('certificates — closing a Course emits certificates', () => {
     expect(useStore.getState().certificates.some((c) => c.courseId === course.id)).toBe(true)
   })
 
-  it('does not emit a certificate for a passing grade on a non-approved enrollment', () => {
+  it('does not emit a certificate for a non-approved enrollment (grade is refused at the source)', () => {
     const { courses, enrollments, certificates } = useStore.getState()
     // A published, cert-free course whose roster includes a withdrawn enrollment.
     let target: { courseId: string; studentId: string } | undefined
@@ -82,7 +82,11 @@ describe('certificates — closing a Course emits certificates', () => {
     }
     if (!target) throw new Error('seed lacks a published course with a withdrawn enrollment')
     const { courseId, studentId } = target
-    useStore.getState().setGrade(studentId, courseId, 95)
+    // #408: the grade cannot even be entered for a non-approved enrollment, so no
+    // passing grade ever exists to seed a certificate on close.
+    expect(() => useStore.getState().setGrade(studentId, courseId, 95)).toThrow(
+      /no approved enrollment/i
+    )
 
     useStore.getState().closeCourse(courseId)
 

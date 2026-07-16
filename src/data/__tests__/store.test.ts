@@ -554,6 +554,97 @@ describe('attendance marking', () => {
   })
 })
 
+describe('enrollment-status guard on grading/attendance (issue #408)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
+  })
+
+  function firstNonApprovedEnrollment() {
+    const enr = useStore.getState().enrollments.find((e) => e.status !== 'approved')
+    if (!enr) throw new Error('expected a non-approved enrollment in the seed')
+    return enr
+  }
+
+  // A (student, course) pair with no enrollment at all: pick a course and a
+  // student who is not enrolled in it under any status.
+  function unenrolledPair() {
+    const state = useStore.getState()
+    const course = state.courses[0]
+    if (!course) throw new Error('expected at least one course')
+    const enrolledIds = new Set(
+      state.enrollments.filter((e) => e.courseId === course.id).map((e) => e.studentId)
+    )
+    const student = state.students.find((s) => !enrolledIds.has(s.id))
+    if (!student) throw new Error('expected a student not enrolled in the course')
+    return { courseId: course.id, studentId: student.id }
+  }
+
+  it('setGrade throws for a non-approved enrollment and writes no grade', () => {
+    const enr = firstNonApprovedEnrollment()
+    const before = useStore.getState().grades.length
+    const auditBefore = useStore.getState().auditLog.length
+    expect(() => useStore.getState().setGrade(enr.studentId, enr.courseId, 90)).toThrow(
+      /no approved enrollment/i
+    )
+    expect(useStore.getState().grades.length).toBe(before)
+    expect(useStore.getState().auditLog.length).toBe(auditBefore)
+  })
+
+  it('setGrade throws for a student with no enrollment in the course', () => {
+    const { courseId, studentId } = unenrolledPair()
+    expect(() => useStore.getState().setGrade(studentId, courseId, 90)).toThrow(
+      /no approved enrollment/i
+    )
+  })
+
+  it('markAttendance throws for a non-approved enrollment and writes no record', () => {
+    const enr = firstNonApprovedEnrollment()
+    const course = useStore.getState().courses.find((c) => c.id === enr.courseId)
+    if (!course) throw new Error('expected course to exist')
+    const session = sessionsFor(course)[0]
+    if (!session) throw new Error('expected at least one session')
+    const before = useStore.getState().attendance.length
+    const auditBefore = useStore.getState().auditLog.length
+    expect(() =>
+      useStore.getState().markAttendance(enr.courseId, enr.studentId, session.date, 'present')
+    ).toThrow(/no approved enrollment/i)
+    expect(useStore.getState().attendance.length).toBe(before)
+    expect(useStore.getState().auditLog.length).toBe(auditBefore)
+  })
+
+  it('markAttendance throws for a student with no enrollment in the course', () => {
+    const { courseId, studentId } = unenrolledPair()
+    const course = useStore.getState().courses.find((c) => c.id === courseId)
+    if (!course) throw new Error('expected course to exist')
+    const session = sessionsFor(course)[0]
+    if (!session) throw new Error('expected at least one session')
+    expect(() =>
+      useStore.getState().markAttendance(courseId, studentId, session.date, 'present')
+    ).toThrow(/no approved enrollment/i)
+  })
+
+  it('markSessionAttendance rejects the whole batch when a student is non-approved', () => {
+    const enr = firstNonApprovedEnrollment()
+    const course = useStore.getState().courses.find((c) => c.id === enr.courseId)
+    if (!course) throw new Error('expected course to exist')
+    const session = sessionsFor(course)[0]
+    if (!session) throw new Error('expected at least one session')
+    const before = useStore.getState().attendance.length
+    const auditBefore = useStore.getState().auditLog.length
+    expect(() =>
+      useStore
+        .getState()
+        .markSessionAttendance(enr.courseId, session.date, { [enr.studentId]: 'present' })
+    ).toThrow(/no approved enrollment/i)
+    expect(useStore.getState().attendance.length).toBe(before)
+    expect(useStore.getState().auditLog.length).toBe(auditBefore)
+  })
+})
+
 describe('course Sede invariant (ADR-0011)', () => {
   beforeEach(() => {
     clearPersistedState()

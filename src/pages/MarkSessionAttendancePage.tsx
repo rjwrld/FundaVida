@@ -125,8 +125,12 @@ export function MarkSessionAttendancePage() {
         }
       }
 
-      // Get enrolled students for this course
-      const courseEnrollments = enrollments.filter((e) => e.courseId === courseId)
+      // Get enrolled students for this course. Only the approved roster is
+      // markable (issue #408); the store rejects a non-approved student, so
+      // filtering here keeps pending/withdrawn students off the marking sheet.
+      const courseEnrollments = enrollments.filter(
+        (e) => e.courseId === courseId && e.status === 'approved'
+      )
       const students_ = courseEnrollments
         .map((e) => {
           const student = students.find((s) => s.id === e.studentId)
