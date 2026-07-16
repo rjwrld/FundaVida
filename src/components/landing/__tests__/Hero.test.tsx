@@ -54,9 +54,7 @@ describe('<Hero />', () => {
   it('carries the provenance in the eyebrow and subcopy', () => {
     renderHero()
     expect(screen.getByText(/Shipped to a real foundation · 2025/)).toBeInTheDocument()
-    expect(
-      screen.getByText(/delivered to Fundación Vida as a production platform/)
-    ).toBeInTheDocument()
+    expect(screen.getByText(/delivered to FundaVida as a production platform/)).toBeInTheDocument()
   })
 
   it('renders the admin fast path and the mono footnote', () => {
@@ -84,7 +82,7 @@ describe('<Hero />', () => {
 
     expect(
       screen.getByRole('button', {
-        name: `Admin Fundación Vida Full control — courses, certificates, audit log.`,
+        name: `Admin FundaVida Full control — courses, certificates, audit log.`,
       })
     ).toBeInTheDocument()
     expect(

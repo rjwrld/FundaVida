@@ -35,6 +35,6 @@ describe('LandingFooter', () => {
         <LandingFooter />
       </I18nProvider>
     )
-    expect(screen.getByText(/Rearchitected portfolio demo of Fundación Vida/i)).toBeInTheDocument()
+    expect(screen.getByText(/Rearchitected portfolio demo of FundaVida/i)).toBeInTheDocument()
   })
 })

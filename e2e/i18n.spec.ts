@@ -37,7 +37,7 @@ test.describe('i18n', () => {
     ).toBeVisible()
     await expect(page.getByRole('heading', { name: '¿Dónde está el backend?' })).toBeVisible()
     await expect(page.getByText('Recharts', { exact: true })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Fundación FundaVida' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'FundaVida org' })).toBeVisible()
   })
 
   test('locale persists from landing into app shell', async ({ page }) => {
