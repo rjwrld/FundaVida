@@ -118,6 +118,30 @@ describe('seedDemo — attendance binds to real Sessions (ADR-0001)', () => {
   })
 })
 
+describe('seedDemo — derived rows attach only to approved enrollments (#412)', () => {
+  // The store guards from #408 forbid attendance/grades on a non-approved roster;
+  // the seed must not ship the very shape the app rejects. A student can hold
+  // several enrollments, so key on the (student, course) pair, not the student.
+  it('records no attendance or grade for a pending/rejected/withdrawn enrollment', () => {
+    const world = seedDemo(EPOCH)
+    const approvedPairs = new Set(
+      world.enrollments
+        .filter((e) => e.status === 'approved')
+        .map((e) => `${e.studentId}:${e.courseId}`)
+    )
+
+    // Guard: the seed carries non-approved enrollments, so the invariant is real.
+    expect(world.enrollments.some((e) => e.status !== 'approved')).toBe(true)
+
+    world.attendance.forEach((record) => {
+      expect(approvedPairs.has(`${record.studentId}:${record.courseId}`)).toBe(true)
+    })
+    world.grades.forEach((grade) => {
+      expect(approvedPairs.has(`${grade.studentId}:${grade.courseId}`)).toBe(true)
+    })
+  })
+})
+
 describe('seedDemo — Grades exist only for ended Terms', () => {
   it('every Grade belongs to a Course whose Term ended before the epoch', () => {
     const world = seedDemo(EPOCH)

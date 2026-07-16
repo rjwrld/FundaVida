@@ -1339,7 +1339,13 @@ export function seedDemo(epoch: Date): SeedSnapshot {
   // Placing it here draws nothing from faker, so the RNG stream is unmoved by the
   // reorder itself.
   const sessionExceptions = buildSessionExceptions(epoch, courses)
-  const attendance = buildAttendance(epoch, enrollments, courses, sessionExceptions)
+
+  // Attendance and Grades are derived rows that presume a real seat: the store
+  // guards (#408) reject either on a non-approved roster, so the seed must derive
+  // them only from approved Enrollments — a pending/rejected/withdrawn seat earns
+  // no attendance and no grade (#412).
+  const approvedEnrollments = enrollments.filter((e) => e.status === 'approved')
+  const attendance = buildAttendance(epoch, approvedEnrollments, courses, sessionExceptions)
 
   // The golden-path Course is the one just-ended cohort the teacher persona has
   // yet to grade; every other ended Course is graded.
@@ -1356,7 +1362,7 @@ export function seedDemo(epoch: Date): SeedSnapshot {
   if (!goldenPathCourse) {
     throw new Error('seed plan must include exactly one just-ended course for the teacher persona')
   }
-  const grades = buildGrades(epoch, enrollments, courses, goldenPathCourse.id)
+  const grades = buildGrades(epoch, approvedEnrollments, courses, goldenPathCourse.id)
 
   // Demo polish (ADR-0019): grade a few students in the persona Teacher's
   // golden-path Course so their Certificate worklist spans a second Course and the
@@ -1365,7 +1371,10 @@ export function seedDemo(epoch: Date): SeedSnapshot {
   // grading to do) is intact. Scores are fixed (no faker draw) and this runs after
   // every faker draw, so neither the RNG sequence nor any seeded count shifts. The
   // grade timestamp mirrors buildGrades: shortly after the Term ended, never future.
-  const goldenRoster = enrollments.filter((e) => e.courseId === goldenPathCourse.id)
+  // Drawn from approvedEnrollments (not the raw roster) so this hand-injected Grade
+  // honours the same approved-only invariant as buildGrades — a non-approved seat in
+  // the golden Course never earns an orphan Grade (#412).
+  const goldenRoster = approvedEnrollments.filter((e) => e.courseId === goldenPathCourse.id)
   const goldenGradeCount = Math.min(3, Math.max(0, goldenRoster.length - 1))
   const goldenTermEnd = startOfDay(new Date(goldenPathCourse.term.end))
   const goldenIssuedAt = (
