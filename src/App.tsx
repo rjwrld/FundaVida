@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+import { Analytics } from '@vercel/analytics/react'
 import { Toaster } from '@/components/ui/sonner'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LandingPage } from '@/pages/LandingPage'
@@ -83,6 +84,7 @@ export function App() {
     <BrowserRouter>
       <Toaster />
       <SpeedInsights />
+      <Analytics />
       <Suspense fallback={null}>
         <Routes>
           <Route index element={<LandingPage />} />
