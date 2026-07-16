@@ -377,6 +377,7 @@
         "title": "Close this course?"
       },
       "closed": "Course closed",
+      "courseFull": "This course is full. Remove a student before enrolling another.",
       "deleteConfirm": "Delete this course?",
       "edit": "Edit",
       "enrollButton": "Enroll student",

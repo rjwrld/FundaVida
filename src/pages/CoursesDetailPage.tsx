@@ -254,6 +254,12 @@ export function CoursesDetailPage() {
     )
   }
 
+  // Direct-enroll honours the capacity invariant (ADR-0016): once the approved
+  // seats fill, the store rejects further enrolls, so gate the roster's Enroll
+  // button here as defense-in-depth rather than let the action surface a raw error.
+  const approvedCount = courseEnrollments.filter((e) => e.status === 'approved').length
+  const isRosterFull = approvedCount >= course.capacity
+
   // Deny access if not viewing roster AND not enrolled AND not browseable (ADR-0012, ADR-0016)
   if (!canViewRoster && !isEnrolled && !isBrowseable) {
     return (
@@ -437,11 +443,14 @@ export function CoursesDetailPage() {
                 {t('courses.detail.sections.students')}
               </h2>
               {canCreate && (
-                <Button size="sm" onClick={() => setEnrollOpen(true)}>
+                <Button size="sm" onClick={() => setEnrollOpen(true)} disabled={isRosterFull}>
                   {t('courses.detail.enrollButton')}
                 </Button>
               )}
             </div>
+            {canCreate && isRosterFull && (
+              <p className="text-sm text-muted-foreground">{t('courses.detail.courseFull')}</p>
+            )}
             {courseEnrollments.length === 0 ? (
               <NoResults message={t('courses.detail.sections.noStudents')} />
             ) : (

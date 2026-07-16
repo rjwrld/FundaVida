@@ -294,6 +294,54 @@ describe('<CoursesDetailPage /> — student self-only view (ADR-0012)', () => {
   })
 })
 
+describe('<CoursesDetailPage /> — roster capacity gate (ADR-0016)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  function approvedCount(courseId: string) {
+    return useStore
+      .getState()
+      .enrollments.filter((e) => e.courseId === courseId && e.status === 'approved').length
+  }
+
+  it('keeps the Enroll button enabled while the roster has room', async () => {
+    const { gradedCourse, classmate } = fixtures()
+    asRole('admin')
+    useStore
+      .getState()
+      .updateCourse(gradedCourse.id, { capacity: approvedCount(gradedCourse.id) + 3 })
+    renderPage(gradedCourse.id)
+
+    // Wait for the roster query so approvedCount reflects the seed, not the empty
+    // loading window (which would read as room regardless).
+    expect(await screen.findByText(fullName(classmate))).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Enroll student' })).toBeEnabled()
+    expect(
+      screen.queryByText('This course is full. Remove a student before enrolling another.')
+    ).not.toBeInTheDocument()
+  })
+
+  it('disables the Enroll button and explains once the roster hits capacity', async () => {
+    const { gradedCourse } = fixtures()
+    asRole('admin')
+    // Cap capacity at the already-approved count so the course reads as full.
+    useStore.getState().updateCourse(gradedCourse.id, { capacity: approvedCount(gradedCourse.id) })
+    renderPage(gradedCourse.id)
+
+    const enrollButton = await screen.findByRole('button', { name: 'Enroll student' })
+    // isRosterFull flips only after the roster query resolves, so wait for it.
+    await waitFor(() => expect(enrollButton).toBeDisabled())
+    expect(
+      screen.getByText('This course is full. Remove a student before enrolling another.')
+    ).toBeInTheDocument()
+  })
+})
+
 describe('<CoursesDetailPage /> — Message the class entry (ADR-0041)', () => {
   beforeEach(() => {
     clearPersistedState()
