@@ -899,16 +899,52 @@ export const useStore = create<StoreState>((set, get) => ({
   },
   withdrawEnrollmentRequest: (enrollmentId) => {
     const state = get()
-    assertCan(state, 'withdraw', 'enrollments')
     const { enrollments } = state
     const target = enrollments.find((e) => e.id === enrollmentId)
     if (!target) return
+    // The store is the real boundary, not the UI's isPending gate (ADR-0009). Ownership
+    // lives in the matrix cell (ADR-0007): only the Student who owns this record may
+    // withdraw it — pass the enrollment as context. `status === 'pending'` is a
+    // state-machine invariant, not a permission condition, so it throws here: an
+    // approved enrollment is removed via unenrollStudent, never withdrawn.
+    assertCan(state, 'withdraw', 'enrollments', {
+      userId: state.currentUserId ?? undefined,
+      enrollment: target,
+    })
+    if (target.status !== 'pending') {
+      throw new Error(
+        `cannot withdraw enrollment ${enrollmentId}: status is ${target.status}, not pending`
+      )
+    }
     withAudit(set, (state) => {
+      // Defense-in-depth: setGrade / markAttendance gate on Course ownership, not on
+      // enrollment status, so a pending record can accrue derived rows. Reconcile the
+      // same slices unenrollStudent does (by studentId + courseId) so a withdrawal never
+      // strands grades / certificates / attendance. The enrollment record itself is kept
+      // (flipped to withdrawn, not deleted) so a re-request can re-pend it.
+      const updatedStudents = state.students.map((s) =>
+        s.id === target.studentId
+          ? {
+              ...s,
+              enrolledCourseIds: s.enrolledCourseIds.filter((cid) => cid !== target.courseId),
+            }
+          : s
+      )
       return {
         next: {
           enrollments: state.enrollments.map((e) =>
             e.id === enrollmentId ? { ...e, status: 'withdrawn' as const } : e
           ),
+          grades: state.grades.filter(
+            (g) => !(g.studentId === target.studentId && g.courseId === target.courseId)
+          ),
+          certificates: state.certificates.filter(
+            (c) => !(c.studentId === target.studentId && c.courseId === target.courseId)
+          ),
+          attendance: state.attendance.filter(
+            (a) => !(a.studentId === target.studentId && a.courseId === target.courseId)
+          ),
+          students: updatedStudents,
         },
         audit: {
           action: 'withdraw',
