@@ -31,9 +31,20 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v16 key', () => {
+  it('persists state under the v17 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v16:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v17:state')).not.toBeNull()
+  })
+
+  it('reseeds from a stale v16 snapshot and removes the stale v16 state key (#412)', () => {
+    // A returning v16 visitor's world carries orphan attendance/grades attached to
+    // non-approved enrollments. The snapshot is structurally valid — the rows are
+    // well-formed — so only the key bump makes it stale; it is dropped and the world
+    // reseeds with derived rows on approved rosters only.
+    window.localStorage.setItem('fundavida:v16:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v16:state')).toBeNull()
   })
 
   it('reseeds from a stale v15 snapshot and removes the stale v15 state key (ADR-0048)', () => {
