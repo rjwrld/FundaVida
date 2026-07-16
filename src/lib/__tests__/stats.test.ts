@@ -29,6 +29,10 @@ describe('dashboardStatDeltas', () => {
       {
         // 2 predate the window, 1 added within it → 3 vs 2
         students: [{ createdAt: OLD }, { createdAt: OLD }, { createdAt: RECENT }],
+        courses: [
+          { id: 'cou-a', status: 'published' },
+          { id: 'cou-b', status: 'published' },
+        ],
         // cou-a active before the window; cou-b first enrolled within it → 2 vs 1
         enrollments: [
           { courseId: 'cou-a', enrolledAt: OLD },
@@ -62,6 +66,7 @@ describe('dashboardStatDeltas', () => {
           { createdAt: '2026-04-01T10:00:00.000Z' },
           { createdAt: '2026-05-20T10:00:00.000Z' },
         ],
+        courses: [],
         enrollments: [],
         certificates: [],
         tcuActivities: [],
@@ -76,6 +81,7 @@ describe('dashboardStatDeltas', () => {
     const deltas = dashboardStatDeltas(
       {
         students: [{ createdAt: RECENT }],
+        courses: [{ id: 'cou-a', status: 'published' }],
         enrollments: [{ courseId: 'cou-a', enrolledAt: RECENT }],
         certificates: [{ issuedAt: RECENT }],
         tcuActivities: [{ hours: 4, date: RECENT }],
@@ -87,5 +93,31 @@ describe('dashboardStatDeltas', () => {
     expect(deltas.activeCourses).toBeNull()
     expect(deltas.certsIssued).toBeNull()
     expect(deltas.tcuHours).toBeNull()
+  })
+
+  it('excludes a closed course from active counts even when it has enrollments', () => {
+    const deltas = dashboardStatDeltas(
+      {
+        students: [],
+        // cou-a stays published (active); cou-b is closed → dropped from now and
+        // prior alike, so only cou-a's before/after-window enrollments count.
+        courses: [
+          { id: 'cou-a', status: 'published' },
+          { id: 'cou-b', status: 'closed' },
+        ],
+        enrollments: [
+          { courseId: 'cou-a', enrolledAt: OLD },
+          { courseId: 'cou-b', enrolledAt: OLD },
+          { courseId: 'cou-b', enrolledAt: RECENT },
+        ],
+        certificates: [],
+        tcuActivities: [],
+      },
+      NOW
+    )
+
+    // active now = {cou-a} = 1; active prior = {cou-a} = 1 → 0% change. The closed
+    // cou-b (which would otherwise lift both) is excluded entirely.
+    expect(deltas.activeCourses).toBe(0)
   })
 })

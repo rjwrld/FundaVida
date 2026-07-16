@@ -451,6 +451,53 @@ describe('enrollment referential integrity', () => {
       useStore.getState().students.find((s) => s.id === overflow.id)?.enrolledCourseIds
     ).not.toContain(course.id)
   })
+
+  it('enrollStudent re-enrolls a withdrawn record in place instead of sealing it out', () => {
+    useStore.getState().setRole('admin')
+    const now = clock.now()
+    const course = useStore
+      .getState()
+      .courses.find((c) => c.status === 'published' && isOpenForEnrollment(c, now))
+    if (!course) throw new Error('expected an open published seeded course')
+    const enrolledIds = new Set(
+      useStore
+        .getState()
+        .enrollments.filter((e) => e.courseId === course.id)
+        .map((e) => e.studentId)
+    )
+    const student = useStore
+      .getState()
+      .students.find(
+        (s) =>
+          s.sede === course.sede && s.educationalLevel === course.level && !enrolledIds.has(s.id)
+      )
+    if (!student) throw new Error('expected an unenrolled same-Sede/level student')
+
+    // Direct-enroll, then flip the record to 'withdrawn' — the state a prior
+    // withdrawal/rejection leaves behind.
+    const first = useStore.getState().enrollStudent(student.id, course.id)
+    useStore.setState((s) => ({
+      enrollments: s.enrollments.map((e) =>
+        e.id === first.id ? { ...e, status: 'withdrawn' as const } : e
+      ),
+      students: s.students.map((s2) =>
+        s2.id === student.id
+          ? { ...s2, enrolledCourseIds: s2.enrolledCourseIds.filter((c) => c !== course.id) }
+          : s2
+      ),
+    }))
+    const before = useStore.getState().enrollments.length
+
+    const reenrolled = useStore.getState().enrollStudent(student.id, course.id)
+
+    // The SAME record is flipped back to approved — no duplicate (student, course) row.
+    expect(reenrolled.id).toBe(first.id)
+    expect(reenrolled.status).toBe('approved')
+    expect(useStore.getState().enrollments.length).toBe(before)
+    expect(
+      useStore.getState().students.find((s) => s.id === student.id)?.enrolledCourseIds
+    ).toContain(course.id)
+  })
 })
 
 describe('attendance marking', () => {

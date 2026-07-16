@@ -755,7 +755,14 @@ export const useStore = create<StoreState>((set, get) => ({
     const state = get()
     const { enrollments, students, courses } = state
     const existing = enrollments.find((e) => e.studentId === studentId && e.courseId === courseId)
-    if (existing) return existing
+    // An active record (approved or pending) short-circuits — re-enrolling is a
+    // no-op. A rejected/withdrawn record does NOT: it falls through the same
+    // Sede/level/open/capacity guards and re-enrolls the SAME record below (mirrors
+    // requestEnrollment's re-pend), so a withdrawn Student can be re-added rather
+    // than being sealed out forever by a stale decision.
+    if (existing && (existing.status === 'approved' || existing.status === 'pending')) {
+      return existing
+    }
     // Defensive guards for direct store callers; the UI only enrolls from existing
     // records, so this English text should never reach end users.
     const student = students.find((s) => s.id === studentId)
@@ -809,6 +816,41 @@ export const useStore = create<StoreState>((set, get) => ({
     // current user is the deciding actor. Student self-enroll into 'pending'
     // arrives with that workflow in a later slice.
     const now = clock.now().toISOString()
+    // Re-enroll after a rejection/withdrawal: flip the SAME record back to
+    // 'approved' with a fresh decision instead of creating a second one, so the
+    // single (student, course) enrollment stays canonical (mirrors
+    // requestEnrollment's re-pend). The withdrawn record was not counted toward
+    // capacity above, so the seat check already reflects this seat.
+    if (existing) {
+      const reenrolled: Enrollment = {
+        ...existing,
+        enrolledAt: now,
+        status: 'approved',
+        requestedAt: now,
+        decidedBy: state.currentUserId ?? 'system',
+        decidedAt: now,
+      }
+      withAudit(set, (state) => {
+        const updatedStudents = state.students.map((s) =>
+          s.id === studentId && !s.enrolledCourseIds.includes(courseId)
+            ? { ...s, enrolledCourseIds: [...s.enrolledCourseIds, courseId] }
+            : s
+        )
+        return {
+          next: {
+            enrollments: state.enrollments.map((e) => (e.id === existing.id ? reenrolled : e)),
+            students: updatedStudents,
+          },
+          audit: {
+            action: 'enroll',
+            entity: 'enrollment',
+            entityId: existing.id,
+            summary: `Re-enrolled ${studentId} in ${courseId}`,
+          },
+        }
+      })
+      return reenrolled
+    }
     const enrollment: Enrollment = {
       id: nextId('enr', enrollments),
       studentId,
@@ -1224,6 +1266,14 @@ export const useStore = create<StoreState>((set, get) => ({
     withAudit(set, (state) => ({
       next: {
         grades: state.grades.filter((g) => g.id !== gradeId),
+        // Deleting the Grade removes the only passing evidence, so its Certificate
+        // must go too (ADR-0025): setGrade/updateGradeScore reconcile on every
+        // score edit and a delete is the terminal edit — leaving the Certificate
+        // would strand a "passed" record with no backing Grade (unenroll/withdraw
+        // drop the same pair). Pre-close no Certificate exists, so this is a no-op.
+        certificates: state.certificates.filter(
+          (c) => !(c.studentId === grade.studentId && c.courseId === grade.courseId)
+        ),
       },
       audit: {
         action: 'delete',

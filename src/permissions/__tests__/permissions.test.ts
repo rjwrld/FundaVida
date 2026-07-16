@@ -1089,6 +1089,13 @@ describe('teacherCanGrade reads the frozen clock, not wall-time (ADR-0014)', () 
       false
     )
   })
+
+  it('treats a term ending exactly at the frozen now as not ended (shared exclusive isTermEnded seam)', () => {
+    // Exactly the Demo Epoch: the shared isTermEnded uses exclusive `isBefore`, so
+    // term.end === now is NOT ended — the grade gate must not diverge from the close
+    // worklist / "Term ended" badge on this boundary.
+    expect(can('teacher', 'enter', 'grades', ownedCourseEndingOn(EPOCH.toISOString()))).toBe(false)
+  })
 })
 
 function getExpectedLabel(

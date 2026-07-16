@@ -14,6 +14,7 @@ const storeSnapshot = () => {
   const s = useStore.getState()
   return {
     students: s.students,
+    courses: s.courses,
     enrollments: s.enrollments,
     certificates: s.certificates,
     tcuActivities: s.tcuActivities,
