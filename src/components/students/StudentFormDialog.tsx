@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { buildStudentSchema, type StudentFormValues } from '@/data/schemas/student'
-import { useCreateStudent, useStudent, useUpdateStudent } from '@/hooks/api'
+import { useCreateStudent, useEnrollments, useStudent, useUpdateStudent } from '@/hooks/api'
 import {
   CANTONS_BY_PROVINCE,
   EDUCATIONAL_LEVELS,
@@ -34,8 +34,22 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
   const { t } = useTranslation()
   const isEdit = Boolean(studentId)
   const { data: existing } = useStudent(studentId ?? '')
+  // `studentId` is undefined on create, which hashes to the same shared empty-filter
+  // cache key the app already keeps warm — no extra fetch. `sedeLocked` is gated on
+  // isEdit, so the create path never reads it anyway.
+  const { data: enrollments } = useEnrollments({ studentId })
   const createStudent = useCreateStudent()
   const updateStudent = useUpdateStudent()
+
+  // A Student may only enrol in Courses at their own Sede (ADR-0011). Once they
+  // hold an active (approved/pending) enrollment, moving their Sede would strand
+  // that pairing, so lock the field (the store rejects it anyway) until they are
+  // unenrolled. Stay locked while the enrollments still load, so a fast edit can
+  // never submit a stale Sede and surface the store's English guard error.
+  const sedeLocked =
+    isEdit &&
+    (enrollments === undefined ||
+      enrollments.some((e) => e.status === 'approved' || e.status === 'pending'))
 
   const {
     register,
@@ -232,11 +246,12 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
             onValueChange={(v) =>
               setValue('sede', v as StudentFormValues['sede'], { shouldValidate: true })
             }
+            disabled={sedeLocked}
           >
             <SelectTrigger
               id="sede"
               aria-invalid={errors.sede !== undefined}
-              aria-describedby={errors.sede ? 'sede-error' : undefined}
+              aria-describedby={errors.sede ? 'sede-error' : sedeLocked ? 'sede-locked' : undefined}
             >
               <SelectValue placeholder={t('students.form.fields.sede')} />
             </SelectTrigger>
@@ -248,6 +263,11 @@ export function StudentForm({ studentId, onSuccess, onCancel }: StudentFormProps
               ))}
             </SelectContent>
           </Select>
+          {sedeLocked && (
+            <p id="sede-locked" className="text-xs text-muted-foreground">
+              {t('students.form.sedeLocked')}
+            </p>
+          )}
           {errors.sede && (
             <p id="sede-error" role="alert" className="text-xs text-destructive">
               {errors.sede.message}

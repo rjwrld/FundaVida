@@ -611,4 +611,86 @@ describe('course Sede invariant (ADR-0011)', () => {
       course.teacherId
     )
   })
+
+  it('updateTeacher throws when changing the Sede of a Teacher who owns courses', () => {
+    const teacher = useStore.getState().teachers.find((t) => t.courseIds.length > 0)
+    if (!teacher) throw new Error('expected a teacher with courses in seed')
+    const otherSede = SEDES.find((s) => s !== teacher.sede)
+    if (!otherSede) throw new Error('expected a second Sede')
+    expect(() => useStore.getState().updateTeacher(teacher.id, { sede: otherSede })).toThrow(
+      /sede/i
+    )
+    expect(useStore.getState().teachers.find((t) => t.id === teacher.id)?.sede).toBe(teacher.sede)
+  })
+
+  it('updateTeacher allows changing the Sede of a Teacher with no courses', () => {
+    const created = useStore.getState().createTeacher({
+      firstName: 'Movable',
+      lastName: 'Mentor',
+      email: 'movable@fv.cr',
+      sede: 'Linda Vista',
+      province: 'San José',
+      canton: 'San José',
+    })
+    const otherSede = SEDES.find((s) => s !== created.sede)
+    if (!otherSede) throw new Error('expected a second Sede')
+    useStore.getState().updateTeacher(created.id, { sede: otherSede })
+    expect(useStore.getState().teachers.find((t) => t.id === created.id)?.sede).toBe(otherSede)
+  })
+
+  it('updateTeacher allows non-Sede edits for a Teacher who owns courses', () => {
+    const teacher = useStore.getState().teachers.find((t) => t.courseIds.length > 0)
+    if (!teacher) throw new Error('expected a teacher with courses in seed')
+    useStore.getState().updateTeacher(teacher.id, { lastName: 'Renamed' })
+    expect(useStore.getState().teachers.find((t) => t.id === teacher.id)?.lastName).toBe('Renamed')
+  })
+
+  it('updateStudent throws when changing the Sede of a Student with an active enrollment', () => {
+    const active = useStore
+      .getState()
+      .enrollments.find((e) => e.status === 'approved' || e.status === 'pending')
+    if (!active) throw new Error('expected an active enrollment in seed')
+    const student = useStore.getState().students.find((s) => s.id === active.studentId)
+    if (!student) throw new Error('expected the enrolled student to exist')
+    const otherSede = SEDES.find((s) => s !== student.sede)
+    if (!otherSede) throw new Error('expected a second Sede')
+    expect(() => useStore.getState().updateStudent(student.id, { sede: otherSede })).toThrow(
+      /sede/i
+    )
+    expect(useStore.getState().students.find((s) => s.id === student.id)?.sede).toBe(student.sede)
+  })
+
+  it('updateStudent allows non-Sede edits for a Student with an active enrollment', () => {
+    const active = useStore
+      .getState()
+      .enrollments.find((e) => e.status === 'approved' || e.status === 'pending')
+    if (!active) throw new Error('expected an active enrollment in seed')
+    useStore.getState().updateStudent(active.studentId, { lastName: 'Renamed' })
+    expect(useStore.getState().students.find((s) => s.id === active.studentId)?.lastName).toBe(
+      'Renamed'
+    )
+  })
+
+  it('updateStudent allows changing the Sede of a Student with no active enrollments', () => {
+    const created = useStore.getState().createStudent({
+      firstName: 'Movable',
+      lastName: 'Learner',
+      email: 'movable.learner@fv.cr',
+      gender: 'F',
+      sede: 'Linda Vista',
+      province: 'San José',
+      canton: 'San José',
+      educationalLevel: 'primaria',
+      guardian: {
+        name: 'Encargado Test',
+        relationship: 'madre',
+        phone: '8888-8888',
+        email: 'enc@example.com',
+      },
+    })
+    const otherSede = SEDES.find((s) => s !== created.sede)
+    if (!otherSede) throw new Error('expected a second Sede')
+    useStore.getState().updateStudent(created.id, { sede: otherSede })
+    expect(useStore.getState().students.find((s) => s.id === created.id)?.sede).toBe(otherSede)
+  })
 })

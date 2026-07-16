@@ -990,7 +990,8 @@
         "primaria": "Primaria",
         "secundaria": "Secundaria"
       },
-      "newTitle": "Nuevo estudiante"
+      "newTitle": "Nuevo estudiante",
+      "sedeLocked": "Desmatricula a este estudiante de sus cursos antes de cambiar su sede."
     },
     "list": {
       "addButton": "Agregar estudiante",
@@ -1095,7 +1096,8 @@
         "province": "Provincia",
         "sede": "Sede"
       },
-      "newTitle": "Nuevo docente"
+      "newTitle": "Nuevo docente",
+      "sedeLocked": "Reasigna los cursos de este docente antes de cambiar su sede."
     },
     "list": {
       "addButton": "Agregar docente",

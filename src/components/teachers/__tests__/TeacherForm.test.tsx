@@ -76,4 +76,28 @@ describe('<TeacherForm />', () => {
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(onCancel).toHaveBeenCalled()
   })
+
+  it('locks the campus field when editing a teacher who owns courses (ADR-0011)', async () => {
+    const teacher = useStore.getState().teachers.find((t) => t.courseIds.length > 0)
+    if (!teacher) throw new Error('expected a teacher with courses in seed')
+    renderForm({ teacherId: teacher.id })
+    const campus = await screen.findByRole('combobox', { name: /campus/i })
+    await waitFor(() => expect(campus).toBeDisabled())
+    expect(campus).toHaveAccessibleDescription(/reassign this teacher's courses/i)
+  })
+
+  it('leaves the campus field editable for a teacher with no courses', async () => {
+    const teacher = useStore.getState().createTeacher({
+      firstName: 'Lone',
+      lastName: 'Wolf',
+      email: 'lone@fv.cr',
+      sede: 'Linda Vista',
+      province: 'San José',
+      canton: 'San José',
+    })
+    renderForm({ teacherId: teacher.id })
+    const campus = await screen.findByRole('combobox', { name: /campus/i })
+    // The field is locked until the teacher loads, then unlocks (no courses).
+    await waitFor(() => expect(campus).not.toBeDisabled())
+  })
 })
