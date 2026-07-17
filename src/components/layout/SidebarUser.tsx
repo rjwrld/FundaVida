@@ -1,3 +1,4 @@
+import { flushSync } from 'react-dom'
 import {
   ChevronsUpDown,
   GraduationCap,
@@ -66,9 +67,21 @@ export function SidebarUser() {
   const Icon = ROLE_ICONS[role]
 
   function pick(next: Role) {
-    setRole(next)
-    setOpenMobile(false)
-    navigate(landingPathForRole(next, useStore.getState()))
+    // Flip the role and navigate in ONE commit. `setRole` writes a Zustand store read
+    // through `useSyncExternalStore`, which React may flush as its own synchronous
+    // commit *before* the router's location update lands. On a Course detail page whose
+    // destination is another Course detail (the Teacher golden-path landing, #72/#415)
+    // that intermediate render pairs the new role with the *previous* `:id` — a course
+    // the new role can't see — so the page reads a null course and, frozen by the
+    // outlet's `AnimatePresence mode="wait"` exit, strands on the empty "not found"
+    // fallback. `flushSync` collapses the whole switch into a single commit, so no render
+    // ever pairs the new role with the old id. `setRole` updates the store synchronously,
+    // so `getState()` inside the callback already carries the new persona for the landing.
+    flushSync(() => {
+      setOpenMobile(false)
+      setRole(next)
+      navigate(landingPathForRole(next, useStore.getState()))
+    })
   }
 
   return (
