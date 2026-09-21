@@ -1,7 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { createMemoryRouter, RouterProvider } from 'react-router-dom'
+import {
+  createMemoryRouter,
+  MemoryRouter,
+  Route,
+  RouterProvider,
+  Routes,
+  useNavigate,
+} from 'react-router-dom'
 import { MotionConfig } from 'framer-motion'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -110,26 +117,31 @@ describe('<AppLayout />', () => {
   })
 
   it('moves focus to the main region on client-side navigation, but not on first load', async () => {
+    const user = userEvent.setup()
     useStore.getState().setRole('admin')
-    const router = createMemoryRouter(
-      [
-        {
-          path: '/',
-          element: <AppLayout />,
-          children: [
-            { index: true, element: <div>Start page</div> },
-            { path: 'next', element: <div>Next page</div> },
-          ],
-        },
-      ],
-      { initialEntries: ['/'] }
-    )
+    // Drive the navigation the way the app does — a plain <MemoryRouter> (App.tsx uses
+    // <BrowserRouter>, not a data router) and useNavigate from inside the outlet.
+    function StartPage() {
+      const navigate = useNavigate()
+      return (
+        <button type="button" onClick={() => navigate('/next')}>
+          Go next
+        </button>
+      )
+    }
     const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
     render(
       <I18nProvider>
         <QueryClientProvider client={client}>
           <MotionConfig reducedMotion="always">
-            <RouterProvider router={router} />
+            <MemoryRouter initialEntries={['/']}>
+              <Routes>
+                <Route path="/" element={<AppLayout />}>
+                  <Route index element={<StartPage />} />
+                  <Route path="next" element={<div>Next page</div>} />
+                </Route>
+              </Routes>
+            </MemoryRouter>
           </MotionConfig>
         </QueryClientProvider>
       </I18nProvider>
@@ -139,9 +151,7 @@ describe('<AppLayout />', () => {
     const main = screen.getByRole('main')
     expect(main).not.toHaveFocus()
 
-    await act(async () => {
-      await router.navigate('/next')
-    })
+    await user.click(screen.getByRole('button', { name: 'Go next' }))
 
     // The outlet swaps through AnimatePresence mode="wait", so await the new content.
     await screen.findByText('Next page')

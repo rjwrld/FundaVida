@@ -22,11 +22,11 @@ export const axe = configureAxe({
 })
 
 declare module 'vitest' {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- must match vitest's own `Assertion<T = any>` generic default
-  interface Assertion<T = any> {
-    toHaveNoViolations(): T
-  }
-  interface AsymmetricMatchersContaining {
-    toHaveNoViolations(): void
+  // Vitest 4+ types custom matchers through `Matchers<R, T>` (R = the assertion's
+  // return type, void or Promise<void>), which `Assertion` and the asymmetric
+  // matchers both extend. Merged declarations must repeat the generics verbatim.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface Matchers<R extends void | Promise<void> = void | Promise<void>, T = unknown> {
+    toHaveNoViolations(): R
   }
 }
