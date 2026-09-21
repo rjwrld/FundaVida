@@ -121,8 +121,6 @@ describe('<AppLayout />', () => {
     useStore.getState().setRole('admin')
     // Drive the navigation the way the app does — a plain <MemoryRouter> (App.tsx uses
     // <BrowserRouter>, not a data router) and useNavigate from inside the outlet.
-    // A data router's router.navigate() builds a fetch Request with jsdom's
-    // AbortSignal, which Node 24's Request rejects under vitest 2's jsdom env.
     function StartPage() {
       const navigate = useNavigate()
       return (

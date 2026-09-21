@@ -9,7 +9,8 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
-    poolOptions: { forks: { minForks: 1, maxForks: 4 } },
+    // Cap the fork pool (OOM incident, PR #77); top-level since Vitest 4's pool rework.
+    maxWorkers: 4,
     globals: false,
     setupFiles: ['./src/test/setup.ts'],
     exclude: ['node_modules', 'dist', 'e2e/**', '.claude/**'],
