@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { MarkSessionAttendancePage } from '@/pages/MarkSessionAttendancePage'
 import { useStore } from '@/data/store'
-import { setDemoEpoch } from '@/lib/clock'
+import { clock } from '@/lib/clock'
 import { sessionsFor } from '@/lib/sessions'
 import {
   clearPersistedCurrentUser,
@@ -39,36 +39,31 @@ describe('<MarkSessionAttendancePage />', () => {
     clearPersistedCurrentUser()
     useStore.getState().resetDemo()
     useStore.getState().setLocale('en')
-    // Set a fixed epoch to control what "past" and "future" mean
-    setDemoEpoch(new Date(2026, 5, 15)) // Monday, June 15, 2026
   })
 
+  // `resetDemo()` re-anchors the seed at wall time (ADR-0002/0014), so "today"
+  // must be read back from the clock seam — a hardcoded date decays as the
+  // seeded Terms drift past it (this file went red two months after landing).
+  const today = () => clock.today()
+
   it('redirects a student trying to access a marking route (AC#3)', async () => {
-    // Find an in-progress course with an enrolled student
+    // setRole('student') acts as 'stu-1', whose Course view is self-only
+    // (ADR-0012) — so pick a course stu-1 is approved on that already has a
+    // past Session, otherwise the page renders "not found" instead of redirecting.
     const state = useStore.getState()
-    const courses = state.courses.filter((c) => {
-      const start = new Date(c.term.start)
-      const end = new Date(c.term.end)
-      const today = new Date(2026, 5, 15)
-      return start <= today && today <= end
-    })
-
-    expect(courses.length).toBeGreaterThan(0)
-    const course = courses[0]
+    const myCourseIds = new Set(
+      state.enrollments
+        .filter((e) => e.studentId === 'stu-1' && e.status === 'approved')
+        .map((e) => e.courseId)
+    )
+    const candidates = state.courses.filter(
+      (c) => myCourseIds.has(c.id) && sessionsFor(c).some((s) => new Date(s.date) < today())
+    )
+    expect(candidates.length).toBeGreaterThan(0)
+    const course = candidates[0]
     if (!course) return
-
-    // Find an enrolled student in this course
-    const enrollment = state.enrollments.find((e) => e.courseId === course.id)
-    expect(enrollment).toBeDefined()
-    if (!enrollment) return
-    const student = state.students.find((s) => s.id === enrollment.studentId)
-    expect(student).toBeDefined()
-    if (!student) return
-
-    // Get a past session
-    const sessions = sessionsFor(course)
-    expect(sessions.length).toBeGreaterThan(0)
-    const pastSession = sessions[0] // First session should be in the past
+    const pastSession = sessionsFor(course).find((s) => new Date(s.date) < today())
+    expect(pastSession).toBeDefined()
     if (!pastSession) return
 
     // Log in as the student (setRole sets currentUserId internally)
@@ -93,10 +88,9 @@ describe('<MarkSessionAttendancePage />', () => {
   it('shows marking UI to the owning teacher for a past session', async () => {
     // setRole('teacher') sets currentUserId to 'tea-1', so find a course owned by that teacher
     const state = useStore.getState()
-    const today = new Date(2026, 5, 15)
     const coursesOwnedByTea1 = state.courses.filter((c) => {
       const end = new Date(c.term.end)
-      const isActive = new Date(c.term.start) <= today && today <= end
+      const isActive = new Date(c.term.start) <= today() && today() <= end
       const hasEnrollments = state.enrollments.some((e) => e.courseId === c.id)
       // setRole('teacher') will set currentUserId to 'tea-1'
       const ownedByTea1 = c.teacherId === 'tea-1'
@@ -117,7 +111,7 @@ describe('<MarkSessionAttendancePage />', () => {
     expect(sessions.length).toBeGreaterThan(0)
     const pastSession = sessions.find((s) => {
       const sessionDate = new Date(s.date)
-      return sessionDate < today
+      return sessionDate < today()
     })
 
     if (!pastSession) {
@@ -158,36 +152,18 @@ describe('<MarkSessionAttendancePage />', () => {
   })
 
   it('shows read-only state for a future session', async () => {
-    // Find a course with a future session
+    // setRole('teacher') acts as 'tea-1', who only sees own courses — pick one
+    // of theirs that still has a Session after "today".
     const state = useStore.getState()
-    const courses = state.courses.filter((c) => {
-      const end = new Date(c.term.end)
-      const today = new Date(2026, 5, 15)
-      // Course that ends after today
-      return end > today
-    })
-
-    expect(courses.length).toBeGreaterThan(0)
-    const course = courses[0]
+    const candidates = state.courses.filter(
+      (c) => c.teacherId === 'tea-1' && sessionsFor(c).some((s) => new Date(s.date) > today())
+    )
+    expect(candidates.length).toBeGreaterThan(0)
+    const course = candidates[0]
     if (!course) return
-    const teacher = state.teachers.find((t) => t.id === course.teacherId)
-    expect(teacher).toBeDefined()
-    if (!teacher) return
-
-    // Get all sessions and find a future one
-    const sessions = sessionsFor(course)
-    const futureSession = sessions.find((s) => {
-      const sessionDate = new Date(s.date)
-      const today = new Date(2026, 5, 15)
-      return sessionDate > today
-    })
-
-    if (!futureSession) {
-      // If no future session exists in this course, this test passes vacuously
-      // (it means the test setup doesn't have enough future sessions)
-      expect(true).toBe(true)
-      return
-    }
+    const futureSession = sessionsFor(course).find((s) => new Date(s.date) > today())
+    expect(futureSession).toBeDefined()
+    if (!futureSession) return
 
     // Log in as the teacher (setRole sets currentUserId internally)
     useStore.getState().setRole('teacher')
