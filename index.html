@@ -8,28 +8,48 @@
     <title>FundaVida — Educational management platform demo</title>
     <meta
       name="description"
-      content="Educational management platform — rearchitected as a browser-only portfolio demo. Built with React, TypeScript, Vite, Tailwind, and shadcn/ui."
+      content="Courses, attendance, grades and certificates for FundaVida — now a live demo you can explore as any of four roles, entirely in your browser."
     />
 
-    <!-- Open Graph -->
+    <!-- Social preview. Crawlers (LinkedIn, Slack, WhatsApp, iMessage, X) drop
+         relative image URLs, so every URL here is absolute. The card is
+         rendered by scripts/derive-images.ts (npm run images:derive). -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="FundaVida" />
+    <meta property="og:site_name" content="FundaVida" />
+    <meta property="og:url" content="https://fundavida.vercel.app/" />
+    <meta
+      property="og:title"
+      content="FundaVida — the education platform I built for a Costa Rican non-profit"
+    />
     <meta
       property="og:description"
-      content="Educational management platform — rearchitected as a browser-only portfolio demo."
+      content="Courses, attendance, grades and certificates for FundaVida — now a live demo you can explore as any of four roles, entirely in your browser."
     />
-    <meta property="og:image" content="/og-image.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="es_CR" />
+    <meta property="og:image" content="https://fundavida.vercel.app/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta
+      property="og:image:alt"
+      content="The platform I built for FundaVida — education management for a Costa Rican non-profit. Live demo, 4 roles, EN / ES."
+    />
 
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="FundaVida" />
+    <meta
+      name="twitter:title"
+      content="FundaVida — the education platform I built for a Costa Rican non-profit"
+    />
     <meta
       name="twitter:description"
-      content="Educational management platform — rearchitected as a browser-only portfolio demo."
+      content="Courses, attendance, grades and certificates for FundaVida — now a live demo you can explore as any of four roles, entirely in your browser."
     />
-    <meta name="twitter:image" content="/og-image.png" />
+    <meta name="twitter:image" content="https://fundavida.vercel.app/og-image.png" />
+    <meta
+      name="twitter:image:alt"
+      content="The platform I built for FundaVida — education management for a Costa Rican non-profit. Live demo, 4 roles, EN / ES."
+    />
     <!-- Inline no-FOUC theme bootstrap. The CSP in vercel.json whitelists this
          script by sha256 hash (script-src), so editing its body requires
          regenerating that hash or the theme flash-prevention silently stops. -->
