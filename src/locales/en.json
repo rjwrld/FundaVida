@@ -359,6 +359,8 @@
       "title": "Confirm deletion"
     },
     "language": {
+      "en": "English",
+      "es": "Español",
       "label": "Language"
     },
     "pagination": {

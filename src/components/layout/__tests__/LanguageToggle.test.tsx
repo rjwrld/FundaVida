@@ -25,27 +25,27 @@ describe('LanguageToggle', () => {
   it('renders EN and ES as radios in a labelled radiogroup', () => {
     renderToggle()
     expect(screen.getByRole('radiogroup', { name: 'Language' })).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: 'en' })).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: 'es' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'English' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Español' })).toBeInTheDocument()
   })
 
   it('marks the current locale as checked', () => {
     renderToggle()
-    expect(screen.getByRole('radio', { name: 'en' })).toHaveAttribute('aria-checked', 'true')
-    expect(screen.getByRole('radio', { name: 'es' })).toHaveAttribute('aria-checked', 'false')
+    expect(screen.getByRole('radio', { name: 'English' })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('radio', { name: 'Español' })).toHaveAttribute('aria-checked', 'false')
   })
 
   it('changes locale and persists to localStorage', async () => {
     renderToggle()
-    await userEvent.click(screen.getByRole('radio', { name: 'es' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'Español' }))
     expect(useStore.getState().locale).toBe('es')
     expect(window.localStorage.getItem('fundavida:v2:locale')).toBe('es')
   })
 
   it('keeps the active locale selected when it is re-clicked (no deselect)', async () => {
     renderToggle()
-    await userEvent.click(screen.getByRole('radio', { name: 'en' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'English' }))
     expect(useStore.getState().locale).toBe('en')
-    expect(screen.getByRole('radio', { name: 'en' })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('radio', { name: 'English' })).toHaveAttribute('aria-checked', 'true')
   })
 })

@@ -206,7 +206,7 @@ test('lowering a passing grade below 70 after close revokes the certificate (ADR
 
 test('renders in Spanish when locale is ES', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('radio', { name: 'es' }).click()
+  await page.getByRole('radio', { name: 'Español' }).click()
   await page.getByRole('button', { name: 'Ingresar como administrador' }).first().click()
   await page.getByRole('link', { name: 'Certificados', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Certificados', exact: true })).toBeVisible()

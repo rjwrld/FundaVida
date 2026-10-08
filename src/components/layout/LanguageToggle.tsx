@@ -31,7 +31,8 @@ export function LanguageToggle({ variant = 'header' }: { variant?: Variant }) {
         <ToggleGroupItem
           key={code}
           value={code}
-          aria-label={code}
+          // Full language name, so screen readers don't spell out "e n".
+          aria-label={t(`common.language.${code}`)}
           className="px-2.5 font-medium uppercase tracking-wide"
         >
           {code}

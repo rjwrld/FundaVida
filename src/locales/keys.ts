@@ -325,3 +325,7 @@ t('auditLog.summary.updateGrade')
 t('auditLog.summary.updateStudent')
 t('auditLog.summary.updateTeacher')
 t('auditLog.summary.withdrawRequest')
+
+// Keys referenced via t(`common.language.${code}`) in LanguageToggle
+t('common.language.en')
+t('common.language.es')
