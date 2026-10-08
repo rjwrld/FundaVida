@@ -32,6 +32,8 @@
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-success: var(--success);
+  --color-success-text: var(--success-text);
+  --color-destructive-text: var(--destructive-text);
   --color-brand-green-50: var(--brand-green-50);
   --color-brand-green-100: var(--brand-green-100);
   --color-brand-green-200: var(--brand-green-200);
@@ -253,10 +255,17 @@
        warning/info died with the blueprint skin (ADR-0047) — their only
        consumers were Badge variants that neutralize at the class level. */
     --success: oklch(0.57 0.17 138); /* Figure Green 500 */
+    /* Small status words (a calendar card's Present/Absent verdict) need AA at
+       12px, which the 500-step hues miss on white — these are their text-safe
+       steps, tuned per theme. */
+    --success-text: oklch(0.5 0.16 138); /* Figure Green 600 */
+    --destructive-text: oklch(0.55 0.2 25);
   }
 
   .dark {
     --success: oklch(0.68 0.16 138); /* Figure Green 400 (vivid on dark) */
+    --success-text: oklch(0.78 0.14 138);
+    --destructive-text: oklch(0.72 0.17 22);
   }
 
   html {

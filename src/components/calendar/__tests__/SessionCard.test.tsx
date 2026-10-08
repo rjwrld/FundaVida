@@ -71,7 +71,11 @@ describe('<SessionCard />', () => {
         linkToMark
       />
     )
-    const link = screen.getByRole('link', { name: 'Matemáticas Primaria — Linda Vista (jun)' })
+    // The accessible name leads with the task and carries the full name, date
+    // and ordinal, so one Course's cards on different days stay distinguishable.
+    const link = screen.getByRole('link', {
+      name: /^Mark attendance: Matemáticas Primaria — Linda Vista \(jun\), Jun 1, 2026, session 1$/,
+    })
     // The native `title=""` is gone — the full name now hangs off ui/tooltip.
     expect(link).not.toHaveAttribute('title')
 
