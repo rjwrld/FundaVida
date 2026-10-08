@@ -58,4 +58,16 @@ describe('<Breadcrumbs />', () => {
     renderAt('/app/students/stu-does-not-exist')
     expect(screen.getByText('stu-does-not-exist')).toBeInTheDocument()
   })
+
+  it('names the marking route by its Session date, not its raw URL segments', async () => {
+    const course = useStore.getState().courses[0]
+    if (!course) throw new Error('expected a seeded course')
+    renderAt(`/app/courses/${course.id}/sessions/2026-10-08T12:00:00.000Z/mark`)
+
+    expect(await screen.findByText(course.name)).toBeInTheDocument()
+    expect(screen.getByText(/Mark Session Attendance · Oct 8, 2026/)).toBeInTheDocument()
+    expect(screen.queryByText('sessions')).not.toBeInTheDocument()
+    expect(screen.queryByText('mark')).not.toBeInTheDocument()
+    expect(screen.queryByText(/2026-10-08T/)).not.toBeInTheDocument()
+  })
 })

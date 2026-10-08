@@ -365,7 +365,9 @@ function CourseEnrollmentGroup({
                 className="relative flex flex-wrap items-center gap-x-3 gap-y-2 overflow-hidden px-4 py-2.5"
               >
                 {sweepId === e.id && <CelebrationSweep />}
-                <span className="min-w-0 flex-1 truncate text-sm">{name}</span>
+                {/* A floor on the name's width makes the date/badge/actions wrap to a
+                    second line on phones instead of squeezing the name to "J…". */}
+                <span className="min-w-40 flex-1 truncate text-sm">{name}</span>
                 <span className="font-mono text-xs text-muted-foreground tabular-nums">
                   {formatDate(e.enrolledAt)}
                 </span>

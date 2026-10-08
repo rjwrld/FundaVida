@@ -13,6 +13,7 @@ import { NAV_ITEMS } from '@/constants/nav'
 import { cn } from '@/lib/utils'
 import { useStudents, useTeachers, usePrograms, useCourses } from '@/hooks/api'
 import { fullName } from '@/lib/personName'
+import { useFormat } from '@/hooks/useFormat'
 
 interface Crumb {
   label: string
@@ -68,6 +69,7 @@ export function Breadcrumbs() {
   const location = useLocation()
   const { t } = useTranslation()
   const resolveEntityName = useEntityNameResolver()
+  const { formatDate } = useFormat()
 
   const crumbs = useMemo<Crumb[]>(() => {
     const segments = location.pathname.split('/').filter(Boolean)
@@ -89,6 +91,14 @@ export function Breadcrumbs() {
       const seg = segments[i] ?? ''
       const path = `/app/${segments.slice(1, i + 1).join('/')}`
       const navKey = navLabelForPath(path)
+      // The marking route (courses/:id/sessions/:date/mark) has no pages at
+      // `sessions` or `:date`, so those segments fold into one crumb that names
+      // the task and its Session date instead of echoing the raw URL.
+      if (seg === 'sessions' && segments[i + 2] === 'mark') {
+        const date = segments[i + 1] ?? ''
+        list.push({ label: `${t('attendance.mark.title')} · ${formatDate(date)}` })
+        break
+      }
       if (navKey) {
         list.push({ label: t(navKey), to: path })
       } else if (seg === 'new') {
@@ -108,7 +118,7 @@ export function Breadcrumbs() {
       list[list.length - 1] = { label: last.label }
     }
     return list
-  }, [location.pathname, t, resolveEntityName])
+  }, [location.pathname, t, resolveEntityName, formatDate])
 
   if (crumbs.length === 0) return null
 
@@ -117,11 +127,17 @@ export function Breadcrumbs() {
       <BreadcrumbList className="flex-nowrap gap-1.5 sm:gap-1.5">
         {crumbs.map((crumb, idx) => (
           <Fragment key={`${crumb.label}-${idx}`}>
-            {/* The block's header-slot pattern: below `md` only the current page
-                shows — ancestors and their separators wait for the wider header. */}
-            {idx > 0 ? <BreadcrumbSeparator className="hidden md:block" /> : null}
+            {/* The block's header-slot pattern: below `lg` only the current page
+                shows — ancestors and their separators wait for the wider header
+                (at tablet widths the search field left them as "P… › Matr…"). */}
+            {idx > 0 ? <BreadcrumbSeparator className="hidden lg:block" /> : null}
             <BreadcrumbItem
-              className={cn('min-w-0', idx < crumbs.length - 1 && 'hidden md:inline-flex')}
+              className={cn(
+                // Short section crumbs keep their width; only the last two (an
+                // entity name and the current page) give way and truncate.
+                idx < crumbs.length - 2 ? 'shrink-0' : 'min-w-0',
+                idx < crumbs.length - 1 && 'hidden lg:inline-flex'
+              )}
             >
               {crumb.to && idx < crumbs.length - 1 ? (
                 <BreadcrumbLink asChild className="truncate">

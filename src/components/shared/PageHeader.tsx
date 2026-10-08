@@ -46,7 +46,11 @@ export function PageHeader({
           <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>
         ) : null}
       </div>
-      {action ? <div className="flex shrink-0 items-center gap-2">{action}</div> : null}
+      {/* Wraps on narrow screens: a detail page can carry four actions, which
+          in one unbreakable row pushed the page wider than a phone. */}
+      {action ? (
+        <div className="flex flex-wrap items-center gap-2 md:shrink-0">{action}</div>
+      ) : null}
     </div>
   )
 }
