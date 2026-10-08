@@ -363,6 +363,8 @@
       "title": "Confirmar eliminación"
     },
     "language": {
+      "en": "English",
+      "es": "Español",
       "label": "Idioma"
     },
     "pagination": {
