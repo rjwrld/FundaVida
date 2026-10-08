@@ -43,4 +43,22 @@ describe('<AuditLogPage />', () => {
     expect(within(table).getAllByRole('row').slice(1)).toHaveLength(10)
     expect(screen.getByText(`Page 1 of ${Math.ceil(total / 10)}`)).toBeInTheDocument()
   })
+
+  it('renders summaries and actors in the active language, by name rather than raw id', async () => {
+    useStore.getState().setLocale('es')
+    renderPage()
+
+    const table = await screen.findByRole('table')
+    const rows = within(table).getAllByRole('row').slice(1)
+    const text = rows.map((r) => r.textContent ?? '').join('\n')
+    expect(text).not.toMatch(/\b(stu|cou|tea|enr|gra)-\d+\b/)
+    expect(text).not.toMatch(/\b(Enrolled|Graded|Created)\b/)
+    expect(text).toMatch(/Matriculó a|Calificó a|Creó/)
+  })
+
+  it('labels the entity filter with its own "all" option', async () => {
+    renderPage()
+    await screen.findByRole('table')
+    expect(screen.getByRole('combobox', { name: 'Entity' })).toHaveTextContent('All entities')
+  })
 })

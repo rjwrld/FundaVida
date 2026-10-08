@@ -279,7 +279,12 @@ export interface AuditLogEntry {
   entity: AuditEntity
   entityId: string
   timestamp: string
+  /** English one-liner; the fallback when an entry predates `summaryKey`. */
   summary: string
+  /** i18n key (`auditLog.summary.*`) the audit log renders in the active locale. */
+  summaryKey?: string
+  /** Interpolation values for `summaryKey`, with display names snapshotted at write time. */
+  summaryParams?: Record<string, string | number>
 }
 
 export type EmailFilterKind = 'all' | 'program' | 'province' | 'course'

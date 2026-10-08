@@ -772,6 +772,12 @@ function buildAuditLog(input: {
 }): AuditLogEntry[] {
   const { teachers, students, courses, enrollments, grades } = input
   const courseById = new Map(courses.map((c) => [c.id, c]))
+  const studentById = new Map(students.map((s) => [s.id, s]))
+  const studentLabel = (id: string) => {
+    const s = studentById.get(id)
+    return s ? fullName(s) : id
+  }
+  const courseLabel = (id: string) => courseById.get(id)?.name ?? id
   const entries: AuditLogEntry[] = []
   let counter = 0
   const push = (entry: Omit<AuditLogEntry, 'id'>) =>
@@ -785,6 +791,8 @@ function buildAuditLog(input: {
       entityId: t.id,
       timestamp: t.createdAt,
       summary: `Created teacher ${fullName(t)}`,
+      summaryKey: 'auditLog.summary.createTeacher',
+      summaryParams: { name: fullName(t) },
     })
   )
   students.forEach((s) =>
@@ -795,6 +803,8 @@ function buildAuditLog(input: {
       entityId: s.id,
       timestamp: s.createdAt,
       summary: `Created student ${fullName(s)}`,
+      summaryKey: 'auditLog.summary.createStudent',
+      summaryParams: { name: fullName(s) },
     })
   )
   courses.forEach((c) =>
@@ -805,6 +815,8 @@ function buildAuditLog(input: {
       entityId: c.id,
       timestamp: c.createdAt,
       summary: `Created course ${c.name}`,
+      summaryKey: 'auditLog.summary.createCourse',
+      summaryParams: { course: c.name },
     })
   )
   enrollments.forEach((e) =>
@@ -815,6 +827,8 @@ function buildAuditLog(input: {
       entityId: e.id,
       timestamp: e.enrolledAt,
       summary: `Enrolled ${e.studentId} in ${e.courseId}`,
+      summaryKey: 'auditLog.summary.enroll',
+      summaryParams: { student: studentLabel(e.studentId), course: courseLabel(e.courseId) },
     })
   )
   grades.forEach((g) =>
@@ -825,6 +839,12 @@ function buildAuditLog(input: {
       entityId: g.id,
       timestamp: g.issuedAt,
       summary: `Graded ${g.studentId} in ${g.courseId} with ${g.score}`,
+      summaryKey: 'auditLog.summary.grade',
+      summaryParams: {
+        student: studentLabel(g.studentId),
+        course: courseLabel(g.courseId),
+        score: g.score,
+      },
     })
   )
 

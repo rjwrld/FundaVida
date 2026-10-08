@@ -178,6 +178,21 @@ export function reconcileSession(
   return { role, currentUserId: userIdForRole(role) }
 }
 
+// Audit summaries snapshot display names at write time (the keyed, translated
+// form the audit log renders), so an entry still names who it was about after
+// that student, course or teacher is deleted. A missing id falls back to itself.
+function studentName(state: StoreState, id: string): string {
+  const s = state.students.find((x) => x.id === id)
+  return s ? fullName(s) : id
+}
+function courseName(state: StoreState, id: string): string {
+  return state.courses.find((c) => c.id === id)?.name ?? id
+}
+function teacherName(state: StoreState, id: string): string {
+  const t = state.teachers.find((x) => x.id === id)
+  return t ? fullName(t) : id
+}
+
 /**
  * Check if the current role can perform an action on a resource.
  * Throws with an English error message if permission is denied.
@@ -448,6 +463,8 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'student',
         entityId: student.id,
         summary: `Created student ${fullName(student)}`,
+        summaryKey: 'auditLog.summary.createStudent',
+        summaryParams: { name: fullName(student) },
       },
     }))
     return student
@@ -485,6 +502,8 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'student',
         entityId: id,
         summary: `Updated student ${id}`,
+        summaryKey: 'auditLog.summary.updateStudent',
+        summaryParams: { name: studentName(state, id) },
       },
     }))
   },
@@ -504,6 +523,8 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'student',
         entityId: id,
         summary: `Deleted student ${id}`,
+        summaryKey: 'auditLog.summary.deleteStudent',
+        summaryParams: { name: studentName(state, id) },
       },
     }))
   },
@@ -544,6 +565,8 @@ export const useStore = create<StoreState>((set, get) => ({
           entity: 'course',
           entityId: course.id,
           summary: `Created course ${course.name}`,
+          summaryKey: 'auditLog.summary.createCourse',
+          summaryParams: { course: course.name },
         },
       }
     })
@@ -581,6 +604,8 @@ export const useStore = create<StoreState>((set, get) => ({
             entity: 'course',
             entityId: id,
             summary: `Updated course ${id}`,
+            summaryKey: 'auditLog.summary.updateCourse',
+            summaryParams: { course: courseName(state, id) },
           },
         }
       }
@@ -604,6 +629,8 @@ export const useStore = create<StoreState>((set, get) => ({
           entity: 'course',
           entityId: id,
           summary: `Updated course ${id}`,
+          summaryKey: 'auditLog.summary.updateCourse',
+          summaryParams: { course: courseName(state, id) },
         },
       }
     })
@@ -632,6 +659,8 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'course',
         entityId: id,
         summary: `Deleted course ${id}`,
+        summaryKey: 'auditLog.summary.deleteCourse',
+        summaryParams: { course: courseName(state, id) },
       },
     }))
   },
@@ -654,6 +683,8 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'course',
         entityId: courseId,
         summary: `Published course ${course.name}`,
+        summaryKey: 'auditLog.summary.publishCourse',
+        summaryParams: { course: course.name },
       },
     }))
   },
@@ -698,6 +729,8 @@ export const useStore = create<StoreState>((set, get) => ({
           entity: 'course',
           entityId: courseId,
           summary: `Closed course ${course.name}, emitted ${emitted.length} certificate(s)`,
+          summaryKey: 'auditLog.summary.closeCourse',
+          summaryParams: { course: course.name, n: emitted.length },
         },
       }
     })
@@ -720,6 +753,8 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'teacher',
         entityId: teacher.id,
         summary: `Created teacher ${fullName(teacher)}`,
+        summaryKey: 'auditLog.summary.createTeacher',
+        summaryParams: { name: fullName(teacher) },
       },
     }))
     return teacher
@@ -749,6 +784,8 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'teacher',
         entityId: id,
         summary: `Updated teacher ${id}`,
+        summaryKey: 'auditLog.summary.updateTeacher',
+        summaryParams: { name: teacherName(state, id) },
       },
     }))
   },
@@ -772,6 +809,8 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'teacher',
         entityId: id,
         summary: `Deleted teacher ${id}`,
+        summaryKey: 'auditLog.summary.deleteTeacher',
+        summaryParams: { name: teacherName(state, id) },
       },
     }))
   },
@@ -870,6 +909,11 @@ export const useStore = create<StoreState>((set, get) => ({
             entity: 'enrollment',
             entityId: existing.id,
             summary: `Re-enrolled ${studentId} in ${courseId}`,
+            summaryKey: 'auditLog.summary.reenroll',
+            summaryParams: {
+              student: studentName(state, studentId),
+              course: courseName(state, courseId),
+            },
           },
         }
       })
@@ -901,6 +945,11 @@ export const useStore = create<StoreState>((set, get) => ({
           entity: 'enrollment',
           entityId: enrollment.id,
           summary: `Enrolled ${studentId} in ${courseId}`,
+          summaryKey: 'auditLog.summary.enroll',
+          summaryParams: {
+            student: studentName(state, studentId),
+            course: courseName(state, courseId),
+          },
         },
       }
     })
@@ -970,6 +1019,11 @@ export const useStore = create<StoreState>((set, get) => ({
           entity: 'enrollment',
           entityId: existing.id,
           summary: `${studentId} re-requested enrollment in ${courseId}`,
+          summaryKey: 'auditLog.summary.rerequestEnroll',
+          summaryParams: {
+            student: studentName(state, studentId),
+            course: courseName(state, courseId),
+          },
         },
       }))
       return repended
@@ -992,6 +1046,11 @@ export const useStore = create<StoreState>((set, get) => ({
           entity: 'enrollment',
           entityId: enrollment.id,
           summary: `${studentId} requested enrollment in ${courseId}`,
+          summaryKey: 'auditLog.summary.requestEnroll',
+          summaryParams: {
+            student: studentName(state, studentId),
+            course: courseName(state, courseId),
+          },
         },
       }
     })
@@ -1051,6 +1110,11 @@ export const useStore = create<StoreState>((set, get) => ({
           entity: 'enrollment',
           entityId: enrollmentId,
           summary: `Withdrew enrollment request ${enrollmentId}`,
+          summaryKey: 'auditLog.summary.withdrawRequest',
+          summaryParams: {
+            student: studentName(state, target.studentId),
+            course: courseName(state, target.courseId),
+          },
         },
       }
     })
@@ -1103,6 +1167,11 @@ export const useStore = create<StoreState>((set, get) => ({
           entity: 'enrollment',
           entityId: enrollmentId,
           summary: `Approved enrollment ${enrollmentId}`,
+          summaryKey: 'auditLog.summary.approveEnrollment',
+          summaryParams: {
+            student: studentName(state, target.studentId),
+            course: courseName(state, target.courseId),
+          },
         },
       }
     })
@@ -1141,6 +1210,11 @@ export const useStore = create<StoreState>((set, get) => ({
           entity: 'enrollment',
           entityId: enrollmentId,
           summary: `Rejected enrollment ${enrollmentId}`,
+          summaryKey: 'auditLog.summary.rejectEnrollment',
+          summaryParams: {
+            student: studentName(state, target.studentId),
+            course: courseName(state, target.courseId),
+          },
         },
       }
     })
@@ -1180,6 +1254,11 @@ export const useStore = create<StoreState>((set, get) => ({
           entity: 'enrollment',
           entityId: enrollmentId,
           summary: `Unenrolled ${target.studentId} from ${target.courseId}`,
+          summaryKey: 'auditLog.summary.unenroll',
+          summaryParams: {
+            student: studentName(state, target.studentId),
+            course: courseName(state, target.courseId),
+          },
         },
       }
     })
@@ -1218,6 +1297,12 @@ export const useStore = create<StoreState>((set, get) => ({
           entity: 'grade',
           entityId: existing.id,
           summary: `Updated grade for ${studentId} in ${courseId} to ${score}`,
+          summaryKey: 'auditLog.summary.updateGrade',
+          summaryParams: {
+            student: studentName(state, studentId),
+            course: courseName(state, courseId),
+            score,
+          },
         },
       }))
       return updated
@@ -1241,6 +1326,12 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'grade',
         entityId: grade.id,
         summary: `Graded ${studentId} in ${courseId} with ${score}`,
+        summaryKey: 'auditLog.summary.grade',
+        summaryParams: {
+          student: studentName(state, studentId),
+          course: courseName(state, courseId),
+          score,
+        },
       },
     }))
     return grade
@@ -1281,6 +1372,8 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'grade',
         entityId: gradeId,
         summary: `Updated grade ${gradeId} to ${score}`,
+        summaryKey: 'auditLog.summary.updateGrade',
+        summaryParams: { student: studentName(state, grade.studentId), course: course.name, score },
       },
     }))
   },
@@ -1312,6 +1405,11 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'grade',
         entityId: gradeId,
         summary: `Deleted grade ${gradeId}`,
+        summaryKey: 'auditLog.summary.deleteGrade',
+        summaryParams: {
+          student: studentName(state, grade.studentId),
+          course: courseName(state, grade.courseId),
+        },
       },
     }))
   },
@@ -1342,6 +1440,8 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'tcuActivity',
         entityId: activity.id,
         summary: `Logged TCU activity "${activity.title}" (${activity.hours} hours)`,
+        summaryKey: 'auditLog.summary.logTcu',
+        summaryParams: { title: activity.title, hours: activity.hours },
       },
     }))
     return activity
@@ -1397,6 +1497,9 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'tcuActivity',
         entityId: activityId,
         summary: `${decision === 'approved' ? 'Approved' : 'Rejected'} TCU activity ${activityId} for ${fullName(trainee)}`,
+        summaryKey:
+          decision === 'approved' ? 'auditLog.summary.approveTcu' : 'auditLog.summary.rejectTcu',
+        summaryParams: { title: updated.title, name: fullName(trainee) },
       },
     }))
     return updated
@@ -1426,6 +1529,8 @@ export const useStore = create<StoreState>((set, get) => ({
           entity: 'attendance',
           entityId: existing.id,
           summary: `Marked attendance for student ${studentId} on ${sessionDate} as ${status}`,
+          summaryKey: 'auditLog.summary.markAttendance',
+          summaryParams: { student: studentName(state, studentId), date: sessionDate, status },
         },
       }))
       return updated
@@ -1446,6 +1551,8 @@ export const useStore = create<StoreState>((set, get) => ({
           entity: 'attendance',
           entityId: newRecord.id,
           summary: `Created attendance for student ${studentId} on ${sessionDate} as ${status}`,
+          summaryKey: 'auditLog.summary.markAttendance',
+          summaryParams: { student: studentName(state, studentId), date: sessionDate, status },
         },
       }))
       return newRecord
@@ -1628,6 +1735,8 @@ export const useStore = create<StoreState>((set, get) => ({
             entity: 'announcement',
             entityId: announcement.id,
             summary: `Auto-posted session-change announcement ${announcement.id} for ${course.name}`,
+            summaryKey: 'auditLog.summary.autoPostAnnouncement',
+            summaryParams: { course: course.name },
           },
         ],
       }
@@ -1674,6 +1783,8 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'announcement',
         entityId: announcement.id,
         summary: `Posted announcement ${announcement.id} to ${course.name}`,
+        summaryKey: 'auditLog.summary.postAnnouncement',
+        summaryParams: { course: course.name },
       },
     }))
     return announcement
@@ -1702,6 +1813,8 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'announcement',
         entityId: id,
         summary: `Deleted announcement ${id} from ${course.name}`,
+        summaryKey: 'auditLog.summary.deleteAnnouncement',
+        summaryParams: { course: course.name },
       },
     }))
   },
@@ -1752,6 +1865,8 @@ export const useStore = create<StoreState>((set, get) => ({
         entity: 'emailCampaign',
         entityId: campaign.id,
         summary: `Sent email "${campaign.subject}" to ${emailCount} recipients`,
+        summaryKey: 'auditLog.summary.sendEmail',
+        summaryParams: { subject: campaign.subject, n: emailCount },
       },
     }))
     return campaign
