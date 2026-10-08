@@ -131,26 +131,24 @@ export function TcuDashboard() {
       {/* The hour stats as one stat row (stock section-card composition):
           approved-only progress toward the 300-hour target, with pending hours
           shown separately, not folded into progress (ADR-0036). */}
-      <motion.div
-        variants={fadeUp}
-        transition={transitionDefaults}
-        className="grid grid-cols-1 gap-4 sm:grid-cols-3"
-      >
-        <StatCard
-          label={t('dashboard.tcu.hoursCompleted')}
-          value={approvedHours}
-          format={(v) => `${v}h`}
-        />
-        <StatCard
-          label={t('dashboard.tcu.hoursRemaining')}
-          value={remainingHours}
-          format={(v) => `${v}h`}
-        />
-        <StatCard
-          label={t('tcu.dashboard.pendingHours')}
-          value={pendingHours}
-          format={(v) => `${v}h`}
-        />
+      <motion.div variants={fadeUp} transition={transitionDefaults} className="@container">
+        <div className="grid grid-cols-1 gap-4 @xl:grid-cols-3">
+          <StatCard
+            label={t('dashboard.tcu.hoursCompleted')}
+            value={approvedHours}
+            format={(v) => `${v}h`}
+          />
+          <StatCard
+            label={t('dashboard.tcu.hoursRemaining')}
+            value={remainingHours}
+            format={(v) => `${v}h`}
+          />
+          <StatCard
+            label={t('tcu.dashboard.pendingHours')}
+            value={pendingHours}
+            format={(v) => `${v}h`}
+          />
+        </div>
       </motion.div>
 
       {/* Supporting pair: the assigned Course's announcements (ADR-0040/0043)

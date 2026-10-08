@@ -34,39 +34,43 @@ export function StatRow({
     value === null ? undefined : { value, label: vsLastMonth, trend }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
-        <StatCard
-          label={t('dashboard.stats.students')}
-          value={totalStudents}
-          format={numberFormat}
-          delta={deltaProp(deltas.totalStudents)}
-        />
-      </motion.div>
-      <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
-        <StatCard
-          label={t('dashboard.stats.activeCourses')}
-          value={activeCourses}
-          format={numberFormat}
-          delta={deltaProp(deltas.activeCourses)}
-        />
-      </motion.div>
-      <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
-        <StatCard
-          label={t('dashboard.stats.certificatesIssued')}
-          value={certsIssued}
-          format={numberFormat}
-          delta={deltaProp(deltas.certsIssued)}
-        />
-      </motion.div>
-      <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
-        <StatCard
-          label={t('dashboard.stats.tcuHours')}
-          value={tcuHours}
-          format={numberFormat}
-          delta={deltaProp(deltas.tcuHours)}
-        />
-      </motion.div>
+    // Columns follow the row's own width, not the viewport: beside the sidebar
+    // and the agenda rail a 1280px screen leaves ~650px, too narrow for four.
+    <div className="@container">
+      <div className="grid grid-cols-1 gap-4 @md:grid-cols-2 @3xl:grid-cols-4">
+        <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
+          <StatCard
+            label={t('dashboard.stats.students')}
+            value={totalStudents}
+            format={numberFormat}
+            delta={deltaProp(deltas.totalStudents)}
+          />
+        </motion.div>
+        <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
+          <StatCard
+            label={t('dashboard.stats.activeCourses')}
+            value={activeCourses}
+            format={numberFormat}
+            delta={deltaProp(deltas.activeCourses)}
+          />
+        </motion.div>
+        <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
+          <StatCard
+            label={t('dashboard.stats.certificatesIssued')}
+            value={certsIssued}
+            format={numberFormat}
+            delta={deltaProp(deltas.certsIssued)}
+          />
+        </motion.div>
+        <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
+          <StatCard
+            label={t('dashboard.stats.tcuHours')}
+            value={tcuHours}
+            format={numberFormat}
+            delta={deltaProp(deltas.tcuHours)}
+          />
+        </motion.div>
+      </div>
     </div>
   )
 }
