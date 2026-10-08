@@ -97,7 +97,7 @@ function StatChips() {
     <dl className="mt-6 grid grid-cols-2 gap-4">
       {STATS.map((stat) => (
         <div key={stat.key} className="flex flex-col rounded-lg border bg-card px-4 py-3">
-          <dt className="order-2 mt-1 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground">
+          <dt className="order-2 mt-1 font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-muted-foreground">
             {t(`landing.qa.stats.${stat.key}`)}
           </dt>
           <dd className="order-1">

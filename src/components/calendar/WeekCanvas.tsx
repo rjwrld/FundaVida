@@ -139,6 +139,11 @@ export function WeekCanvas({
                 key={day.date.toISOString()}
                 ref={isToday ? todayRef : undefined}
                 data-today={isToday ? 'true' : undefined}
+                // Each day is a named group so screen readers hear the full date
+                // before its Sessions, and today is marked as the current date.
+                role="group"
+                aria-label={format(day.date, 'PPPP', { locale: dfLocale })}
+                aria-current={isToday ? 'date' : undefined}
                 className={cn(
                   'flex shrink-0 basis-[75%] snap-center flex-col gap-2 rounded-lg p-2 @md:basis-[45%] @2xl:basis-[30%] @4xl:basis-auto',
                   isToday && 'bg-primary/5'

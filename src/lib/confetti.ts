@@ -12,7 +12,7 @@ const GRAVITY = 1300 // px/s²
 
 // The Figure-Green ramp plus a warm accent, resolved at fire time so the burst
 // follows the active theme; literals cover a canvas that can't read the vars.
-const FALLBACK_COLORS = ['#37b874', '#1f8a55', '#8fdcb4', '#f2b04b']
+const FALLBACK_COLORS = ['#32982D', '#2A8426', '#8BC97F', '#F2B04B'] // Figure Green 500/600/300 + flame
 
 interface Particle {
   x: number
@@ -42,7 +42,7 @@ function createParticles(width: number, height: number): Particle[] {
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
       size: 5 + Math.random() * 5,
-      color: colors[i % colors.length] ?? '#37b874',
+      color: colors[i % colors.length] ?? '#32982D',
       rotation: Math.random() * Math.PI,
       spin: (Math.random() - 0.5) * 12,
     }

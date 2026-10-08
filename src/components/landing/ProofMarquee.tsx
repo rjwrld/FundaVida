@@ -61,7 +61,7 @@ function BrowserFrame({ shot, locale }: { shot: Shot; locale: string }) {
             <span className="size-2.5 rounded-full bg-flame-yellow-400/70" />
             <span className="size-2.5 rounded-full bg-brand-green-400/70" />
           </span>
-          <span className="truncate rounded-full bg-background px-2 py-0.5 font-mono text-[0.62rem] text-muted-foreground">
+          <span className="truncate rounded-full bg-background px-2 py-0.5 font-mono text-[0.6875rem] text-muted-foreground">
             fundavida.app{shot.path}
           </span>
         </div>
@@ -75,7 +75,7 @@ function BrowserFrame({ shot, locale }: { shot: Shot; locale: string }) {
           className="h-44 w-full object-cover object-top sm:h-52"
         />
       </div>
-      <figcaption className="mt-2 px-1 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground">
+      <figcaption className="mt-2 px-1 font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-muted-foreground">
         {label}
       </figcaption>
     </figure>

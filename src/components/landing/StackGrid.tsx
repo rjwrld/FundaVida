@@ -72,14 +72,14 @@ const FALLBACK_ICONS: Record<string, LucideIcon> = {
 const CENTER_INDEX = 9
 
 function DepIcon({ dep, reduce }: { dep: Dep; reduce: boolean }) {
-  // Grayscale + dimmed at rest; the real colours ignite on hover. The springy
-  // overshoot curve gives the lift its pop — under reduced motion the icon only
-  // recolours in place.
+  // Grayscale + dimmed at rest; the real colours ignite on hover. The
+  // ease-out-quart lift settles without a bounce — under reduced motion the
+  // icon only recolours in place.
   const ignite = cn(
     'size-7 grayscale opacity-60 transition-all duration-300',
     'group-hover:grayscale-0 group-hover:opacity-100',
     !reduce &&
-      'ease-[cubic-bezier(.34,1.56,.64,1)] group-hover:-translate-y-1 group-hover:scale-[1.18] group-hover:-rotate-3'
+      'ease-[cubic-bezier(.25,1,.5,1)] group-hover:-translate-y-1 group-hover:scale-[1.18] group-hover:-rotate-3'
   )
 
   const logo = STACK_LOGOS[dep.name]
@@ -125,7 +125,7 @@ function DepCell({ dep }: { dep: Dep }) {
       <DepIcon dep={dep} reduce={Boolean(reduce)} />
       <div className="relative">
         <span className="block font-mono text-sm font-medium text-foreground">{dep.name}</span>
-        <span className="mt-1 block font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground">
+        <span className="mt-1 block font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-muted-foreground">
           {dep.kind}
         </span>
       </div>
