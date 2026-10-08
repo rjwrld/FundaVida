@@ -53,13 +53,21 @@ export function Hero() {
           {LEFT_BADGES.map(renderBadge)}
         </div>
 
-        <motion.div {...center.container} className="order-1 text-center lg:order-none">
+        {/* The headline sizes on this column's width (cqi), not the viewport: in
+            the three-column layout a vw size pushed the longer Spanish line
+            ~50px into the badge column at 1024px. */}
+        <motion.div {...center.container} className="@container order-1 text-center lg:order-none">
           <motion.p
             variants={center.item.variants}
             transition={center.item.transition}
-            className="inline-flex items-center gap-2 font-mono text-[0.7rem] font-medium uppercase tracking-[0.14em] text-primary"
+            className="font-mono text-[0.7rem] font-medium uppercase tracking-[0.14em] text-primary"
           >
-            <span aria-hidden className="size-1.5 rounded-full bg-primary" />
+            {/* Inline with the text so the dot stays on the first line when the
+                eyebrow wraps, instead of floating beside the whole block. */}
+            <span
+              aria-hidden
+              className="mr-2 inline-block size-1.5 rounded-full bg-primary align-middle"
+            />
             <span>
               <Trans
                 i18nKey="landing.hero.eyebrow"
@@ -70,7 +78,7 @@ export function Hero() {
           <motion.h1
             variants={center.item.variants}
             transition={center.item.transition}
-            className="mt-5 font-display text-[clamp(3rem,7.2vw,6.4rem)] font-black uppercase leading-[0.96] tracking-[-0.03em] text-balance"
+            className="mt-5 font-display text-[clamp(2.25rem,14.5cqi,6.4rem)] font-black uppercase leading-[0.96] tracking-[-0.03em] text-balance"
           >
             <Trans
               i18nKey="landing.hero.headline"

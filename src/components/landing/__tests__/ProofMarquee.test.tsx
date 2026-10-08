@@ -27,7 +27,7 @@ function renderMarquee() {
   )
 }
 
-/** Every rendered screenshot `src` (the marquee duplicates its row, so shots repeat). */
+/** Every screenshot `src` exposed to assistive tech (the loop's copy is hidden). */
 function imageSrcs() {
   return screen.getAllByRole('img').map((img) => img.getAttribute('src'))
 }
@@ -69,5 +69,17 @@ describe('ProofMarquee', () => {
     await user.click(screen.getByRole('button', { name: /open the app/i }))
     expect(useStore.getState().role).toBe('admin')
     expect(screen.getByTestId('location')).toHaveTextContent('/app')
+  })
+
+  it('announces each screenshot once — the loop copy is hidden from assistive tech', () => {
+    renderMarquee()
+    expect(screen.getAllByRole('img')).toHaveLength(6)
+  })
+
+  it('offers a pause control for the moving row (WCAG 2.2.2)', async () => {
+    const user = userEvent.setup()
+    renderMarquee()
+    await user.click(screen.getByRole('button', { name: 'Pause' }))
+    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument()
   })
 })
