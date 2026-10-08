@@ -151,6 +151,33 @@ describe('<MarkSessionAttendancePage />', () => {
     expect(labeled.length).toBeGreaterThan(0)
   })
 
+  it('defaults every student to Present on a cold load, before the roster query resolves', async () => {
+    // The roster arrives asynchronously, so the first render sees an empty
+    // student list. The "everyone present" default must still land once the
+    // roster does — the page copy promises it and Save sends this map as-is.
+    useStore.getState().setRole('admin')
+    const state = useStore.getState()
+    const course = state.courses.find(
+      (c) =>
+        state.enrollments.some((e) => e.courseId === c.id && e.status === 'approved') &&
+        sessionsFor(c).some((s) => new Date(s.date) < today())
+    )
+    if (!course) throw new Error('expected a course with an approved roster and a past session')
+    const pastSession = sessionsFor(course).find((s) => new Date(s.date) < today())
+    if (!pastSession) throw new Error('expected a past session')
+
+    renderPage(`/app/courses/${course.id}/sessions/${pastSession.date}/mark`)
+
+    // The loading window shows the skeleton, never a premature "not found".
+    expect(screen.queryByText(/not found/i)).not.toBeInTheDocument()
+
+    const selects = await screen.findAllByRole('combobox')
+    expect(selects.length).toBeGreaterThan(0)
+    for (const select of selects) {
+      expect(select).toHaveTextContent('Present')
+    }
+  })
+
   it('shows read-only state for a future session', async () => {
     // setRole('teacher') acts as 'tea-1', who only sees own courses — pick one
     // of theirs that still has a Session after "today".

@@ -72,7 +72,7 @@ export function MarkSessionAttendancePage() {
           isMarkable: false,
           enrolledStudents: [],
           isValid: false,
-          error: 'Invalid parameters',
+          error: 'attendance.mark.errors.invalidParams' as const,
         }
       }
 
@@ -85,7 +85,7 @@ export function MarkSessionAttendancePage() {
           isMarkable: false,
           enrolledStudents: [],
           isValid: false,
-          error: 'Course not found',
+          error: 'attendance.mark.errors.courseNotFound' as const,
         }
       }
 
@@ -105,7 +105,7 @@ export function MarkSessionAttendancePage() {
           isMarkable: false,
           enrolledStudents: [],
           isValid: false,
-          error: 'Session not found',
+          error: 'attendance.mark.errors.sessionNotFound' as const,
         }
       }
 
@@ -121,7 +121,7 @@ export function MarkSessionAttendancePage() {
           isMarkable: false,
           enrolledStudents: [],
           isValid: true,
-          error: 'Session is in the future',
+          error: 'attendance.mark.future' as const,
         }
       }
 
@@ -166,24 +166,21 @@ export function MarkSessionAttendancePage() {
     [role, currentUserId, course]
   )
 
-  // Initialize attendance state: all students default to present
-  const [attendanceByStudentId, setAttendanceByStudentId] = useState<
-    Record<string, AttendanceRecord['status']>
-  >(() => {
-    const initial: Record<string, AttendanceRecord['status']> = {}
+  // Only the statuses the marker changed are stored; everyone else is present.
+  // Deriving the full map (rather than seeding it in a useState initializer)
+  // keeps the default correct when the roster query resolves after first
+  // render — a cold load used to leave every select blank and save nothing.
+  const [overrides, setOverrides] = useState<Record<string, AttendanceRecord['status']>>({})
+  const attendanceByStudentId = useMemo(() => {
+    const map: Record<string, AttendanceRecord['status']> = {}
     for (const student of enrolledStudents) {
-      if (student) {
-        initial[student.id] = 'present'
-      }
+      if (student) map[student.id] = overrides[student.id] ?? 'present'
     }
-    return initial
-  })
+    return map
+  }, [enrolledStudents, overrides])
 
   const handleStatusChange = (studentId: string, status: AttendanceRecord['status']) => {
-    setAttendanceByStudentId((prev) => ({
-      ...prev,
-      [studentId]: status,
-    }))
+    setOverrides((prev) => ({ ...prev, [studentId]: status }))
   }
 
   const handleSave = async () => {
@@ -213,12 +210,23 @@ export function MarkSessionAttendancePage() {
     return <Navigate to="/app" replace />
   }
 
+  // Rendering: loading. Checked before validation — while the queries are
+  // pending the course list is empty, which would otherwise read as "not found".
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title={t('attendance.mark.title')} />
+        <SkeletonTable />
+      </div>
+    )
+  }
+
   // Rendering: validation errors
   if (!isValid) {
     return (
       <div className="space-y-6">
         <PageHeader title={t('attendance.mark.title')} />
-        <div className="text-center text-destructive">{error}</div>
+        <div className="text-center text-destructive">{error ? t(error) : null}</div>
       </div>
     )
   }
@@ -241,16 +249,6 @@ export function MarkSessionAttendancePage() {
           <Info />
           <AlertDescription>{t('attendance.mark.future')}</AlertDescription>
         </Alert>
-      </div>
-    )
-  }
-
-  // Rendering: loading
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <PageHeader title={t('attendance.mark.title')} />
-        <SkeletonTable />
       </div>
     )
   }
@@ -286,7 +284,7 @@ export function MarkSessionAttendancePage() {
           <TableHeader>
             <TableRow>
               <TableHead>{t('attendance.mark.studentNameColumn')}</TableHead>
-              <TableHead className="text-right">{t('attendance.mark.status.present')}</TableHead>
+              <TableHead className="text-right">{t('attendance.mark.statusColumn')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -303,7 +301,7 @@ export function MarkSessionAttendancePage() {
                       }
                     >
                       <SelectTrigger
-                        className="w-32"
+                        className="ml-auto w-32"
                         aria-label={t('attendance.mark.statusLabel', {
                           name: fullName(student),
                         })}
