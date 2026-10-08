@@ -49,7 +49,7 @@ test('volunteer logs activity (pending) and teacher approves it', async ({ page 
   const activityTitle = `E2E Test Activity ${suffix}`
   const hours = 5
   await page.getByLabel('Activity title').fill(activityTitle)
-  await page.getByLabel('Hours').fill(String(hours))
+  await page.getByLabel(/^Hours \(/).fill(String(hours))
   // Date is auto-filled with today's date
   await page.getByRole('button', { name: 'Log activity' }).click()
 
