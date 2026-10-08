@@ -40,7 +40,12 @@ export function CommandPalette() {
   }
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
+    <CommandDialog
+      open={open}
+      onOpenChange={setOpen}
+      title={t('common.commandPalette.title')}
+      description={t('common.commandPalette.description')}
+    >
       <CommandInput placeholder={t('common.commandPalette.placeholder')} />
       <CommandList>
         <CommandEmpty>

@@ -122,6 +122,7 @@ export function CertificatesListPage() {
     [items, selectedId]
   )
 
+  const locale = useStore((s) => s.locale)
   const previewPayload = useMemo<CertificatePayload | null>(
     () =>
       selected
@@ -131,9 +132,10 @@ export function CertificatesListPage() {
             programName: selected.programName,
             score: selected.score,
             issuedAt: selected.issuedAtIso,
+            locale,
           }
         : null,
-    [selected]
+    [selected, locale]
   )
   const dataUrl = useCertificateBlobUrl(previewPayload)
 

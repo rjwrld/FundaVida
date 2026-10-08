@@ -62,8 +62,8 @@ export function CertificateCard({ cert, onOpen, justIssued = false, className }:
           palette and field order of CertificateTemplate / CertificatePreview, so
           the gallery previews what actually downloads. Paper stays white in dark
           mode — the certificate is a print artifact, not a themed surface — and
-          the copy stays English to match the artifact (the CertificatePreview
-          precedent). The Card's aria-label already narrates student + course,
+          the copy follows the active locale, like the preview and the PDF. The
+          Card's aria-label already narrates student + course,
           and the date/grade footer below is live text, so the miniature is
           decoration to assistive tech. */}
       <div
@@ -77,8 +77,8 @@ export function CertificateCard({ cert, onOpen, justIssued = false, className }:
         >
           <LogoMark variant="mark" size="xs" alt="" />
         </div>
-        <p className="text-[9px] tracking-[0.18em]" style={{ color: C.muted }}>
-          CERTIFICATE OF COMPLETION
+        <p className="text-[9px] uppercase tracking-[0.18em]" style={{ color: C.muted }}>
+          {t('certificates.document.title')}
         </p>
         <p
           className="line-clamp-1 w-full text-base font-bold leading-tight"

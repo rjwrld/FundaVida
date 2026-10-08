@@ -20,12 +20,15 @@ const dialogVariants: Variants = {
   visible: { opacity: 1, scale: 1, x: '-50%', y: '-50%' },
 }
 
+import type { Locale } from '@/data/persistence'
+
 interface PreviewPayload {
   studentName: string
   courseName: string
   programName: string
   score: number
   issuedAt: string
+  locale: Locale
 }
 
 interface Props {
@@ -92,6 +95,7 @@ export function CertificatePreviewDialog({ open, payload, dataUrl, downloadName,
                     programName={payload.programName}
                     score={payload.score}
                     issuedAt={payload.issuedAt}
+                    locale={payload.locale}
                   />
                 </div>
                 <div className="flex justify-end gap-2">

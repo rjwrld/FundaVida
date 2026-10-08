@@ -62,6 +62,7 @@ export function StudentCertificatesSection({ student }: { student: Student }) {
     [items, selectedId]
   )
 
+  const locale = useStore((s) => s.locale)
   const payload = useMemo<CertificatePayload | null>(
     () =>
       selected
@@ -71,9 +72,10 @@ export function StudentCertificatesSection({ student }: { student: Student }) {
             programName: selected.programName,
             score: selected.score,
             issuedAt: selected.issuedAtIso,
+            locale,
           }
         : null,
-    [selected, studentName]
+    [selected, studentName, locale]
   )
   const dataUrl = useCertificateBlobUrl(payload)
 

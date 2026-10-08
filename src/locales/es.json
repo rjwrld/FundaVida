@@ -291,6 +291,13 @@
     "weekRegion": "Sesiones de esta semana"
   },
   "certificates": {
+    "document": {
+      "body": "completó satisfactoriamente {{course}} ({{program}}) con una calificación final de {{score}}.",
+      "issued": "EMITIDO",
+      "program": "PROGRAMA",
+      "subtitle": "Otorgado en reconocimiento a la finalización satisfactoria del curso",
+      "title": "Certificado de finalización"
+    },
     "empty": {
       "body": "Un certificado aparece aquí cuando se cierra un curso.",
       "cta": "Ver matrículas",
@@ -321,6 +328,9 @@
     "a11y": {
       "breadcrumb": "Ruta de navegación",
       "filters": "Filtros",
+      "loading": "Cargando",
+      "loadingStat": "Cargando indicador",
+      "loadingTable": "Cargando tabla",
       "skipToMain": "Saltar al contenido principal"
     },
     "actions": {
@@ -338,6 +348,7 @@
       "save": "Guardar"
     },
     "commandPalette": {
+      "description": "Busca páginas y comandos",
       "empty": "Sin resultados.",
       "hints": {
         "close": "para cerrar",
@@ -345,7 +356,8 @@
       },
       "navigation": "Navegación",
       "placeholder": "Escribe un comando o busca…",
-      "theme": "Tema"
+      "theme": "Tema",
+      "title": "Paleta de comandos"
     },
     "confirmDelete": {
       "title": "Confirmar eliminación"
@@ -969,6 +981,7 @@
     "switch": "Cambiar rol"
   },
   "sidebar": {
+    "mobileDescription": "Navegación principal de la aplicación",
     "navAriaLabel": "Navegación",
     "toggle": "Alternar navegación"
   },
