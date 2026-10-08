@@ -16,7 +16,8 @@ import { listViewState } from '@/lib/listViewState'
 import { AUDIT_ACTION_VARIANT } from '@/lib/statusVariant'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { AuditLogsEmpty } from '@/components/empty-states/AuditLogsEmpty'
-import { useAuditLog } from '@/hooks/api'
+import { useAuditLog, useStudents, useTcuTrainees, useTeachers } from '@/hooks/api'
+import { fullName } from '@/lib/personName'
 import { useFormat } from '@/hooks/useFormat'
 import type { AuditLogFilters } from '@/data/api/auditLog'
 import type { AuditAction, AuditEntity, AuditLogEntry } from '@/types'
@@ -55,7 +56,33 @@ const ENTITIES: AuditEntity[] = [
 
 export function AuditLogPage() {
   const { t } = useTranslation()
-  const { formatDateTime } = useFormat()
+  const { formatDate, formatDateTime } = useFormat()
+  const { data: students } = useStudents()
+  const { data: teachers } = useTeachers()
+  const { data: trainees } = useTcuTrainees()
+
+  // Actors are user ids; show the person (or the role, for admin) instead.
+  const actorName = (id: string) => {
+    if (id === 'admin') return t('roles.admin.label')
+    const person =
+      teachers?.find((p) => p.id === id) ??
+      students?.find((p) => p.id === id) ??
+      trainees?.find((p) => p.id === id)
+    return person ? fullName(person) : id
+  }
+
+  // Entries carry an i18n key plus name-snapshotted params; enum and date
+  // params are localized here. Entries written before keys existed fall back
+  // to their stored English summary.
+  const summaryText = (e: AuditLogEntry) => {
+    if (!e.summaryKey) return e.summary
+    const params: Record<string, string | number> = { ...e.summaryParams }
+    if (typeof params.status === 'string') {
+      params.status = t(`attendance.list.status.${params.status}`).toLowerCase()
+    }
+    if (typeof params.date === 'string') params.date = formatDate(params.date)
+    return t(e.summaryKey, params)
+  }
   const [filters, setFilters] = useState<AuditLogFilters>({})
   const { data = [], isLoading } = useAuditLog(filters)
 
@@ -73,7 +100,7 @@ export function AuditLogPage() {
     {
       id: 'actor',
       header: t('auditLog.columns.actor'),
-      cell: (e) => e.actorId,
+      cell: (e) => actorName(e.actorId),
     },
     {
       id: 'action',
@@ -92,7 +119,7 @@ export function AuditLogPage() {
     {
       id: 'summary',
       header: t('auditLog.columns.summary'),
-      cell: (e) => e.summary,
+      cell: (e) => summaryText(e),
     },
   ]
 
@@ -129,7 +156,7 @@ export function AuditLogPage() {
             <SelectValue placeholder={t('auditLog.columns.entity')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">{t('auditLog.filter.all')}</SelectItem>
+            <SelectItem value="any">{t('auditLog.filter.allEntities')}</SelectItem>
             {ENTITIES.map((e) => (
               <SelectItem key={e} value={e}>
                 {t(`auditLog.entities.${e}`)}

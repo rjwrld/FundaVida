@@ -7,7 +7,7 @@ import { COURSE_LEVELS, COURSE_STATUSES } from '@/constants/course'
 // hand-mirroring it — the drift class that silently voided the pin when it lagged
 // (ADR-0039; the v3→v10 drift). A stale mirror not only no-ops the pin but sits in
 // the legacy purge list below, actively deleting the injected snapshot at boot.
-export const STATE_KEY = 'fundavida:v17:state'
+export const STATE_KEY = 'fundavida:v18:state'
 const ROLE_KEY = 'fundavida:v2:role'
 
 // Stale pre-v4 snapshot keys this layer owns. They are not migrated (ADR-0003,
@@ -35,6 +35,12 @@ const ROLE_KEY = 'fundavida:v2:role'
 // theme and banner-dismissed belong to other modules and must survive a reseed,
 // so they are deliberately left untouched. The v2 role, current-user, and locale
 // keys are unchanged by this slice and stay in use.
+//
+// The v18 key bump gives every audit entry a `summaryKey` + name-snapshotted
+// `summaryParams`, so the audit log renders in the active language instead of
+// stored English with raw ids. A v17 snapshot is *structurally* valid — the keys
+// are optional — so isValidSnapshot cannot reject it: only the key bump reseeds a
+// returning visitor into a log that translates.
 //
 // The v17 key bump derives attendance and grades from approved Enrollments only
 // (#412): a pending/rejected/withdrawn seat no longer ships orphan AttendanceRecords
@@ -78,6 +84,7 @@ const LEGACY_SNAPSHOT_KEYS = [
   'fundavida:v14:state',
   'fundavida:v15:state',
   'fundavida:v16:state',
+  'fundavida:v17:state',
 ]
 
 export type PersistedState = SeedSnapshot

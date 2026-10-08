@@ -31,9 +31,19 @@ describe('persistence', () => {
     expect(loaded?.students.length).toBe(snapshot.students.length)
   })
 
-  it('persists state under the v17 key', () => {
+  it('persists state under the v18 key', () => {
     savePersistedState(seedDemo(new Date()))
-    expect(window.localStorage.getItem('fundavida:v17:state')).not.toBeNull()
+    expect(window.localStorage.getItem('fundavida:v18:state')).not.toBeNull()
+  })
+
+  it('reseeds from a stale v17 snapshot and removes the stale v17 state key', () => {
+    // A returning v17 visitor's audit entries carry only English summaries with
+    // raw ids. The snapshot is structurally valid — summaryKey is optional — so
+    // only the key bump makes it stale; the world reseeds with keyed entries.
+    window.localStorage.setItem('fundavida:v17:state', JSON.stringify(seedDemo(new Date())))
+
+    expect(loadPersistedState()).toBeNull()
+    expect(window.localStorage.getItem('fundavida:v17:state')).toBeNull()
   })
 
   it('reseeds from a stale v16 snapshot and removes the stale v16 state key (#412)', () => {
