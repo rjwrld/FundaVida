@@ -19,7 +19,10 @@ export function LandingFooter() {
             {t('landing.footer.rearchitected', { org: FOUNDATION_NAME })}
           </p>
         </div>
-        <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-xs uppercase tracking-[0.12em]">
+        <nav
+          aria-label={t('landing.footer.navLabel')}
+          className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-xs uppercase tracking-[0.12em]"
+        >
           <a
             href="https://github.com/rjwrld/FundaVida"
             target="_blank"

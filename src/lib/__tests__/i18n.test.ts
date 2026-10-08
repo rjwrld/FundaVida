@@ -22,6 +22,15 @@ describe('i18n', () => {
     expect(i18next.t('nav.students')).toBe('Estudiantes')
   })
 
+  it('keeps the document language in step with the UI language', async () => {
+    // Screen readers pick their voice from <html lang>; a Spanish UI announced
+    // with an English voice is unintelligible (WCAG 3.1.1).
+    await i18next.changeLanguage('es')
+    expect(document.documentElement.lang).toBe('es')
+    await i18next.changeLanguage('en')
+    expect(document.documentElement.lang).toBe('en')
+  })
+
   it('falls back to English when a key is missing in Spanish', async () => {
     i18next.addResource('es', 'translation', 'temp.onlyInEnglish', '')
     i18next.addResource('en', 'translation', 'temp.onlyInEnglish', 'English Only')
