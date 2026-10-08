@@ -24,6 +24,7 @@
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "screenshots": "tsx scripts/screenshots.ts",
+    "images:derive": "tsx scripts/derive-images.ts",
     "prepare": "husky"
   },
   "dependencies": {

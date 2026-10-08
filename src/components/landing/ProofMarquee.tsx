@@ -11,7 +11,7 @@ import { useRoleEntry } from './useRoleEntry'
  * The proof marquee (ADR-0049, issue #386): a scrolling row of browser-framed
  * app screenshots between the hero and the Q&A — the "here's what's actually
  * inside" beat. Consumes the one screenshot pipeline (`scripts/screenshots.ts`,
- * #314): the same PNGs the README ships, resolved per active locale where an
+ * #314): thumbnails of the PNGs the README ships, resolved per active locale where an
  * es variant exists. Pauses on hover or from its pause control (WCAG 2.2.2);
  * under reduced motion it drops the scroll animation for a static,
  * touch- and keyboard-scrollable row.
@@ -20,7 +20,7 @@ import { useRoleEntry } from './useRoleEntry'
 interface Shot {
   /** i18n label key suffix (`landing.marquee.shots.${key}`). */
   key: string
-  /** Base filename under `public/screenshots/` (locale + `.png` appended). */
+  /** Base filename under `public/screenshots/` (locale + `.thumb.webp` appended). */
   file: string
   /** The app route shown in the frame's mono URL caption. */
   path: string
@@ -48,7 +48,9 @@ function BrowserFrame({ shot, locale }: { shot: Shot; locale: string }) {
   const { t } = useTranslation()
   const label = t(`landing.marquee.shots.${shot.key}`)
   const variant = shot.bilingual ? locale : 'en'
-  const src = `/screenshots/${shot.file}.${variant}.png`
+  // 800px WebP derived from the full capture (scripts/derive-images.ts): the
+  // frame shows ~350px, so the 2880px README PNGs were ~1.6MB of waste.
+  const src = `/screenshots/${shot.file}.${variant}.thumb.webp`
 
   return (
     <figure className="w-[18rem] shrink-0 sm:w-[22rem]">
@@ -67,8 +69,9 @@ function BrowserFrame({ shot, locale }: { shot: Shot; locale: string }) {
           src={src}
           alt={t('landing.marquee.shotAlt', { label })}
           loading="lazy"
-          width={1440}
-          height={900}
+          decoding="async"
+          width={800}
+          height={500}
           className="h-44 w-full object-cover object-top sm:h-52"
         />
       </div>
