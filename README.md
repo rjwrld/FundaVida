@@ -151,7 +151,7 @@ _Calendar — month term map with milestone glyphs._
 
 Every module ships in both locales; `npm run i18n:check` fails CI on any missing translation.
 
-> **Maintenance:** these PNGs and `public/og-image.png` are committed, not generated in CI, so they can silently drift from the live UI. Regenerate them with `npm run screenshots` whenever a shot's surface changes visually (theme, layout, seed), and commit the result.
+> **Maintenance:** these PNGs, their landing thumbnails (`*.thumb.webp`) and `public/og-image.png` are committed, not generated in CI, so they can silently drift from the live UI. Regenerate them with `npm run screenshots` whenever a shot's surface changes visually (theme, layout, seed), and commit the result. `npm run images:derive` alone rebuilds the thumbnails and the social preview card without recapturing.
 
 ## Getting started
 

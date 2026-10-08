@@ -8,4 +8,4 @@ Design sources, not shipped assets — nothing here is referenced by the app or 
 - `landing-hero.svg`, `login-hero.svg` — hero illustrations. `login-hero` was stripped and cropped
   into the `/welcome` role-select view rather than used whole.
 
-Shipped illustrations live in `public/illustrations/`; the social card is `docs/brand/og-image.svg`.
+Shipped illustrations live in `public/illustrations/`; the social preview card (`public/og-image.png`) is rendered by `scripts/derive-images.ts`.
