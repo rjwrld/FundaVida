@@ -287,6 +287,13 @@
     "weekRegion": "Sessions this week"
   },
   "certificates": {
+    "document": {
+      "body": "has successfully completed {{course}} ({{program}}) with a final score of {{score}}.",
+      "issued": "ISSUED",
+      "program": "PROGRAM",
+      "subtitle": "Awarded in recognition of the successful completion of the course",
+      "title": "Certificate of Completion"
+    },
     "empty": {
       "body": "A certificate appears here once a course is closed.",
       "cta": "View enrollments",
@@ -317,6 +324,9 @@
     "a11y": {
       "breadcrumb": "Breadcrumb",
       "filters": "Filters",
+      "loading": "Loading",
+      "loadingStat": "Loading stat",
+      "loadingTable": "Loading table",
       "skipToMain": "Skip to main content"
     },
     "actions": {
@@ -334,6 +344,7 @@
       "save": "Save"
     },
     "commandPalette": {
+      "description": "Search pages and commands",
       "empty": "No results.",
       "hints": {
         "close": "to close",
@@ -341,7 +352,8 @@
       },
       "navigation": "Navigation",
       "placeholder": "Type a command or search…",
-      "theme": "Theme"
+      "theme": "Theme",
+      "title": "Command palette"
     },
     "confirmDelete": {
       "title": "Confirm deletion"
@@ -961,6 +973,7 @@
     "switch": "Switch role"
   },
   "sidebar": {
+    "mobileDescription": "Main navigation for the app",
     "navAriaLabel": "Navigation",
     "toggle": "Toggle navigation"
   },

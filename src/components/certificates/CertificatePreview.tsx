@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next'
 import { LogoMark } from '@/components/brand/LogoMark'
 import { formatDate } from '@/lib/format'
 import { CERTIFICATE_COLORS as C } from '@/lib/pdf/certificateTheme'
+import type { Locale } from '@/data/persistence'
 
 interface Props {
   studentName: string
@@ -8,6 +10,7 @@ interface Props {
   programName: string
   score: number
   issuedAt: string
+  locale: Locale
 }
 
 /**
@@ -16,7 +19,8 @@ interface Props {
  * @react-pdf's <PDFViewer>, whose <iframe> blob shows blank in any browser
  * without a native inline PDF viewer (headless/embedded, or "download PDFs"
  * configured). The PDF itself is still generated for the Download action — this
- * is only the preview surface, so the copy stays English to match the artifact.
+ * is only the preview surface, so it reads the same keys in the same locale as
+ * the artifact.
  *
  * Colours come from the shared {@link CERTIFICATE_COLORS} palette (not the
  * theme-able app tokens), applied inline so the preview and the PDF template
@@ -28,8 +32,10 @@ export function CertificatePreview({
   programName,
   score,
   issuedAt,
+  locale,
 }: Props) {
-  const issued = formatDate(issuedAt, 'en')
+  const { t } = useTranslation(undefined, { lng: locale })
+  const issued = formatDate(issuedAt, locale)
   return (
     // Size-query container + scroll area: the certificate scales to fit the smaller
     // of the available width/height (Option C), down to a 20rem readable floor, after
@@ -51,9 +57,11 @@ export function CertificatePreview({
           <p className="text-xs tracking-[0.2em]" style={{ color: C.navy }}>
             FUNDAVIDA
           </p>
-          <h3 className="mt-4 text-2xl font-bold sm:text-3xl">Certificate of Completion</h3>
+          <h3 className="mt-4 text-2xl font-bold sm:text-3xl">
+            {t('certificates.document.title')}
+          </h3>
           <p className="mt-2 text-xs" style={{ color: C.slate }}>
-            Awarded in recognition of the successful completion of the course
+            {t('certificates.document.subtitle')}
           </p>
         </div>
         <div className="flex flex-col items-center">
@@ -61,13 +69,17 @@ export function CertificatePreview({
             {studentName}
           </p>
           <p className="mt-3 text-sm" style={{ color: C.ink }}>
-            has successfully completed {courseName} ({programName}) with a final score of {score}.
+            {t('certificates.document.body', {
+              course: courseName,
+              program: programName,
+              score: String(score),
+            })}
           </p>
         </div>
         <div className="flex w-full items-end justify-between">
           <div className="text-left">
             <p className="text-[10px] tracking-wide" style={{ color: C.muted }}>
-              ISSUED
+              {t('certificates.document.issued')}
             </p>
             <p className="text-xs" style={{ color: C.ink }}>
               {issued}
@@ -75,7 +87,7 @@ export function CertificatePreview({
           </div>
           <div className="text-left">
             <p className="text-[10px] tracking-wide" style={{ color: C.muted }}>
-              PROGRAM
+              {t('certificates.document.program')}
             </p>
             <p className="text-xs" style={{ color: C.ink }}>
               {programName}

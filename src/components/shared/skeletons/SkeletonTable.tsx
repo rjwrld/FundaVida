@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -9,10 +10,11 @@ export interface SkeletonTableProps extends React.HTMLAttributes<HTMLDivElement>
 }
 
 export function SkeletonTable({ rows = 5, columns = 4, className, ...props }: SkeletonTableProps) {
+  const { t } = useTranslation()
   return (
     <Card
       role="status"
-      aria-label="Loading table"
+      aria-label={t('common.a11y.loadingTable')}
       className={cn('overflow-hidden py-0 gap-0', className)}
       {...props}
     >
