@@ -38,6 +38,11 @@
     "mark": {
       "cancel": "Cancel",
       "empty": "No students enrolled in this session.",
+      "errors": {
+        "courseNotFound": "Course not found.",
+        "invalidParams": "This attendance link is incomplete.",
+        "sessionNotFound": "This Session is not on the Course calendar."
+      },
       "future": "This session is in the future and cannot be marked.",
       "save": "Save",
       "sessionNumber": "Session {{ordinal}} of {{total}}",
@@ -46,6 +51,7 @@
         "excused": "Excused",
         "present": "Present"
       },
+      "statusColumn": "Status",
       "statusLabel": "Attendance status for {{name}}",
       "studentNameColumn": "Student",
       "subtitle": "Mark attendance for the selected session. All students default to present.",

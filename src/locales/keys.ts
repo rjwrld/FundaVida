@@ -288,3 +288,8 @@ t('calendar.month.milestones.cohortEnd')
 t('calendar.month.milestones.cancelled')
 t('calendar.month.milestones.rescheduledFrom')
 t('calendar.month.milestones.rescheduledTo')
+
+// Keys referenced via t(error) on MarkSessionAttendancePage's validation states
+t('attendance.mark.errors.invalidParams')
+t('attendance.mark.errors.courseNotFound')
+t('attendance.mark.errors.sessionNotFound')
