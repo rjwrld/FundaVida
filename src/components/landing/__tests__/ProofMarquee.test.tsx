@@ -45,10 +45,10 @@ describe('ProofMarquee', () => {
     renderMarquee()
     const srcs = imageSrcs()
     // Bilingual shot follows the active locale.
-    expect(srcs).toContain('/screenshots/calendar.en.png')
+    expect(srcs).toContain('/screenshots/calendar.en.thumb.webp')
     // Single-locale shots (dashboard hero, dark mark-session) are always `.en`.
-    expect(srcs).toContain('/screenshots/hero.en.png')
-    expect(srcs).toContain('/screenshots/mark-session.en.png')
+    expect(srcs).toContain('/screenshots/hero.en.thumb.webp')
+    expect(srcs).toContain('/screenshots/mark-session.en.thumb.webp')
   })
 
   it('follows the active locale to the es variant, but keeps single-locale shots on en', () => {
@@ -56,11 +56,11 @@ describe('ProofMarquee', () => {
     renderMarquee()
     const srcs = imageSrcs()
     // Bilingual shots switch to the Spanish capture.
-    expect(srcs).toContain('/screenshots/calendar.es.png')
-    expect(srcs).toContain('/screenshots/students.es.png')
+    expect(srcs).toContain('/screenshots/calendar.es.thumb.webp')
+    expect(srcs).toContain('/screenshots/students.es.thumb.webp')
     // A shot with no es variant does not invent one.
-    expect(srcs).toContain('/screenshots/mark-session.en.png')
-    expect(srcs).not.toContain('/screenshots/mark-session.es.png')
+    expect(srcs).toContain('/screenshots/mark-session.en.thumb.webp')
+    expect(srcs).not.toContain('/screenshots/mark-session.es.thumb.webp')
   })
 
   it('walks the visitor into the app as admin from the head link', async () => {

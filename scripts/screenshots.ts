@@ -2,7 +2,8 @@
  * Deterministic screenshot pipeline for README + landing + OG image.
  *
  * Launches a dev server, navigates to known flows in both locales, and writes
- * PNGs to public/screenshots/ + public/og-image.png.
+ * PNGs to public/screenshots/, then derives the landing thumbnails and the
+ * social preview card (scripts/derive-images.ts).
  *
  * Run: `npm run screenshots`
  */
@@ -13,6 +14,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { setTimeout as delay } from 'node:timers/promises'
 import { resolvePort } from './ports'
+import { deriveImages } from './derive-images'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
@@ -196,7 +198,10 @@ async function enterAsAdmin(page: Page, locale: Locale) {
   await page.reload()
   // The landing locale switch is a Radix ToggleGroup (radiogroup of radios),
   // not the plain buttons it used to be (#326 shadcn primitives port).
-  const localeButton = page.getByRole('radio', { name: locale, exact: true })
+  const localeButton = page.getByRole('radio', {
+    name: locale === 'en' ? 'English' : 'Español',
+    exact: true,
+  })
   await localeButton.click()
   const enterButton = page
     .getByRole('button', {
@@ -225,19 +230,6 @@ async function captureShot(page: Page, shot: Shot, locale: Locale) {
   console.log(`wrote ${filename}`)
 }
 
-async function captureOgImage(page: Page) {
-  // A prior shot may have emulated dark; the OG card is always the light hero.
-  await page.emulateMedia({ colorScheme: 'light' })
-  await page.setViewportSize({ width: 1200, height: 630 })
-  await page.goto(DEV_URL)
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
-  await page.waitForLoadState('networkidle')
-  const outPath = join(PUBLIC, 'og-image.png')
-  await page.screenshot({ path: outPath, fullPage: false })
-  console.log('wrote og-image.png')
-}
-
 async function main() {
   await mkdir(SHOTS_DIR, { recursive: true })
 
@@ -252,12 +244,11 @@ async function main() {
         await captureShot(page, shot, locale)
       }
     }
-    await captureOgImage(page)
-
     await browser.close()
   } finally {
     server.kill('SIGINT')
   }
+  await deriveImages()
 }
 
 main().catch((err) => {
