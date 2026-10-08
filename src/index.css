@@ -144,6 +144,27 @@
   }
 }
 
+/* A table wider than its container fades out at the clipped edge(s), so the
+   hidden columns read as "scroll for more" instead of simply missing. A mask
+   (not an overlay) keeps it correct on any surface — card, page or muted. The
+   attributes are set by ui/table's scroll-edge tracking; focus drops the
+   mask so the focus outline shows whole. */
+[data-slot='table-container'][data-fade-end]:not(:focus-visible) {
+  mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent);
+}
+[data-slot='table-container'][data-fade-start]:not(:focus-visible) {
+  mask-image: linear-gradient(to left, #000 calc(100% - 3rem), transparent);
+}
+[data-slot='table-container'][data-fade-start][data-fade-end]:not(:focus-visible) {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 3rem,
+    #000 calc(100% - 3rem),
+    transparent
+  );
+}
+
 /* The landing's grid-paper ground (ADR-0049): faint workbook squares drawn
    from the border token at low alpha, so both themes carry the texture without
    a dedicated color. Applied per band (hero, marquee), never to the page. */

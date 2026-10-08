@@ -2,9 +2,54 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
+// Tracks whether the table overflows its container and where the scroll sits,
+// so a clipped table can say so: an edge fade marks the hidden side, and the
+// container joins the tab order (keyboard users can scroll it; WCAG 2.1.1).
+function useScrollEdges(ref: React.RefObject<HTMLDivElement | null>) {
+  const [edges, setEdges] = React.useState({ overflowing: false, atStart: true, atEnd: true })
+
+  React.useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const update = () => {
+      const overflowing = el.scrollWidth > el.clientWidth + 1
+      const atStart = el.scrollLeft <= 1
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1
+      setEdges((prev) =>
+        prev.overflowing === overflowing && prev.atStart === atStart && prev.atEnd === atEnd
+          ? prev
+          : { overflowing, atStart, atEnd }
+      )
+    }
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
+    observer?.observe(el)
+    if (el.firstElementChild) observer?.observe(el.firstElementChild)
+    return () => {
+      el.removeEventListener('scroll', update)
+      observer?.disconnect()
+    }
+  }, [ref])
+
+  return edges
+}
+
 function Table({ className, ...props }: React.ComponentProps<'table'>) {
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const { overflowing, atStart, atEnd } = useScrollEdges(containerRef)
+
   return (
-    <div data-slot="table-container" className="relative w-full overflow-x-auto">
+    <div
+      ref={containerRef}
+      data-slot="table-container"
+      data-fade-start={overflowing && !atStart ? '' : undefined}
+      data-fade-end={overflowing && !atEnd ? '' : undefined}
+      // Focusable only while it actually scrolls (see useScrollEdges).
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+      tabIndex={overflowing ? 0 : undefined}
+      className="relative w-full overflow-x-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+    >
       <table
         data-slot="table"
         className={cn('w-full caption-bottom text-sm', className)}
