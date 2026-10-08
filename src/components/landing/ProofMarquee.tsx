@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Pause, Play } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStore } from '@/data/store'
 import { fadeUpHidden, transitionDefaults } from '@/lib/motion'
@@ -11,8 +12,9 @@ import { useRoleEntry } from './useRoleEntry'
  * app screenshots between the hero and the Q&A — the "here's what's actually
  * inside" beat. Consumes the one screenshot pipeline (`scripts/screenshots.ts`,
  * #314): the same PNGs the README ships, resolved per active locale where an
- * es variant exists. Pauses on hover; under reduced motion it drops the scroll
- * animation for a static, touch-scrollable row.
+ * es variant exists. Pauses on hover or from its pause control (WCAG 2.2.2);
+ * under reduced motion it drops the scroll animation for a static,
+ * touch- and keyboard-scrollable row.
  */
 
 interface Shot {
@@ -81,6 +83,7 @@ export function ProofMarquee() {
   const reduce = useReducedMotion()
   const locale = useStore((s) => s.locale)
   const { t, enterAsAdmin } = useRoleEntry()
+  const [paused, setPaused] = useState(false)
 
   const frames = SHOTS.map((shot) => <BrowserFrame key={shot.key} shot={shot} locale={locale} />)
 
@@ -97,18 +100,43 @@ export function ProofMarquee() {
           <span aria-hidden className="size-1.5 rounded-full bg-primary" />
           {t('landing.marquee.head')}
         </p>
-        <button
-          type="button"
-          onClick={enterAsAdmin}
-          className="group inline-flex items-center gap-2 font-mono text-[0.7rem] font-medium uppercase tracking-[0.12em] text-foreground transition-colors hover:text-primary"
-        >
-          {t('landing.marquee.openApp')}
-          <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-        </button>
+        <div className="flex items-center gap-4">
+          {reduce ? null : (
+            <button
+              type="button"
+              onClick={() => setPaused((p) => !p)}
+              className="inline-flex items-center gap-1.5 font-mono text-[0.7rem] font-medium uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {paused ? (
+                <Play size={12} aria-hidden="true" />
+              ) : (
+                <Pause size={12} aria-hidden="true" />
+              )}
+              {paused ? t('landing.marquee.play') : t('landing.marquee.pause')}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={enterAsAdmin}
+            className="group inline-flex items-center gap-2 font-mono text-[0.7rem] font-medium uppercase tracking-[0.12em] text-foreground transition-colors hover:text-primary"
+          >
+            {t('landing.marquee.openApp')}
+            <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+          </button>
+        </div>
       </motion.div>
 
       {reduce ? (
-        <div className="mt-10 flex gap-5 overflow-x-auto px-6 pb-2 lg:px-10">{frames}</div>
+        // A static row: focusable so keyboard users can scroll it too.
+        <div
+          role="region"
+          aria-label={t('landing.marquee.head')}
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+          tabIndex={0}
+          className="mt-10 flex gap-5 overflow-x-auto px-6 pb-2 lg:px-10"
+        >
+          {frames}
+        </div>
       ) : (
         <motion.div
           initial={fadeUpHidden}
@@ -117,7 +145,9 @@ export function ProofMarquee() {
           transition={transitionDefaults}
           className="mt-10 [mask-image:linear-gradient(90deg,transparent,#000_6%,#000_94%,transparent)]"
         >
-          <Marquee className="[--duration:48s] [--gap:1.25rem] py-1">{frames}</Marquee>
+          <Marquee paused={paused} className="[--duration:48s] [--gap:1.25rem] py-1">
+            {frames}
+          </Marquee>
         </motion.div>
       )}
     </section>

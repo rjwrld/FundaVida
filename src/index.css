@@ -140,7 +140,9 @@
     transform: translateX(0);
   }
   to {
-    transform: translateX(-100%);
+    /* One track width plus the gap between tracks: the second track then sits
+       exactly where the first started, so the loop has no seam. */
+    transform: translateX(calc(-100% - var(--gap)));
   }
 }
 

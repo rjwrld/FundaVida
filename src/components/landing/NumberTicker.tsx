@@ -1,6 +1,12 @@
-import { useInView } from 'framer-motion'
+import { useInView, useReducedMotion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
+import { useFormat } from '@/hooks/useFormat'
 
+/**
+ * Counts up to `value` once it scrolls half into view. Under reduced motion it
+ * shows the final number straight away; numbers format in the app's locale
+ * (not the browser's), matching every other figure on the page.
+ */
 export function NumberTicker({
   value,
   duration = 1500,
@@ -14,10 +20,12 @@ export function NumberTicker({
 }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true, amount: 0.5 })
+  const reduce = useReducedMotion()
+  const { formatNumber } = useFormat()
   const [display, setDisplay] = useState(0)
 
   useEffect(() => {
-    if (!inView) return
+    if (!inView || reduce) return
     const start = performance.now()
     let frame: number
     const tick = (now: number) => {
@@ -27,11 +35,12 @@ export function NumberTicker({
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [inView, value, duration])
+  }, [inView, reduce, value, duration])
 
+  const shown = reduce ? value : display
   return (
     <span ref={ref} className={className}>
-      {format ? format(display) : display.toLocaleString()}
+      {format ? format(shown) : formatNumber(shown)}
     </span>
   )
 }

@@ -786,6 +786,8 @@
     "marquee": {
       "head": "Algunas pantallas desde dentro",
       "openApp": "Abrir la app",
+      "pause": "Pausar",
+      "play": "Reanudar",
       "shotAlt": "La pantalla de {{label}} dentro de la app",
       "shots": {
         "calendar": "Calendario",

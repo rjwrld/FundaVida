@@ -80,7 +80,9 @@ function InfraDelta() {
           </span>
           <ArrowRight aria-hidden size={14} className="shrink-0 text-brand-green-600" />
           <span className="text-sm font-semibold leading-snug text-foreground">
-            <span className="rounded-xs bg-brand-green-100/70 px-1.5 py-0.5">{row.after}</span>
+            <span className="rounded-xs bg-brand-green-100/70 px-1.5 py-0.5 dark:bg-brand-green-400/20">
+              {row.after}
+            </span>
           </span>
         </motion.li>
       ))}

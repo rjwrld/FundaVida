@@ -778,6 +778,8 @@
     "marquee": {
       "head": "A few screens from inside",
       "openApp": "Open the app",
+      "pause": "Pause",
+      "play": "Play",
       "shotAlt": "The {{label}} screen inside the app",
       "shots": {
         "calendar": "Calendar",
