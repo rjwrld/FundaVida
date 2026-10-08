@@ -771,6 +771,7 @@
     "footer": {
       "github": "Código",
       "linkedin": "LinkedIn",
+      "navLabel": "Enlaces del proyecto",
       "org": "FundaVida org",
       "rearchitected": "Demo de portafolio rearquitecturizada de {{org}}"
     },
@@ -797,6 +798,7 @@
     },
     "nav": {
       "github": "GitHub",
+      "label": "Sitio",
       "openApp": "Abrir la app"
     },
     "qa": {
@@ -1056,6 +1058,7 @@
       "subtitle": "Horas de servicio comunitario registradas por becarios hacia su requisito de 300 horas.",
       "title": "Actividades TCU"
     },
+    "progressAria": "{{approved}} de {{target}} horas aprobadas",
     "roster": {
       "columns": {
         "approved": "Aprobadas",
@@ -1064,6 +1067,7 @@
         "progress": "Progreso"
       },
       "filterBy": "Mostrar solo las actividades de {{name}}",
+      "progressAria": "{{name}}: {{approved}} de {{target}} horas aprobadas",
       "title": "Progreso de becarios"
     }
   },

@@ -763,6 +763,7 @@
     "footer": {
       "github": "Source",
       "linkedin": "LinkedIn",
+      "navLabel": "Project links",
       "org": "FundaVida org",
       "rearchitected": "Rearchitected portfolio demo of {{org}}"
     },
@@ -789,6 +790,7 @@
     },
     "nav": {
       "github": "GitHub",
+      "label": "Site",
       "openApp": "Open app"
     },
     "qa": {
@@ -1048,6 +1050,7 @@
       "subtitle": "Community service hours logged by trainees toward their 300-hour requirement.",
       "title": "TCU activities"
     },
+    "progressAria": "{{approved}} of {{target}} approved hours",
     "roster": {
       "columns": {
         "approved": "Approved",
@@ -1056,6 +1059,7 @@
         "progress": "Progress"
       },
       "filterBy": "Show only {{name}}'s activities",
+      "progressAria": "{{name}}: {{approved}} of {{target}} approved hours",
       "title": "Trainee progress"
     }
   },

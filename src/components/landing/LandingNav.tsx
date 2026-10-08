@@ -23,7 +23,10 @@ export function LandingNav() {
   }
 
   return (
-    <nav className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur-md">
+    <nav
+      aria-label={t('landing.nav.label')}
+      className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur-md"
+    >
       <div className="container mx-auto flex h-14 items-center justify-between px-6 lg:px-10">
         <span className="flex items-center gap-2.5 font-display text-base font-extrabold tracking-tight">
           <LogoMark variant="mark" size="sm" alt="" className="h-7" />

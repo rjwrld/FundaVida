@@ -40,7 +40,9 @@ export function ProgramsListPage() {
                   className="group block h-full focus-visible:outline-hidden"
                   aria-label={program.name}
                 >
-                  <Card className="h-full transition-colors hover:border-primary/50">
+                  {/* The Link drops its own outline, so the card carries the focus ring
+                      (it was invisible to keyboard users; WCAG 2.4.7). */}
+                  <Card className="h-full transition-colors group-hover:border-primary/50 group-focus-visible:border-ring group-focus-visible:ring-[3px] group-focus-visible:ring-ring/50">
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between gap-2">
                         <span>{program.name}</span>

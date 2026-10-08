@@ -109,7 +109,14 @@ export function TcuListPage() {
                 <p className="text-xs text-muted-foreground">{t('tcu.dashboard.approvedHours')}</p>
               </div>
             </div>
-            <Progress value={progressPercent} className="h-2" />
+            <Progress
+              value={progressPercent}
+              className="h-2"
+              aria-label={t('tcu.progressAria', {
+                approved: formatNumber(approvedHours),
+                target: TCU_TARGET_HOURS,
+              })}
+            />
             {pendingHours > 0 && (
               <p className="text-xs text-muted-foreground">
                 + {formatNumber(pendingHours)} {t('tcu.dashboard.pendingHours')}

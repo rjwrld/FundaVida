@@ -112,6 +112,11 @@ export function TraineeProgressRoster({
                       <Progress
                         value={Math.min((approved / TCU_TARGET_HOURS) * 100, 100)}
                         className="h-2"
+                        aria-label={t('tcu.roster.progressAria', {
+                          name: fullName(trainee),
+                          approved: formatNumber(approved),
+                          target: TCU_TARGET_HOURS,
+                        })}
                       />
                       <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
                         {formatNumber(approved)}/{TCU_TARGET_HOURS}

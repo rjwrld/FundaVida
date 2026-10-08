@@ -22,6 +22,14 @@ void i18next.use(initReactI18next).init({
   },
 })
 
+// Screen readers choose their voice from <html lang>, so it follows the UI
+// language (index.html ships "en" for the first paint).
+function syncDocumentLang(lng: string) {
+  if (typeof document !== 'undefined') document.documentElement.lang = lng
+}
+i18next.on('languageChanged', syncDocumentLang)
+if (i18next.language) syncDocumentLang(i18next.language)
+
 export function I18nProvider({ children }: { children: ReactNode }) {
   const locale = useStore((s) => s.locale)
 
