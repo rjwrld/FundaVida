@@ -181,6 +181,7 @@
   },
   "calendar": {
     "card": {
+      "markAria": "Registrar asistencia: {{course}}, {{date}}, sesión {{n}}",
       "markAttendance": "Registrar asistencia",
       "session": "Sesión"
     },
@@ -253,7 +254,8 @@
     "viewToggle": {
       "month": "Mes",
       "week": "Semana"
-    }
+    },
+    "weekRegion": "Sesiones de esta semana"
   },
   "certificates": {
     "empty": {

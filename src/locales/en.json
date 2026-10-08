@@ -180,6 +180,7 @@
   },
   "calendar": {
     "card": {
+      "markAria": "Mark attendance: {{course}}, {{date}}, session {{n}}",
       "markAttendance": "Mark attendance",
       "session": "Session"
     },
@@ -249,7 +250,8 @@
     "viewToggle": {
       "month": "Month",
       "week": "Week"
-    }
+    },
+    "weekRegion": "Sessions this week"
   },
   "certificates": {
     "empty": {

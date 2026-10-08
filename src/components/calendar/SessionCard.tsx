@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { calendarCardName } from '@/lib/courseName'
 import { cn } from '@/lib/utils'
+import { useFormat } from '@/hooks/useFormat'
 import type { Session } from '@/lib/sessions'
 import type { AttendanceRecord, Course } from '@/types'
 
@@ -39,8 +40,8 @@ const VERDICT_RAIL: Record<AttendanceRecord['status'], string> = {
   excused: 'border-l-muted-foreground',
 }
 const VERDICT_TEXT: Record<AttendanceRecord['status'], string> = {
-  present: 'text-[oklch(0.5_0.16_138)] dark:text-[oklch(0.78_0.14_138)]',
-  absent: 'text-[oklch(0.55_0.2_25)] dark:text-[oklch(0.72_0.17_22)]',
+  present: 'text-success-text',
+  absent: 'text-destructive-text',
   excused: 'text-muted-foreground',
 }
 
@@ -62,6 +63,7 @@ export function SessionCard({
   time = 'future',
 }: SessionCardProps) {
   const { t } = useTranslation()
+  const { formatDate } = useFormat()
 
   const verdict =
     status === 'present' || status === 'absent' || status === 'excused' ? status : null
@@ -71,7 +73,9 @@ export function SessionCard({
     <>
       <p
         className={cn(
-          'line-clamp-2 text-sm font-medium',
+          // Day columns can be narrow: break long Spanish words (with a hyphen
+          // where the language allows) instead of clipping them mid-glyph.
+          'line-clamp-2 text-sm font-medium hyphens-auto wrap-break-word',
           time === 'past' ? 'text-muted-foreground' : 'text-foreground'
         )}
       >
@@ -90,9 +94,11 @@ export function SessionCard({
         </p>
       ) : null}
       {showAction ? (
-        <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary">
+        // Inline text (not a flex row) so the arrow wraps with the last word
+        // rather than poking out of a narrow card.
+        <span className="mt-2 block text-xs font-semibold text-primary">
           {t('calendar.card.markAttendance')}
-          <ArrowRight className="size-3" aria-hidden="true" />
+          <ArrowRight className="ml-1 inline size-3 align-[-0.125em]" aria-hidden="true" />
         </span>
       ) : null}
     </>
@@ -102,11 +108,14 @@ export function SessionCard({
     'block rounded-lg border border-border bg-card p-3 transition-colors',
     verdict && `border-l-[3px] ${VERDICT_RAIL[verdict]}`,
     time === 'today' && 'ring-1 ring-inset ring-primary/30',
-    time === 'past' && !verdict && 'opacity-80'
+    // Past depth comes from the muted title and a muted wash — never opacity,
+    // which dragged the meta line below AA (3.2:1).
+    time === 'past' && !verdict && 'bg-muted/40'
   )
 
   // The card title is clamped and de-suffixed, so the full canonical name is
-  // recovered on hover. The Link also carries it as its accessible name; the
+  // recovered on hover. The Link's accessible name carries it too, with the
+  // date and ordinal so a Course's cards on different days stay distinct; the
   // read-only card is not focusable, so the tooltip is a pointer affordance
   // only — exactly the reach the `title=""` it replaces had.
   return (
@@ -115,7 +124,11 @@ export function SessionCard({
         {linkToMark ? (
           <Link
             to={`/app/courses/${course.id}/sessions/${session.date}/mark`}
-            aria-label={course.name}
+            aria-label={t('calendar.card.markAria', {
+              course: course.name,
+              date: formatDate(session.date),
+              n: String(session.ordinal),
+            })}
             className={cn(className, 'hover:border-primary hover:bg-accent')}
           >
             {content}

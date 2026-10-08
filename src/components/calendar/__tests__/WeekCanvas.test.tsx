@@ -127,7 +127,7 @@ describe('<WeekCanvas />', () => {
     )
 
     expect(screen.getByText('No sessions this week.')).toBeInTheDocument()
-    expect(screen.getByText(/Matemáticas Primaria · Mon Jun 29/)).toBeInTheDocument()
+    expect(screen.getByText(/Matemáticas Primaria · Mon, Jun 29/)).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /Jump to that week/ }))
     expect(onWeekChange).toHaveBeenCalledTimes(1)

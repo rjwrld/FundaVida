@@ -44,8 +44,9 @@ function dayTime(date: Date, today: Date): SessionCardTime {
 /**
  * The workweek canvas (ADR-0044): Monday–Friday columns always, plus a weekend
  * column only when it carries a Session. One render path — a horizontal
- * snap-scroll of ~75vw panels under `md` (opened centered on today, the next day
- * peeking) that becomes a full-width column grid at `md+`. Time gets depth
+ * snap-scroll of ~75%-wide panels while the canvas is narrow (opened centered
+ * on today, the next day peeking) that becomes a full-width column grid once
+ * the canvas is wide (`@4xl`). Time gets depth
  * without new color: past columns mute, today's column tints, the future sits
  * quiet. An empty week points at the nearest Session in each direction rather
  * than dead-ending.
@@ -70,7 +71,7 @@ export function WeekCanvas({
 
   // Mobile: open the snap-scroll canvas centered on today's column (the next day
   // peeks as the scroll affordance). Only touches the scroll container's own
-  // scrollLeft, so it is a no-op on the `md+` grid and never moves the page.
+  // scrollLeft, so it is a no-op on the wide grid and never moves the page.
   const scrollRef = useRef<HTMLDivElement>(null)
   const todayRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -81,7 +82,7 @@ export function WeekCanvas({
   }, [weekOf])
 
   return (
-    <div className="space-y-4">
+    <div className="@container space-y-4">
       <div className="flex items-center gap-1">
         <Button variant="outline" size="sm" onClick={() => onWeekChange(today)}>
           {t('calendar.today')}
@@ -116,7 +117,18 @@ export function WeekCanvas({
       ) : (
         <div
           ref={scrollRef}
-          className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 md:grid md:snap-none md:overflow-visible md:pb-0"
+          // The seven-column grid needs room, and the canvas shares the row with
+          // the sidebar (and the agenda rail), so it switches on the canvas's own
+          // width — on the viewport, a 1280px screen gave ~55px day columns.
+          // Narrower, the days scroll as a snap strip, which is keyboard-scrollable.
+          role="region"
+          aria-label={t('calendar.weekRegion')}
+          // A scroll container must be focusable to be keyboard-scrollable (axe
+          // scrollable-region-focusable); the rule's interactive-only check
+          // does not model that pattern.
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+          tabIndex={0}
+          className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 @4xl:grid @4xl:snap-none @4xl:overflow-visible @4xl:pb-0"
           style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}
         >
           {days.map((day) => {
@@ -128,7 +140,7 @@ export function WeekCanvas({
                 ref={isToday ? todayRef : undefined}
                 data-today={isToday ? 'true' : undefined}
                 className={cn(
-                  'flex shrink-0 basis-[75vw] snap-center flex-col gap-2 rounded-lg p-2 md:basis-auto',
+                  'flex shrink-0 basis-[75%] snap-center flex-col gap-2 rounded-lg p-2 @md:basis-[45%] @2xl:basis-[30%] @4xl:basis-auto',
                   isToday && 'bg-primary/5'
                 )}
               >
@@ -198,7 +210,14 @@ function EmptyWeek({
   const label = (nearest: NearestSession) => {
     const course = courses.find((c) => c.id === nearest.courseId)
     const name = course ? calendarCardName(course) : nearest.courseName
-    return `${name} · ${format(parseISO(nearest.date), 'EEE MMM d', { locale: dfLocale })}`
+    // Intl orders the parts per language ("Thu, Oct 8" / "jue, 8 oct"); a
+    // fixed 'EEE MMM d' pattern forced English word order onto Spanish.
+    const date = new Intl.DateTimeFormat(dfLocale.code, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    }).format(parseISO(nearest.date))
+    return `${name} · ${date}`
   }
 
   return (
