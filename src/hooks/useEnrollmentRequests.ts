@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DataTableColumn } from '@/components/ui/data-table'
 import {
@@ -33,33 +34,46 @@ export interface EnrollmentRow {
  */
 export function useEnrollmentRows(): EnrollmentRow[] | null {
   const { t } = useTranslation()
-  const gate = resolveQueries([useEnrollments({}), useStudents(), useCourses()])
-  if (gate.isPending) return null
+  const enrollmentsQuery = useEnrollments({})
+  const studentsQuery = useStudents()
+  const coursesQuery = useCourses()
+  const gate = resolveQueries([enrollmentsQuery, studentsQuery, coursesQuery])
+  const ready = !gate.isPending
 
-  const [enrollments, students, courses] = gate.data
-  const studentById = new Map(students.map((s) => [s.id, s]))
-  const courseById = new Map(courses.map((c) => [c.id, c]))
-  const approvedByCourse = new Map<string, number>()
-  for (const e of enrollments) {
-    if (e.status === 'approved') {
-      approvedByCourse.set(e.courseId, (approvedByCourse.get(e.courseId) ?? 0) + 1)
-    }
-  }
-
-  return [...enrollments]
-    .sort((a, b) => a.requestedAt.localeCompare(b.requestedAt) || a.id.localeCompare(b.id))
-    .map((enrollment) => {
-      const student = studentById.get(enrollment.studentId)
-      const course = courseById.get(enrollment.courseId)
-      return {
-        id: enrollment.id,
-        enrollment,
-        studentName: student ? fullName(student) : t('enrollments.list.unknownStudent'),
-        course,
-        courseName: course?.name ?? '',
-        isAtCapacity: Boolean(course && (approvedByCourse.get(course.id) ?? 0) >= course.capacity),
+  // The join indexes two lists and sorts every enrollment, so it reruns only
+  // when a read hands back new data — React Query keeps `.data` referentially
+  // stable between renders — and callers' own memos over the rows can hit.
+  const enrollments = enrollmentsQuery.data
+  const students = studentsQuery.data
+  const courses = coursesQuery.data
+  return useMemo(() => {
+    if (!ready || !enrollments || !students || !courses) return null
+    const studentById = new Map(students.map((s) => [s.id, s]))
+    const courseById = new Map(courses.map((c) => [c.id, c]))
+    const approvedByCourse = new Map<string, number>()
+    for (const e of enrollments) {
+      if (e.status === 'approved') {
+        approvedByCourse.set(e.courseId, (approvedByCourse.get(e.courseId) ?? 0) + 1)
       }
-    })
+    }
+
+    return [...enrollments]
+      .sort((a, b) => a.requestedAt.localeCompare(b.requestedAt) || a.id.localeCompare(b.id))
+      .map((enrollment) => {
+        const student = studentById.get(enrollment.studentId)
+        const course = courseById.get(enrollment.courseId)
+        return {
+          id: enrollment.id,
+          enrollment,
+          studentName: student ? fullName(student) : t('enrollments.list.unknownStudent'),
+          course,
+          courseName: course?.name ?? '',
+          isAtCapacity: Boolean(
+            course && (approvedByCourse.get(course.id) ?? 0) >= course.capacity
+          ),
+        }
+      })
+  }, [ready, enrollments, students, courses, t])
 }
 
 /** The Student · Course · Requested columns every request table opens with. */
