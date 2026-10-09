@@ -655,10 +655,6 @@
         "empty": "No hay nada por marcar. Estás al día.",
         "title": "Por marcar"
       },
-      "ownCourses": {
-        "empty": "Aún no tienes cursos.",
-        "title": "Mis cursos"
-      },
       "sectionTitle": "Tu lista de trabajo"
     },
     "title": "Sesión como {{role}}",

@@ -649,10 +649,6 @@
         "empty": "Nothing needs marking. You're all caught up.",
         "title": "Needs marking"
       },
-      "ownCourses": {
-        "empty": "You don't have any courses yet.",
-        "title": "My courses"
-      },
       "sectionTitle": "Your worklist"
     },
     "title": "Signed in as {{role}}",
