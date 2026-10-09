@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { addDays, startOfDay, subDays } from 'date-fns'
 import type { AttendanceRecord, Course } from '@/types'
+import { seedDemo } from '@/data/seed'
 import { attendanceRollup } from '../attendanceRollup'
+import { buildAgenda } from '../agenda'
 
 /** A Wednesday at noon; Monday-only Courses meet Jun 8 and Jun 15 before it. */
 const NOW = new Date(2026, 5, 17, 12, 0)
@@ -53,7 +55,7 @@ describe('attendanceRollup', () => {
       now: NOW,
     })
 
-    expect(rows).toEqual([{ course, sessionsHeld: 2, rate: 0.75, unmarked: 1, live: true }])
+    expect(rows).toEqual([{ course, sessionsHeld: 2, rate: 0.75, unmarked: 1, needsMarking: 1 }])
   })
 
   it('carries no rate when nothing has been recorded yet', () => {
@@ -74,10 +76,10 @@ describe('attendanceRollup', () => {
     expect(attendanceRollup({ courses: [upcoming], attendance: [], now: NOW })).toEqual([])
   })
 
-  // Worst first: the live cohorts with the most unmarked Sessions lead, then the
-  // lowest attendance. A closed cohort's gaps are final (ADR-0024), so they never
-  // outrank a cohort that can still be marked.
-  it('sorts live unmarked work first, then the lowest attendance rate', () => {
+  // Worst first: the in-progress cohorts with the most Sessions needing marking
+  // lead, then the lowest attendance. A Term-ended or closed cohort's gaps are
+  // close-readiness's business or final (ADR-0024/0044) — counted, never work.
+  it('sorts needs-marking work first, then the lowest attendance rate', () => {
     const low = makeCourse('cou-low')
     const high = makeCourse('cou-high')
     const backlog = makeCourse('cou-backlog')
@@ -102,8 +104,51 @@ describe('attendanceRollup', () => {
     ])
     expect(rows.find((r) => r.course.id === 'cou-closed')).toMatchObject({
       unmarked: 2,
-      live: false,
+      needsMarking: 0,
     })
+  })
+
+  it('counts a Term-ended cohort’s gaps as unmarked but not as work', () => {
+    const ended = makeCourse('cou-ended', {
+      term: {
+        start: startOfDay(subDays(NOW, 30)).toISOString(),
+        end: startOfDay(subDays(NOW, 1)).toISOString(),
+      },
+    })
+    const [row] = attendanceRollup({ courses: [ended], attendance: [], now: NOW })
+
+    expect(row?.unmarked).toBeGreaterThan(0)
+    expect(row?.needsMarking).toBe(0)
+  })
+
+  it('leaves draft courses out entirely', () => {
+    const draft = makeCourse('cou-draft', { status: 'draft' })
+
+    expect(attendanceRollup({ courses: [draft], attendance: [], now: NOW })).toEqual([])
+  })
+
+  // The calendar's admin pulse ("N sessions need marking") links here, so the
+  // page must total the same number over the real seed (ADR-0051).
+  it('totals exactly the calendar pulse’s needs-marking count over seedDemo()', () => {
+    const now = new Date(2026, 9, 8, 12, 0)
+    const world = seedDemo(now)
+    const pulse = buildAgenda({
+      role: 'admin',
+      courses: world.courses,
+      attendance: world.attendance,
+      sessionExceptions: world.sessionExceptions,
+      now,
+    })
+    if (pulse.role !== 'admin') throw new Error('expected the admin agenda')
+    const rows = attendanceRollup({
+      courses: world.courses,
+      attendance: world.attendance,
+      sessionExceptions: world.sessionExceptions,
+      now,
+    })
+
+    expect(pulse.pulse.unmarkedCount).toBeGreaterThan(0)
+    expect(rows.reduce((sum, r) => sum + r.needsMarking, 0)).toBe(pulse.pulse.unmarkedCount)
   })
 
   it('counts a Session held only through the exceptions overlay (ADR-0039)', () => {

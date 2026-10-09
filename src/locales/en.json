@@ -19,6 +19,8 @@
         "unmarked": "Unmarked"
       },
       "empty": "No attendance recorded yet.",
+      "needsMarking_one": "{{count}} session needs marking",
+      "needsMarking_other": "{{count}} sessions need marking",
       "rateAria": "{{course}}: {{rate}} attendance",
       "session": "Session {{ordinal}}",
       "status": {

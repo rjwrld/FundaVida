@@ -19,6 +19,9 @@
         "unmarked": "Sin marcar"
       },
       "empty": "Aún no hay asistencia registrada.",
+      "needsMarking_one": "{{count}} sesión sin registrar",
+      "needsMarking_many": "{{count}} sesiones sin registrar",
+      "needsMarking_other": "{{count}} sesiones sin registrar",
       "rateAria": "{{course}}: {{rate}} de asistencia",
       "session": "Sesión {{ordinal}}",
       "status": {
