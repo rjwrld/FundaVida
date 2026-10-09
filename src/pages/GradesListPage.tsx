@@ -20,6 +20,8 @@ import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { GradesEmpty } from '@/components/empty-states/GradesEmpty'
 import { useCourses, useDeleteGrade, useGrades, useStudents } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
+import { useStore } from '@/data/store'
+import { can } from '@/permissions'
 import type { GradeFilters } from '@/data/api/grades'
 import type { Grade } from '@/types'
 
@@ -46,6 +48,25 @@ export function GradesListPage() {
   const deleteGrade = useDeleteGrade()
   const { data: students = [] } = useStudents()
   const { data: courses = [] } = useCourses()
+  const role = useStore((s) => s.role)
+  const currentUserId = useStore((s) => s.currentUserId)
+
+  // A Teacher's edit right is per-Course (teacherCanGrade: owned, published, Term
+  // ended), so each row is checked against its own Course — a context-free check
+  // would deny the Teacher everywhere. Delete is admin-only (no predicate).
+  const canOnRow = (action: 'edit' | 'delete', g: Grade) => {
+    const course = courses.find((c) => c.id === g.courseId)
+    return role
+      ? can(role, action, 'grades', { course, userId: currentUserId ?? undefined })
+      : false
+  }
+  const canActOnRows = data.some((g) => canOnRow('edit', g) || canOnRow('delete', g))
+  const subtitle =
+    role === 'admin'
+      ? t('grades.list.subtitles.admin')
+      : role === 'teacher'
+        ? t('grades.list.subtitles.teacher')
+        : t('grades.list.subtitles.student')
 
   const hasFilters = Boolean(filters.studentId || filters.courseId)
   const count = data.length
@@ -88,7 +109,9 @@ export function GradesListPage() {
       sortAccessor: (g) => g.issuedAt,
       cell: (g) => formatDate(g.issuedAt),
     },
-    {
+  ]
+  if (canActOnRows) {
+    columns.push({
       id: 'actions',
       header: t('grades.list.columns.actions'),
       align: 'right',
@@ -98,19 +121,25 @@ export function GradesListPage() {
           <RowActions
             editLabel={t('common.actions.editItem', { name: label })}
             deleteLabel={t('common.actions.deleteItem', { name: label })}
-            onEdit={() =>
-              setEditTarget({ id: g.id, initialScore: g.score, studentName, courseName })
+            onEdit={
+              canOnRow('edit', g)
+                ? () => setEditTarget({ id: g.id, initialScore: g.score, studentName, courseName })
+                : undefined
             }
-            onDelete={() => setDeleteTarget({ id: g.id, studentName, courseName })}
+            onDelete={
+              canOnRow('delete', g)
+                ? () => setDeleteTarget({ id: g.id, studentName, courseName })
+                : undefined
+            }
           />
         )
       },
-    },
-  ]
+    })
+  }
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('grades.list.title')} description={t('grades.list.subtitle')} />
+      <PageHeader title={t('grades.list.title')} description={subtitle} />
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
         {students.length > 0 && (

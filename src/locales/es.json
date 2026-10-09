@@ -791,7 +791,11 @@
         "coursePlaceholder": "Curso",
         "studentPlaceholder": "Estudiante"
       },
-      "subtitle": "Cada calificación del sistema. Los administradores pueden corregir o eliminar registros.",
+      "subtitles": {
+        "admin": "Cada calificación del sistema. Puedes corregir o eliminar registros.",
+        "student": "Tus calificaciones en tus cursos.",
+        "teacher": "Calificaciones de los cursos que impartes. Puedes editar una nota cuando termina el periodo."
+      },
       "title": "Calificaciones"
     }
   },

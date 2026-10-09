@@ -783,7 +783,11 @@
         "coursePlaceholder": "Course",
         "studentPlaceholder": "Student"
       },
-      "subtitle": "Every grade in the system. Admins can correct or remove entries.",
+      "subtitles": {
+        "admin": "Every grade in the system. You can correct or remove entries.",
+        "student": "Your grades across your courses.",
+        "teacher": "Grades for the courses you teach. You can edit a grade once the term ends."
+      },
       "title": "Grades"
     }
   },
