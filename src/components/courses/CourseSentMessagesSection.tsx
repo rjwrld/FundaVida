@@ -1,14 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { NoResults } from '@/components/shared/NoResults'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Card, CardContent } from '@/components/ui/card'
 import { EmailPreviewDialog } from '@/components/email/EmailPreviewDialog'
 import { sentRecipientCount } from '@/lib/emailRecipients'
 import { resolveQueries } from '@/lib/resolveQueries'
@@ -58,53 +50,49 @@ export function CourseSentMessagesSection({ course }: { course: Course }) {
 
   const opened = rows?.find((row) => row.campaign.id === openedId)
 
-  return (
-    <section aria-labelledby="course-sent-messages-heading" className="space-y-3">
-      <SectionHeader
-        id="course-sent-messages-heading"
-        title={t('courses.detail.sentMessages.heading')}
-      />
+  // A Course with nothing sent has no outbox to show (ADR-0051): the card waits
+  // for its rows and stays away when there are none. "Message the class" in the
+  // page header is the way to start one.
+  if (rows === null || rows.length === 0) return null
 
-      {rows === null ? (
-        <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
-      ) : rows.length === 0 ? (
-        <NoResults message={t('courses.detail.sentMessages.empty')} />
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('bulkEmail.history.columns.subject')}</TableHead>
-              <TableHead>{t('bulkEmail.history.columns.audience')}</TableHead>
-              <TableHead className="text-right">
-                {t('bulkEmail.history.columns.recipients')}
-              </TableHead>
-              <TableHead>{t('bulkEmail.history.columns.sentAt')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map(({ campaign, emailCount }) => (
-              <TableRow key={campaign.id}>
-                <TableCell>
-                  {/* No filter column: every row targets this same Course, so the
-                      label would be constant noise (ADR-0046). */}
-                  <button
-                    type="button"
-                    onClick={() => setOpenedId(campaign.id)}
-                    className="text-left font-medium underline-offset-4 hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    {campaign.subject}
-                  </button>
-                </TableCell>
-                <TableCell>{t(`bulkEmail.audience.${campaign.audience}`)}</TableCell>
-                <TableCell className="text-right" data-testid="sent-message-recipients">
-                  {formatNumber(emailCount)}
-                </TableCell>
-                <TableCell>{formatDateTime(campaign.sentAt)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+  return (
+    <Card role="region" aria-labelledby="course-sent-messages-heading" className="gap-2 py-4">
+      <CardContent className="space-y-2 px-4">
+        <SectionHeader
+          id="course-sent-messages-heading"
+          title={t('courses.detail.sentMessages.heading')}
+          count={t('courses.detail.sentMessages.count', { count: rows.length })}
+          compact
+        />
+        <ul className="divide-y divide-border/60">
+          {rows.map(({ campaign, emailCount }) => (
+            <li
+              key={campaign.id}
+              className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-1.5 text-sm"
+            >
+              {/* No filter column: every row targets this same Course, so the
+                  label would be constant noise (ADR-0046). */}
+              <button
+                type="button"
+                onClick={() => setOpenedId(campaign.id)}
+                className="min-w-0 text-left font-medium underline underline-offset-4 hover:text-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                {campaign.subject}
+              </button>
+              <span className="text-muted-foreground">
+                {t(`bulkEmail.audience.${campaign.audience}`)} ·{' '}
+                <span data-testid="sent-message-recipients" className="tabular-nums">
+                  {t('courses.detail.sentMessages.recipients', {
+                    count: emailCount,
+                    n: formatNumber(emailCount),
+                  })}
+                </span>{' '}
+                · {formatDateTime(campaign.sentAt)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
 
       {opened && (
         <EmailPreviewDialog
@@ -119,6 +107,6 @@ export function CourseSentMessagesSection({ course }: { course: Course }) {
           sentAt={opened.campaign.sentAt}
         />
       )}
-    </section>
+    </Card>
   )
 }

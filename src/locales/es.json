@@ -415,7 +415,10 @@
         }
       },
       "certificates": {
-        "empty": "Los certificados aparecen aquí cuando se cierra este curso."
+        "empty": "Los certificados aparecen aquí cuando se cierra este curso.",
+        "issued_one": "{{count}} emitido",
+        "issued_many": "{{count}} emitidos",
+        "issued_other": "{{count}} emitidos"
       },
       "close": "Cerrar curso",
       "closeConfirm": {
@@ -427,6 +430,7 @@
       "deleteConfirm": "¿Eliminar este curso?",
       "edit": "Editar",
       "enrollButton": "Matricular estudiante",
+      "enrolledCount": "{{enrolled}}/{{capacity}} matriculados",
       "enrolledTable": {
         "actions": "Acciones",
         "grade": "Nota",
@@ -460,16 +464,19 @@
       "sections": {
         "certificates": "Certificados",
         "noStudents": "Ningún estudiante matriculado.",
-        "noVolunteers": "No hay voluntarios asignados a este curso.",
-        "overview": "Resumen",
         "students": "Estudiantes",
         "volunteers": "Voluntarios",
         "yourAttendance": "Tu asistencia",
         "yourRecords": "Tus registros"
       },
       "sentMessages": {
-        "empty": "Aún no se han enviado mensajes a esta clase.",
-        "heading": "Mensajes enviados"
+        "count_one": "{{count}} mensaje a esta clase",
+        "count_many": "{{count}} mensajes a esta clase",
+        "count_other": "{{count}} mensajes a esta clase",
+        "heading": "Mensajes enviados",
+        "recipients_one": "{{n}} destinatario",
+        "recipients_many": "{{n}} destinatarios",
+        "recipients_other": "{{n}} destinatarios"
       },
       "sessions": {
         "empty": "No hay sesiones programadas para este curso.",

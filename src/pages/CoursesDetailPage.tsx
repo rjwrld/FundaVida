@@ -6,7 +6,7 @@ import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NoResults } from '@/components/shared/NoResults'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -16,6 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { SectionHeader } from '@/components/shared/SectionHeader'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import {
   useAttendance,
@@ -109,7 +110,6 @@ export function CoursesDetailPage() {
     currentRole === 'student' && !isActiveEnrollment
   )
   const teachers = useStore((s) => s.teachers)
-  const programs = useStore((s) => s.programs)
   const course = enrolledCourse ?? browseableCourse ?? null
   // Wait on the scoped enrollment query too: the browse-vs-records-vs-deny
   // decision below reads `enrollment`, so rendering before it resolves would
@@ -286,7 +286,6 @@ export function CoursesDetailPage() {
   }
 
   const teacher = teachers.find((tt) => tt.id === course.teacherId)
-  const programName = programs.find((p) => p.id === course.programId)?.name ?? course.programId
   // The close-readiness checklist shows only for the close audience on a
   // published, Term-ended Course; the Sessions queue (below) consumes the same
   // `readiness` object but surfaces for any marker, mid-Term gaps included.
@@ -311,11 +310,37 @@ export function CoursesDetailPage() {
 
   return (
     <div className="space-y-6">
+      {/* The facts ride one line under the title (ADR-0051): Campus · Teacher ·
+          state, plus the seat count for the roster audience only — a Student's
+          scope never counts classmates (ADR-0012/0016). The description follows
+          as one muted sentence; the breadcrumb already names the section. */}
       <PageHeader
-        eyebrow={t('courses.detail.title')}
         title={shortCourseName(course)}
         titleLayoutId={morphLayoutId}
-        description={programName}
+        meta={
+          <div
+            data-testid="course-meta"
+            className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground"
+          >
+            <span>{course.sede}</span>
+            <span aria-hidden="true">·</span>
+            <span>{teacher ? fullName(teacher) : t('courses.detail.unassignedTeacher')}</span>
+            <span aria-hidden="true">·</span>
+            <CourseStateBadge course={course} data-testid="course-status-badge" />
+            {canViewRoster && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="tabular-nums">
+                  {t('courses.detail.enrolledCount', {
+                    enrolled: rosterEnrollments.length,
+                    capacity: course.capacity,
+                  })}
+                </span>
+              </>
+            )}
+          </div>
+        }
+        description={course.description || undefined}
         action={
           <>
             {canEdit && isLiveCohort(course) && (
@@ -377,51 +402,6 @@ export function CoursesDetailPage() {
         )}
       </AnimatePresence>
 
-      {/* The outbox sits directly under the header that carries "Message the class"
-          (ADR-0046), so compose and sent history read as one channel. The
-          close-readiness banner stays topmost: it is a call to act, not a record. */}
-      {canViewSentMessages && <CourseSentMessagesSection course={course} />}
-
-      <section className="grid gap-4 sm:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('courses.detail.sections.overview')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>
-              <span className="text-muted-foreground">{t('courses.form.fields.sede')}:</span>{' '}
-              {course.sede}
-            </p>
-            <p>
-              <span className="text-muted-foreground">{t('courses.form.fields.programId')}:</span>{' '}
-              {programName}
-            </p>
-            <p>
-              <span className="text-muted-foreground">{t('courses.form.fields.level')}:</span>{' '}
-              {t(`courses.level.${course.level}`)}
-            </p>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">{t('courses.form.fields.status')}:</span>
-              <CourseStateBadge course={course} data-testid="course-status-badge" />
-            </div>
-            <p>
-              <span className="text-muted-foreground">{t('courses.form.fields.capacity')}:</span>{' '}
-              {course.capacity}
-            </p>
-            <p>
-              <span className="text-muted-foreground">{t('courses.form.fields.teacherId')}:</span>{' '}
-              {teacher ? fullName(teacher) : t('courses.detail.unassignedTeacher')}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('courses.form.fields.description')}</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">{course.description}</CardContent>
-        </Card>
-      </section>
-
       <CourseSessionsSection
         course={course}
         sessions={sessions}
@@ -448,16 +428,16 @@ export function CoursesDetailPage() {
       {canViewRoster && (
         <Fragment>
           <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold tracking-tight">
-                {t('courses.detail.sections.students')}
-              </h2>
-              {canCreate && (
-                <Button size="sm" onClick={() => setEnrollOpen(true)} disabled={isRosterFull}>
-                  {t('courses.detail.enrollButton')}
-                </Button>
-              )}
-            </div>
+            <SectionHeader
+              title={t('courses.detail.sections.students')}
+              action={
+                canCreate ? (
+                  <Button size="sm" onClick={() => setEnrollOpen(true)} disabled={isRosterFull}>
+                    {t('courses.detail.enrollButton')}
+                  </Button>
+                ) : undefined
+              }
+            />
             {canCreate && isRosterFull && (
               <p className="text-sm text-muted-foreground">{t('courses.detail.courseFull')}</p>
             )}
@@ -536,13 +516,15 @@ export function CoursesDetailPage() {
             )}
           </section>
 
-          <section className="space-y-3">
-            <h2 className="text-lg font-semibold tracking-tight">
-              {t('courses.detail.sections.volunteers')}
-            </h2>
-            {volunteers.length === 0 ? (
-              <NoResults message={t('courses.detail.sections.noVolunteers')} />
-            ) : (
+          {/* The outbox is a record of what reached this roster (ADR-0046, placed
+              by ADR-0051): it reads after the roster, compact, and only once the
+              Course has a message — "Message the class" stays in the header. */}
+          {canViewSentMessages && <CourseSentMessagesSection course={course} />}
+
+          {/* Volunteers render only when the Course has some (ADR-0051). */}
+          {volunteers.length > 0 && (
+            <section className="space-y-3">
+              <SectionHeader title={t('courses.detail.sections.volunteers')} />
               <ul className="grid gap-2 sm:grid-cols-2">
                 {volunteers.map((volunteer) => (
                   <li
@@ -555,8 +537,8 @@ export function CoursesDetailPage() {
                   </li>
                 ))}
               </ul>
-            )}
-          </section>
+            </section>
+          )}
 
           <CourseCertificatesSection course={course} />
         </Fragment>
@@ -564,9 +546,7 @@ export function CoursesDetailPage() {
 
       {!canViewRoster && isEnrolled && (
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {t('courses.detail.sections.yourRecords')}
-          </h2>
+          <SectionHeader title={t('courses.detail.sections.yourRecords')} />
           <Card>
             <CardContent className="space-y-2 py-4 text-sm">
               <p>
@@ -624,9 +604,7 @@ export function CoursesDetailPage() {
           request action drops. */}
       {!canViewRoster && isBrowseable && isOpenForEnrollment(course, clock.now()) && (
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {t('courses.browse.requestSection')}
-          </h2>
+          <SectionHeader title={t('courses.browse.requestSection')} />
           <Card>
             <CardContent className="space-y-4 py-4">
               <div className="grid gap-3 text-sm">
@@ -660,9 +638,7 @@ export function CoursesDetailPage() {
 
       {!canViewRoster && isPending && (
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {t('courses.browse.pendingSection')}
-          </h2>
+          <SectionHeader title={t('courses.browse.pendingSection')} />
           <Card>
             <CardContent className="space-y-4 py-4">
               <div className="flex items-center justify-between">
