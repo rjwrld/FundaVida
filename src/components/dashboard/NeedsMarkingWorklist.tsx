@@ -50,7 +50,6 @@ export function NeedsMarkingWorklist() {
     now: clock.now(),
   })
   const worklist = agenda.role === 'teacher' ? agenda.worklist : []
-  const needsMarking = agenda.role === 'teacher' ? agenda.needsMarking : []
 
   return (
     <WorklistCard
@@ -62,16 +61,14 @@ export function NeedsMarkingWorklist() {
     >
       {worklist.map((group) => {
         // The group's oldest unmarked Session: the row names it and Mark opens it.
-        const oldest = needsMarking.find((s) => s.courseId === group.courseId)
-        if (!oldest) return null
         const name = shortCourseName({ name: group.courseName, sede: group.sede })
-        const date = formatDate(oldest.date)
+        const date = formatDate(group.oldestDate)
         return (
           <WorklistRow
             key={group.courseId}
             to={`/app/courses/${group.courseId}`}
             title={name}
-            subtitle={t('dashboard.worklist.sessionLine', { n: oldest.ordinal, date })}
+            subtitle={t('dashboard.worklist.sessionLine', { n: group.oldestOrdinal, date })}
             trailing={
               group.count > 1 ? (
                 <span className="text-xs text-muted-foreground">
@@ -82,11 +79,11 @@ export function NeedsMarkingWorklist() {
             action={
               <Button size="sm" variant="outline" asChild>
                 <Link
-                  to={`/app/courses/${group.courseId}/sessions/${oldest.date}/mark`}
+                  to={`/app/courses/${group.courseId}/sessions/${group.oldestDate}/mark`}
                   aria-label={t('calendar.card.markAria', {
                     course: name,
                     date,
-                    n: oldest.ordinal,
+                    n: group.oldestOrdinal,
                   })}
                 >
                   {t('dashboard.worklist.mark')}

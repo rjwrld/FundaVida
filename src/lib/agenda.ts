@@ -55,6 +55,8 @@ export interface WorklistGroup {
   sede: Course['sede']
   count: number
   oldestDate: string
+  /** The oldest unmarked Session's ordinal, so a row can name it ("Session n"). */
+  oldestOrdinal: number
 }
 
 export interface RoleAgendaBase {
@@ -207,6 +209,7 @@ function groupWorklist(sessions: NeedsMarkingSession[]): WorklistGroup[] {
         sede: session.sede,
         count: 1,
         oldestDate: session.date,
+        oldestOrdinal: session.ordinal,
       })
     }
   }
