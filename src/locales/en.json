@@ -622,10 +622,12 @@
       "sectionTitle": "Your learning",
       "table": {
         "attendance": "Attendance",
+        "certificate": "Certificate",
         "course": "Course",
+        "downloadCertificate": "Download the {{course}} certificate",
         "empty": "You're not enrolled in any courses yet.",
         "grade": "Grade",
-        "schedule": "Schedule",
+        "issued": "Issued",
         "state": "Status",
         "title": "My courses"
       }

@@ -1,7 +1,9 @@
-import type { ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Download } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { AnimatedNumber } from '@/components/shared/AnimatedNumber'
@@ -9,6 +11,7 @@ import { NoResults } from '@/components/shared/NoResults'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { CourseStateBadge } from '@/components/courses/CourseStateBadge'
+import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog'
 import {
   useAttendance,
   useCertificates,
@@ -16,7 +19,12 @@ import {
   useCurrentStudent,
   useEnrollments,
   useGrades,
+  usePrograms,
 } from '@/hooks/api'
+import { useCertificateBlobUrl } from '@/hooks/useCertificateBlobUrl'
+import { useStore } from '@/data/store'
+import type { CertificatePayload } from '@/lib/pdf/renderCertificate'
+import { fullName } from '@/lib/personName'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { buildStudentProgress, type StudentProgressRow } from '@/lib/studentProgress'
 import { shortCourseName } from '@/lib/courseName'
@@ -25,8 +33,9 @@ import { useFormat } from '@/hooks/useFormat'
 
 /**
  * The Student's "My courses" roll-up on the landing surface (ADR-0043): one row
- * per enrolled Course with its schedule, derived display-state badge (ADR-0042),
- * attendance rate, and Grade — the {@link buildStudentProgress} join (ADR-0032)
+ * per enrolled Course with its derived display-state badge (ADR-0042), attendance
+ * rate, Grade, and Certificate — Issued with a download, or a dash (ADR-0050
+ * swapped the schedule column for it) — the {@link buildStudentProgress} join (ADR-0032)
  * the admin/teacher StudentsDetailPage also renders, now the self view. Each row
  * deep-links to the Course detail. `/app/courses` keeps its browse-and-request
  * job; this table is the "how am I doing where" glance.
@@ -38,8 +47,11 @@ import { useFormat } from '@/hooks/useFormat'
 export function StudentCoursesTable() {
   const { t } = useTranslation()
   const { formatGrade, formatPercent } = useFormat()
+  const locale = useStore((s) => s.locale)
+  const [openRow, setOpenRow] = useState<StudentProgressRow | null>(null)
 
   const { data: student } = useCurrentStudent()
+  const { data: programs } = usePrograms()
   const studentId = student?.id ?? ''
   const enrollmentsQuery = useEnrollments({ studentId })
   const coursesQuery = useCourses()
@@ -66,15 +78,6 @@ export function StudentCoursesTable() {
       ),
       sortable: true,
       sortAccessor: (row) => shortCourseName(row.course),
-    },
-    {
-      id: 'schedule',
-      header: t('dashboard.student.table.schedule'),
-      cell: (row) => (
-        <span className="text-muted-foreground">
-          {row.course.meetingDays.map((d) => t(`courses.form.weekdays.${d}`)).join(', ') || '—'}
-        </span>
-      ),
     },
     {
       id: 'state',
@@ -123,7 +126,46 @@ export function StudentCoursesTable() {
       sortAccessor: (row) => row.grade?.score ?? -1,
       sortable: true,
     },
+    {
+      id: 'certificate',
+      header: t('dashboard.student.table.certificate'),
+      cell: (row) =>
+        row.certificate ? (
+          <span className="flex items-center gap-1">
+            <Badge variant="success">{t('dashboard.student.table.issued')}</Badge>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7"
+              onClick={() => setOpenRow(row)}
+              aria-label={t('dashboard.student.table.downloadCertificate', {
+                course: shortCourseName(row.course),
+              })}
+            >
+              <Download aria-hidden="true" />
+            </Button>
+          </span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+    },
   ]
+
+  // The preview dialog is the one download path every certificate surface shares
+  // (ADR-0024: a Certificate exists iff its PDF does); its footer saves the PDF.
+  const certificate = openRow?.certificate ?? null
+  const payload = useMemo<CertificatePayload | null>(() => {
+    if (!openRow || !certificate || !student) return null
+    return {
+      studentName: fullName(student),
+      courseName: openRow.course.name,
+      programName: programs?.find((p) => p.id === openRow.course.programId)?.name ?? '',
+      score: certificate.score,
+      issuedAt: certificate.issuedAt,
+      locale,
+    }
+  }, [openRow, certificate, student, programs, locale])
+  const dataUrl = useCertificateBlobUrl(payload)
 
   // Header stays mounted across the loading gate so resolving it never shifts the
   // section; only the body swaps skeleton → table.
@@ -154,6 +196,13 @@ export function StudentCoursesTable() {
         </CardTitle>
       </CardHeader>
       <CardContent>{body}</CardContent>
+      <CertificatePreviewDialog
+        open={payload !== null}
+        payload={payload}
+        dataUrl={dataUrl}
+        downloadName={certificate ? `certificate-${certificate.id}.pdf` : 'certificate.pdf'}
+        onClose={() => setOpenRow(null)}
+      />
     </Card>
   )
 }
