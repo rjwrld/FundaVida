@@ -49,7 +49,7 @@ export function EnrollmentsListPage() {
   const role = useStore((s) => s.role)
   const currentUserId = useStore((s) => s.currentUserId)
   const allRows = useEnrollmentRows()
-  const baseColumns = useEnrollmentRequestColumns()
+  const baseColumns = useEnrollmentRequestColumns({ includeSede: true })
   const decisions = useEnrollmentDecisions()
   const deleteEnrollment = useDeleteEnrollment()
 
@@ -84,13 +84,7 @@ export function EnrollmentsListPage() {
   }, [allRows, statusFilter, query])
 
   const columns: DataTableColumn<EnrollmentRow>[] = [
-    ...baseColumns.slice(0, 2),
-    {
-      id: 'sede',
-      header: t('courses.form.fields.sede'),
-      cell: (r) => r.course?.sede ?? '',
-    },
-    ...baseColumns.slice(2),
+    ...baseColumns,
     {
       id: 'actions',
       header: t('enrollments.approvalQueue.actions'),

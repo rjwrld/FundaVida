@@ -76,13 +76,28 @@ export function useEnrollmentRows(): EnrollmentRow[] | null {
   }, [ready, enrollments, students, courses, t])
 }
 
-/** The Student · Course · Requested columns every request table opens with. */
-export function useEnrollmentRequestColumns(): DataTableColumn<EnrollmentRow>[] {
+/**
+ * The Student · Course · Requested columns every request table opens with;
+ * `includeSede` adds Campus after Course for a view spanning every Sede (the
+ * admin's Enrollments page).
+ */
+export function useEnrollmentRequestColumns({
+  includeSede = false,
+}: { includeSede?: boolean } = {}): DataTableColumn<EnrollmentRow>[] {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
   return [
     { id: 'student', header: t('enrollments.list.columns.student'), cell: (r) => r.studentName },
     { id: 'course', header: t('enrollments.list.columns.course'), cell: (r) => r.courseName },
+    ...(includeSede
+      ? [
+          {
+            id: 'sede',
+            header: t('courses.form.fields.sede'),
+            cell: (r: EnrollmentRow) => r.course?.sede ?? '',
+          },
+        ]
+      : []),
     {
       id: 'requested',
       header: t('enrollments.list.columns.requested'),
