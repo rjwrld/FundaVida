@@ -61,7 +61,15 @@ export function CoursesListPage() {
   // that only resolves for admin's blanket grant.
   const canEditCourse = (course: Course) =>
     role ? can(role, 'edit', 'courses', { course, userId: currentUserId ?? undefined }) : false
-  const canActOnRows = canEdit || canDelete || data.some(canEditCourse)
+  // Edit is offered on a live cohort only (a closed one is terminal, ADR-0024);
+  // Publish only on a draft. The column shows when at least one row has an action.
+  const rowCanEdit = (course: Course) => canEditCourse(course) && isLiveCohort(course)
+  const rowCanPublish = (course: Course) => canEditCourse(course) && course.status === 'draft'
+  const canActOnRows = canDelete || data.some((c) => rowCanEdit(c) || rowCanPublish(c))
+  // The form opens for the Course in the ?edit= param only when its row offers
+  // Edit, so a Teacher's own Course opens and anyone else's link no-ops.
+  const editCourse = editId ? data.find((c) => c.id === editId) : undefined
+  const canOpenEdit = canEdit || (editCourse ? rowCanEdit(editCourse) : false)
 
   const hasFilters = Boolean(filters.search || filters.sede || filters.programId)
   const count = data.length
@@ -116,15 +124,16 @@ export function CoursesListPage() {
       header: t('courses.list.columns.actions'),
       align: 'right',
       cell: (c) => {
-        const canPublish = canEditCourse(c) && c.status === 'draft'
         return (
           <RowActions
             editLabel={t('common.actions.editItem', { name: c.name })}
             deleteLabel={t('common.actions.deleteItem', { name: c.name })}
             publishLabel={t('courses.list.publishButton', { name: c.name })}
-            onEdit={canEdit && isLiveCohort(c) ? () => openEdit(c.id) : undefined}
+            onEdit={rowCanEdit(c) ? () => openEdit(c.id) : undefined}
             onDelete={canDelete ? () => setPendingDelete(c) : undefined}
-            onPublish={canPublish ? () => publishCourse.mutate({ courseId: c.id }) : undefined}
+            onPublish={
+              rowCanPublish(c) ? () => publishCourse.mutate({ courseId: c.id }) : undefined
+            }
           />
         )
       },
@@ -239,7 +248,7 @@ export function CoursesListPage() {
       />
 
       <CourseFormDialog
-        open={isOpen && (mode === 'edit' ? canEdit : canCreate)}
+        open={isOpen && (mode === 'edit' ? canOpenEdit : canCreate)}
         mode={mode}
         courseId={editId}
         onClose={close}

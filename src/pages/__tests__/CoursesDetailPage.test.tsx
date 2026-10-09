@@ -1451,3 +1451,31 @@ describe('<CoursesDetailPage /> — no mislabeled Back to home', () => {
     expect(home).toHaveAttribute('href', '/app')
   })
 })
+
+describe('<CoursesDetailPage /> — Edit follows course ownership (ADR-0016)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  it('offers the owning Teacher Edit on their live course', async () => {
+    const { publishedOwnCourse } = fixtures()
+    asRole('teacher')
+    renderPage(publishedOwnCourse.id)
+
+    expect(await screen.findByRole('button', { name: 'Edit' })).toBeInTheDocument()
+  })
+
+  it('offers a Teacher no Edit once their course is closed', async () => {
+    const { gradedCourse } = fixtures()
+    expect(gradedCourse.status).toBe('closed')
+    asRole('teacher')
+    renderPage(gradedCourse.id)
+
+    await screen.findByRole('heading', { name: shortCourseName(gradedCourse) })
+    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
+  })
+})

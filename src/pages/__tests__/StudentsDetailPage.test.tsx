@@ -231,6 +231,22 @@ describe('<StudentsDetailPage /> — scope seam (ADR-0012)', () => {
     ).toBeInTheDocument()
   })
 
+  // A Teacher may view a roster Student but not edit them (no students.edit cell),
+  // so the Edit button — whose ?edit= link silently no-ops for them — stays hidden.
+  it('offers the course teacher no Edit on a roster student, and an admin one', async () => {
+    const { rosterStudent } = teacherFixtures()
+    useStore.getState().setRole('teacher')
+    const { unmount } = renderDetail(rosterStudent.id)
+
+    await screen.findByRole('heading', { name: fullName(rosterStudent) })
+    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
+    unmount()
+
+    useStore.getState().setRole('admin')
+    renderDetail(rosterStudent.id)
+    expect(await screen.findByRole('button', { name: 'Edit' })).toBeInTheDocument()
+  })
+
   it('denies a teacher a student outside their roster (scope returns null)', async () => {
     const { outsideStudent } = teacherFixtures()
     useStore.getState().setRole('teacher')

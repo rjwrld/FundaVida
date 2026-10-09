@@ -1,6 +1,7 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { useCan } from '@/hooks/useCan'
 import { StudentProgress } from '@/components/students/StudentProgress'
 import {
   useAttendance,
@@ -17,6 +18,9 @@ export function StudentsDetailPage() {
   const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  // Only a role holding students.edit (admin) gets Edit; the list page opens the
+  // form only for that role, so a Teacher's ?edit= link would silently no-op.
+  const canEdit = useCan('edit', 'students')
   const { data: student, isLoading } = useStudent(id ?? '')
   const enrollmentsQuery = useEnrollments({ studentId: id ?? '' })
   const coursesQuery = useCourses()
@@ -58,11 +62,11 @@ export function StudentsDetailPage() {
       rows={rows}
       eyebrow={t('students.detail.title')}
       action={
-        <>
+        canEdit ? (
           <Button onClick={() => navigate(`/app/students?edit=${student.id}`)}>
             {t('students.detail.edit')}
           </Button>
-        </>
+        ) : undefined
       }
     />
   )
