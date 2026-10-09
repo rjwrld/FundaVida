@@ -90,6 +90,22 @@ describe('<CourseForm />', () => {
     )
   })
 
+  // ADR-0016: a Teacher edits their own Course but cannot hand it to someone else,
+  // so the Teacher field stays locked on edit just as it is on create.
+  it('locks the Teacher field when a teacher edits their own course', async () => {
+    useStore.getState().setRole('teacher')
+    const { courses, teachers, currentUserId } = useStore.getState()
+    const own = courses.find((c) => c.teacherId === currentUserId && c.status === 'published')
+    const me = teachers.find((t) => t.id === currentUserId)
+    if (!own || !me) throw new Error('seed: acting teacher needs a live course')
+
+    renderForm({ courseId: own.id })
+
+    await waitFor(() => expect(screen.getByLabelText('Description')).toHaveValue(own.description))
+    expect(screen.queryByRole('combobox', { name: 'Teacher' })).not.toBeInTheDocument()
+    expect(screen.getByTestId('teacher-locked')).toHaveTextContent(fullName(me))
+  })
+
   it('offers only Teachers at the chosen Sede (ADR-0011)', async () => {
     const user = userEvent.setup()
     const teachers = useStore.getState().teachers
