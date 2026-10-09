@@ -682,36 +682,22 @@
       "approveAria": "Aprobar la matrícula de {{student}}",
       "columns": {
         "course": "Curso",
-        "enrolledAt": "Matriculado",
+        "requested": "Solicitada",
         "student": "Estudiante"
       },
       "emptyFiltered": "Ninguna matrícula coincide con los filtros.",
-      "filterAnySede": "Todas las sedes",
-      "filterSede": "Filtrar por sede",
       "filterStatus": "Filtrar por estado",
-      "pendingCount_one": "{{count}} pendiente",
-      "pendingCount_many": "{{count}} pendientes",
-      "pendingCount_other": "{{count}} pendientes",
       "rejectAria": "Rechazar la matrícula de {{student}}",
       "searchPlaceholder": "Buscar estudiantes",
-      "stats": {
-        "approved": "Aprobadas",
-        "courses": "Cursos",
-        "pending": "Pendientes",
-        "sedes": "Sedes"
-      },
       "statusFilter": {
-        "active": "Activas",
-        "all": "Todos los estados",
+        "all": "Todas",
         "approved": "Aprobadas",
-        "pending": "Pendientes",
-        "rejected": "Rechazadas",
-        "withdrawn": "Retiradas"
+        "pending": "Pendientes"
       },
-      "subtitle": "Revisa y aprueba matrículas en cada sede y curso.",
       "title": "Matrículas",
       "unenroll": "Desmatricular",
-      "unenrollConfirm": "¿Eliminar esta matrícula? Esto también elimina la calificación correspondiente."
+      "unenrollConfirm": "¿Eliminar esta matrícula? Esto también elimina la calificación correspondiente.",
+      "unknownStudent": "Estudiante desconocido"
     },
     "status": {
       "approved": "Aprobado",

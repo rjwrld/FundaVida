@@ -1,11 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import userEvent from '@testing-library/user-event'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useReducedMotion } from 'framer-motion'
 import { I18nProvider } from '@/lib/i18n'
-import { shortCourseName } from '@/lib/courseName'
 import { fullName } from '@/lib/personName'
 import { EnrollmentsListPage } from '@/pages/EnrollmentsListPage'
 import { useStore } from '@/data/store'
@@ -14,13 +12,6 @@ import {
   clearPersistedRole,
   clearPersistedState,
 } from '@/data/persistence'
-
-// The approval sweep opts out through `useReducedMotion()` (ADR-0027) — mock
-// the hook, not `MotionConfig`, which only steers framer's animation engine.
-vi.mock('framer-motion', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('framer-motion')>()),
-  useReducedMotion: vi.fn(() => false),
-}))
 
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
@@ -40,118 +31,123 @@ function req<T>(value: T | undefined, message: string): T {
   return value
 }
 
-describe('<EnrollmentsListPage /> — admin oversight by Sede → Course (ADR-0023)', () => {
+const nameOf = (studentId: string) =>
+  fullName(
+    req(
+      useStore.getState().students.find((s) => s.id === studentId),
+      'seed: student missing'
+    )
+  )
+
+/** The table render of the DataTable (each row also renders as a hidden mobile card). */
+async function table() {
+  return screen.findByRole('table')
+}
+
+/** The body rows of the visible table. */
+async function bodyRows() {
+  return within(await table())
+    .getAllByRole('row')
+    .slice(1)
+}
+
+async function chooseStatus(label: 'Pending' | 'Approved' | 'All') {
+  const user = userEvent.setup()
+  await user.click(screen.getByRole('combobox', { name: 'Filter by status' }))
+  await user.click(screen.getByRole('option', { name: label }))
+}
+
+describe('<EnrollmentsListPage /> — the admin request queue (ADR-0051)', () => {
   beforeEach(() => {
     clearPersistedState()
     clearPersistedRole()
     clearPersistedCurrentUser()
     useStore.getState().resetDemo()
     useStore.getState().setLocale('en')
-  })
-
-  it('previews the grouped-card layout with a card skeleton while loading (#183)', async () => {
     useStore.getState().setRole('admin')
-    renderPage()
-
-    // The loaded view is a stack of Sede→Course cards, so the loading placeholder
-    // should be card-shaped, not the old flat table skeleton.
-    expect(screen.queryByRole('status', { name: 'Loading table' })).not.toBeInTheDocument()
-    expect(screen.getAllByRole('status', { name: 'Loading' }).length).toBeGreaterThan(0)
-
-    // Let the query resolve so its async state update is flushed inside act().
-    await waitFor(() =>
-      expect(screen.queryByRole('status', { name: 'Loading' })).not.toBeInTheDocument()
-    )
   })
 
   it('shows the illustrated empty state when there are no enrollments', async () => {
-    useStore.getState().setRole('admin')
     useStore.setState({ enrollments: [] })
     renderPage()
 
     expect(await screen.findByRole('heading', { name: /no enrollments yet/i })).toBeInTheDocument()
   })
 
-  it('groups by Course and lets an admin approve a pending enrollment in place', async () => {
-    useStore.getState().setRole('admin')
-    const s = useStore.getState()
+  it('opens on the pending requests, oldest first, in one flat table', async () => {
+    const pending = useStore
+      .getState()
+      .enrollments.filter((e) => e.status === 'pending')
+      .sort((a, b) => a.requestedAt.localeCompare(b.requestedAt) || a.id.localeCompare(b.id))
+    expect(pending.length).toBeGreaterThan(0)
+    renderPage()
+
+    const t = await table()
+    expect(
+      within(t)
+        .getAllByRole('columnheader')
+        .map((h) => h.textContent)
+    ).toEqual(['Student', 'Course', 'Campus', 'Requested', 'Actions'])
+    const rows = await bodyRows()
+    expect(rows).toHaveLength(Math.min(pending.length, 10))
+    const first = req(pending[0], 'seed: no pending enrollment')
+    expect(rows[0]).toHaveTextContent(nameOf(first.studentId))
+    // No per-Sede or per-Course grouping and no stat tiles: one table is the page.
+    expect(screen.getAllByRole('table')).toHaveLength(1)
+    expect(screen.queryByText('Campuses')).not.toBeInTheDocument()
+  })
+
+  it('approves a request in place, and the row leaves the pending view', async () => {
     const pending = req(
-      s.enrollments.find((e) => e.status === 'pending'),
+      useStore.getState().enrollments.find((e) => e.status === 'pending'),
       'seed: no pending enrollment'
     )
-    const student = req(
-      s.students.find((st) => st.id === pending.studentId),
-      'seed: pending enrollment student missing'
-    )
-    const course = req(
-      s.courses.find((c) => c.id === pending.courseId),
-      'seed: pending enrollment course missing'
-    )
+    const user = userEvent.setup()
     renderPage()
 
-    // The course card (grouped under its Sede) renders; the short display name can
-    // recur across Sedes, so just assert at least one card shows it.
-    expect((await screen.findAllByText(shortCourseName(course))).length).toBeGreaterThan(0)
-    const approveButton = await screen.findByRole('button', {
-      name: new RegExp(`approve ${fullName(student)}'s enrollment`, 'i'),
-    })
-    fireEvent.click(approveButton)
+    const t = await table()
+    await user.click(
+      within(t).getByRole('button', { name: `Approve ${nameOf(pending.studentId)}'s enrollment` })
+    )
 
     await waitFor(() => {
-      const updated = useStore.getState().enrollments.find((e) => e.id === pending.id)
-      expect(updated?.status).toBe('approved')
+      expect(useStore.getState().enrollments.find((e) => e.id === pending.id)?.status).toBe(
+        'approved'
+      )
     })
-  })
-
-  it('windows each Sede→Course group so a large cohort never dumps every row (ADR-0026)', async () => {
-    useStore.getState().setRole('admin')
-    const { enrollments, students, courses } = useStore.getState()
-    const studentIds = new Set(students.map((s) => s.id))
-    const courseIds = new Set(courses.map((c) => c.id))
-    // The default view shows every non-rejected enrollment whose student+course resolve.
-    const active = enrollments.filter(
-      (e) => e.status !== 'rejected' && studentIds.has(e.studentId) && courseIds.has(e.courseId)
+    await waitFor(() =>
+      expect(
+        within(t).queryByRole('button', {
+          name: `Approve ${nameOf(pending.studentId)}'s enrollment`,
+        })
+      ).not.toBeInTheDocument()
     )
-    const sizeByCourse = new Map<string, number>()
-    for (const e of active) sizeByCourse.set(e.courseId, (sizeByCourse.get(e.courseId) ?? 0) + 1)
-    const groupSizes = [...sizeByCourse.values()]
-    // Guard: the seed must contain at least one cohort larger than a page.
-    expect(groupSizes.some((n) => n > 10)).toBe(true)
-    // Each group renders at most its page size; a row is a single <li>.
-    const expectedRendered = groupSizes.reduce((sum, n) => sum + Math.min(n, 10), 0)
-    expect(expectedRendered).toBeLessThan(active.length) // windowing actually drops rows
-
-    renderPage()
-
-    // Wait for the grouped list to render (action buttons present).
-    await screen.findAllByRole('button', { name: /enrollment$/i })
-    expect(screen.getAllByRole('listitem')).toHaveLength(expectedRendered)
-    // At least one group needs a second page, so a pager is shown.
-    expect(screen.getAllByText(/^Page 1 of [2-9]/).length).toBeGreaterThan(0)
   })
 
-  // The pager decides its own visibility; a pageCount > 1 caller guard removed it
-  // once a bigger page size fit the group, leaving no way back to 10 rows.
-  it('keeps a group’s pager after a page size that fits the whole group', async () => {
+  it('rejects a request in place', async () => {
+    const pending = req(
+      useStore.getState().enrollments.find((e) => e.status === 'pending'),
+      'seed: no pending enrollment'
+    )
     const user = userEvent.setup()
-    useStore.getState().setRole('admin')
     renderPage()
 
-    await screen.findAllByRole('button', { name: /enrollment$/i })
-    const before = screen.getAllByRole('combobox', { name: 'Rows per page' }).length
-    expect(before).toBeGreaterThan(0)
-    const [first] = screen.getAllByRole('combobox', { name: 'Rows per page' })
-    await user.click(req(first, 'a group should be paged'))
-    await user.click(screen.getByRole('option', { name: '50' }))
+    const t = await table()
+    await user.click(
+      within(t).getByRole('button', { name: `Reject ${nameOf(pending.studentId)}'s enrollment` })
+    )
 
-    expect(screen.getAllByRole('combobox', { name: 'Rows per page' })).toHaveLength(before)
+    await waitFor(() => {
+      expect(useStore.getState().enrollments.find((e) => e.id === pending.id)?.status).toBe(
+        'rejected'
+      )
+    })
   })
 
   // A closed cohort is terminal (ADR-0024) and the store rejects unenrolling from
   // it, so its approved rows offer no Unenroll; a live cohort's rows still do.
-  it('offers Unenroll on a live cohort but not on a closed one', async () => {
-    useStore.getState().setRole('admin')
-    const { courses, enrollments, students } = useStore.getState()
+  it('offers Unenroll on an approved row of a live cohort but not of a closed one', async () => {
+    const { courses, enrollments } = useStore.getState()
     const statusOf = (courseId: string) => courses.find((c) => c.id === courseId)?.status
     const inClosed = req(
       enrollments.find((e) => e.status === 'approved' && statusOf(e.courseId) === 'closed'),
@@ -166,103 +162,49 @@ describe('<EnrollmentsListPage /> — admin oversight by Sede → Course (ADR-00
       ),
       'seed: no approved enrollment in a live course'
     )
-    const nameOf = (id: string) =>
-      fullName(
-        req(
-          students.find((st) => st.id === id),
-          'seed: student missing'
-        )
-      )
     useStore.setState({ enrollments: [inClosed, inLive] })
     renderPage()
 
+    await screen.findByRole('combobox', { name: 'Filter by status' })
+    await chooseStatus('Approved')
+
+    const t = await table()
     expect(
-      await screen.findByRole('button', { name: `Delete ${nameOf(inLive.studentId)}` })
+      within(t).getByRole('button', { name: `Delete ${nameOf(inLive.studentId)}` })
     ).toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: `Delete ${nameOf(inClosed.studentId)}` })
+      within(t).queryByRole('button', { name: `Delete ${nameOf(inClosed.studentId)}` })
     ).not.toBeInTheDocument()
   })
 
-  it('hides rejected enrollments from the default view', async () => {
-    useStore.getState().setRole('admin')
+  it('shows every status, rejected included, under All', async () => {
     const pending = req(
       useStore.getState().enrollments.find((e) => e.status === 'pending'),
       'seed: no pending enrollment'
     )
-    // Turn one enrollment into a rejected record.
     useStore.getState().rejectEnrollment(pending.id)
-
-    renderPage()
-
-    // Wait until the grouped list has rendered its action buttons (data loaded).
-    await screen.findAllByRole('button', { name: /enrollment$/i })
-    // The default ('active') view excludes rejected rows, so no Rejected badge shows.
-    expect(screen.queryByText('Rejected')).not.toBeInTheDocument()
-  })
-})
-
-describe('<EnrollmentsListPage /> — approval sweep (ADR-0047 phase 6b)', () => {
-  beforeEach(() => {
-    clearPersistedState()
-    clearPersistedRole()
-    clearPersistedCurrentUser()
-    useStore.getState().resetDemo()
-    useStore.getState().setLocale('en')
-    useStore.getState().setRole('admin')
-    vi.mocked(useReducedMotion).mockReturnValue(false)
-  })
-
-  function pendingFixture() {
-    const s = useStore.getState()
-    const pending = req(
-      s.enrollments.find((e) => e.status === 'pending'),
-      'seed: no pending enrollment'
-    )
-    const student = req(
-      s.students.find((st) => st.id === pending.studentId),
-      'seed: pending enrollment student missing'
-    )
-    return { pending, student }
-  }
-
-  it('plays one green sweep on the approved row', async () => {
-    const { pending, student } = pendingFixture()
-    renderPage()
-
-    fireEvent.click(
-      await screen.findByRole('button', {
-        name: new RegExp(`approve ${fullName(student)}'s enrollment`, 'i'),
-      })
-    )
-
-    // The sweep mounts on approval success, on exactly one row — the approved
-    // one: it lives inside the <li> that carries the student's name.
-    const sweep = await screen.findByTestId('celebration-sweep')
-    expect(sweep.closest('li')).toHaveTextContent(fullName(student))
-    await waitFor(() => {
-      expect(useStore.getState().enrollments.find((e) => e.id === pending.id)?.status).toBe(
-        'approved'
-      )
+    useStore.setState({
+      enrollments: useStore.getState().enrollments.filter((e) => e.id === pending.id),
     })
-  })
-
-  it('approves without any sweep under prefers-reduced-motion', async () => {
-    vi.mocked(useReducedMotion).mockReturnValue(true)
-    const { pending, student } = pendingFixture()
     renderPage()
 
-    fireEvent.click(
-      await screen.findByRole('button', {
-        name: new RegExp(`approve ${fullName(student)}'s enrollment`, 'i'),
-      })
-    )
+    // Nothing pending: the default view says the queue is clear.
+    await screen.findByText('No enrollment requests waiting.')
+    await chooseStatus('All')
 
-    await waitFor(() => {
-      expect(useStore.getState().enrollments.find((e) => e.id === pending.id)?.status).toBe(
-        'approved'
-      )
-    })
-    expect(screen.queryByTestId('celebration-sweep')).not.toBeInTheDocument()
+    const t = await table()
+    expect(within(t).getByText('Rejected')).toBeInTheDocument()
+  })
+
+  it('pages the approved list through one pager (ADR-0026)', async () => {
+    const approved = useStore.getState().enrollments.filter((e) => e.status === 'approved')
+    expect(approved.length).toBeGreaterThan(10)
+    renderPage()
+
+    await screen.findByRole('combobox', { name: 'Filter by status' })
+    await chooseStatus('Approved')
+
+    expect(await bodyRows()).toHaveLength(10)
+    expect(screen.getAllByText(`Page 1 of ${Math.ceil(approved.length / 10)}`)).toHaveLength(1)
   })
 })
