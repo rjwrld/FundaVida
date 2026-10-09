@@ -604,6 +604,7 @@
       "ended": "Term ended {{date}}",
       "title": "Courses to close"
     },
+    "greeting": "Hi, {{name}}",
     "rightPanel": {
       "agendaTitle": "Agenda",
       "agendaUpcomingEmpty": "Nothing on deck.",
@@ -652,7 +653,6 @@
       },
       "sectionTitle": "Your worklist"
     },
-    "title": "Signed in as {{role}}",
     "worklist": {
       "mark": "Mark",
       "sessionLine": "Session {{n}} · {{date}}"

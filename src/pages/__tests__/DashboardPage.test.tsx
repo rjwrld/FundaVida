@@ -219,3 +219,44 @@ describe('<DashboardPage /> (tcu)', () => {
     expect(screen.queryByText(/TCU reports arrive in a later phase/i)).not.toBeInTheDocument()
   })
 })
+
+// The H1 greets the person behind the persona; "Signed in as {role}" restated the
+// role switcher (ADR-0050). Admin is a seat, not a seeded person, so it reads
+// "Dashboard".
+describe('<DashboardPage /> heading', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  function firstNameOf(role: 'teacher' | 'student' | 'tcu') {
+    useStore.getState().setRole(role)
+    const { currentUserId, teachers, students, tcuTrainees } = useStore.getState()
+    const person = [...teachers, ...students, ...tcuTrainees].find((p) => p.id === currentUserId)
+    if (!person) throw new Error(`the ${role} persona should be a seeded person`)
+    return person.firstName
+  }
+
+  it.each(['teacher', 'student', 'tcu'] as const)('greets the %s by first name', (role) => {
+    const firstName = firstNameOf(role)
+    renderDashboard()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(`Hi, ${firstName}`)
+    expect(screen.queryByText(/signed in as/i)).not.toBeInTheDocument()
+  })
+
+  it('greets in Spanish when the locale is ES', () => {
+    const firstName = firstNameOf('student')
+    useStore.getState().setLocale('es')
+    renderDashboard()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(`Hola, ${firstName}`)
+  })
+
+  it('titles the admin dashboard "Dashboard"', () => {
+    useStore.getState().setRole('admin')
+    renderDashboard()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^Dashboard$/)
+  })
+})
