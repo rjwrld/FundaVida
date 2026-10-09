@@ -702,6 +702,7 @@
     "approvalQueue": {
       "actions": "Acciones",
       "capacityReached": "El curso ha alcanzado su capacidad",
+      "empty": "No hay solicitudes de matrícula pendientes.",
       "title": "Solicitudes de matrícula"
     },
     "dialog": {
@@ -1074,7 +1075,10 @@
   "tcu": {
     "approvalQueue": {
       "approval": "Aprobación necesaria",
-      "title": "Cola de aprobación TCU"
+      "approveAria": "Aprobar {{activity}} de {{trainee}}",
+      "empty": "No hay horas esperando aprobación.",
+      "rejectAria": "Rechazar {{activity}} de {{trainee}}",
+      "title": "Horas TCU por aprobar"
     },
     "dashboard": {
       "approvedHours": "Horas aprobadas",

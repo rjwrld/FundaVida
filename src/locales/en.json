@@ -696,6 +696,7 @@
     "approvalQueue": {
       "actions": "Actions",
       "capacityReached": "Course is at capacity",
+      "empty": "No enrollment requests waiting.",
       "title": "Enrollment requests"
     },
     "dialog": {
@@ -1067,7 +1068,10 @@
   "tcu": {
     "approvalQueue": {
       "approval": "Approval needed",
-      "title": "TCU approval queue"
+      "approveAria": "Approve {{activity}} by {{trainee}}",
+      "empty": "No hours waiting for approval.",
+      "rejectAria": "Reject {{activity}} by {{trainee}}",
+      "title": "TCU hours to approve"
     },
     "dashboard": {
       "approvedHours": "Approved hours",

@@ -87,7 +87,7 @@ describe('TeacherDashboard — worklist-first (ADR-0043)', () => {
       'Needs marking',
       'Courses to close',
       'Enrollment requests',
-      'TCU approval queue',
+      'TCU hours to approve',
       'My courses',
       'Announcements',
     ]

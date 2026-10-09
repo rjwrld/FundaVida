@@ -1,7 +1,10 @@
 import { useTranslation } from 'react-i18next'
+import { UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
+import { WorklistCard } from '@/components/shared/WorklistCard'
+import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { useEnrollments, useApproveEnrollment, useRejectEnrollment } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import { useStore } from '@/data/store'
@@ -16,10 +19,9 @@ interface PendingRow {
 }
 
 /**
- * Renders an approval queue for pending enrollment requests.
- * For teachers, this shows pending requests for courses they own.
- * For admins, this shows all pending requests.
- * Only renders when there are pending requests.
+ * The queue of pending enrollment requests: a Teacher's own Courses, or every
+ * request for an admin. A {@link WorklistCard} around a {@link DataTable} that
+ * stays on screen with the compact empty state when nothing is waiting (ADR-0050).
  */
 export function EnrollmentApprovalQueue() {
   const { t } = useTranslation()
@@ -28,7 +30,7 @@ export function EnrollmentApprovalQueue() {
   const userId = useStore((s) => s.currentUserId)
   const students = useStore((s) => s.students)
   const courses = useStore((s) => s.courses)
-  const { data: enrollments = [] } = useEnrollments({})
+  const { data: enrollments = [], isPending } = useEnrollments({})
   const approveMutation = useApproveEnrollment()
   const rejectMutation = useRejectEnrollment()
 
@@ -45,10 +47,7 @@ export function EnrollmentApprovalQueue() {
       ? enrollments.filter((e) => e.status === 'pending')
       : []
 
-  // Only render if there are pending enrollments
-  if (pendingEnrollments.length === 0) {
-    return null
-  }
+  if (isPending) return <SkeletonCard lines={3} />
 
   const rows: PendingRow[] = pendingEnrollments.map((enrollment) => {
     const student = students.find((s) => s.id === enrollment.studentId)
@@ -144,22 +143,28 @@ export function EnrollmentApprovalQueue() {
   ]
 
   return (
-    <section className="space-y-3">
-      {/* An h3, like every sibling card on the TeacherDashboard — its only consumer. */}
-      <h3 className="text-lg font-semibold">{t('enrollments.approvalQueue.title')}</h3>
-      <DataTable
-        data={rows}
-        columns={columns}
-        getRowKey={(r) => r.id}
-        renderCard={(r) => (
-          <DataTableCard
-            row={r}
+    <WorklistCard
+      title={t('enrollments.approvalQueue.title')}
+      icon={UserPlus}
+      count={rows.length}
+      emptyLabel={t('enrollments.approvalQueue.empty')}
+      body={
+        rows.length > 0 ? (
+          <DataTable
+            data={rows}
             columns={columns}
-            titleColumnId="student"
-            actionsColumnId="actions"
+            getRowKey={(r) => r.id}
+            renderCard={(r) => (
+              <DataTableCard
+                row={r}
+                columns={columns}
+                titleColumnId="student"
+                actionsColumnId="actions"
+              />
+            )}
           />
-        )}
-      />
-    </section>
+        ) : undefined
+      }
+    />
   )
 }
