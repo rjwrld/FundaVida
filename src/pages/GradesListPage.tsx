@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Select,
@@ -50,12 +50,16 @@ export function GradesListPage() {
   const { data: courses = [] } = useCourses()
   const role = useStore((s) => s.role)
   const currentUserId = useStore((s) => s.currentUserId)
+  // Every row looks up its Course (and Student) several times per render — the
+  // permission checks, the name cells, the sort — so index them once.
+  const courseById = useMemo(() => new Map(courses.map((c) => [c.id, c])), [courses])
+  const studentById = useMemo(() => new Map(students.map((s) => [s.id, s])), [students])
 
   // A Teacher's edit right is per-Course (teacherCanGrade: owned, published, Term
   // ended), so each row is checked against its own Course — a context-free check
   // would deny the Teacher everywhere. Delete is admin-only (no predicate).
   const canOnRow = (action: 'edit' | 'delete', g: Grade) => {
-    const course = courses.find((c) => c.id === g.courseId)
+    const course = courseById.get(g.courseId)
     return role
       ? can(role, action, 'grades', { course, userId: currentUserId ?? undefined })
       : false
@@ -72,8 +76,8 @@ export function GradesListPage() {
   const count = data.length
 
   const rowInfo = (g: Grade) => {
-    const s = students.find((x) => x.id === g.studentId)
-    const c = courses.find((x) => x.id === g.courseId)
+    const s = studentById.get(g.studentId)
+    const c = courseById.get(g.courseId)
     const studentName = s ? fullName(s) : ''
     const courseName = c?.name ?? ''
     const label = [studentName, courseName].filter(Boolean).join(' — ') || '—'
