@@ -119,6 +119,13 @@ export function App() {
                     `React.lazy` costs on its first render — the commit that would
                     otherwise cost the session's first Course its morph. */}
                 <Route path="courses/:id" element={<coursesDetailRoute.Route />} />
+                {/* Marking is a Course task, so it rides the Courses gate: the page
+                    itself checks `mark attendance` with the Course in context
+                    (courseOwned for a teacher), which no context-free gate can. */}
+                <Route
+                  path="courses/:courseId/sessions/:sessionDate/mark"
+                  element={<MarkSessionAttendancePage />}
+                />
               </Route>
               <Route element={<RoleGate resource="grades" />}>
                 <Route path="grades" element={<GradesListPage />} />
@@ -134,10 +141,6 @@ export function App() {
               </Route>
               <Route element={<RoleGate resource="attendance" />}>
                 <Route path="attendance" element={<AttendanceListPage />} />
-                <Route
-                  path="courses/:courseId/sessions/:sessionDate/mark"
-                  element={<MarkSessionAttendancePage />}
-                />
               </Route>
               <Route element={<RoleGate resource="tcu" />}>
                 <Route path="tcu" element={<TcuListPage />} />
