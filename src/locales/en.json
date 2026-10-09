@@ -570,6 +570,7 @@
       "compose": {
         "cta": "Post",
         "heading": "Post an announcement",
+        "postingTo": "Posting to {{course}}",
         "selectCourse": "Choose a course"
       },
       "empty": "No announcements yet.",

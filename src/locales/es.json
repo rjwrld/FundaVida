@@ -582,6 +582,7 @@
       "compose": {
         "cta": "Publicar",
         "heading": "Publicar un anuncio",
+        "postingTo": "Publicando en {{course}}",
         "selectCourse": "Elige un curso"
       },
       "empty": "Aún no hay anuncios.",

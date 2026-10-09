@@ -111,6 +111,7 @@ export function CourseAnnouncementsSection({
           open={composeOpen}
           onClose={() => setComposeOpen(false)}
           courses={[course]}
+          courseIsContext
         />
       )}
 
