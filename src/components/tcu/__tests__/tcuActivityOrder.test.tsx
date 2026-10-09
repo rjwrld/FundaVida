@@ -10,7 +10,7 @@ import {
   clearPersistedState,
 } from '@/data/persistence'
 import { TcuApprovalQueue } from '@/components/tcu/TcuApprovalQueue'
-import { TcuActivityList } from '@/components/dashboard/TcuActivityList'
+import { TcuDashboard } from '@/components/dashboard/TcuDashboard'
 import { TcuListPage } from '@/pages/TcuListPage'
 import type { TcuActivity } from '@/types'
 
@@ -77,13 +77,18 @@ describe('TCU activity order', () => {
   })
 
   // A log reads like a feed: the latest work first.
-  it('opens the dashboard’s recent list on the newest activity', () => {
-    renderWithProviders(<TcuActivityList activities={scrambled()} limit={3} />)
+  it('opens the TCU dashboard’s activity table on the newest activity', async () => {
+    const trainee = useStore.getState().tcuTrainees[0]
+    if (!trainee) throw new Error('seed: no TCU trainees')
+    useStore.setState({ tcuActivities: scrambled() })
+    useStore.getState().setRole('tcu')
+    useStore.setState({ currentUserId: trainee.id })
+    renderWithProviders(<TcuDashboard />)
 
-    const items = screen.getAllByRole('listitem').map((li) => li.textContent ?? '')
-    expect(items[0]).toContain('Approved newest')
-    expect(items[1]).toContain('Pending newest (b)')
-    expect(items[2]).toContain('Pending newest (a)')
+    const table = await screen.findByRole('table')
+    expect(
+      titlesIn(table, ['Approved newest', 'Pending newest (b)', 'Pending newest (a)'])
+    ).toEqual(['Approved newest', 'Pending newest (b)', 'Pending newest (a)'])
   })
 
   it('orders the TCU page’s log newest first and its queue oldest first', async () => {

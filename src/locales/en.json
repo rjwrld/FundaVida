@@ -324,7 +324,6 @@
       "breadcrumb": "Breadcrumb",
       "filters": "Filters",
       "loading": "Loading",
-      "loadingStat": "Loading stat",
       "loadingTable": "Loading table",
       "skipToMain": "Skip to main content"
     },
@@ -633,16 +632,15 @@
       }
     },
     "tcu": {
+      "activities": "My activities",
       "assignedCourse": "Your course",
-      "hoursCompleted": "Hours completed",
-      "hoursRemaining": "Hours remaining toward 300",
       "logHours": "Log hours",
       "meetingDaysLabel": "Meeting days",
       "nextSessionLabel": "Next session",
       "noActivities": "No activities logged yet.",
       "noUpcomingSessions": "No upcoming sessions",
-      "recentActivities": "Recent activities",
-      "recentActivitiesList": "Recent activities",
+      "progressApproved": "{{approved}} / {{target}} h approved",
+      "progressPending": "+{{pending}} pending",
       "sectionTitle": "Your TCU service",
       "sedeLabel": "Campus",
       "sessionToday": "Today"

@@ -70,21 +70,16 @@ for (const { role, courses } of [
   })
 }
 
-test.describe('tcu dashboard agenda slice', () => {
-  test('the aside now renders for tcu too, with an upcoming schedule and Open Calendar link', async ({
+test.describe('tcu dashboard', () => {
+  test('has no agenda aside — the course card already names the next session (ADR-0050)', async ({
     page,
   }) => {
-    // Before ADR-0038 the dashboard aside was xl-only and absent for tcu
-    // entirely; this is the regression the issue calls out by name.
     await pinDemoEpoch(page, EPOCH)
     await enterAs(page, 'tcu')
 
-    const aside = page.getByRole('complementary', { name: 'Agenda' })
-    await expect(aside).toBeVisible()
-    await expect(aside.getByRole('link', { name: /open calendar/i })).toHaveAttribute(
-      'href',
-      '/app/calendar'
-    )
+    await expect(page.getByRole('button', { name: 'Log hours' })).toBeVisible()
+    await expect(page.getByText(/^(Next session: |No upcoming sessions)/)).toBeVisible()
+    await expect(page.getByRole('complementary', { name: 'Agenda' })).toHaveCount(0)
   })
 })
 

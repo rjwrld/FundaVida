@@ -166,13 +166,12 @@ describe('<DashboardPage /> (tcu)', () => {
     useStore.getState().setLocale('en')
   })
 
-  it('renders at least three meaningful role-scoped widgets', async () => {
+  it('renders the course card, the activity log and the slim feed', async () => {
     renderDashboard()
-    // TCU dashboard should show: hours completed, hours remaining, recent activities.
     // It gates on its scope-seam queries (ADR-0030), so await the first paint.
-    expect(await screen.findByText(/hours completed/i)).toBeInTheDocument()
-    expect(screen.getByText(/hours remaining/i)).toBeInTheDocument()
-    expect(screen.getByText(/recent activities/i)).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /log hours/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'My activities' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Announcements' })).toBeInTheDocument()
   })
 
   it("scopes hours to the TCU trainee's own activities, never the raw store", async () => {
@@ -204,9 +203,13 @@ describe('<DashboardPage /> (tcu)', () => {
     renderDashboard()
 
     // The scoped approved total renders (await the async scope-seam query)...
-    expect((await screen.findAllByText(`${approvedOwnHours}h`)).length).toBeGreaterThan(0)
+    expect(
+      await screen.findByText(new RegExp(`^${approvedOwnHours} / 300 h approved`))
+    ).toBeInTheDocument()
     // ...and the foreign 1000h never leaks into it.
-    expect(screen.queryByText(`${approvedOwnHours + 1000}h`)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(new RegExp(`^${approvedOwnHours + 1000} / 300`))
+    ).not.toBeInTheDocument()
   })
 
   it('does not show the placeholder panel for tcu', () => {

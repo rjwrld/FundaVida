@@ -181,13 +181,6 @@ t('bulkEmail.audience.students')
 t('bulkEmail.audience.guardians')
 t('bulkEmail.audience.both')
 
-// Dashboard keys passed as literal strings — declare them so the parser sees them
-t('dashboard.tcu.hoursCompleted')
-t('dashboard.tcu.hoursRemaining')
-t('dashboard.tcu.recentActivities')
-t('dashboard.tcu.recentActivitiesList')
-t('dashboard.tcu.noActivities')
-
 // AtRiskStudents maps each reason to a label via t(REASON_KEY[reason])
 t('dashboard.atRisk.reasonFailing')
 t('dashboard.atRisk.reasonLowAttendance')
