@@ -125,6 +125,38 @@ describe('Course authoring (ADR-0016)', () => {
     })
   })
 
+  describe('updateCourse', () => {
+    function teacherCourses() {
+      useStore.getState().setRole('teacher')
+      const state = useStore.getState()
+      const own = state.courses.find(
+        (c) => c.teacherId === state.currentUserId && c.status === 'published'
+      )
+      const other = state.courses.find(
+        (c) => c.teacherId !== state.currentUserId && c.status === 'published'
+      )
+      if (!own || !other) throw new Error('seed: need an own and a foreign published course')
+      return { own, other }
+    }
+
+    it('teacher can save an edit to their own live course (ADR-0016)', () => {
+      const { own } = teacherCourses()
+
+      useStore.getState().updateCourse(own.id, { description: 'Edited by its teacher' })
+
+      const saved = useStore.getState().courses.find((c) => c.id === own.id)
+      expect(saved?.description).toBe('Edited by its teacher')
+    })
+
+    it("teacher cannot edit another teacher's course", () => {
+      const { other } = teacherCourses()
+
+      expect(() => useStore.getState().updateCourse(other.id, { description: 'Not mine' })).toThrow(
+        /permission denied/
+      )
+    })
+  })
+
   describe('publishCourse', () => {
     it('teacher can publish their own draft course', () => {
       useStore.getState().setRole('teacher')

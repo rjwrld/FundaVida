@@ -574,10 +574,15 @@ export const useStore = create<StoreState>((set, get) => ({
   },
   updateCourse: (id, patch) => {
     const existing = get()
-    assertCan(existing, 'edit', 'courses')
+    // Edit is per-Course for a Teacher (courseOwned, ADR-0016), so the check needs
+    // the Course in context — without it the predicate denies every Teacher save.
+    const target = existing.courses.find((c) => c.id === id)
+    assertCan(existing, 'edit', 'courses', {
+      course: target,
+      userId: existing.currentUserId ?? undefined,
+    })
     // Preserve the Course↔Teacher Sede invariant across edits: whichever of sede
     // or teacherId the patch changes, the effective pair must still match (ADR-0011).
-    const target = existing.courses.find((c) => c.id === id)
     if (target) {
       const nextSede = patch.sede ?? target.sede
       const nextTeacherId = patch.teacherId ?? target.teacherId
