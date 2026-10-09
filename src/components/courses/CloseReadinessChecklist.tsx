@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { CelebrationSweep } from '@/components/shared/CelebrationSweep'
 import { transitionGlide } from '@/lib/motion'
 import type { CloseReadiness } from '@/lib/closeReadiness'
+import { SectionHeader } from '@/components/shared/SectionHeader'
 
 /**
  * Informational close-readiness checklist for a published, Term-ended Course
@@ -49,19 +50,19 @@ export function CloseReadinessChecklist({
 
   return (
     <section className="space-y-3">
-      <div className="flex items-center gap-3">
-        <h2 className="text-lg font-semibold tracking-tight">
-          {t('courses.detail.readiness.title')}
-        </h2>
-        <Badge
-          variant={readiness.ready ? 'success' : 'warning'}
-          data-testid="close-readiness-verdict"
-        >
-          {readiness.ready
-            ? t('courses.detail.readiness.verdict.ready')
-            : t('courses.detail.readiness.verdict.blocked')}
-        </Badge>
-      </div>
+      <SectionHeader
+        title={t('courses.detail.readiness.title')}
+        action={
+          <Badge
+            variant={readiness.ready ? 'success' : 'warning'}
+            data-testid="close-readiness-verdict"
+          >
+            {readiness.ready
+              ? t('courses.detail.readiness.verdict.ready')
+              : t('courses.detail.readiness.verdict.blocked')}
+          </Badge>
+        }
+      />
       <ul className="space-y-2">
         {checks.map((check, index) => {
           const delay = 0.15 + index * 0.25

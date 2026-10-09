@@ -19,7 +19,6 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
 import { listViewState } from '@/lib/listViewState'
 import { fullName } from '@/lib/personName'
-import { ListHeaderBand } from '@/components/shared/ListHeaderBand'
 import { RowActions } from '@/components/shared/RowActions'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
@@ -92,7 +91,6 @@ export function TeachersListPage() {
         noResults={<NoResults message={t('teachers.list.emptyFiltered')} />}
         content={
           <Card className="overflow-hidden py-0 gap-0">
-            <ListHeaderBand label={t('teachers.list.title')} count={count} />
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">

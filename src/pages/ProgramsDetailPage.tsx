@@ -14,6 +14,7 @@ import {
 import { Card } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useProgram, useCourses } from '@/hooks/api'
+import { SectionHeader } from '@/components/shared/SectionHeader'
 
 // A single Program plus the Courses that are cohorts of it (ADR-0015). Both the
 // Program and its Course list come through the scope seam (useProgram /
@@ -54,9 +55,7 @@ export function ProgramsDetailPage() {
       />
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold tracking-tight">
-          {t('programs.detail.coursesTitle')}
-        </h2>
+        <SectionHeader title={t('programs.detail.coursesTitle')} />
         {courses.length === 0 ? (
           <NoResults message={t('programs.detail.noCourses')} />
         ) : (
