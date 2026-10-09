@@ -59,7 +59,9 @@ describe('TeacherDashboard — worklist-first (ADR-0043)', () => {
     renderDashboard()
     // Marking is the most time-sensitive job, so it heads the surface (ADR-0044).
     expect((await screen.findAllByText(/needs marking/i)).length).toBeGreaterThan(0)
-    expect(screen.getByRole('heading', { name: /courses to close/i })).toBeInTheDocument()
+    // Courses to close waits on its own five reads (ADR-0030), which can land after
+    // the marking card's three — find it, don't read the first frame.
+    expect(await screen.findByRole('heading', { name: /courses to close/i })).toBeInTheDocument()
   })
 
   // The Courses page is already teacher-scoped, so a "My courses" card only
