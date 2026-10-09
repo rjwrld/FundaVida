@@ -1,55 +1,27 @@
 import { Link, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { StudentProgress } from '@/components/students/StudentProgress'
-import {
-  useAttendance,
-  useCertificates,
-  useCourses,
-  useCurrentStudent,
-  useEnrollments,
-  useGrades,
-} from '@/hooks/api'
+import { PageHeader } from '@/components/shared/PageHeader'
+import { StudentCertificatesSection } from '@/components/students/StudentCertificatesSection'
+import { StudentGuardianCard, StudentIdentityCard } from '@/components/students/StudentProgress'
+import { useCurrentStudent } from '@/hooks/api'
 import { useStore } from '@/data/store'
-import { resolveQueries } from '@/lib/resolveQueries'
-import { buildStudentProgress, type StudentProgressRow } from '@/lib/studentProgress'
+import { fullName } from '@/lib/personName'
 
 /**
- * The Student's own self-service profile (/app/me, issue #166): a read-only "my
- * progress" hub mirroring the admin/teacher StudentsDetailPage sections, but read
- * entirely through the self-scoped seams (students:'self', enrollments:'own',
- * grades/certificates/attendance:'own'). A dedicated route — not the admin
- * students/:id page — keeps self-only structural (ADR-0008/0012): no Edit/Delete,
- * and a non-Student role is sent back to their dashboard. The shared
- * <StudentProgress> card is identical to StudentsDetailPage's; the scope seam is
- * this page's useCurrentStudent() vs that page's useStudent(id) (ADR-0032).
+ * The Student's own self-service profile (/app/me, issue #166): who they are —
+ * Identity, Certificates, Guardian — read entirely through the self-scoped seams
+ * (students:'self', certificates:'own'). Their per-Course progress already leads
+ * the dashboard's My courses table, so it is not repeated here (ADR-0051). A
+ * dedicated route — not the admin students/:id page — keeps self-only structural
+ * (ADR-0008/0012): no Edit/Delete, and a non-Student role is sent back to their
+ * dashboard. The page composes the shared panels rather than giving the detail
+ * page's StudentProgress hub a `mode` prop (ADR-0032).
  */
 export function MeProfilePage() {
   const { t } = useTranslation()
   const role = useStore((s) => s.role)
   const { data: student, isLoading } = useCurrentStudent()
-  const studentId = student?.id ?? ''
-  const enrollmentsQuery = useEnrollments({ studentId })
-  const coursesQuery = useCourses()
-  const gradesQuery = useGrades({ studentId })
-  const attendanceQuery = useAttendance({ studentId })
-  const certificatesQuery = useCertificates({ studentId })
-
-  // Gate the progress roll-up on all five queries (ADR-0030/0032) so the join
-  // never runs on `[]` placeholders; the section shows a skeleton (rows === null)
-  // rather than a false notGraded row while they resolve.
-  const progress = resolveQueries([
-    enrollmentsQuery,
-    coursesQuery,
-    gradesQuery,
-    attendanceQuery,
-    certificatesQuery,
-  ])
-  let rows: StudentProgressRow[] | null = null
-  if (!progress.isPending) {
-    const [enrollments, courses, grades, attendance, certificates] = progress.data
-    rows = buildStudentProgress({ enrollments, courses, grades, attendance, certificates })
-  }
 
   // Only a Student has a self-profile; any other role is redirected to their
   // dashboard. Branching on the synchronous role (not the async query) avoids a
@@ -68,5 +40,12 @@ export function MeProfilePage() {
     )
   }
 
-  return <StudentProgress student={student} rows={rows} eyebrow={t('me.title')} />
+  return (
+    <div className="space-y-6">
+      <PageHeader title={fullName(student)} description={student.email} />
+      <StudentIdentityCard student={student} />
+      <StudentCertificatesSection student={student} />
+      <StudentGuardianCard student={student} />
+    </div>
+  )
 }

@@ -40,12 +40,12 @@ export interface StudentProgressProps {
 }
 
 /**
- * The Student Progress hub, shared verbatim by the admin/teacher
- * StudentsDetailPage and the Student's own MeProfilePage (ADR-0032). Purely
- * presentational: it receives a resolved `student` and pre-joined `rows`, and
- * owns none of the query wiring. The `useStudent(id)` vs `useCurrentStudent()`
- * choice — the scope seam (ADR-0012) — stays on the page and reaches this card
- * only as the `eyebrow`/`action` props; there is deliberately no `mode` prop.
+ * The Student Progress hub of the admin/teacher StudentsDetailPage (ADR-0032).
+ * Purely presentational: it receives a resolved `student` and pre-joined `rows`,
+ * and owns none of the query wiring — the `useStudent(id)` choice, the scope seam
+ * (ADR-0012), stays on the page. The Student's own /me composes the identity and
+ * guardian panels below directly, without the roll-up the dashboard already shows
+ * (ADR-0051), rather than this hub growing a `mode` prop.
  */
 export function StudentProgress({ student, rows, eyebrow, action }: StudentProgressProps) {
   const { t } = useTranslation()
@@ -60,35 +60,7 @@ export function StudentProgress({ student, rows, eyebrow, action }: StudentProgr
         action={action}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('students.detail.sections.identity')}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
-          <p>
-            <span className="text-muted-foreground">{t('students.form.fields.sede')}:</span>{' '}
-            {student.sede}
-          </p>
-          <p>
-            <span className="text-muted-foreground">
-              {t('students.form.fields.educationalLevel')}:
-            </span>{' '}
-            {t(`students.form.level.${student.educationalLevel}`)}
-          </p>
-          <p>
-            <span className="text-muted-foreground">{t('students.form.fields.province')}:</span>{' '}
-            {student.province}
-          </p>
-          <p>
-            <span className="text-muted-foreground">{t('students.form.fields.canton')}:</span>{' '}
-            {student.canton}
-          </p>
-          <p>
-            <span className="text-muted-foreground">{t('students.form.fields.gender')}:</span>{' '}
-            {t(`students.form.gender.${student.gender}`)}
-          </p>
-        </CardContent>
-      </Card>
+      <StudentIdentityCard student={student} />
 
       <section className="space-y-3">
         <SectionHeader title={t('students.detail.sections.enrollments')} />
@@ -164,35 +136,75 @@ export function StudentProgress({ student, rows, eyebrow, action }: StudentProgr
 
       <StudentCertificatesSection student={student} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('students.detail.sections.guardian')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <p>
-            <span className="text-muted-foreground">{t('students.form.fields.guardianName')}:</span>{' '}
-            {student.guardian.name}
-          </p>
-          <p>
-            <span className="text-muted-foreground">
-              {t('students.form.fields.guardianRelationship')}:
-            </span>{' '}
-            {t(`students.form.guardian.relationship.${student.guardian.relationship}`)}
-          </p>
-          <p>
-            <span className="text-muted-foreground">
-              {t('students.form.fields.guardianPhone')}:
-            </span>{' '}
-            {student.guardian.phone}
-          </p>
-          <p>
-            <span className="text-muted-foreground">
-              {t('students.form.fields.guardianEmail')}:
-            </span>{' '}
-            {student.guardian.email}
-          </p>
-        </CardContent>
-      </Card>
+      <StudentGuardianCard student={student} />
     </div>
+  )
+}
+
+/** The Student's identity panel — a key-value Card shared by /me and the detail page. */
+export function StudentIdentityCard({ student }: { student: Student }) {
+  const { t } = useTranslation()
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t('students.detail.sections.identity')}</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
+        <p>
+          <span className="text-muted-foreground">{t('students.form.fields.sede')}:</span>{' '}
+          {student.sede}
+        </p>
+        <p>
+          <span className="text-muted-foreground">
+            {t('students.form.fields.educationalLevel')}:
+          </span>{' '}
+          {t(`students.form.level.${student.educationalLevel}`)}
+        </p>
+        <p>
+          <span className="text-muted-foreground">{t('students.form.fields.province')}:</span>{' '}
+          {student.province}
+        </p>
+        <p>
+          <span className="text-muted-foreground">{t('students.form.fields.canton')}:</span>{' '}
+          {student.canton}
+        </p>
+        <p>
+          <span className="text-muted-foreground">{t('students.form.fields.gender')}:</span>{' '}
+          {t(`students.form.gender.${student.gender}`)}
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
+
+/** The Student's Encargado panel (CONTEXT.md) — shared by /me and the detail page. */
+export function StudentGuardianCard({ student }: { student: Student }) {
+  const { t } = useTranslation()
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t('students.detail.sections.guardian')}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2 text-sm">
+        <p>
+          <span className="text-muted-foreground">{t('students.form.fields.guardianName')}:</span>{' '}
+          {student.guardian.name}
+        </p>
+        <p>
+          <span className="text-muted-foreground">
+            {t('students.form.fields.guardianRelationship')}:
+          </span>{' '}
+          {t(`students.form.guardian.relationship.${student.guardian.relationship}`)}
+        </p>
+        <p>
+          <span className="text-muted-foreground">{t('students.form.fields.guardianPhone')}:</span>{' '}
+          {student.guardian.phone}
+        </p>
+        <p>
+          <span className="text-muted-foreground">{t('students.form.fields.guardianEmail')}:</span>{' '}
+          {student.guardian.email}
+        </p>
+      </CardContent>
+    </Card>
   )
 }

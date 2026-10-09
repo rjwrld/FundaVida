@@ -1,10 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
-import { formatGrade, formatPercent } from '@/lib/format'
-import { shortCourseName } from '@/lib/courseName'
 import { fullName } from '@/lib/personName'
 import { MeProfilePage } from '@/pages/MeProfilePage'
 import { useStore } from '@/data/store'
@@ -97,28 +95,30 @@ describe('<MeProfilePage /> (#166)', () => {
     expect(screen.getByText(student.guardian.email)).toBeInTheDocument()
   })
 
-  it('lists own enrollments with attendance % and a passing grade treatment', async () => {
-    const { student, passingGrade, passingCourse } = self()
-    expect(passingGrade.score).toBeGreaterThanOrEqual(70)
+  // The per-Course roll-up lives on the dashboard's My courses table, so /me is
+  // just who the student is: Identity, Certificates, Guardian (ADR-0051).
+  it('shows identity, certificates, and guardian, and no enrollments table', async () => {
+    const { student } = self()
     renderMe()
 
-    const link = await screen.findByRole('link', { name: shortCourseName(passingCourse) })
-    const row = req(link.closest('tr') ?? undefined, 'enrollment row missing')
-    // The grade cell fills from a separate query that can resolve after the
-    // enrollment link, so await it rather than reading the row synchronously.
-    expect(await within(row).findByText(formatGrade(passingGrade.score, 'en'))).toBeInTheDocument()
-    expect(within(row).getByText('Passing')).toBeInTheDocument()
+    await screen.findByRole('heading', { name: fullName(student) })
+    expect(await screen.findByRole('heading', { name: 'Certificates' })).toBeInTheDocument()
+    expect(screen.getByText('Identity')).toBeInTheDocument()
+    expect(screen.getByText('Guardian')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Enrollments' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
 
-    // The per-course attendance % renders for a course with attendance records.
-    const records = useStore
-      .getState()
-      .attendance.filter((a) => a.studentId === student.id && a.courseId === passingCourse.id)
-    if (records.length > 0) {
-      const present = records.filter((r) => r.status === 'present').length
-      expect(
-        await within(row).findByText(formatPercent(present / records.length, 'en'))
-      ).toBeInTheDocument()
-    }
+  it('shows the passing course certificate the student earned', async () => {
+    const { student } = self()
+    const cert = useStore.getState().certificates.find((c) => c.studentId === student.id)
+    if (!cert) return
+    const course = req(
+      useStore.getState().courses.find((c) => c.id === cert.courseId),
+      'seed: certificate course missing'
+    )
+    renderMe()
+    expect(await screen.findAllByText(course.name)).not.toHaveLength(0)
   })
 
   it('renders a certificates section', async () => {
