@@ -1,16 +1,17 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Search, AlertCircle } from 'lucide-react'
 import { NoResults } from '@/components/shared/NoResults'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
 import { listViewState } from '@/lib/listViewState'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
-import { useCourses, useCoursesSeats } from '@/hooks/api'
+import { useCourses, useCoursesSeats, useEnrollments } from '@/hooks/api'
+import { resolveQueries } from '@/lib/resolveQueries'
+import { BrowseRequestAction } from '@/components/courses/BrowseRequestAction'
 import { useDataTableSurface } from '@/hooks/useDataTableSurface'
 import { CourseTitleLink } from '@/components/courses/CourseTitleLink'
 import type { CourseFilters } from '@/data/api/courses'
@@ -20,14 +21,15 @@ import type { Course } from '@/types'
 function SeatsLeft({ seats }: { seats: number | undefined }) {
   const { t } = useTranslation()
   if (seats === undefined) return <span className="text-muted-foreground">…</span>
-  if (seats === 0) return <Badge variant="destructive">{t('courses.browse.full')}</Badge>
   return <span className="tabular-nums">{t('courses.browse.seatsLeft', { count: seats })}</span>
 }
 
 /**
  * The student's Courses page (ADR-0043/0051): the open Courses at their Sede and
- * Level they can request ('browseable', ADR-0016). Their own Courses live on the
- * dashboard's My courses table, so this page only answers "what can I join?".
+ * Level they can request ('browseable', ADR-0016), each with its Request action
+ * on the row, plus the ones they have already requested — those stay listed as
+ * Requested until a decision. Their approved Courses live on the dashboard's My
+ * courses table, so this page only answers "what can I join?".
  */
 export function BrowseCoursesPage() {
   const { t } = useTranslation()
@@ -36,7 +38,31 @@ export function BrowseCoursesPage() {
     scopeOverride: 'browseable',
     openOnly: true,
   })
-  const { data = [], isLoading } = useCourses(filters)
+  // Three reads make the rows: the open Courses they may request, the Courses
+  // they hold any record in ('enrolled' scope — a pending request drops a Course
+  // out of 'browseable'), and their own enrollments to tell which is pending.
+  // A row's Request/Requested verdict joins all three, so the list waits for all
+  // three (ADR-0030).
+  const ownFilters: CourseFilters = { openOnly: true, search: filters.search }
+  const openQuery = useCourses(filters)
+  const mineQuery = useCourses(ownFilters)
+  const ownEnrollmentsQuery = useEnrollments({})
+  const gate = resolveQueries([openQuery, mineQuery, ownEnrollmentsQuery])
+  // Memoized over the reads' stable `.data` refs, so the table keeps its rows
+  // (and each row's Request button) across renders rather than remounting them.
+  const open = openQuery.data
+  const mine = mineQuery.data
+  const ownEnrollments = ownEnrollmentsQuery.data
+  const { data, enrollmentByCourse } = useMemo(() => {
+    const byCourse = new Map((ownEnrollments ?? []).map((e) => [e.courseId, e]))
+    const openIds = new Set((open ?? []).map((c) => c.id))
+    const rows = [
+      ...(open ?? []),
+      ...(mine ?? []).filter((c) => !openIds.has(c.id) && byCourse.get(c.id)?.status === 'pending'),
+    ].sort((a, b) => a.name.localeCompare(b.name))
+    return { data: rows, enrollmentByCourse: byCourse }
+  }, [open, mine, ownEnrollments])
+  const isLoading = gate.isPending
   // Seats for every listed Course in one aggregate read (issue #166): a Student's
   // 'own' enrollment scope cannot count classmates, so the data layer counts and
   // never exposes who holds a seat.
@@ -60,6 +86,18 @@ export function BrowseCoursesPage() {
       id: 'seats',
       header: t('courses.browse.columns.seats'),
       cell: (c) => <SeatsLeft seats={seatsById?.[c.id]} />,
+    },
+    {
+      id: 'request',
+      header: t('courses.browse.columns.request'),
+      align: 'right',
+      cell: (c) => (
+        <BrowseRequestAction
+          course={c}
+          enrollment={enrollmentByCourse.get(c.id)}
+          seats={seatsById?.[c.id]}
+        />
+      ),
     },
   ]
 
@@ -125,7 +163,14 @@ export function BrowseCoursesPage() {
             data={data}
             columns={columns}
             getRowKey={(c) => c.id}
-            renderCard={(c) => <DataTableCard row={c} columns={cardColumns} titleColumnId="name" />}
+            renderCard={(c) => (
+              <DataTableCard
+                row={c}
+                columns={cardColumns}
+                titleColumnId="name"
+                actionsColumnId="request"
+              />
+            )}
           />
         }
       />

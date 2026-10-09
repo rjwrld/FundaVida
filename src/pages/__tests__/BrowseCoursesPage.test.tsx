@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -136,5 +137,89 @@ describe('<BrowseCoursesPage /> — the student Courses page (ADR-0043/0051)', (
     const row = link.closest('tr')
     if (row)
       expect(await within(row).findByText(`Quedan ${first.seats} espacios`)).toBeInTheDocument()
+  })
+
+  // Requesting happens on the row (ADR-0051), through the same mutation, rule,
+  // and invalidation as the Course page's Request button.
+  describe('requesting from the row', () => {
+    async function firstOpen() {
+      const [first] = await openCourses()
+      if (!first) throw new Error('seed has no open course for the student persona')
+      return first
+    }
+
+    it('requests a spot, and the row stays to read Requested', async () => {
+      const { course } = await firstOpen()
+      const enrollmentsList = vi.spyOn(api.enrollments, 'list')
+      const seatsRead = vi.spyOn(api.courses, 'seatsRemainingFor')
+      const user = userEvent.setup()
+      renderPage()
+      const table = await screen.findByRole('table')
+      const requestButton = () =>
+        within(table).getByRole('button', { name: `Request a spot in ${course.name}` })
+      // Held disabled until the seats read lands, so a full Course never flashes it.
+      await waitFor(() => expect(requestButton()).toBeEnabled(), { timeout: 3000 })
+      const enrollmentReads = enrollmentsList.mock.calls.length
+      const seatReads = seatsRead.mock.calls.length
+
+      await user.click(requestButton())
+
+      await waitFor(() => {
+        const mine = useStore
+          .getState()
+          .enrollments.find(
+            (e) => e.courseId === course.id && e.studentId === useStore.getState().currentUserId
+          )
+        expect(mine?.status).toBe('pending')
+      })
+      const requested = await within(table).findByRole('button', { name: 'Requested' })
+      expect(requested).toBeDisabled()
+      expect(within(table).getByRole('link', { name: course.name })).toBeInTheDocument()
+      // The request's write-set refreshed the student's enrollments and the seats.
+      expect(enrollmentsList.mock.calls.length).toBeGreaterThan(enrollmentReads)
+      expect(seatsRead.mock.calls.length).toBeGreaterThan(seatReads)
+    })
+
+    it('reads a course the student already requested as Requested', async () => {
+      const { course } = await firstOpen()
+      useStore.getState().requestEnrollment(useStore.getState().currentUserId ?? '', course.id)
+      renderPage()
+
+      const table = await screen.findByRole('table')
+      expect(within(table).getByRole('link', { name: course.name })).toBeInTheDocument()
+      expect(await within(table).findByRole('button', { name: 'Requested' })).toBeDisabled()
+    })
+
+    it('disables a course with no seats left as Full', async () => {
+      const { course } = await firstOpen()
+      const approved = useStore
+        .getState()
+        .enrollments.filter((e) => e.courseId === course.id && e.status === 'approved').length
+      useStore.setState({
+        courses: useStore
+          .getState()
+          .courses.map((c) => (c.id === course.id ? { ...c, capacity: approved } : c)),
+      })
+      renderPage()
+
+      const table = await screen.findByRole('table')
+      expect(await within(table).findByRole('button', { name: 'Full' })).toBeDisabled()
+      expect(
+        within(table).queryByRole('button', { name: `Request a spot in ${course.name}` })
+      ).not.toBeInTheDocument()
+    })
+
+    it('offers the request in Spanish too', async () => {
+      useStore.getState().setLocale('es')
+      const { course } = await firstOpen()
+      renderPage()
+
+      const table = await screen.findByRole('table')
+      expect(
+        await within(table).findByRole('button', {
+          name: `Solicitar un espacio en ${course.name}`,
+        })
+      ).toBeInTheDocument()
+    })
   })
 })
