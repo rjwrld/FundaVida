@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GraduationCap } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -25,40 +26,56 @@ import { useFormat } from '@/hooks/useFormat'
 export function CoursesToClose() {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
+  const coursesQuery = useCourses()
+  const enrollmentsQuery = useEnrollments()
+  const gradesQuery = useGrades()
+  const attendanceQuery = useAttendance()
+  const sessionExceptionsQuery = useSessionExceptions()
   const gate = resolveQueries([
-    useCourses(),
-    useEnrollments(),
-    useGrades(),
-    useAttendance(),
-    useSessionExceptions(),
+    coursesQuery,
+    enrollmentsQuery,
+    gradesQuery,
+    attendanceQuery,
+    sessionExceptionsQuery,
   ])
 
   // Same derivation as the detail page's checklist (#204), over the SAME composed
   // seam (ADR-0039: close-readiness reads effectiveSessions), so the two verdicts
-  // agree by construction. Held until all five reads resolve — an empty
-  // grades/attendance/exceptions window would misread as "ready" (ADR-0030).
-  if (gate.isPending) return <SkeletonCard lines={3} />
+  // agree by construction. Readiness walks every Session of every closeable
+  // Course, so it is memoized over the reads' (structurally shared) data.
+  const courses = coursesQuery.data
+  const enrollments = enrollmentsQuery.data
+  const grades = gradesQuery.data
+  const attendance = attendanceQuery.data
+  const sessionExceptions = sessionExceptionsQuery.data
+  const rows = useMemo(() => {
+    if (!courses || !enrollments || !grades || !attendance || !sessionExceptions) return null
+    const now = clock.now()
+    return coursesToClose(courses, now).map((course) => ({
+      course,
+      readiness: closeReadiness({
+        course,
+        enrollments,
+        grades,
+        attendance,
+        sessionExceptions,
+        now,
+      }),
+    }))
+  }, [courses, enrollments, grades, attendance, sessionExceptions])
 
-  const [courses, enrollments, grades, attendance, sessionExceptions] = gate.data
-  const now = clock.now()
-  const closeable = coursesToClose(courses, now)
+  // Held until all five reads resolve — an empty grades/attendance/exceptions
+  // window would misread as "ready" (ADR-0030).
+  if (gate.isPending || !rows) return <SkeletonCard lines={3} />
 
   return (
     <WorklistCard
       title={t('dashboard.coursesToClose.title')}
       icon={GraduationCap}
-      count={closeable.length}
+      count={rows.length}
       emptyLabel={t('dashboard.coursesToClose.empty')}
     >
-      {closeable.map((course) => {
-        const readiness = closeReadiness({
-          course,
-          enrollments,
-          grades,
-          attendance,
-          sessionExceptions,
-          now,
-        })
+      {rows.map(({ course, readiness }) => {
         return (
           <WorklistRow
             key={course.id}

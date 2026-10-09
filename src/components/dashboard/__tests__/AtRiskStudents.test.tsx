@@ -8,7 +8,14 @@ import { useStore } from '@/data/store'
 import { api } from '@/data/api'
 import { delay } from '@/data/api/_delay'
 import type { AttendanceRecord, Grade, Student } from '@/types'
+import { atRiskStudents } from '@/lib/dashboard'
 import { AtRiskStudents } from '../AtRiskStudents'
+
+// A pass-through spy, so a test can count derivations without changing them.
+vi.mock('@/lib/dashboard', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/dashboard')>()
+  return { ...actual, atRiskStudents: vi.fn(actual.atRiskStudents) }
+})
 
 const EPOCH = new Date('2026-06-15T12:00:00.000Z')
 
@@ -49,7 +56,7 @@ const att = (
 
 function renderCard() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return render(
+  const tree = () => (
     <I18nProvider>
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
@@ -58,6 +65,8 @@ function renderCard() {
       </QueryClientProvider>
     </I18nProvider>
   )
+  const result = render(tree())
+  return { ...result, rerenderSame: () => result.rerender(tree()) }
 }
 
 describe('AtRiskStudents', () => {
@@ -72,6 +81,7 @@ describe('AtRiskStudents', () => {
   afterEach(() => {
     useStore.setState(snapshot)
     vi.restoreAllMocks()
+    vi.mocked(atRiskStudents).mockClear()
   })
 
   it('lists at-risk students with the reason, linking to their profile, and omits safe students', async () => {
@@ -147,5 +157,22 @@ describe('AtRiskStudents', () => {
       'href',
       '/app/students'
     )
+  })
+
+  it('does not re-derive the at-risk list on a re-render with unchanged data', async () => {
+    useStore.setState({
+      students: [makeStudent('stu-fail', 'Ana')],
+      grades: [grade('stu-fail', 55)],
+      attendance: [],
+    })
+    const { rerenderSame } = renderCard()
+    await screen.findByText('Ana Q')
+    const calls = vi.mocked(atRiskStudents).mock.calls.length
+    expect(calls).toBeGreaterThan(0)
+
+    rerenderSame()
+    rerenderSame()
+
+    expect(vi.mocked(atRiskStudents).mock.calls.length).toBe(calls)
   })
 })
