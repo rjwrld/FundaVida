@@ -14,6 +14,7 @@ import { resolveQueries } from '@/lib/resolveQueries'
 import { tcuHoursByStatus, TCU_TARGET_HOURS } from '@/lib/tcuHours'
 import { fullName } from '@/lib/personName'
 import { useFormat } from '@/hooks/useFormat'
+import { SectionHeader } from '@/components/shared/SectionHeader'
 
 /**
  * Per-trainee progress for the approving roles (#367): one row per scoped
@@ -55,7 +56,7 @@ export function TraineeProgressRoster({
 
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-semibold">{t('tcu.roster.title')}</h2>
+      <SectionHeader title={t('tcu.roster.title')} />
       <Card className="overflow-hidden py-0 gap-0">
         <Table>
           <TableHeader>

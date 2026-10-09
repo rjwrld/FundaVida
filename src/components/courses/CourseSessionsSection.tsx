@@ -17,6 +17,7 @@ import { isSessionRecordable, isSessionUpcoming, type Session } from '@/lib/sess
 import type { CloseReadiness } from '@/lib/closeReadiness'
 import { isLiveCohort } from '@/lib/courseDisplayState'
 import type { AttendanceRecord, Course } from '@/types'
+import { SectionHeader } from '@/components/shared/SectionHeader'
 
 /** How many Upcoming rows stay visible before the rest fold into a disclosure. */
 const UPCOMING_VISIBLE = 3
@@ -174,27 +175,26 @@ export function CourseSessionsSection({
 
   return (
     <section aria-labelledby="course-sessions-heading" className="space-y-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="course-sessions-heading" className="text-lg font-semibold tracking-tight">
-          {t('courses.detail.sessions.heading')}
-        </h2>
-        <div className="flex items-center gap-3">
-          {showVerdicts && !frozen && (
-            <p className="font-mono text-xs tabular-nums text-muted-foreground">
-              {t('courses.detail.sessions.summary', {
+      <SectionHeader
+        id="course-sessions-heading"
+        title={t('courses.detail.sessions.heading')}
+        count={
+          showVerdicts && !frozen
+            ? t('courses.detail.sessions.summary', {
                 recorded: recorded.length,
                 needsAttendance: needsAttendance.length,
-              })}
-            </p>
-          )}
-          {canManageSessions && (
+              })
+            : undefined
+        }
+        action={
+          canManageSessions ? (
             <Button size="sm" variant="outline" onClick={() => setManageMode({ kind: 'extra' })}>
               <Plus className="size-4" aria-hidden="true" />
               {t('courses.detail.sessions.manage.add')}
             </Button>
-          )}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
       {sessions.length === 0 ? (
         <NoResults message={t('courses.detail.sessions.empty')} />

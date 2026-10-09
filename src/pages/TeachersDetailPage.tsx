@@ -18,6 +18,7 @@ import { resolveQueries } from '@/lib/resolveQueries'
 import { useFormat } from '@/hooks/useFormat'
 import { shortCourseName } from '@/lib/courseName'
 import { fullName } from '@/lib/personName'
+import { SectionHeader } from '@/components/shared/SectionHeader'
 
 export function TeachersDetailPage() {
   const { t } = useTranslation()
@@ -114,9 +115,7 @@ export function TeachersDetailPage() {
       </Card>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold tracking-tight">
-          {t('teachers.detail.sections.courses')}
-        </h2>
+        <SectionHeader title={t('teachers.detail.sections.courses')} />
         {assigned.length === 0 ? (
           <NoResults message={t('teachers.detail.sections.noCourses')} />
         ) : (

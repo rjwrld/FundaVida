@@ -23,6 +23,7 @@ import { isPassingScore } from '@/lib/certificates'
 import { fullName } from '@/lib/personName'
 import type { StudentProgressRow } from '@/lib/studentProgress'
 import type { Student } from '@/types'
+import { SectionHeader } from '@/components/shared/SectionHeader'
 
 export interface StudentProgressProps {
   student: Student
@@ -90,9 +91,7 @@ export function StudentProgress({ student, rows, eyebrow, action }: StudentProgr
       </Card>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold tracking-tight">
-          {t('students.detail.sections.enrollments')}
-        </h2>
+        <SectionHeader title={t('students.detail.sections.enrollments')} />
         {rows === null ? (
           <SkeletonTable columns={4} />
         ) : rows.length === 0 ? (

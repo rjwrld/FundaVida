@@ -15,6 +15,7 @@ import { resolveQueries } from '@/lib/resolveQueries'
 import { useCourseCampaigns, useStudents } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import type { Course, EmailCampaign, Student } from '@/types'
+import { SectionHeader } from '@/components/shared/SectionHeader'
 
 /** One row per sent campaign, its recipient count resolved against the viewer's students. */
 function buildRows(campaigns: EmailCampaign[], students: Student[]) {
@@ -59,9 +60,10 @@ export function CourseSentMessagesSection({ course }: { course: Course }) {
 
   return (
     <section aria-labelledby="course-sent-messages-heading" className="space-y-3">
-      <h2 id="course-sent-messages-heading" className="text-lg font-semibold tracking-tight">
-        {t('courses.detail.sentMessages.heading')}
-      </h2>
+      <SectionHeader
+        id="course-sent-messages-heading"
+        title={t('courses.detail.sentMessages.heading')}
+      />
 
       {rows === null ? (
         <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>

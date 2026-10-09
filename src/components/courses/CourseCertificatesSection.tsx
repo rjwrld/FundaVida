@@ -12,6 +12,7 @@ import { fireConfetti } from '@/lib/confetti'
 import type { CertificatePayload } from '@/lib/pdf/renderCertificate'
 import { fullName } from '@/lib/personName'
 import type { Course } from '@/types'
+import { SectionHeader } from '@/components/shared/SectionHeader'
 
 interface CardItem {
   id: string
@@ -114,9 +115,7 @@ export function CourseCertificatesSection({ course }: { course: Course }) {
 
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-semibold tracking-tight">
-        {t('courses.detail.sections.certificates')}
-      </h2>
+      <SectionHeader title={t('courses.detail.sections.certificates')} />
       {items.length === 0 ? (
         <NoResults message={t('courses.detail.certificates.empty')} />
       ) : (

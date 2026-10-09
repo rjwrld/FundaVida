@@ -10,6 +10,7 @@ import { useFormat } from '@/hooks/useFormat'
 import type { CertificatePayload } from '@/lib/pdf/renderCertificate'
 import { fullName } from '@/lib/personName'
 import type { Student } from '@/types'
+import { SectionHeader } from '@/components/shared/SectionHeader'
 
 interface CardItem {
   id: string
@@ -81,9 +82,7 @@ export function StudentCertificatesSection({ student }: { student: Student }) {
 
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-semibold tracking-tight">
-        {t('students.detail.sections.certificates')}
-      </h2>
+      <SectionHeader title={t('students.detail.sections.certificates')} />
       {items.length === 0 ? (
         <NoResults message={t('students.detail.certificates.empty')} />
       ) : (

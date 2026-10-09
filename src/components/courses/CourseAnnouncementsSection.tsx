@@ -8,6 +8,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { useDeleteAnnouncement } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
 import type { Announcement, Course } from '@/types'
+import { SectionHeader } from '@/components/shared/SectionHeader'
 
 interface CourseAnnouncementsSectionProps {
   course: Course
@@ -46,9 +47,10 @@ export function CourseAnnouncementsSection({
 
   return (
     <section aria-labelledby="course-announcements-heading" className="space-y-3">
-      <h2 id="course-announcements-heading" className="text-lg font-semibold tracking-tight">
-        {t('courses.detail.announcements.heading')}
-      </h2>
+      <SectionHeader
+        id="course-announcements-heading"
+        title={t('courses.detail.announcements.heading')}
+      />
 
       {canManage && (
         <div className="rounded-md border bg-card p-3">
