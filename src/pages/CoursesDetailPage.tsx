@@ -261,7 +261,7 @@ export function CoursesDetailPage() {
       <div className="space-y-4">
         <p className="text-sm text-muted-foreground">{t('courses.detail.title')}</p>
         <Button asChild variant="outline">
-          <Link to="/app/courses">{t('common.actions.backToHome')}</Link>
+          <Link to="/app">{t('common.actions.backToHome')}</Link>
         </Button>
       </div>
     )
@@ -278,7 +278,7 @@ export function CoursesDetailPage() {
       <div className="space-y-4">
         <p className="text-sm text-muted-foreground">{t('courses.detail.title')}</p>
         <Button asChild variant="outline">
-          <Link to="/app/courses">{t('common.actions.backToHome')}</Link>
+          <Link to="/app">{t('common.actions.backToHome')}</Link>
         </Button>
       </div>
     )
@@ -317,9 +317,6 @@ export function CoursesDetailPage() {
         description={programName}
         action={
           <>
-            <Button variant="outline" onClick={() => navigate('/app/courses')}>
-              {t('common.actions.backToHome')}
-            </Button>
             {canEdit && isLiveCohort(course) && (
               <Button onClick={() => navigate(`/app/courses?edit=${course.id}`)}>
                 {t('courses.detail.edit')}

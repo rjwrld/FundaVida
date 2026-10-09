@@ -68,16 +68,5 @@ export function MeProfilePage() {
     )
   }
 
-  return (
-    <StudentProgress
-      student={student}
-      rows={rows}
-      eyebrow={t('me.title')}
-      action={
-        <Button asChild variant="outline">
-          <Link to="/app">{t('common.actions.backToHome')}</Link>
-        </Button>
-      }
-    />
-  )
+  return <StudentProgress student={student} rows={rows} eyebrow={t('me.title')} />
 }

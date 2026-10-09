@@ -71,6 +71,24 @@ describe('<TeachersDetailPage />', () => {
     useStore.getState().setLocale('en')
   })
 
+  // The header breadcrumb already leads back to the list; a "Back to home"
+  // button beside it went to the list too, so its label lied.
+  it('has no "Back to home" button that actually leads to the list', async () => {
+    const teacher = req(useStore.getState().teachers[0], 'seed: no teacher')
+    renderDetail(teacher.id)
+
+    await screen.findByText(teacher.province)
+    expect(screen.queryByRole('button', { name: 'Back to home' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Back to home' })).not.toBeInTheDocument()
+  })
+
+  it('sends an unknown teacher id home, as its link says', async () => {
+    renderDetail('tea-does-not-exist')
+
+    const home = await screen.findByRole('link', { name: 'Back to home' })
+    expect(home).toHaveAttribute('href', '/app')
+  })
+
   it('shows the teacher province and canton', async () => {
     const teacher = useStore.getState().teachers[0]
     if (!teacher) throw new Error('expected a seeded teacher')

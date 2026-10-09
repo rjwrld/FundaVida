@@ -64,6 +64,16 @@ describe('<MeProfilePage /> (#166)', () => {
     useStore.getState().setLocale('en')
   })
 
+  // The header breadcrumb and sidebar already lead home; the profile header needs
+  // no extra "Back to home" button.
+  it('has no "Back to home" button in the profile header', async () => {
+    const { student } = self()
+    renderMe()
+
+    await screen.findByRole('heading', { name: fullName(student) })
+    expect(screen.queryByRole('link', { name: 'Back to home' })).not.toBeInTheDocument()
+  })
+
   it('shows the logged-in student’s name, campus, and educational level', async () => {
     const { student } = self()
     renderMe()

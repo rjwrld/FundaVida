@@ -46,7 +46,7 @@ export function StudentsDetailPage() {
       <div className="space-y-4">
         <p className="text-sm text-muted-foreground">{t('students.detail.title')}</p>
         <Button asChild variant="outline">
-          <Link to="/app/students">{t('common.actions.backToHome')}</Link>
+          <Link to="/app">{t('common.actions.backToHome')}</Link>
         </Button>
       </div>
     )
@@ -59,9 +59,6 @@ export function StudentsDetailPage() {
       eyebrow={t('students.detail.title')}
       action={
         <>
-          <Button variant="outline" onClick={() => navigate('/app/students')}>
-            {t('common.actions.backToHome')}
-          </Button>
           <Button onClick={() => navigate(`/app/students?edit=${student.id}`)}>
             {t('students.detail.edit')}
           </Button>
