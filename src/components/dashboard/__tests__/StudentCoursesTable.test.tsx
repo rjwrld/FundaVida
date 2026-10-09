@@ -3,7 +3,9 @@ import { render, screen, within } from '@testing-library/react'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
+import userEvent from '@testing-library/user-event'
 import { setDemoEpoch } from '@/lib/clock'
+import { shortCourseName } from '@/lib/courseName'
 import { api } from '@/data/api'
 import { delay } from '@/data/api/_delay'
 import { useStore } from '@/data/store'
@@ -56,13 +58,14 @@ describe('<StudentCoursesTable /> — buildStudentProgress roll-up (ADR-0032/004
   it('renders the per-course columns and deep-links each row to the Course', async () => {
     renderTable()
 
-    // The table headers spell the roll-up: Course, schedule, status, attendance, grade.
+    // The table headers spell the roll-up: Course, status, attendance, grade,
+    // certificate. The schedule column left for the certificate (ADR-0050) — the
+    // meeting days live on the Course and the calendar.
     const table = await screen.findByRole('table')
-    expect(within(table).getByRole('columnheader', { name: 'Course' })).toBeInTheDocument()
-    expect(within(table).getByRole('columnheader', { name: 'Schedule' })).toBeInTheDocument()
-    expect(within(table).getByRole('columnheader', { name: 'Status' })).toBeInTheDocument()
-    expect(within(table).getByRole('columnheader', { name: 'Attendance' })).toBeInTheDocument()
-    expect(within(table).getByRole('columnheader', { name: 'Grade' })).toBeInTheDocument()
+    const headers = within(table)
+      .getAllByRole('columnheader')
+      .map((h) => h.textContent)
+    expect(headers).toEqual(['Course', 'Status', 'Attendance', 'Grade', 'Certificate'])
 
     // Each Course cell is a deep link into /app/courses/:id (scoped to the table
     // to dodge the DataTable dual-render mobile-card duplicate — getByRole trap).
@@ -97,5 +100,51 @@ describe('<StudentCoursesTable /> — buildStudentProgress roll-up (ADR-0032/004
 
     expect(await screen.findByText(/not enrolled in any courses/i)).toBeInTheDocument()
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+
+  it('shows an issued certificate with its download, and a dash where there is none', async () => {
+    const user = userEvent.setup()
+    const { currentUserId, enrollments, courses, certificates } = useStore.getState()
+    if (!currentUserId) throw new Error('the student persona should be signed in')
+    const own = enrollments.filter((e) => e.studentId === currentUserId && e.status === 'approved')
+    const [withCert, withoutCert] = own
+    if (!withCert || !withoutCert) throw new Error('seed: the student needs two enrollments')
+    const certCourse = courses.find((c) => c.id === withCert.courseId)
+    const plainCourse = courses.find((c) => c.id === withoutCert.courseId)
+    if (!certCourse || !plainCourse) throw new Error('seed: enrollment courses missing')
+    useStore.setState({
+      certificates: [
+        ...certificates.filter((c) => c.studentId !== currentUserId),
+        {
+          id: 'cer-test',
+          studentId: currentUserId,
+          courseId: certCourse.id,
+          score: 91,
+          issuedAt: EPOCH.toISOString(),
+        },
+      ],
+    })
+
+    renderTable()
+
+    const table = await screen.findByRole('table')
+    const rowOf = (name: string) => {
+      const row = within(table).getByRole('link', { name }).closest('tr')
+      if (!row) throw new Error(`no row for ${name}`)
+      return row
+    }
+    const certRow = rowOf(shortCourseName(certCourse))
+    expect(within(certRow).getByText('Issued')).toBeInTheDocument()
+
+    const plainCells = within(rowOf(shortCourseName(plainCourse))).getAllByRole('cell')
+    expect(plainCells[plainCells.length - 1]).toHaveTextContent('—')
+
+    // The download rides the existing preview dialog, whose footer saves the PDF.
+    await user.click(
+      within(certRow).getByRole('button', {
+        name: `Download the ${shortCourseName(certCourse)} certificate`,
+      })
+    )
+    expect(await screen.findByRole('dialog', { name: /certificate preview/i })).toBeInTheDocument()
   })
 })

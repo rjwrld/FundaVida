@@ -628,10 +628,12 @@
       "sectionTitle": "Tu aprendizaje",
       "table": {
         "attendance": "Asistencia",
+        "certificate": "Certificado",
         "course": "Curso",
+        "downloadCertificate": "Descargar el certificado de {{course}}",
         "empty": "Aún no estás matriculado en ningún curso.",
         "grade": "Calificación",
-        "schedule": "Horario",
+        "issued": "Emitido",
         "state": "Estado",
         "title": "Mis cursos"
       }
