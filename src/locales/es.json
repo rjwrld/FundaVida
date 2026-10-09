@@ -257,18 +257,6 @@
         "unmarkedNone": "Todas las sesiones registradas",
         "view": "Ver"
       },
-      "student": {
-        "attended": "{{present}}/{{total}} asistidas",
-        "bannerOnTrack": "{{onTrack}}/{{total}} cursos al día",
-        "certificateEarned": "Certificado obtenido",
-        "certPending": "Certificado pendiente",
-        "noSessionsRecorded": "Aún no hay sesiones registradas",
-        "onTrack": "Al día",
-        "progressTitle": "Mi progreso"
-      },
-      "tcu": {
-        "bannerNext": "Siguiente: {{course}}"
-      },
       "teacher": {
         "caughtUpBody": "No hay nada pendiente en tus cursos.",
         "caughtUpTitle": "Todo registrado",

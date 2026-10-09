@@ -5,8 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { I18nProvider } from '@/lib/i18n'
 import { CalendarPage } from '@/pages/CalendarPage'
-import { api } from '@/data/api'
-import { delay } from '@/data/api/_delay'
 import { useStore } from '@/data/store'
 import { setDemoEpoch } from '@/lib/clock'
 import {
@@ -14,7 +12,7 @@ import {
   clearPersistedRole,
   clearPersistedState,
 } from '@/data/persistence'
-import type { AttendanceRecord, Course, Enrollment, TcuTrainee, Weekday } from '@/types'
+import type { Course, Enrollment, TcuTrainee, Weekday } from '@/types'
 
 // Fixed Demo Epoch (ADR-0014) so the week agenda opens on a known Mon-Sun week.
 const NOW = new Date(2026, 5, 15) // Monday, June 15, 2026
@@ -157,13 +155,25 @@ describe('<CalendarPage />', () => {
     expect(await screen.findByRole('heading', { name: 'Needs marking' })).toBeInTheDocument()
   })
 
-  it('shows the student "My progress" with no-sessions-yet copy when total is 0', async () => {
-    useStore.getState().setRole('student')
+  // The agenda sidebar is a marker's worklist (ADR-0051): a student or a TCU
+  // volunteer has nothing to mark, so their canvas runs the full width.
+  it.each(['student', 'tcu'] as const)(
+    'gives a %s the canvas alone, no agenda sidebar',
+    async (role) => {
+      useStore.getState().setRole(role)
+      renderPage()
+
+      expect((await screen.findAllByText('Matemáticas')).length).toBeGreaterThan(0)
+      expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: 'Upcoming' })).not.toBeInTheDocument()
+    }
+  )
+
+  it.each(['teacher', 'admin'] as const)('keeps the agenda sidebar for a %s', async (role) => {
+    useStore.getState().setRole(role)
     renderPage()
 
-    expect(await screen.findByText('My progress')).toBeInTheDocument()
-    // No AttendanceRecord seeded → total 0/0 → the coordinator's copy override.
-    expect(screen.getByText('No sessions recorded yet')).toBeInTheDocument()
+    expect(await screen.findByRole('complementary')).toBeInTheDocument()
   })
 
   it('toggles to month mode, reusing MonthNavigator', async () => {
@@ -244,48 +254,5 @@ describe('<CalendarPage />', () => {
     renderPage()
 
     expect(await screen.findByText(/No courses yet/)).toBeInTheDocument()
-  })
-
-  // First-paint regression (ADR-0030): the student sidebar's progress bucket
-  // reads enrollments + courses + grades + attendance + certificates. Holding
-  // one of those queries open past the others must not let the sidebar paint
-  // a false "no sessions recorded" or flash a wrong present/total count.
-  it('never flashes the wrong progress verdict while a slower query resolves', async () => {
-    useStore.getState().setRole('student')
-    const attendanceRecords: AttendanceRecord[] = [
-      {
-        id: 'att-1',
-        courseId: 'cou-A',
-        studentId: 'stu-1',
-        sessionDate: isoDay(2026, 5, 1),
-        status: 'present',
-      },
-    ]
-    useStore.setState({ attendance: attendanceRecords })
-
-    const listAttendance = api.attendance.list
-    vi.spyOn(api.attendance, 'list').mockImplementation(async (filters) => {
-      await delay(600)
-      return listAttendance(filters)
-    })
-
-    let firstSidebarText: string | null = null
-    const observer = new MutationObserver(() => {
-      if (firstSidebarText !== null) return
-      const heading = screen.queryByText('My progress')
-      if (heading) firstSidebarText = heading.closest('section')?.textContent ?? null
-    })
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true })
-
-    try {
-      renderPage()
-      await screen.findByText('1/1 attended')
-      // The FIRST frame "My progress" ever painted already carried the real count,
-      // never a "no sessions recorded yet" placeholder computed off a [] default.
-      expect(firstSidebarText).not.toBeNull()
-      expect(firstSidebarText).not.toContain('No sessions recorded yet')
-    } finally {
-      observer.disconnect()
-    }
   })
 })
