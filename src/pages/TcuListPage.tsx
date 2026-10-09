@@ -20,6 +20,7 @@ import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useTcuActivities, useTcuTrainees, useApproveTcuActivity } from '@/hooks/api'
 import { listViewState } from '@/lib/listViewState'
 import { resolveQueries } from '@/lib/resolveQueries'
+import { newestFirst, oldestFirst } from '@/lib/tcuActivityOrder'
 import { tcuHoursByStatus, TCU_TARGET_HOURS } from '@/lib/tcuHours'
 import { fullName } from '@/lib/personName'
 import { TCU_VARIANT } from '@/lib/statusVariant'
@@ -51,9 +52,10 @@ export function TcuListPage() {
   const approveMutation = useApproveTcuActivity()
 
   const { approved: approvedHours, pending: pendingHours } = tcuHoursByStatus(data)
-  const visibleActivities = selectedTraineeId
-    ? data.filter((a) => a.traineeId === selectedTraineeId)
-    : data
+  // The log reads newest first; the approval queue below, oldest first (FIFO).
+  const visibleActivities = newestFirst(
+    selectedTraineeId ? data.filter((a) => a.traineeId === selectedTraineeId) : data
+  )
   const hasFilters = selectedTraineeId !== null
   const count = visibleActivities.length
 
@@ -79,8 +81,9 @@ export function TcuListPage() {
   // For admin: show all pending activities
   const pendingActivitiesForAdmin =
     role === 'admin' ? data.filter((a) => a.status === 'pending') : []
-  const pendingActivities =
+  const pendingActivities = oldestFirst(
     role === 'admin' ? pendingActivitiesForAdmin : pendingActivitiesForTeacher
+  )
 
   return (
     <div className="space-y-6">

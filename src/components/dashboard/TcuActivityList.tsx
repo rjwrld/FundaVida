@@ -4,6 +4,7 @@ import { enUS, es } from 'date-fns/locale'
 import { Activity } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { clock } from '@/lib/clock'
+import { newestFirst } from '@/lib/tcuActivityOrder'
 import { useFormat } from '@/hooks/useFormat'
 import type { TcuActivity } from '@/types'
 
@@ -20,7 +21,7 @@ export function TcuActivityList({ activities, limit = 5 }: TcuActivityListProps)
   const { locale } = useFormat()
   const dfLocale = locale === 'es' ? es : enUS
 
-  const recentActivities = activities.slice(0, limit)
+  const recentActivities = newestFirst(activities).slice(0, limit)
 
   return (
     <Card className="h-full">
