@@ -254,18 +254,6 @@
         "unmarkedNone": "All sessions marked",
         "view": "View"
       },
-      "student": {
-        "attended": "{{present}}/{{total}} attended",
-        "bannerOnTrack": "{{onTrack}}/{{total}} courses on track",
-        "certificateEarned": "Certificate earned",
-        "certPending": "Certificate pending",
-        "noSessionsRecorded": "No sessions recorded yet",
-        "onTrack": "On track",
-        "progressTitle": "My progress"
-      },
-      "tcu": {
-        "bannerNext": "Next: {{course}}"
-      },
       "teacher": {
         "caughtUpBody": "Nothing pending in your courses.",
         "caughtUpTitle": "All sessions marked",

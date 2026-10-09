@@ -11,14 +11,7 @@ import { type SessionCardStatus } from '@/components/calendar/SessionCard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useStore } from '@/data/store'
-import {
-  useAttendance,
-  useCertificates,
-  useCourses,
-  useEnrollments,
-  useGrades,
-  useSessionExceptions,
-} from '@/hooks/api'
+import { useAttendance, useCourses, useSessionExceptions } from '@/hooks/api'
 import { buildAgenda } from '@/lib/agenda'
 import { clock } from '@/lib/clock'
 import { milestonesFor, milestonesInMonth, nearestMilestonesAround } from '@/lib/monthMilestones'
@@ -32,7 +25,8 @@ import { cn } from '@/lib/utils'
  * swaps in the term map (ADR-0048): a `MonthNavigator` whose glyphs narrate the
  * cohort boundaries and Session exceptions, read beside a `MonthMilestones` list.
  * Both stay *navigators* — every tap jumps the week canvas onto that week, and no
- * day-detail view returns. Responsive is a ladder with one render path: at `lg+`
+ * day-detail view returns. Only the roles that mark attendance (teacher, admin)
+ * get the sidebar; a student's or volunteer's canvas runs the full width (ADR-0051). Responsive is a ladder with one render path: at `lg+`
  * the sidebar-plus-canvas split (which the term map's geometry mirrors); below,
  * the sidebar compresses to a one-row banner above the canvas with the full
  * buckets following. Rides the existing Courses scope — no new permission, no
@@ -49,22 +43,12 @@ export function CalendarPage() {
 
   const coursesQuery = useCourses()
   const attendanceQuery = useAttendance()
-  const gradesQuery = useGrades()
-  const enrollmentsQuery = useEnrollments()
-  const certificatesQuery = useCertificates()
   const sessionExceptionsQuery = useSessionExceptions()
 
-  // The sidebar's verdict (needs-marking count, progress rows, pulse) and every
-  // Session surface read six scoped queries; gate on all of them (ADR-0030) so a
-  // default-`[]` window can never flash a false count before every query resolves.
-  const gate = resolveQueries([
-    coursesQuery,
-    attendanceQuery,
-    gradesQuery,
-    enrollmentsQuery,
-    certificatesQuery,
-    sessionExceptionsQuery,
-  ])
+  // The sidebar's verdict (needs-marking count, pulse) and every Session surface
+  // read three scoped queries; gate on all of them (ADR-0030) so a default-`[]`
+  // window can never flash a false count before every query resolves.
+  const gate = resolveQueries([coursesQuery, attendanceQuery, sessionExceptionsQuery])
 
   if (!role) return null
 
@@ -77,7 +61,7 @@ export function CalendarPage() {
     )
   }
 
-  const [courses, attendance, grades, enrollments, certificates, sessionExceptions] = gate.data
+  const [courses, attendance, sessionExceptions] = gate.data
 
   if (courses.length === 0) {
     return (
@@ -106,16 +90,11 @@ export function CalendarPage() {
   const thisMonth = milestonesInMonth(milestones, month)
   const nearest = nearestMilestonesAround(milestones, month)
 
-  const agenda = buildAgenda({
-    role,
-    courses,
-    attendance,
-    grades,
-    enrollments,
-    certificates,
-    sessionExceptions,
-    now,
-  })
+  // The agenda sidebar is a marker's worklist (ADR-0051): teacher and admin only.
+  const agenda =
+    role === 'teacher' || role === 'admin'
+      ? buildAgenda({ role, courses, attendance, sessionExceptions, now })
+      : null
 
   const statusFor = (courseId: string, date: string): SessionCardStatus => {
     if (role === 'student') {
@@ -176,7 +155,16 @@ export function CalendarPage() {
         }
       />
 
-      {view === 'week' ? (
+      {view === 'week' && !agenda ? (
+        <WeekCanvas
+          courses={courses}
+          sessionExceptions={sessionExceptions}
+          weekOf={weekOf}
+          onWeekChange={setWeekOf}
+          linkToMark={linkToMark}
+          statusFor={statusFor}
+        />
+      ) : view === 'week' && agenda ? (
         // The sidebar takes a column only when the canvas beside it keeps ≥960px
         // (300 + 24 gap + 960 = 1284px of layout): below that, the canvas fell
         // under WeekCanvas's five-column switch and the week scrolled as a snap

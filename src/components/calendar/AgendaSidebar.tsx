@@ -1,17 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Check } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { useFormat } from '@/hooks/useFormat'
 import { calendarCardName } from '@/lib/courseName'
-import type {
-  AdminAgenda,
-  RoleAgenda,
-  StudentAgenda,
-  TeacherAgenda,
-  WorklistGroup,
-} from '@/lib/agenda'
+import type { AdminAgenda, RoleAgenda, TeacherAgenda, WorklistGroup } from '@/lib/agenda'
 
 export interface AgendaSidebarProps {
   agenda: RoleAgenda
@@ -29,8 +22,9 @@ const markHref = (courseId: string, date: string) =>
 /**
  * The role-scoped agenda sidebar (ADR-0044). Full variant: the teacher's
  * worklist grouped by Course (one row, a count, a deep link to the oldest
- * unmarked Session), the admin's operational pulse as deep-linked stat rows, the
- * student's progress, and a bounded Upcoming bucket. Empty worklists / zero
+ * unmarked Session), the admin's operational pulse as deep-linked stat rows,
+ * and a bounded Upcoming bucket. Only the roles that mark attendance get one
+ * (ADR-0051): a student's or volunteer's canvas runs the full width. Empty worklists / zero
  * pulse render as quiet caught-up states, not holes. Banner variant compresses
  * to the one fact that matters at that role. Purely presentational over the
  * already-derived `RoleAgenda` (`buildAgenda`) — no query wiring here.
@@ -42,7 +36,6 @@ export function AgendaSidebar({ agenda, variant = 'full' }: AgendaSidebarProps) 
     <div className="space-y-4">
       {agenda.role === 'teacher' && <TeacherWorklist agenda={agenda} />}
       {agenda.role === 'admin' && <AdminPulse agenda={agenda} />}
-      {agenda.role === 'student' && <StudentProgress agenda={agenda} />}
       <UpcomingBucket agenda={agenda} />
     </div>
   )
@@ -158,54 +151,6 @@ function AdminPulse({ agenda }: { agenda: AdminAgenda }) {
   )
 }
 
-function StudentProgress({ agenda }: { agenda: StudentAgenda }) {
-  const { t } = useTranslation()
-  return (
-    <section aria-label={t('calendar.sidebar.student.progressTitle')}>
-      <h3 className="font-display text-base text-foreground">
-        {t('calendar.sidebar.student.progressTitle')}
-      </h3>
-      <ul className="mt-2 space-y-3">
-        {agenda.progress.map((row) => (
-          <li key={row.courseName} className="text-sm">
-            <p className="font-medium text-foreground">
-              {calendarCardName({ name: row.courseName, sede: row.sede })}
-            </p>
-            <div className="mt-1 flex items-center gap-2">
-              {row.total === 0 ? (
-                <span className="text-muted-foreground">
-                  {t('calendar.sidebar.student.noSessionsRecorded')}
-                </span>
-              ) : (
-                <>
-                  <span className="text-muted-foreground">
-                    {t('calendar.sidebar.student.attended', {
-                      present: row.present,
-                      total: row.total,
-                    })}
-                  </span>
-                  {row.onTrack ? (
-                    <Badge variant="success">{t('calendar.sidebar.student.onTrack')}</Badge>
-                  ) : null}
-                </>
-              )}
-            </div>
-            <div className="mt-1">
-              {row.certificate ? (
-                <Badge variant="success">{t('calendar.sidebar.student.certificateEarned')}</Badge>
-              ) : (
-                <span className="text-xs text-muted-foreground">
-                  {t('calendar.sidebar.student.certPending')}
-                </span>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
 function UpcomingBucket({ agenda }: { agenda: RoleAgenda }) {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
@@ -269,62 +214,37 @@ function AgendaBanner({ agenda }: { agenda: RoleAgenda }) {
     )
   }
 
-  if (agenda.role === 'admin') {
-    const { unmarkedCount, coursesToCloseCount } = agenda.pulse
-    if (unmarkedCount === 0 && coursesToCloseCount === 0) {
-      return (
-        <BannerShell>
-          <BannerCaughtUp label={t('calendar.sidebar.admin.unmarkedNone')} />
-        </BannerShell>
-      )
-    }
+  // admin: the operational pulse, compressed to its deep-linked counts.
+  const { unmarkedCount, coursesToCloseCount } = agenda.pulse
+  if (unmarkedCount === 0 && coursesToCloseCount === 0) {
     return (
       <BannerShell>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-          {unmarkedCount > 0 && (
-            <Link
-              to="/app/attendance"
-              className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
-            >
-              {t('calendar.sidebar.admin.unmarked', { count: unmarkedCount })}
-              <ArrowRight className="size-3.5" aria-hidden="true" />
-            </Link>
-          )}
-          {coursesToCloseCount > 0 && (
-            <Link
-              to="/app/courses"
-              className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
-            >
-              {t('calendar.sidebar.admin.coursesToClose', { count: coursesToCloseCount })}
-              <ArrowRight className="size-3.5" aria-hidden="true" />
-            </Link>
-          )}
-        </div>
+        <BannerCaughtUp label={t('calendar.sidebar.admin.unmarkedNone')} />
       </BannerShell>
     )
   }
-
-  if (agenda.role === 'student') {
-    const onTrack = agenda.progress.filter((r) => r.total > 0 && r.onTrack).length
-    const tracked = agenda.progress.filter((r) => r.total > 0).length
-    return (
-      <BannerShell>
-        <span className="text-sm text-foreground">
-          {t('calendar.sidebar.student.bannerOnTrack', { onTrack, total: tracked })}
-        </span>
-      </BannerShell>
-    )
-  }
-
-  // tcu: the next upcoming Session, or a quiet nothing-on-deck.
-  const next = agenda.upcoming[0]
   return (
     <BannerShell>
-      <span className="text-sm text-foreground">
-        {next
-          ? t('calendar.sidebar.tcu.bannerNext', { course: next.courseName })
-          : t('calendar.sidebar.upcomingEmpty')}
-      </span>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+        {unmarkedCount > 0 && (
+          <Link
+            to="/app/attendance"
+            className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+          >
+            {t('calendar.sidebar.admin.unmarked', { count: unmarkedCount })}
+            <ArrowRight className="size-3.5" aria-hidden="true" />
+          </Link>
+        )}
+        {coursesToCloseCount > 0 && (
+          <Link
+            to="/app/courses"
+            className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+          >
+            {t('calendar.sidebar.admin.coursesToClose', { count: coursesToCloseCount })}
+            <ArrowRight className="size-3.5" aria-hidden="true" />
+          </Link>
+        )}
+      </div>
     </BannerShell>
   )
 }

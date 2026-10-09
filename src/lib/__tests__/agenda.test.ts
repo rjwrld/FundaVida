@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { addDays, startOfDay, subDays } from 'date-fns'
-import type { AttendanceRecord, Certificate, Course, Enrollment, Grade } from '@/types'
+import type { AttendanceRecord, Course } from '@/types'
 import { buildAgenda } from '../agenda'
 
 /**
@@ -49,37 +49,12 @@ function makeAttendance(
   }
 }
 
-function makeEnrollment(courseId: string, overrides: Partial<Enrollment> = {}): Enrollment {
-  return {
-    id: `enr-${courseId}`,
-    studentId: 'stu-1',
-    courseId,
-    enrolledAt: '2026-05-01T00:00:00.000Z',
-    status: 'approved',
-    requestedAt: '2026-05-01T00:00:00.000Z',
-    ...overrides,
-  }
-}
-
-function makeCert(courseId: string): Certificate {
-  return {
-    id: `cer-${courseId}`,
-    studentId: 'stu-1',
-    courseId,
-    score: 90,
-    issuedAt: '2026-06-02T00:00:00.000Z',
-  }
-}
-
 /** buildAgenda input with empty record lists; spread overrides per test. */
-function baseInput(role: 'admin' | 'teacher' | 'student' | 'tcu', courses: Course[]) {
+function baseInput(role: 'admin' | 'teacher', courses: Course[]) {
   return {
     role,
     courses,
     attendance: [] as AttendanceRecord[],
-    grades: [] as Grade[],
-    enrollments: [] as Enrollment[],
-    certificates: [] as Certificate[],
     now: NOW,
   }
 }
@@ -243,102 +218,6 @@ describe('buildAgenda', () => {
     })
   })
 
-  describe('student', () => {
-    /** n attendance records for cou-1 on distinct past days, `present` of them present. */
-    function attendanceWith(present: number, total: number): AttendanceRecord[] {
-      return Array.from({ length: total }, (_, i) =>
-        makeAttendance('cou-1', startOfDay(subDays(NOW, i + 1)).toISOString(), {
-          id: `att-${i}`,
-          status: i < present ? 'present' : 'absent',
-        })
-      )
-    }
-
-    it('rolls up each enrollment: course name, counts, standing, certificate', () => {
-      const agenda = buildAgenda({
-        ...baseInput('student', [makeCourse('cou-1')]),
-        enrollments: [makeEnrollment('cou-1')],
-        attendance: attendanceWith(3, 4),
-        certificates: [makeCert('cou-1')],
-      })
-
-      expect(agenda.role).toBe('student')
-      if (agenda.role !== 'student') return
-      expect(agenda.progress).toEqual([
-        {
-          courseName: 'Course cou-1',
-          sede: 'Hatillo',
-          present: 3,
-          total: 4,
-          onTrack: true,
-          certificate: makeCert('cou-1'),
-        },
-      ])
-    })
-
-    it('attendance below the at-risk threshold is off track (same rule as the dashboard)', () => {
-      // 2/4 = 0.5 < MIN_ATTENDANCE_RATE (0.6) → off track.
-      const agenda = buildAgenda({
-        ...baseInput('student', [makeCourse('cou-1')]),
-        enrollments: [makeEnrollment('cou-1')],
-        attendance: attendanceWith(2, 4),
-      })
-      if (agenda.role !== 'student') return
-
-      expect(agenda.progress[0]?.onTrack).toBe(false)
-      expect(agenda.progress[0]?.certificate).toBeNull()
-    })
-
-    it('no attendance yet carries no signal: on track at 0/0 (mirrors atRiskStudents)', () => {
-      const agenda = buildAgenda({
-        ...baseInput('student', [makeCourse('cou-1')]),
-        enrollments: [makeEnrollment('cou-1')],
-      })
-      if (agenda.role !== 'student') return
-
-      expect(agenda.progress).toEqual([
-        {
-          courseName: 'Course cou-1',
-          sede: 'Hatillo',
-          present: 0,
-          total: 0,
-          onTrack: true,
-          certificate: null,
-        },
-      ])
-    })
-
-    it('skips an enrollment whose course is out of scope', () => {
-      const agenda = buildAgenda({
-        ...baseInput('student', [makeCourse('cou-1')]),
-        enrollments: [makeEnrollment('cou-1'), makeEnrollment('cou-gone')],
-      })
-      if (agenda.role !== 'student') return
-
-      expect(agenda.progress).toHaveLength(1)
-    })
-  })
-
-  describe('tcu', () => {
-    it('returns only the upcoming schedule, ascending and enriched with course names', () => {
-      const agenda = buildAgenda(baseInput('tcu', [makeCourse('cou-1')]))
-
-      expect(agenda.role).toBe('tcu')
-      // Upcoming Mondays after NOW (Jun 17): Jun 22 + Jun 29.
-      expect(agenda.upcoming).toHaveLength(2)
-      expect(agenda.upcoming.map((s) => s.courseName)).toEqual(['Course cou-1', 'Course cou-1'])
-      expect(agenda.upcoming.map((s) => s.ordinal)).toEqual([3, 4])
-    })
-
-    it('carries no other buckets — the role has no attendance access (ADR-0036)', () => {
-      const agenda = buildAgenda(baseInput('tcu', [makeCourse('cou-1')]))
-
-      expect(agenda).not.toHaveProperty('needsMarking')
-      expect(agenda).not.toHaveProperty('pulse')
-      expect(agenda).not.toHaveProperty('progress')
-    })
-  })
-
   describe('degenerate inputs return empty buckets, never throw (mirrors sessionsFor)', () => {
     it('no courses at all', () => {
       const teacher = buildAgenda(baseInput('teacher', []))
@@ -349,9 +228,6 @@ describe('buildAgenda', () => {
       if (admin.role === 'admin') {
         expect(admin.pulse).toEqual({ unmarkedCount: 0, coursesToCloseCount: 0 })
       }
-
-      const student = buildAgenda(baseInput('student', []))
-      if (student.role === 'student') expect(student.progress).toEqual([])
     })
 
     it('malformed and inverted terms derive nothing', () => {

@@ -65,9 +65,6 @@ const teacherAgenda = buildAgenda({
   role: 'teacher',
   courses: seedSnapshot.courses.filter((c) => c.teacherId === TEACHER_ID),
   attendance: seedSnapshot.attendance,
-  grades: seedSnapshot.grades,
-  enrollments: seedSnapshot.enrollments,
-  certificates: seedSnapshot.certificates,
   sessionExceptions: seedSnapshot.sessionExceptions,
   now: EPOCH,
 })
@@ -211,8 +208,8 @@ test.describe('calendar role divergence (ADR-0044)', () => {
     await expect(page.getByText(COURSE_CARD, { exact: true }).first()).toBeVisible()
     // Read-only: a student's canvas cards are never links into Mark Attendance.
     await expect(page.getByRole('main').getByRole('link', { name: COURSE_FULL })).toHaveCount(0)
-    // The sidebar carries "My progress", not a needs-marking worklist.
-    await expect(page.getByRole('heading', { name: 'My progress' })).toBeVisible()
+    // No agenda sidebar: the canvas runs the full width (ADR-0051).
+    await expect(page.getByRole('complementary')).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'Needs marking' })).toHaveCount(0)
   })
 
@@ -245,9 +242,9 @@ test.describe('calendar role divergence (ADR-0044)', () => {
     await seedAndEnter(page, seedSnapshot, 'tcu', TCU_ID)
 
     await expect(page.getByRole('heading', { name: 'Calendar' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Upcoming' })).toBeVisible()
     await expect(page.getByText(TCU_COURSE_CARD, { exact: true }).first()).toBeVisible()
-    // No teacher/admin buckets — read-only (ADR-0036).
+    // No agenda sidebar at all — read-only, full-width canvas (ADR-0036/0051).
+    await expect(page.getByRole('complementary')).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'Needs marking' })).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'Operational pulse' })).toHaveCount(0)
     // No action links anywhere in the page's main content.

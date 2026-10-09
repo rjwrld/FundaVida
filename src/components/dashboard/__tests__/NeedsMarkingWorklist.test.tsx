@@ -76,9 +76,6 @@ describe('<NeedsMarkingWorklist /> — teacher hero worklist (ADR-0043/0044)', (
       role: 'teacher',
       courses,
       attendance: s.attendance,
-      grades: [],
-      enrollments: [],
-      certificates: [],
       sessionExceptions: s.sessionExceptions,
       now: clock.now(),
     })

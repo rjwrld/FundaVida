@@ -1,16 +1,7 @@
-import type {
-  AttendanceRecord,
-  Certificate,
-  Course,
-  Enrollment,
-  Grade,
-  Role,
-  SessionException,
-} from '@/types'
+import type { AttendanceRecord, Course, SessionException } from '@/types'
 import { parseISO } from 'date-fns'
 import { courseDisplayState } from './courseDisplayState'
-import { MIN_ATTENDANCE_RATE, coursesToClose } from './dashboard'
-import { buildStudentProgress } from './studentProgress'
+import { coursesToClose } from './dashboard'
 import {
   type Session,
   type UpcomingSession,
@@ -24,15 +15,13 @@ import {
  * The role→buckets builder behind the calendar week-agenda (ADR-0038). Pure
  * and page-agnostic: the caller passes already-scoped lists (the scope seam,
  * ADR-0008/0012, has run before this module ever sees data) and the clock.
- * Everything derives from the inputs — no store, no React, no new state.
+ * Everything derives from the inputs — no store, no React, no new state. Only
+ * the roles that mark attendance have an agenda (ADR-0051).
  */
 export interface BuildAgendaInput {
-  role: Role
+  role: 'teacher' | 'admin'
   courses: Course[]
   attendance: AttendanceRecord[]
-  grades: Grade[]
-  enrollments: Enrollment[]
-  certificates: Certificate[]
   /** The Session exceptions overlay (ADR-0039). Omit for no overlay. */
   sessionExceptions?: SessionException[]
   now: Date
@@ -81,27 +70,7 @@ export interface AdminAgenda extends RoleAgendaBase {
   }
 }
 
-export interface StudentAgenda extends RoleAgendaBase {
-  role: 'student'
-  progress: AgendaProgressRow[]
-}
-
-export interface TcuAgenda extends RoleAgendaBase {
-  /** Read-only schedule; the role has no attendance access (ADR-0036). */
-  role: 'tcu'
-}
-
-/** The student's per-enrollment standing for the agenda sidebar. */
-export interface AgendaProgressRow {
-  courseName: string
-  sede: Course['sede']
-  present: number
-  total: number
-  onTrack: boolean
-  certificate: Certificate | null
-}
-
-export type RoleAgenda = TeacherAgenda | AdminAgenda | StudentAgenda | TcuAgenda
+export type RoleAgenda = TeacherAgenda | AdminAgenda
 
 /**
  * Derive the role-shaped agenda buckets. Degenerate inputs (no courses, empty
@@ -109,8 +78,7 @@ export type RoleAgenda = TeacherAgenda | AdminAgenda | StudentAgenda | TcuAgenda
  * derivations bottom out in {@link sessionsFor}, which already absorbs them.
  */
 export function buildAgenda(input: BuildAgendaInput): RoleAgenda {
-  const { role, courses, attendance, grades, enrollments, certificates, sessionExceptions, now } =
-    input
+  const { role, courses, attendance, sessionExceptions, now } = input
   const upcoming = upcomingSessions(courses, now, undefined, sessionExceptions)
 
   switch (role) {
@@ -132,30 +100,6 @@ export function buildAgenda(input: BuildAgendaInput): RoleAgenda {
           coursesToCloseCount: coursesToClose(courses, now).length,
         },
       }
-    case 'student':
-      return {
-        role,
-        upcoming,
-        // Rows join through buildStudentProgress (ADR-0032); "on track" is the
-        // dashboard's at-risk attendance rule (MIN_ATTENDANCE_RATE), and no
-        // records carry no signal — mirrors atRiskStudents.
-        progress: buildStudentProgress({
-          enrollments,
-          courses,
-          grades,
-          attendance,
-          certificates,
-        }).map((row) => ({
-          courseName: row.course.name,
-          sede: row.course.sede,
-          present: row.present,
-          total: row.total,
-          onTrack: row.total === 0 || row.present / row.total >= MIN_ATTENDANCE_RATE,
-          certificate: row.certificate,
-        })),
-      }
-    case 'tcu':
-      return { role, upcoming }
   }
 }
 

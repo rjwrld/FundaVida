@@ -43,9 +43,6 @@ export function NeedsMarkingWorklist() {
     role: 'teacher',
     courses,
     attendance,
-    grades: [],
-    enrollments: [],
-    certificates: [],
     sessionExceptions,
     now: clock.now(),
   })
