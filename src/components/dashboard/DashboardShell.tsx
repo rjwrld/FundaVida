@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
-import { AgendaSlice } from '@/components/dashboard/AgendaSlice'
+import { cn } from '@/lib/utils'
 
 // Stagger 0.05s — alive but not busy, matching the per-role dashboards.
 const stagger: Variants = {
@@ -21,16 +21,21 @@ export interface DashboardShellProps {
   sectionTitle: string
   /** Main column content (role-specific stats and panels). */
   children: ReactNode
+  /**
+   * The role's side column, opt-in (ADR-0050): teacher and student pass their
+   * agenda slice; admin and TCU pass nothing and the main column takes the
+   * full width.
+   */
+  aside?: ReactNode
 }
 
 /**
- * The two-column dashboard layout shared by every role: a main column
- * (children) beside an aside holding the role-scoped {@link AgendaSlice}
- * (ADR-0038). Unlike the retired `DashboardCalendar` grid, the aside now
- * shows at every width — a compact agenda travels down gracefully, so there
- * is no `xl`-only gate.
+ * The dashboard layout shared by every role: a main column (children) and, for
+ * the roles that opt in, an aside beside it (ADR-0050 amends ADR-0038's
+ * always-on aside). The aside shows at every width — below `xl` it stacks
+ * under the main column — so there is no `xl`-only gate.
  */
-export function DashboardShell({ sectionTitle, children }: DashboardShellProps) {
+export function DashboardShell({ sectionTitle, children, aside }: DashboardShellProps) {
   const { t } = useTranslation()
 
   return (
@@ -38,7 +43,10 @@ export function DashboardShell({ sectionTitle, children }: DashboardShellProps) 
       variants={stagger}
       initial="hidden"
       animate="visible"
-      className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_300px]"
+      className={cn(
+        'grid grid-cols-1 gap-6',
+        aside !== undefined && 'xl:grid-cols-[minmax(0,1fr)_300px]'
+      )}
     >
       <div className="flex flex-col gap-6">
         {/* Absolutely positioned by `sr-only`, so it is not a flex item and adds no gap. */}
@@ -46,14 +54,16 @@ export function DashboardShell({ sectionTitle, children }: DashboardShellProps) 
         {children}
       </div>
 
-      <motion.aside
-        variants={fadeUp}
-        transition={transitionDefaults}
-        className="flex flex-col gap-6"
-        aria-label={t('dashboard.rightPanel.agendaTitle')}
-      >
-        <AgendaSlice />
-      </motion.aside>
+      {aside !== undefined && (
+        <motion.aside
+          variants={fadeUp}
+          transition={transitionDefaults}
+          className="flex flex-col gap-6"
+          aria-label={t('dashboard.rightPanel.agendaTitle')}
+        >
+          {aside}
+        </motion.aside>
+      )}
     </motion.div>
   )
 }

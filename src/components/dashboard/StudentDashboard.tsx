@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { DashboardShell } from './DashboardShell'
+import { AgendaSlice } from './AgendaSlice'
 import { StudentCoursesTable } from './StudentCoursesTable'
 import { DashboardAnnouncementsFeed } from './DashboardAnnouncementsFeed'
 
@@ -17,7 +18,7 @@ export function StudentDashboard() {
   const { t } = useTranslation()
 
   return (
-    <DashboardShell sectionTitle={t('dashboard.student.sectionTitle')}>
+    <DashboardShell aside={<AgendaSlice />} sectionTitle={t('dashboard.student.sectionTitle')}>
       <motion.div variants={fadeUp} transition={transitionDefaults}>
         <StudentCoursesTable />
       </motion.div>

@@ -115,33 +115,13 @@ test.describe('tcu dashboard agenda slice', () => {
   })
 })
 
-test.describe('admin dashboard agenda slice', () => {
-  test('shows an operational pulse, not a per-session list, plus Open Calendar', async ({
-    page,
-  }) => {
-    const agenda = buildAgenda({
-      role: 'admin',
-      courses: world.courses,
-      attendance: world.attendance,
-      grades: world.grades,
-      enrollments: world.enrollments,
-      certificates: world.certificates,
-      sessionExceptions: world.sessionExceptions,
-      now: EPOCH,
-    })
-    if (agenda.role !== 'admin') throw new Error('expected the admin agenda variant')
-
+test.describe('admin dashboard', () => {
+  test('has no agenda aside — the worklists take the full width (ADR-0050)', async ({ page }) => {
     await pinDemoEpoch(page, EPOCH)
     await enterAs(page, 'admin')
 
-    const aside = page.getByRole('complementary', { name: 'Agenda' })
-    await expect(aside.getByText(String(agenda.pulse.unmarkedCount)).first()).toBeVisible()
-    await expect(aside.getByText(String(agenda.pulse.coursesToCloseCount)).first()).toBeVisible()
-    await expect(aside.getByRole('link', { name: /mark attendance/i })).toHaveCount(0)
-    await expect(aside.getByRole('link', { name: /open calendar/i })).toHaveAttribute(
-      'href',
-      '/app/calendar'
-    )
+    await expect(page.getByRole('heading', { name: 'Students at risk' })).toBeVisible()
+    await expect(page.getByRole('complementary', { name: 'Agenda' })).toHaveCount(0)
   })
 })
 
