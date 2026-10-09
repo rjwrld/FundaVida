@@ -1,23 +1,12 @@
-import { lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useDashboardStats } from '@/hooks/api/useDashboardStats'
-import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { StatRow } from './StatRow'
 import { CoursesToClose } from './CoursesToClose'
 import { AtRiskStudents } from './AtRiskStudents'
 import { DashboardAnnouncementsFeed } from './DashboardAnnouncementsFeed'
 import { DashboardShell } from './DashboardShell'
-
-// The funnel is the app's only recharts consumer, and admin the only role that
-// renders it — loading it lazily keeps recharts out of the DashboardPage chunk
-// the other three roles download (#353). The fallback mirrors the SkeletonCard
-// the funnel itself shows while its queries gate, so the chunk load and the
-// query window paint identically.
-const EnrollmentFunnelBySede = lazy(() =>
-  import('./EnrollmentFunnelBySede').then((m) => ({ default: m.EnrollmentFunnelBySede }))
-)
 
 export function AdminDashboard() {
   const { t } = useTranslation()
@@ -45,11 +34,6 @@ export function AdminDashboard() {
         transition={transitionDefaults}
         className="grid grid-cols-1 gap-4 lg:grid-cols-2"
       >
-        {/* First row mirrors the approved phase-5 screenshot: the funnel chart
-            beside the close worklist. */}
-        <Suspense fallback={<SkeletonCard lines={4} />}>
-          <EnrollmentFunnelBySede />
-        </Suspense>
         <CoursesToClose />
         <AtRiskStudents />
         <div className="lg:col-span-2">

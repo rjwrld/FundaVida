@@ -610,12 +610,6 @@
       "ended": "El período terminó el {{date}}",
       "title": "Cursos por cerrar"
     },
-    "enrollmentFunnel": {
-      "empty": "Sin actividad de matrículas.",
-      "summary": "{{approved}} aprobadas · {{pending}} pendientes",
-      "title": "Embudo de matrículas por sede",
-      "viewAll": "Revisar matrículas"
-    },
     "rightPanel": {
       "agendaTitle": "Agenda",
       "agendaUpcomingEmpty": "Nada en la agenda.",
