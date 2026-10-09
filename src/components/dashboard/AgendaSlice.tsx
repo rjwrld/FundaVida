@@ -1,206 +1,67 @@
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, CalendarDays, ClipboardCheck } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { UpcomingList, type UpcomingItem } from '@/components/shared/UpcomingList'
+import { CalendarDays } from 'lucide-react'
+import { WorklistCard, WorklistRow } from '@/components/shared/WorklistCard'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { useCourses } from '@/hooks/api/courses'
-import { useAttendance } from '@/hooks/api/attendance'
-import { useGrades } from '@/hooks/api/grades'
-import { useEnrollments } from '@/hooks/api/enrollments'
-import { useCertificates } from '@/hooks/api/certificates'
 import { useSessionExceptions } from '@/hooks/api/sessionExceptions'
-import { useStore } from '@/data/store'
+import { useFormat } from '@/hooks/useFormat'
 import { clock } from '@/lib/clock'
 import { resolveQueries } from '@/lib/resolveQueries'
-import { buildAgenda, type WorklistGroup, type AgendaProgressRow } from '@/lib/agenda'
+import { upcomingSessions } from '@/lib/sessions'
 import { calendarCardName } from '@/lib/courseName'
-import { useFormat } from '@/hooks/useFormat'
 
 const UPCOMING_LIMIT = 3
 
 /**
- * The dashboard aside's compact role agenda (ADR-0038), replacing the decorative
- * `DashboardCalendar` month grid. Grows from {@link UpcomingList}: every variant
- * ends with a link to the full `/app/calendar` week agenda. Derives its buckets
- * from {@link buildAgenda} over five role-scoped hooks, held behind
- * {@link resolveQueries} (ADR-0030) so no variant ever flashes a false count from
- * a hook that hasn't resolved yet.
+ * The dashboard aside for the roles that keep one — teacher and student
+ * (ADR-0050, amending ADR-0038): the next three Sessions across the viewer's
+ * scoped Courses, each row linking to its Course, ending with a link to the
+ * full `/app/calendar`. Nothing else: the teacher's needs-marking hero is the
+ * main column's card and the student's progress is the courses table's
+ * Attendance column, so the aside no longer repeats either.
+ *
+ * Rows use the calendar's short name ({@link calendarCardName}); dropping the
+ * Sede is safe here because a teacher's and a student's Courses all sit at
+ * their one Sede (ADR-0011). Upcoming Sessions cannot be marked yet
+ * (ADR-0034), so no row carries a button.
  */
 export function AgendaSlice() {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
-  const role = useStore((s) => s.role)
-  const coursesQuery = useCourses()
-  const attendanceQuery = useAttendance()
-  const gradesQuery = useGrades()
-  const enrollmentsQuery = useEnrollments()
-  const certificatesQuery = useCertificates()
-  const sessionExceptionsQuery = useSessionExceptions()
+  // Courses and their exceptions overlay (ADR-0039) both shape the next Sessions;
+  // gate on both so no default-[] window flashes "Nothing on deck" (ADR-0030).
+  const gate = resolveQueries([useCourses(), useSessionExceptions()])
 
-  const gate = resolveQueries([
-    coursesQuery,
-    attendanceQuery,
-    gradesQuery,
-    enrollmentsQuery,
-    certificatesQuery,
-    sessionExceptionsQuery,
-  ])
-
-  if (gate.isPending || !role) {
-    return <SkeletonCard lines={4} data-testid="agenda-slice" />
+  if (gate.isPending) {
+    return <SkeletonCard lines={3} data-testid="agenda-slice" />
   }
 
-  const [courses, attendance, grades, enrollments, certificates, sessionExceptions] = gate.data
-  const agenda = buildAgenda({
-    role,
-    courses,
-    attendance,
-    grades,
-    enrollments,
-    certificates,
-    sessionExceptions,
-    now: clock.now(),
-  })
-
-  const upcomingItems: UpcomingItem[] = agenda.upcoming.slice(0, UPCOMING_LIMIT).map((session) => ({
-    id: `${session.courseId}-${session.date}`,
-    title: session.courseName,
-    subtitle: formatDate(session.date),
-  }))
+  const [courses, sessionExceptions] = gate.data
+  const courseById = new Map(courses.map((c) => [c.id, c]))
+  const upcoming = upcomingSessions(courses, clock.now(), UPCOMING_LIMIT, sessionExceptions)
 
   return (
-    <Card data-testid="agenda-slice">
-      <CardHeader>
-        <CardTitle as="h3" className="flex items-center gap-2">
-          <CalendarDays className="size-4 text-primary" aria-hidden="true" />
-          {t('dashboard.rightPanel.agendaTitle')}
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="flex flex-col gap-4">
-        {agenda.role === 'teacher' && <NeedsMarkingHero group={agenda.worklist[0]} />}
-
-        {agenda.role === 'admin' && (
-          <dl className="grid grid-cols-2 gap-3">
-            <div className="rounded-md bg-muted/50 px-3 py-2">
-              <dt className="text-xs text-muted-foreground">
-                {t('dashboard.rightPanel.pulse.unmarked')}
-              </dt>
-              <dd className="font-display text-xl tabular-nums text-foreground">
-                {agenda.pulse.unmarkedCount}
-              </dd>
-            </div>
-            <div className="rounded-md bg-muted/50 px-3 py-2">
-              <dt className="text-xs text-muted-foreground">
-                {t('dashboard.rightPanel.pulse.toClose')}
-              </dt>
-              <dd className="font-display text-xl tabular-nums text-foreground">
-                {agenda.pulse.coursesToCloseCount}
-              </dd>
-            </div>
-          </dl>
-        )}
-
-        {agenda.role === 'student' && <ProgressList rows={agenda.progress} t={t} />}
-
-        <div>
-          <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {t('dashboard.rightPanel.agendaUpcomingTitle')}
-          </h4>
-          <UpcomingList
-            items={upcomingItems}
-            emptyLabel={t('dashboard.rightPanel.agendaUpcomingEmpty')}
+    <WorklistCard
+      title={t('dashboard.rightPanel.agendaUpcomingTitle')}
+      icon={CalendarDays}
+      emptyLabel={t('dashboard.rightPanel.agendaUpcomingEmpty')}
+      viewAll={{ to: '/app/calendar', label: t('dashboard.rightPanel.openCalendar') }}
+      data-testid="agenda-slice"
+    >
+      {upcoming.map((session) => {
+        const course = courseById.get(session.courseId)
+        return (
+          <WorklistRow
+            key={`${session.courseId}-${session.date}`}
+            to={`/app/courses/${session.courseId}`}
+            title={course ? calendarCardName(course) : session.courseName}
+            subtitle={t('dashboard.worklist.sessionLine', {
+              n: session.ordinal,
+              date: formatDate(session.date),
+            })}
           />
-        </div>
-      </CardContent>
-
-      <CardFooter>
-        <Link
-          to="/app/calendar"
-          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-        >
-          {t('dashboard.rightPanel.openCalendar')}
-          <ArrowRight className="size-4" aria-hidden="true" />
-        </Link>
-      </CardFooter>
-    </Card>
-  )
-}
-
-// The teacher's single deep-linked hero fact (ADR-0044): the most-overdue Course
-// with its count, linking to that Course's oldest unmarked Session's mark page —
-// not the per-session wall the old dashboard slice showed. The full grouped
-// worklist lives on the calendar; the dashboard teases one row.
-function NeedsMarkingHero({ group }: { group: WorklistGroup | undefined }) {
-  const { t } = useTranslation()
-
-  return (
-    <div>
-      <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        {t('dashboard.rightPanel.needsMarkingTitle')}
-      </h4>
-      {!group ? (
-        <p className="text-sm text-muted-foreground">
-          {t('dashboard.rightPanel.needsMarkingEmpty')}
-        </p>
-      ) : (
-        <Link
-          to={`/app/courses/${group.courseId}/sessions/${group.oldestDate}/mark`}
-          className="group flex items-center gap-2 rounded-md py-1"
-        >
-          <ClipboardCheck className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-primary group-hover:underline">
-            {t('calendar.sidebar.teacher.sessionsToMark', { count: group.count })} —{' '}
-            {calendarCardName({ name: group.courseName, sede: group.sede })}
-          </span>
-        </Link>
-      )}
-    </div>
-  )
-}
-
-function ProgressList({
-  rows,
-  t,
-}: {
-  rows: AgendaProgressRow[]
-  t: (key: string, opts?: Record<string, unknown>) => string
-}) {
-  return (
-    <div>
-      <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        {t('dashboard.rightPanel.progressTitle')}
-      </h4>
-      {rows.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('dashboard.rightPanel.progressEmpty')}</p>
-      ) : (
-        <ul className="flex flex-col divide-y divide-border/60">
-          {rows.map((row) => (
-            <li
-              key={row.courseName}
-              className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0"
-            >
-              <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-                {calendarCardName({ name: row.courseName, sede: row.sede })}
-              </span>
-              {row.total === 0 ? (
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {t('dashboard.rightPanel.noSessionsRecorded')}
-                </span>
-              ) : (
-                <Badge variant={row.onTrack ? 'success' : 'destructive'} className="shrink-0">
-                  {t('dashboard.rightPanel.progressCount', {
-                    present: row.present,
-                    total: row.total,
-                  })}
-                </Badge>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+        )
+      })}
+    </WorklistCard>
   )
 }

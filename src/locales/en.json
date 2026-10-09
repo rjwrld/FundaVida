@@ -608,17 +608,7 @@
       "agendaTitle": "Agenda",
       "agendaUpcomingEmpty": "Nothing on deck.",
       "agendaUpcomingTitle": "Upcoming",
-      "needsMarkingEmpty": "Nothing needs marking.",
-      "needsMarkingTitle": "Needs marking",
-      "noSessionsRecorded": "No sessions recorded yet",
-      "openCalendar": "Open Calendar",
-      "progressCount": "{{present}}/{{total}} attended",
-      "progressEmpty": "No enrollments yet.",
-      "progressTitle": "My progress",
-      "pulse": {
-        "toClose": "To close",
-        "unmarked": "Unmarked sessions"
-      }
+      "openCalendar": "Open Calendar"
     },
     "stats": {
       "activeCourses": "Active courses",

@@ -2,8 +2,9 @@ import { test, expect } from '@playwright/test'
 import { enterAs } from './helpers/auth'
 import { pinDemoEpoch } from './helpers/clock'
 import { seedDemo } from '../src/data/seed'
-import { buildAgenda } from '../src/lib/agenda'
+import { upcomingSessions } from '../src/lib/sessions'
 import { calendarCardName } from '../src/lib/courseName'
+import type { Course } from '../src/types'
 
 // Business time is pinned (ADR-0014) so the agenda derived below — and with it
 // the anchors asserted against the rendered page — is exact, not wall-time
@@ -13,89 +14,61 @@ const world = seedDemo(EPOCH)
 
 /**
  * The dashboard aside's agenda slice replaced the decorative month-of-dots
- * `DashboardCalendar` (ADR-0038, issue #240): every role now gets a compact,
- * actionable agenda that ends with a link to the full `/app/calendar` week
- * view. This is the dashboard-wiring path unit tests can't fully exercise —
- * real routing, real aside collapse behavior across widths.
+ * `DashboardCalendar` (ADR-0038, issue #240). ADR-0050 narrowed it: only the
+ * teacher and student keep an aside, and it is Upcoming only, ending with a
+ * link to the full `/app/calendar` week view. This is the dashboard-wiring path
+ * unit tests can't fully exercise — real routing, real aside collapse behavior
+ * across widths.
  */
 
-test.describe('teacher dashboard agenda slice', () => {
-  test('shows a needs-marking row deep-linked to Mark Attendance, and an Open Calendar link', async ({
-    page,
-  }) => {
-    const teacherCourses = world.courses.filter((c) => c.teacherId === 'tea-1')
-    const agenda = buildAgenda({
-      role: 'teacher',
-      courses: teacherCourses,
-      attendance: world.attendance,
-      grades: world.grades,
-      enrollments: world.enrollments,
-      certificates: world.certificates,
-      // The seed deviates a Session on every live cohort (ADR-0048) and the page
-      // reads that overlay, so the derived anchor must too — otherwise it names a
-      // Session the effective schedule cancelled or moved.
-      sessionExceptions: world.sessionExceptions,
-      now: EPOCH,
+/**
+ * The next upcoming Session over a persona's Courses, as the aside derives it —
+ * the seed's exceptions overlay included (ADR-0048), or the anchor names a
+ * Session the effective schedule cancelled or moved.
+ */
+function nextUpcoming(courses: Course[]) {
+  const [next] = upcomingSessions(courses, EPOCH, 1, world.sessionExceptions)
+  if (!next) throw new Error('seed should give the persona an upcoming Session')
+  const course = courses.find((c) => c.id === next.courseId)
+  if (!course) throw new Error('upcoming Session should belong to a seeded course')
+  return { next, course }
+}
+
+for (const { role, courses } of [
+  { role: 'teacher' as const, courses: world.courses.filter((c) => c.teacherId === 'tea-1') },
+  {
+    role: 'student' as const,
+    courses: world.courses.filter((c) =>
+      world.enrollments.some(
+        (e) => e.studentId === 'stu-1' && e.courseId === c.id && e.status === 'approved'
+      )
+    ),
+  },
+]) {
+  test.describe(`${role} dashboard agenda slice`, () => {
+    test('is Upcoming only: the next Session links to its Course, then Open Calendar', async ({
+      page,
+    }) => {
+      const { next, course } = nextUpcoming(courses)
+
+      await pinDemoEpoch(page, EPOCH)
+      await enterAs(page, role)
+
+      const aside = page.getByRole('complementary', { name: 'Agenda' })
+      const upcoming = aside.getByRole('region', { name: 'Upcoming' })
+      const row = upcoming.getByRole('link', { name: calendarCardName(course) }).first()
+      await expect(row).toBeVisible()
+      await expect(row).toHaveAttribute('href', `/app/courses/${next.courseId}`)
+      // The needs-marking hero and the student's progress list left the aside (ADR-0050).
+      await expect(aside.getByText(/to mark|my progress/i)).toHaveCount(0)
+
+      const openCalendar = aside.getByRole('link', { name: /open calendar/i })
+      await expect(openCalendar).toHaveAttribute('href', '/app/calendar')
+      await openCalendar.click()
+      await expect(page).toHaveURL(/\/app\/calendar$/)
     })
-    if (agenda.role !== 'teacher' || agenda.needsMarking.length === 0) {
-      throw new Error('seed should give the teacher persona (tea-1) an unmarked session')
-    }
-    const [first] = agenda.needsMarking
-    if (!first) throw new Error('seed should give the teacher persona (tea-1) an unmarked session')
-
-    await pinDemoEpoch(page, EPOCH)
-    await enterAs(page, 'teacher')
-
-    const displayName = calendarCardName({ name: first.courseName, sede: first.sede })
-    const aside = page.getByRole('complementary', { name: 'Agenda' })
-    // The teacher slice is one deep-linked hero: "{n} sessions to mark — {course}".
-    const row = aside.getByRole('link', { name: displayName, exact: false }).first()
-    await expect(row).toBeVisible()
-    await expect(row).toHaveAttribute(
-      'href',
-      `/app/courses/${first.courseId}/sessions/${first.date}/mark`
-    )
-
-    const openCalendar = aside.getByRole('link', { name: /open calendar/i })
-    await expect(openCalendar).toHaveAttribute('href', '/app/calendar')
-    await openCalendar.click()
-    await expect(page).toHaveURL(/\/app\/calendar$/)
   })
-})
-
-test.describe('student dashboard agenda slice', () => {
-  test('shows a one-line progress row for an enrolled course', async ({ page }) => {
-    const studentEnrollments = world.enrollments.filter((e) => e.studentId === 'stu-1')
-    const enrolledCourseIds = new Set(studentEnrollments.map((e) => e.courseId))
-    const studentCourses = world.courses.filter((c) => enrolledCourseIds.has(c.id))
-    const agenda = buildAgenda({
-      role: 'student',
-      courses: studentCourses,
-      attendance: world.attendance,
-      grades: world.grades,
-      enrollments: studentEnrollments,
-      certificates: world.certificates.filter((c) => c.studentId === 'stu-1'),
-      sessionExceptions: world.sessionExceptions,
-      now: EPOCH,
-    })
-    if (agenda.role !== 'student' || agenda.progress.length === 0) {
-      throw new Error('seed should enroll the student persona (stu-1) in a course')
-    }
-    const [row] = agenda.progress
-    if (!row) throw new Error('seed should enroll the student persona (stu-1) in a course')
-
-    await pinDemoEpoch(page, EPOCH)
-    await enterAs(page, 'student')
-
-    const displayName = calendarCardName({ name: row.courseName, sede: row.sede })
-    const aside = page.getByRole('complementary', { name: 'Agenda' })
-    await expect(aside.getByText(displayName).first()).toBeVisible()
-    await expect(aside.getByRole('link', { name: /open calendar/i })).toHaveAttribute(
-      'href',
-      '/app/calendar'
-    )
-  })
-})
+}
 
 test.describe('tcu dashboard agenda slice', () => {
   test('the aside now renders for tcu too, with an upcoming schedule and Open Calendar link', async ({

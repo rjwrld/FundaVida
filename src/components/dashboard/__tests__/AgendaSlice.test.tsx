@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
@@ -7,46 +7,19 @@ import { setDemoEpoch, clock } from '@/lib/clock'
 import { useStore } from '@/data/store'
 import { api } from '@/data/api'
 import { delay } from '@/data/api/_delay'
-import { buildAgenda } from '@/lib/agenda'
+import { upcomingSessions } from '@/lib/sessions'
 import { calendarCardName } from '@/lib/courseName'
+import { formatDate } from '@/lib/format'
+import {
+  clearPersistedCurrentUser,
+  clearPersistedRole,
+  clearPersistedState,
+} from '@/data/persistence'
+import type { Role } from '@/types'
 import { AgendaSlice } from '../AgendaSlice'
-import type { Course, Enrollment } from '@/types'
 
-// Clock pinned to the seed epoch (mirrors src/test/setup.ts) so Term boundaries
-// line up with clock.now() (ADR-0002/0014).
+// Clock pinned so Term boundaries line up with clock.now() (ADR-0002/0014).
 const EPOCH = new Date('2026-06-15T12:00:00.000Z')
-
-/** A single published course with no attendance at all — the student's progress
- * row for it must read `total === 0` and take the "no sessions recorded yet"
- * copy rather than an on-track verdict (coordinator decision from the #239
- * thread, applies here too). */
-function makeNoAttendanceCourse(): Course {
-  return {
-    id: 'cou-zero',
-    name: 'Zero Attendance Course',
-    description: '',
-    sede: 'Linda Vista',
-    programId: 'prog-1',
-    level: 'primaria',
-    status: 'published',
-    capacity: 20,
-    teacherId: 'tea-1',
-    term: { start: '2026-06-01T00:00:00.000Z', end: '2026-06-30T00:00:00.000Z' },
-    meetingDays: ['mon'],
-    createdAt: '2026-01-01T00:00:00.000Z',
-  }
-}
-
-function makeEnrollment(): Enrollment {
-  return {
-    id: 'enr-zero',
-    studentId: 'stu-1',
-    courseId: 'cou-zero',
-    status: 'approved',
-    enrolledAt: '2026-01-01T00:00:00.000Z',
-    requestedAt: '2026-01-01T00:00:00.000Z',
-  }
-}
 
 function renderSlice() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -61,8 +34,23 @@ function renderSlice() {
   )
 }
 
-describe('<AgendaSlice />', () => {
+/** The next three Sessions over the acting role's scoped Courses, as the slice derives them. */
+async function expectedUpcoming() {
+  const courses = await api.courses.list()
+  const sessionExceptions = await api.sessionExceptions.list()
+  return upcomingSessions(courses, clock.now(), 3, sessionExceptions).map((session) => {
+    const course = courses.find((c) => c.id === session.courseId)
+    if (!course) throw new Error(`upcoming Session for unknown course ${session.courseId}`)
+    return { session, course }
+  })
+}
+
+describe('<AgendaSlice /> — the aside is Upcoming only (ADR-0050)', () => {
   beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
     setDemoEpoch(EPOCH)
     useStore.getState().setLocale('en')
   })
@@ -71,7 +59,50 @@ describe('<AgendaSlice />', () => {
     vi.restoreAllMocks()
   })
 
-  it('ends every variant with an Open Calendar link to /app/calendar', async () => {
+  it.each<Role>(['teacher', 'student'])(
+    'lists the %s’s next three Sessions: short name, "Session n · date", row links to the Course',
+    async (role) => {
+      useStore.getState().setRole(role)
+      const rows = await expectedUpcoming()
+      expect(rows.length, 'seed should give the persona upcoming Sessions').toBeGreaterThan(0)
+
+      renderSlice()
+
+      const card = await screen.findByRole('region', { name: 'Upcoming' })
+      expect(within(card).getAllByRole('listitem')).toHaveLength(rows.length)
+      for (const { session, course } of rows) {
+        const subtitle = within(card).getByText(
+          `Session ${session.ordinal} · ${formatDate(session.date, 'en')}`
+        )
+        const row = subtitle.closest('li')
+        if (!row) throw new Error('subtitle should sit in a row')
+        const link = within(row).getByRole('link', { name: calendarCardName(course) })
+        expect(link).toHaveAttribute('href', `/app/courses/${course.id}`)
+        // Upcoming Sessions cannot be marked yet (ADR-0034): no button on the row.
+        expect(within(row).queryByRole('button')).not.toBeInTheDocument()
+      }
+    }
+  )
+
+  it('carries no needs-marking hero for the teacher — the main-column card is the hero', async () => {
+    useStore.getState().setRole('teacher')
+    renderSlice()
+
+    await screen.findByRole('region', { name: 'Upcoming' })
+    expect(screen.queryByText(/needs marking/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/to mark/i)).not.toBeInTheDocument()
+  })
+
+  it('carries no "My progress" for the student — the courses table already shows attendance', async () => {
+    useStore.getState().setRole('student')
+    renderSlice()
+
+    await screen.findByRole('region', { name: 'Upcoming' })
+    expect(screen.queryByText(/my progress/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/attended/i)).not.toBeInTheDocument()
+  })
+
+  it('ends with an Open Calendar link to /app/calendar', async () => {
     useStore.getState().setRole('teacher')
     renderSlice()
 
@@ -79,137 +110,25 @@ describe('<AgendaSlice />', () => {
     expect(link).toHaveAttribute('href', '/app/calendar')
   })
 
-  describe('teacher', () => {
-    it('shows a needs-marking worklist deep-linked to Mark Attendance', async () => {
-      useStore.getState().setRole('teacher')
-      // Scoped exactly like the component's useCourses()/useAttendance() hooks
-      // (a Teacher's own Courses only) — not the raw unscoped store arrays.
-      const courses = await api.courses.list()
-      const attendance = await api.attendance.list()
-      const agenda = buildAgenda({
-        role: 'teacher',
-        courses,
-        attendance,
-        grades: await api.grades.list(),
-        enrollments: await api.enrollments.list(),
-        certificates: await api.certificates.list(),
-        // The seed cancels and moves Sessions on every live cohort (ADR-0048), and
-        // the component reads that overlay — so the expectation must too, or it
-        // names a Session the effective schedule no longer has.
-        sessionExceptions: await api.sessionExceptions.list(),
-        now: clock.now(),
-      })
-      if (agenda.role !== 'teacher') throw new Error('expected the teacher agenda variant')
-      const [first] = agenda.needsMarking
-      if (!first)
-        throw new Error('seed should give the teacher persona at least one unmarked session')
-      const expectedHref = `/app/courses/${first.courseId}/sessions/${first.date}/mark`
-      // The dashboard adopts the calendar's de-suffixed row language (ADR-0044).
-      const displayName = calendarCardName({ name: first.courseName, sede: first.sede })
-
-      renderSlice()
-
-      // The dashboard teases one deep-linked hero (ADR-0044): "{n} sessions to
-      // mark — {de-suffixed course}", linking to that course's oldest unmarked
-      // session's mark page.
-      const hero = await screen.findByRole('link', {
-        name: new RegExp(displayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-      })
-      expect(hero.getAttribute('href')).toBe(expectedHref)
-    })
-  })
-
-  describe('student', () => {
-    it('shows a one-line progress stat per course', async () => {
-      useStore.getState().setRole('student')
-      const enrollments = useStore.getState().enrollments
-      const grades = useStore.getState().grades
-      const attendance = useStore.getState().attendance
-      const certificates = useStore.getState().certificates
-      const courses = useStore.getState().courses
-      const agenda = buildAgenda({
-        role: 'student',
-        courses,
-        attendance,
-        grades,
-        enrollments,
-        certificates,
-        now: clock.now(),
-      })
-      if (agenda.role !== 'student') throw new Error('expected the student agenda variant')
-      const [row] = agenda.progress
-      if (!row) throw new Error('seed should give the student persona at least one enrollment')
-
-      renderSlice()
-
-      await screen.findByText(calendarCardName({ name: row.courseName, sede: row.sede }))
-    })
-
-    it('shows "no sessions recorded yet" copy instead of an on-track verdict when total is 0', async () => {
-      useStore.getState().setRole('student')
-      vi.spyOn(api.courses, 'list').mockResolvedValue([makeNoAttendanceCourse()])
-      vi.spyOn(api.attendance, 'list').mockResolvedValue([])
-      vi.spyOn(api.grades, 'list').mockResolvedValue([])
-      vi.spyOn(api.enrollments, 'list').mockResolvedValue([makeEnrollment()])
-      vi.spyOn(api.certificates, 'list').mockResolvedValue([])
-
-      renderSlice()
-
-      await screen.findByText(/no sessions recorded yet/i)
-    })
-  })
-
-  describe('tcu', () => {
-    it('renders the aside for tcu (no xl-only gate) with an upcoming schedule', async () => {
-      useStore.getState().setRole('tcu')
-      renderSlice()
-
-      await screen.findByRole('link', { name: /open calendar/i })
-    })
-  })
-
-  describe('admin', () => {
-    it('shows an operational pulse (unmarked count + courses-to-close count)', async () => {
-      useStore.getState().setRole('admin')
-      renderSlice()
-
-      await screen.findByRole('link', { name: /open calendar/i })
-      // The pulse renders numeric counts, not a per-session firehose.
-      expect(screen.queryAllByRole('link', { name: /mark attendance/i })).toHaveLength(0)
-      // It counts Term-ended cohorts, which are mostly blocked — never "ready".
-      expect(screen.getByText('To close')).toBeInTheDocument()
-      expect(screen.queryByText(/ready to close/i)).not.toBeInTheDocument()
-    })
-  })
-
-  // First-paint regression (ADR-0030): the slice derives from 5 scoped hooks;
-  // holding the render until ALL resolve prevents a false empty/zero verdict
-  // from a query that resolves out of order.
-  it('never paints a zero-count pulse while a slower query is still loading', async () => {
-    useStore.getState().setRole('admin')
-
+  // First-paint regression (ADR-0030): an ungated slice would paint the
+  // "Nothing on deck" empty state from an unresolved (default-[]) Courses read.
+  it('never paints the empty state while Courses are still loading', async () => {
+    useStore.getState().setRole('teacher')
     const listCourses = api.courses.list
     vi.spyOn(api.courses, 'list').mockImplementation(async (...args) => {
-      await delay(600)
+      await delay(400)
       return listCourses(...args)
     })
 
-    let firstAsideText: string | null = null
+    let sawEmpty = false
     const observer = new MutationObserver(() => {
-      if (firstAsideText !== null) return
-      const aside = document.querySelector('[data-testid="agenda-slice"]')
-      if (aside && aside.textContent && aside.textContent.length > 0) {
-        firstAsideText = aside.textContent
-      }
+      if (document.body.textContent?.includes('Nothing on deck')) sawEmpty = true
     })
     observer.observe(document.body, { childList: true, subtree: true, characterData: true })
-
     try {
       renderSlice()
       await screen.findByRole('link', { name: /open calendar/i })
-      // The very first non-empty paint must already be the resolved state, not
-      // an interim zero-count pulse rendered before courses loaded.
-      expect(firstAsideText).not.toBeNull()
+      expect(sawEmpty).toBe(false)
     } finally {
       observer.disconnect()
     }
