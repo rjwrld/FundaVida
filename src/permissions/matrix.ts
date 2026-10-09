@@ -109,7 +109,12 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     announcements: { view: true, create: true, delete: true },
   },
   teacher: {
-    programs: { view: true },
+    // A Teacher's nav is Dashboard · Calendar · Courses · Students (ADR-0051):
+    // grading, marking, and the cohort's Certificates all happen on the Course
+    // detail, so the standalone Programs/Grades/Attendance/Certificates pages
+    // derive away. Every cell they still need is an action cell (enter/edit
+    // grades, mark attendance) or a scope token, never `view`.
+    programs: {},
     students: { view: true },
     teachers: {},
     // A Teacher may create courses (ADR-0016) but the store enforces self-assignment
@@ -120,12 +125,12 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     // the Course detail page gates the roster on this, while the no-context route/nav
     // checks stay denied (the predicate needs a course).
     enrollments: { view: courseOwned, create: courseOwned, approve: courseOwned },
-    grades: { view: true, enter: teacherCanGrade, edit: teacherCanGrade },
-    // A Teacher views certificates earned in the Courses they own (ADR-0024).
-    // `view: true` (unscoped) opens the nav/route; the data scope ('ownCourses')
-    // narrows the list. There is no approval — closing the Course emits them.
-    certificates: { view: true },
-    attendance: { view: true, mark: courseOwned },
+    grades: { enter: teacherCanGrade, edit: teacherCanGrade },
+    // A Teacher sees the Certificates their closed cohorts earned on that
+    // Course's page (ADR-0022/0024), read through the 'ownCourses' scope token.
+    // There is no approval — closing the Course emits them.
+    certificates: {},
+    attendance: { mark: courseOwned },
     // A Teacher may approve TCU activities for trainees assigned to their courses (ADR-0017)
     tcu: { approve: teacherCanApproveTcuActivity },
     // A Teacher may message the class of a Course they own (ADR-0041): both cells
@@ -143,7 +148,12 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     announcements: { view: true, create: courseOwned, delete: courseOwned },
   },
   student: {
-    programs: { view: true },
+    // A Student's nav is Dashboard · Calendar · Courses · My profile (ADR-0051).
+    // Their Grades, Attendance, and Certificates already live on the Course
+    // detail ("Your records"), the dashboard's My courses table, and /me — all
+    // read through the 'own' scope tokens below, which no `view` cell gates — so
+    // the standalone pages derive away. The catalog adds nothing to their work.
+    programs: {},
     students: {},
     teachers: {},
     courses: { view: true },
@@ -152,9 +162,9 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     // Student who owns the enrollment may withdraw it — the store passes the record as
     // context. Other operations are teacher/admin only.
     enrollments: { request: true, withdraw: studentOwnsEnrollment },
-    grades: { view: true },
-    certificates: { view: true },
-    attendance: { view: true },
+    grades: {},
+    certificates: {},
+    attendance: {},
     // A Student is not a TCU Trainee, so they have no TCU access (issue #71).
     tcu: {},
     bulkEmail: {},
@@ -175,7 +185,10 @@ const permissionMatrix: Record<Role, Record<Resource, Partial<Record<Action, Mat
     grades: {},
     certificates: {},
     attendance: {},
-    tcu: { view: true, log: canLogTcuActivity },
+    // The trainee's dashboard is their single home (ADR-0050/0051): it logs
+    // hours (`log`) and lists their activities through the 'self' scope token,
+    // so the TCU page itself derives away for the role.
+    tcu: { log: canLogTcuActivity },
     bulkEmail: {},
     auditLog: {},
     // A TCU volunteer reads the feed of their assigned Course (surfaced on the

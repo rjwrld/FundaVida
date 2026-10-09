@@ -131,7 +131,7 @@ describe('Permissions Matrix', () => {
       },
       teacher: {
         programs: {
-          view: true,
+          view: false,
           create: false,
           edit: false,
           delete: false,
@@ -181,7 +181,7 @@ describe('Permissions Matrix', () => {
           enter: false,
         },
         grades: {
-          view: true,
+          view: false,
           create: false,
           edit: 'teacherCanGrade',
           delete: false,
@@ -191,7 +191,7 @@ describe('Permissions Matrix', () => {
           enter: 'teacherCanGrade',
         },
         certificates: {
-          view: true,
+          view: false,
           create: false,
           edit: false,
           delete: false,
@@ -201,7 +201,7 @@ describe('Permissions Matrix', () => {
           enter: false,
         },
         attendance: {
-          view: true,
+          view: false,
           create: false,
           edit: false,
           delete: false,
@@ -256,7 +256,7 @@ describe('Permissions Matrix', () => {
       },
       student: {
         programs: {
-          view: true,
+          view: false,
           create: false,
           edit: false,
           delete: false,
@@ -308,7 +308,7 @@ describe('Permissions Matrix', () => {
           withdraw: 'studentOwnsEnrollment',
         },
         grades: {
-          view: true,
+          view: false,
           create: false,
           edit: false,
           delete: false,
@@ -318,7 +318,7 @@ describe('Permissions Matrix', () => {
           enter: false,
         },
         certificates: {
-          view: true,
+          view: false,
           create: false,
           edit: false,
           delete: false,
@@ -328,7 +328,7 @@ describe('Permissions Matrix', () => {
           enter: false,
         },
         attendance: {
-          view: true,
+          view: false,
           create: false,
           edit: false,
           delete: false,
@@ -461,7 +461,7 @@ describe('Permissions Matrix', () => {
           enter: false,
         },
         tcu: {
-          view: true,
+          view: false,
           create: false,
           edit: false,
           delete: false,
@@ -1021,10 +1021,12 @@ describe('Permissions Matrix', () => {
   })
 
   // The Program catalog is org-wide in scope (ADR-0015) but visible per-role
-  // (ADR-0035): admin/teacher/student view it whole ('all'); tcu does not view it
-  // at all and its read seam is closed ('none').
-  describe('programs resource (ADR-0015, ADR-0035)', () => {
-    const viewingRoles: Role[] = ['admin', 'teacher', 'student']
+  // (ADR-0035): only the roles whose job includes the catalog view its page
+  // (ADR-0051); the others still read it whole ('all') where a Course names its
+  // Program. tcu does not view it at all and its read seam is closed ('none').
+  describe('programs resource (ADR-0015, ADR-0035, ADR-0051)', () => {
+    const viewingRoles: Role[] = ['admin']
+    const readingRoles: Role[] = ['admin', 'teacher', 'student']
 
     viewingRoles.forEach((role) => {
       it(`${role} may view programs but never create/edit/delete them`, () => {
@@ -1033,11 +1035,20 @@ describe('Permissions Matrix', () => {
         expect(can(role, 'edit', 'programs')).toBe(false)
         expect(can(role, 'delete', 'programs')).toBe(false)
       })
+    })
 
+    readingRoles.forEach((role) => {
       it(`${role} reads the whole program catalog ('all' scope)`, () => {
         expect(scopeFor(role).programs).toBe('all')
       })
     })
+
+    it.each(['teacher', 'student'] as Role[])(
+      '%s reads the catalog but has no Programs page (ADR-0051)',
+      (role) => {
+        expect(can(role, 'view', 'programs')).toBe(false)
+      }
+    )
 
     it('tcu neither views the catalog nor reads it (ADR-0035)', () => {
       expect(can('tcu', 'view', 'programs')).toBe(false)
