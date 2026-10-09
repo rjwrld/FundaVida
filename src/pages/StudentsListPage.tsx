@@ -112,7 +112,6 @@ export function StudentsListPage() {
     <div className="space-y-6">
       <PageHeader
         title={t('students.list.title')}
-        description={t('students.list.subtitle')}
         action={
           canCreate ? (
             <Button onClick={openCreate}>

@@ -110,7 +110,6 @@
     "list": {
       "emptyFiltered": "Ningún registro coincide con el filtro."
     },
-    "subtitle": "Registro cronológico de cada creación, actualización y eliminación.",
     "summary": {
       "approveEnrollment": "Aprobó la matrícula de {{student}} en {{course}}",
       "approveTcu": "Aprobó la actividad TCU «{{title}}» de {{name}}",
@@ -264,7 +263,6 @@
       "upcomingEmpty": "Nada por ahora.",
       "upcomingTitle": "Próximas"
     },
-    "subtitle": "Tus sesiones de un vistazo.",
     "title": "Calendario",
     "today": "Hoy",
     "viewToggle": {
@@ -300,7 +298,6 @@
         "ariaLabel": "Buscar certificados por nombre del estudiante",
         "placeholder": "Buscar por nombre del estudiante…"
       },
-      "subtitle": "Al cerrar un curso se emite un certificado para cada estudiante aprobado: aquí puede previsualizar y descargar cada uno.",
       "title": "Certificados"
     },
     "status": {
@@ -568,7 +565,6 @@
       "emptyFiltered": "Ningún curso coincide con el filtro.",
       "publishButton": "Publicar {{name}}",
       "searchPlaceholder": "Buscar por nombre o programa",
-      "subtitle": "Catálogo de cursos ofrecidos en los programas y sedes.",
       "title": "Cursos"
     },
     "status": {
@@ -741,11 +737,6 @@
         "coursePlaceholder": "Curso",
         "studentPlaceholder": "Estudiante"
       },
-      "subtitles": {
-        "admin": "Cada calificación del sistema. Puedes corregir o eliminar registros.",
-        "student": "Tus calificaciones en tus cursos.",
-        "teacher": "Calificaciones de los cursos que impartes. Puedes editar una nota cuando termina el periodo."
-      },
       "title": "Calificaciones"
     }
   },
@@ -903,14 +894,12 @@
     "detail": {
       "backToList": "Volver al catálogo",
       "coursesTitle": "Cursos",
-      "eyebrow": "Programa",
       "loading": "Cargando…",
       "noCourses": "Este programa aún no tiene cursos.",
       "notFound": "Programa no encontrado."
     },
     "list": {
       "empty": "El catálogo aún no tiene programas.",
-      "subtitle": "El catálogo de programas educativos de la fundación.",
       "title": "Programas"
     }
   },
@@ -1018,7 +1007,6 @@
       },
       "emptyFiltered": "Ningún estudiante coincide con el filtro.",
       "searchPlaceholder": "Buscar por nombre o correo",
-      "subtitle": "Crea, filtra y gestiona estudiantes matriculados en los programas.",
       "title": "Estudiantes"
     }
   },
@@ -1123,7 +1111,6 @@
       },
       "emptyFiltered": "Ningún docente coincide con el filtro.",
       "searchPlaceholder": "Buscar por nombre o correo",
-      "subtitle": "Gestiona docentes y sus cursos asignados.",
       "title": "Docentes"
     }
   },

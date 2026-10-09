@@ -125,7 +125,7 @@ export function AuditLogPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('auditLog.title')} description={t('auditLog.subtitle')} />
+      <PageHeader title={t('auditLog.title')} />
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
         <Select

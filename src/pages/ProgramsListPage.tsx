@@ -21,7 +21,7 @@ export function ProgramsListPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('programs.list.title')} description={t('programs.list.subtitle')} />
+      <PageHeader title={t('programs.list.title')} />
 
       <ListView
         state={listViewState({ isLoading, count: programs.length, hasFilters: false })}

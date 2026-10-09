@@ -33,8 +33,6 @@ export interface StudentProgressProps {
    * false `notGraded` row (the caller gates on `resolveQueries`, ADR-0030).
    */
   rows: StudentProgressRow[] | null
-  /** PageHeader eyebrow — the page-specific label (`students.detail` vs `me`). */
-  eyebrow: string
   /** PageHeader action slot — the page-specific controls (the scope seam, ADR-0012). */
   action?: ReactNode
 }
@@ -47,18 +45,13 @@ export interface StudentProgressProps {
  * guardian panels below directly, without the roll-up the dashboard already shows
  * (ADR-0051), rather than this hub growing a `mode` prop.
  */
-export function StudentProgress({ student, rows, eyebrow, action }: StudentProgressProps) {
+export function StudentProgress({ student, rows, action }: StudentProgressProps) {
   const { t } = useTranslation()
   const { formatGrade, formatPercent } = useFormat()
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow={eyebrow}
-        title={fullName(student)}
-        description={student.email}
-        action={action}
-      />
+      <PageHeader title={fullName(student)} description={student.email} action={action} />
 
       <StudentIdentityCard student={student} />
 

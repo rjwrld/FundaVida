@@ -44,7 +44,6 @@ export function ProgramsDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow={t('programs.detail.eyebrow')}
         title={program.name}
         description={program.description}
         action={

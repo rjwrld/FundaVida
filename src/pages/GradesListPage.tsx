@@ -65,12 +65,6 @@ export function GradesListPage() {
       : false
   }
   const canActOnRows = data.some((g) => canOnRow('edit', g) || canOnRow('delete', g))
-  const subtitle =
-    role === 'admin'
-      ? t('grades.list.subtitles.admin')
-      : role === 'teacher'
-        ? t('grades.list.subtitles.teacher')
-        : t('grades.list.subtitles.student')
 
   const hasFilters = Boolean(filters.studentId || filters.courseId)
   const count = data.length
@@ -143,7 +137,7 @@ export function GradesListPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('grades.list.title')} description={subtitle} />
+      <PageHeader title={t('grades.list.title')} />
 
       <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
         {students.length > 0 && (
