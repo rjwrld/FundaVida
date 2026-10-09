@@ -904,8 +904,8 @@
     "sections": {
       "account": "Account",
       "people": "People",
-      "programs": "Programs",
-      "reports": "Reports"
+      "reports": "Reports",
+      "workspace": "Workspace"
     },
     "students": "Students",
     "tcu": "TCU",

@@ -89,7 +89,25 @@ describe('<AppSidebar />', () => {
     const labels = Array.from(nav.querySelectorAll('[data-slot="sidebar-group-label"]')).map(
       (label) => label.textContent
     )
-    expect(labels).toEqual(['Programs', 'People', 'Reports'])
+    expect(labels).toEqual(['Workspace', 'People', 'Reports'])
+  })
+
+  // A label names a choice between groups; over a role's only group it is noise
+  // (ADR-0051), so a lone group renders bare.
+  it.each([
+    ['teacher', ['Workspace', 'People']],
+    ['student', ['Workspace', 'Account']],
+    ['tcu', []],
+  ] as const)('labels the %s groups only when there is more than one', (role, expected) => {
+    useStore.getState().setRole(role)
+    renderSidebar()
+
+    const nav = screen.getByRole('navigation', { name: 'Navigation' })
+    expect(within(nav).getByRole('link', { name: 'Dashboard' })).toBeInTheDocument()
+    const labels = Array.from(nav.querySelectorAll('[data-slot="sidebar-group-label"]')).map(
+      (label) => label.textContent
+    )
+    expect(labels).toEqual(expected)
   })
 
   // The block is presentation; the matrix is truth (ADR-0010). A role without the

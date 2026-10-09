@@ -9,7 +9,7 @@
 const { t } = require('i18next') as { t: (key: string) => string }
 
 // Keys referenced via t(`nav.sections.${group.section}`) in AppSidebar
-t('nav.sections.programs')
+t('nav.sections.workspace')
 t('nav.sections.people')
 t('nav.sections.reports')
 t('nav.sections.account')
