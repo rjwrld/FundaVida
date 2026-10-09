@@ -44,6 +44,7 @@ import { closeReadiness, isTermEnded, type CloseReadiness } from '@/lib/closeRea
 import { fadeUpHidden, transitionFast, transitionGlide } from '@/lib/motion'
 import { isOpenForEnrollment, isLiveCohort } from '@/lib/courseDisplayState'
 import { clock } from '@/lib/clock'
+import { enrollmentRequestState } from '@/lib/enrollmentRequest'
 import { CloseReadinessChecklist } from '@/components/courses/CloseReadinessChecklist'
 import { CourseSessionsSection } from '@/components/courses/CourseSessionsSection'
 import { CourseAnnouncementsSection } from '@/components/courses/CourseAnnouncementsSection'
@@ -202,6 +203,8 @@ export function CoursesDetailPage() {
   // lifecycle guard: reading what was already sent is safe on a closed cohort, and
   // the demo's one teacher-authored class message lives on exactly such a Course.
   const canViewSentMessages = useCan('view', 'bulkEmail', { course: course || undefined })
+  // Requesting a spot is the Student's (ADR-0016); the Browse rows ask the same.
+  const canRequest = useCan('request', 'enrollments', { course: course || undefined })
 
   // Close-readiness derivation (issue #204), from the page's existing scoped
   // queries. ONE closeReadiness derivation feeds both the close-readiness
@@ -266,8 +269,9 @@ export function CoursesDetailPage() {
   // their self-only records (ADR-0012).
   const isEnrolled = isActiveEnrollment
 
-  // isPending: student has a pending request for this course
-  const isPending = enrollment?.status === 'pending'
+  // Where the Student stands on requesting this Course — the one rule the Browse
+  // rows read too (ADR-0051): request / requested / enrolled / closed.
+  const requestState = course ? enrollmentRequestState(course, enrollment, clock.now()) : null
 
   // isBrowseable: an open course the student is not actively enrolled in (ADR-0016).
   const isBrowseable = !!browseableCourse && !isActiveEnrollment
@@ -623,7 +627,7 @@ export function CoursesDetailPage() {
           rejects the mutation, so a live button beside a "Term ended" badge would
           contradict itself. The course stays viewable (badge visible) — only the
           request action drops. */}
-      {!canViewRoster && isBrowseable && isOpenForEnrollment(course, clock.now()) && (
+      {!canViewRoster && canRequest && isBrowseable && requestState === 'request' && (
         <section className="space-y-3">
           <SectionHeader title={t('courses.browse.requestSection')} />
           <Card>
@@ -657,7 +661,7 @@ export function CoursesDetailPage() {
         </section>
       )}
 
-      {!canViewRoster && isPending && (
+      {!canViewRoster && requestState === 'requested' && (
         <section className="space-y-3">
           <SectionHeader title={t('courses.browse.pendingSection')} />
           <Card>
