@@ -129,13 +129,15 @@ test.describe('enrollment approval workflow', () => {
     // Wait for the approval to persist before switching roles.
     await expect.poll(async () => persistedStatus(page, PENDING_ID)).toBe('approved')
 
-    // The approved course now appears in the student's own course list (the
-    // courses table shows the Sede-stripped display name).
+    // The approved course now appears in the student's My courses table on the
+    // dashboard (Sede-stripped display name). The student's Courses page is the
+    // browse view, which only lists courses they are not in (ADR-0051).
     await switchTo(page, 'student', STUDENT_ID)
-    await page.getByRole('link', { name: 'Courses', exact: true }).click()
     // The course name is a link in both the desktop table and the display:none
     // mobile card; the link role resolves to just the visible (table) one.
-    await expect(page.getByRole('link', { name: COURSE_SHORT })).toBeVisible()
+    await expect(
+      page.getByRole('region', { name: 'My courses' }).getByRole('link', { name: COURSE_SHORT })
+    ).toBeVisible()
   })
 
   test('teacher rejects a pending request', async ({ page }) => {
@@ -176,14 +178,13 @@ test.describe('enrollment approval workflow', () => {
     // Start from a clean seed (no pre-seeded pending) and drive the full UI.
     await seedAndEnter(page, seedDemo(EPOCH), 'student', STUDENT_ID)
 
-    // The browse-and-request entry lives on the Courses page now (ADR-0043).
-    await page.goto('/app/courses')
-    await page.getByRole('link', { name: 'Browse open courses' }).click()
+    // For a student, Courses IS the browse-and-request view (ADR-0043/0051).
+    await page.getByRole('link', { name: 'Courses', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
 
     // Open the browseable course detail (browse list shows the full name; the
     // detail heading shows the Sede-stripped display name) and request a spot.
-    await page.getByRole('button', { name: COURSE_NAME }).click()
+    await page.getByRole('link', { name: COURSE_NAME }).click()
     await expect(page.getByRole('heading', { name: COURSE_SHORT })).toBeVisible()
     await page.getByRole('button', { name: 'Request a spot' }).click()
     await expect(page.getByText('Request pending')).toBeVisible()

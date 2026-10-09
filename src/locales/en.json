@@ -675,35 +675,22 @@
       "approveAria": "Approve {{student}}'s enrollment",
       "columns": {
         "course": "Course",
-        "enrolledAt": "Enrolled",
+        "requested": "Requested",
         "student": "Student"
       },
       "emptyFiltered": "No enrollments match your filters.",
-      "filterAnySede": "All campuses",
-      "filterSede": "Filter by campus",
       "filterStatus": "Filter by status",
-      "pendingCount_one": "{{count}} pending",
-      "pendingCount_other": "{{count}} pending",
       "rejectAria": "Reject {{student}}'s enrollment",
       "searchPlaceholder": "Search students",
-      "stats": {
-        "approved": "Approved",
-        "courses": "Courses",
-        "pending": "Pending",
-        "sedes": "Campuses"
-      },
       "statusFilter": {
-        "active": "Active",
-        "all": "All statuses",
+        "all": "All",
         "approved": "Approved",
-        "pending": "Pending",
-        "rejected": "Rejected",
-        "withdrawn": "Withdrawn"
+        "pending": "Pending"
       },
-      "subtitle": "Review and approve enrollments across every campus and course.",
       "title": "Enrollments",
       "unenroll": "Unenroll",
-      "unenrollConfirm": "Remove this enrollment? This also removes the matching grade."
+      "unenrollConfirm": "Remove this enrollment? This also removes the matching grade.",
+      "unknownStudent": "Unknown student"
     },
     "status": {
       "approved": "Approved",

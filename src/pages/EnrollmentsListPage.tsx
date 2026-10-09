@@ -1,12 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { NoResults } from '@/components/shared/NoResults'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -14,183 +12,124 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
-import { listViewState } from '@/lib/listViewState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { CelebrationSweep } from '@/components/shared/CelebrationSweep'
-import { fadeUpHidden, transitionFast } from '@/lib/motion'
-import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
+import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { EnrollmentsEmpty } from '@/components/empty-states/EnrollmentsEmpty'
-import { Pager } from '@/components/ui/pager'
-import { usePagination } from '@/hooks/usePagination'
+import { EnrollmentDecisionButtons } from '@/components/enrollments/EnrollmentDecisionButtons'
 import {
-  useApproveEnrollment,
-  useDeleteEnrollment,
-  useEnrollments,
-  useRejectEnrollment,
-} from '@/hooks/api'
+  useEnrollmentDecisions,
+  useEnrollmentRequestColumns,
+  useEnrollmentRows,
+  type EnrollmentRow,
+} from '@/hooks/useEnrollmentRequests'
+import { useDeleteEnrollment } from '@/hooks/api'
 import { useStore } from '@/data/store'
 import { isLiveCohort } from '@/lib/courseDisplayState'
-import { useFormat } from '@/hooks/useFormat'
+import { listViewState } from '@/lib/listViewState'
 import { can } from '@/permissions'
-import { shortCourseName } from '@/lib/courseName'
-import { fullName } from '@/lib/personName'
 import { ENROLLMENT_VARIANT } from '@/lib/statusVariant'
-import { SEDES } from '@/constants/sede'
-import type { Course, Enrollment, EnrollmentStatus, Student, Teacher } from '@/types'
 
-const ANY_SEDE = '__all__'
-// Status filter values: 'active' (the default) hides rejected enrollments; the
-// other values narrow to a single status; 'all' shows everything.
-type StatusFilter = 'active' | 'all' | EnrollmentStatus
+const STATUS_FILTERS = ['pending', 'approved', 'all'] as const
+type StatusFilter = (typeof STATUS_FILTERS)[number]
 
+/**
+ * The admin's enrollment request queue (ADR-0051, amends ADR-0023): one flat
+ * table — Student · Course · Campus · Requested — opening on the pending
+ * requests. A pending row is decided in place with the same rows, columns, and
+ * mutations as the dashboard's approval queue; an approved row of a live cohort
+ * can be unenrolled. Approve/reject/unenroll refresh every reader of the
+ * enrollments slice — the dashboard counts, the rosters, the browse seats —
+ * through the write-set invalidation (ADR-0029).
+ */
 export function EnrollmentsListPage() {
   const { t } = useTranslation()
   const role = useStore((s) => s.role)
   const currentUserId = useStore((s) => s.currentUserId)
-  const students = useStore((s) => s.students)
-  const courses = useStore((s) => s.courses)
-  const teachers = useStore((s) => s.teachers)
-
-  const { data: enrollments = [], isLoading } = useEnrollments()
-  const approve = useApproveEnrollment()
-  const reject = useRejectEnrollment()
+  const allRows = useEnrollmentRows()
+  const baseColumns = useEnrollmentRequestColumns()
+  const decisions = useEnrollmentDecisions()
   const deleteEnrollment = useDeleteEnrollment()
 
   const [query, setQuery] = useState('')
-  const [sedeFilter, setSedeFilter] = useState<string>(ANY_SEDE)
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('active')
-  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null)
-  // The enrollment just approved (ADR-0047 phase 6b): its row plays one green
-  // sweep while the status flips under it. The id clears on a fixed timer, not
-  // the animation's completion — the row can unmount mid-sweep (a filter that
-  // hides approved rows) and a stuck id would replay the sweep on remount,
-  // turning a filter toggle into a fake celebration.
-  const [sweepId, setSweepId] = useState<string | null>(null)
-  useEffect(() => {
-    if (sweepId === null) return
-    const timer = setTimeout(() => setSweepId(null), 1500)
-    return () => clearTimeout(timer)
-  }, [sweepId])
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending')
+  const [pendingDelete, setPendingDelete] = useState<EnrollmentRow | null>(null)
 
   const canDelete = role
     ? can(role, 'delete', 'enrollments', { userId: currentUserId ?? undefined })
     : false
-  const canApproveCourse = (courseId: string) => {
-    const course = courses.find((c) => c.id === courseId)
-    return role
-      ? can(role, 'approve', 'enrollments', { course, userId: currentUserId ?? undefined })
+  // Approve is per Course (courseOwned for a Teacher, ADR-0023), so it is checked
+  // with the row's Course in context — admin passes unconditionally.
+  const canApprove = (row: EnrollmentRow) =>
+    role
+      ? can(role, 'approve', 'enrollments', {
+          course: row.course,
+          userId: currentUserId ?? undefined,
+        })
       : false
-  }
-
-  const studentById = useMemo(() => new Map(students.map((s) => [s.id, s])), [students])
-  const courseById = useMemo(() => new Map(courses.map((c) => [c.id, c])), [courses])
-  const teacherById = useMemo(() => new Map(teachers.map((tt) => [tt.id, tt])), [teachers])
-
-  // Summary counts come from the whole (already role-scoped) list, not the
-  // filtered view, so the chips read the same regardless of the active filters.
-  const stats = useMemo(() => {
-    const sedes = new Set<string>()
-    const courseIds = new Set<string>()
-    let pending = 0
-    let approved = 0
-    for (const e of enrollments) {
-      const course = courseById.get(e.courseId)
-      if (course) {
-        sedes.add(course.sede)
-        courseIds.add(course.id)
-      }
-      if (e.status === 'pending') pending += 1
-      if (e.status === 'approved') approved += 1
-    }
-    return { pending, approved, sedes: sedes.size, courses: courseIds.size }
-  }, [enrollments, courseById])
+  // A closed cohort is terminal (ADR-0024): the store rejects an unenroll from it.
+  const canUnenroll = (row: EnrollmentRow) =>
+    canDelete && row.enrollment.status === 'approved' && isLiveCohort(row.course ?? null)
 
   const visible = useMemo(() => {
+    if (!allRows) return []
     const q = query.trim().toLowerCase()
-    return enrollments.filter((e) => {
-      const course = courseById.get(e.courseId)
-      const student = studentById.get(e.studentId)
-      if (!course || !student) return false
-      if (sedeFilter !== ANY_SEDE && course.sede !== sedeFilter) return false
-      if (statusFilter === 'active' && e.status === 'rejected') return false
-      if (statusFilter !== 'active' && statusFilter !== 'all' && e.status !== statusFilter) {
-        return false
-      }
-      if (q && !fullName(student).toLowerCase().includes(q)) return false
+    return allRows.filter((r) => {
+      if (statusFilter !== 'all' && r.enrollment.status !== statusFilter) return false
+      if (q && !r.studentName.toLowerCase().includes(q)) return false
       return true
     })
-  }, [enrollments, courseById, studentById, sedeFilter, statusFilter, query])
+  }, [allRows, statusFilter, query])
 
-  // Group the visible enrollments by Sede, then by Course (ADR-0023).
-  const grouped = useMemo(() => {
-    const bySede = new Map<string, Map<string, typeof visible>>()
-    for (const e of visible) {
-      const course = courseById.get(e.courseId)
-      if (!course) continue
-      const byCourse = bySede.get(course.sede) ?? new Map<string, typeof visible>()
-      const rows = byCourse.get(course.id) ?? []
-      rows.push(e)
-      byCourse.set(course.id, rows)
-      bySede.set(course.sede, byCourse)
-    }
-    return SEDES.flatMap((sede) => {
-      const byCourse = bySede.get(sede)
-      if (!byCourse) return []
-      const courseGroups = [...byCourse.entries()]
-        .flatMap(([courseId, rows]) => {
-          const course = courseById.get(courseId)
-          return course ? [{ course, rows }] : []
-        })
-        .sort((a, b) => a.course.name.localeCompare(b.course.name))
-      const pendingCount = [...byCourse.values()]
-        .flat()
-        .filter((e) => e.status === 'pending').length
-      return [{ sede, courseGroups, pendingCount }]
-    })
-  }, [visible, courseById])
-
-  const hasFilters = query.trim() !== '' || sedeFilter !== ANY_SEDE || statusFilter !== 'active'
-
-  const STATUS_OPTIONS: StatusFilter[] = [
-    'active',
-    'pending',
-    'approved',
-    'rejected',
-    'withdrawn',
-    'all',
+  const columns: DataTableColumn<EnrollmentRow>[] = [
+    ...baseColumns.slice(0, 2),
+    {
+      id: 'sede',
+      header: t('courses.form.fields.sede'),
+      cell: (r) => r.course?.sede ?? '',
+    },
+    ...baseColumns.slice(2),
+    {
+      id: 'actions',
+      header: t('enrollments.approvalQueue.actions'),
+      align: 'right',
+      cell: (r) => {
+        if (r.enrollment.status === 'pending' && canApprove(r)) {
+          return <EnrollmentDecisionButtons row={r} decisions={decisions} />
+        }
+        if (canUnenroll(r)) {
+          return (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setPendingDelete(r)}
+              aria-label={t('common.actions.deleteItem', { name: r.studentName })}
+            >
+              {t('enrollments.list.unenroll')}
+            </Button>
+          )
+        }
+        return (
+          <Badge variant={ENROLLMENT_VARIANT[r.enrollment.status]}>
+            {t(`enrollments.status.${r.enrollment.status}`)}
+          </Badge>
+        )
+      },
+    },
   ]
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t('enrollments.list.title')}
-        description={t('enrollments.list.subtitle')}
-      />
+      <PageHeader title={t('enrollments.list.title')} />
 
-      <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {(
-          [
-            ['pending', stats.pending],
-            ['approved', stats.approved],
-            ['sedes', stats.sedes],
-            ['courses', stats.courses],
-          ] as const
-        ).map(([key, value]) => (
-          <div key={key} className="rounded-lg bg-muted/50 px-3 py-2">
-            <p className="text-xs text-muted-foreground">{t(`enrollments.list.stats.${key}`)}</p>
-            <p className="font-mono text-xl font-semibold tabular-nums">{value}</p>
-          </div>
-        ))}
-      </section>
-
-      <section aria-label={t('common.a11y.filters')} className="flex flex-col gap-2 sm:flex-row">
-        <div className="relative flex-1">
+      <section aria-label={t('common.a11y.filters')} className="flex flex-wrap items-center gap-2">
+        <div className="relative max-w-sm flex-1">
           <Search
             size={16}
             aria-hidden="true"
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
           <Input
             value={query}
@@ -200,25 +139,12 @@ export function EnrollmentsListPage() {
             className="pl-9"
           />
         </div>
-        <Select value={sedeFilter} onValueChange={setSedeFilter}>
-          <SelectTrigger className="sm:w-48" aria-label={t('enrollments.list.filterSede')}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ANY_SEDE}>{t('enrollments.list.filterAnySede')}</SelectItem>
-            {SEDES.map((sede) => (
-              <SelectItem key={sede} value={sede}>
-                {sede}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-          <SelectTrigger className="sm:w-44" aria-label={t('enrollments.list.filterStatus')}>
+          <SelectTrigger className="w-40" aria-label={t('enrollments.list.filterStatus')}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {STATUS_OPTIONS.map((value) => (
+            {STATUS_FILTERS.map((value) => (
               <SelectItem key={value} value={value}>
                 {t(`enrollments.list.statusFilter.${value}`)}
               </SelectItem>
@@ -228,51 +154,38 @@ export function EnrollmentsListPage() {
       </section>
 
       <ListView
-        state={listViewState({ isLoading, count: grouped.length, hasFilters })}
-        skeleton={
-          <div className="space-y-4" aria-busy="true">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </div>
-        }
+        // No enrollments at all is the illustrated empty state; enrollments that
+        // the filter hides read as a quiet line instead.
+        state={listViewState({
+          isLoading: allRows === null,
+          count: visible.length,
+          hasFilters: (allRows?.length ?? 0) > 0,
+        })}
+        skeleton={<SkeletonTable rows={8} columns={5} />}
         empty={<EnrollmentsEmpty />}
-        noResults={<NoResults message={t('enrollments.list.emptyFiltered')} />}
+        noResults={
+          <NoResults
+            message={
+              statusFilter === 'pending' && !query.trim()
+                ? t('enrollments.approvalQueue.empty')
+                : t('enrollments.list.emptyFiltered')
+            }
+          />
+        }
         content={
-          <div className="space-y-6">
-            {grouped.map(({ sede, courseGroups, pendingCount }) => (
-              <section key={sede} className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-semibold tracking-tight">{sede}</h2>
-                  {pendingCount > 0 && (
-                    <span className="font-mono text-xs text-muted-foreground tabular-nums">
-                      {t('enrollments.list.pendingCount', { count: pendingCount })}
-                    </span>
-                  )}
-                </div>
-
-                {courseGroups.map(({ course, rows }) => (
-                  <CourseEnrollmentGroup
-                    key={course.id}
-                    course={course}
-                    rows={rows}
-                    teacher={teacherById.get(course.teacherId)}
-                    studentById={studentById}
-                    canApprove={canApproveCourse(course.id)}
-                    // A closed cohort is terminal (ADR-0024): the store rejects an
-                    // unenroll from it, so its rows offer none.
-                    canDelete={canDelete && isLiveCohort(course)}
-                    approveDisabled={approve.isPending}
-                    rejectDisabled={reject.isPending}
-                    onApprove={(id) => approve.mutate(id, { onSuccess: () => setSweepId(id) })}
-                    onReject={(id) => reject.mutate(id)}
-                    onUnenroll={(payload) => setPendingDelete(payload)}
-                    sweepId={sweepId}
-                  />
-                ))}
-              </section>
-            ))}
-          </div>
+          <DataTable
+            data={visible}
+            columns={columns}
+            getRowKey={(r) => r.id}
+            renderCard={(r) => (
+              <DataTableCard
+                row={r}
+                columns={columns}
+                titleColumnId="student"
+                actionsColumnId="actions"
+              />
+            )}
+          />
         }
       />
 
@@ -290,133 +203,5 @@ export function EnrollmentsListPage() {
         }}
       />
     </div>
-  )
-}
-
-interface CourseEnrollmentGroupProps {
-  course: Course
-  rows: Enrollment[]
-  teacher: Teacher | undefined
-  studentById: Map<string, Student>
-  canApprove: boolean
-  canDelete: boolean
-  approveDisabled: boolean
-  rejectDisabled: boolean
-  onApprove: (enrollmentId: string) => void
-  onReject: (enrollmentId: string) => void
-  onUnenroll: (payload: { id: string; name: string }) => void
-  /** The enrollment whose approval is being celebrated, if any (phase 6b). */
-  sweepId: string | null
-}
-
-/**
- * One Sede→Course card (ADR-0023). Its roster is windowed client-side (ADR-0026)
- * so a full cohort never dumps ~100 rows at once; the pager appears only once a
- * cohort exceeds a page. Pagination is presentation only — the rows arrive
- * already role-scoped and filtered.
- */
-function CourseEnrollmentGroup({
-  course,
-  rows,
-  teacher,
-  studentById,
-  canApprove,
-  canDelete,
-  approveDisabled,
-  rejectDisabled,
-  onApprove,
-  onReject,
-  onUnenroll,
-  sweepId,
-}: CourseEnrollmentGroupProps) {
-  const { t } = useTranslation()
-  const { formatDate } = useFormat()
-  const reduce = useReducedMotion()
-  const pagination = usePagination(rows, { pageSize: 10 })
-  const coursePending = rows.filter((e) => e.status === 'pending').length
-
-  return (
-    <Card className="overflow-hidden py-0 gap-0">
-      <div className="flex items-center justify-between gap-3 border-b border-border/60 bg-muted/40 px-4 py-2.5">
-        <div className="min-w-0">
-          <span className="text-sm font-medium">{shortCourseName(course)}</span>
-          {teacher && (
-            <span className="ml-2 text-xs text-muted-foreground">{fullName(teacher)}</span>
-          )}
-        </div>
-        {coursePending > 0 && (
-          <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
-            {t('enrollments.list.pendingCount', { count: coursePending })}
-          </span>
-        )}
-      </div>
-      <ul className="divide-y divide-border/60">
-        {/* Rows leave (a rejection under the default filter) through a fade
-            while the survivors glide up via the layout animation (phase 6b). */}
-        <AnimatePresence>
-          {pagination.pageItems.map((e) => {
-            const student = studentById.get(e.studentId)
-            if (!student) return null
-            const name = fullName(student)
-            return (
-              <motion.li
-                key={e.id}
-                layout={reduce ? false : true}
-                initial={false}
-                exit={reduce ? undefined : fadeUpHidden}
-                transition={transitionFast}
-                className="relative flex flex-wrap items-center gap-x-3 gap-y-2 overflow-hidden px-4 py-2.5"
-              >
-                {sweepId === e.id && <CelebrationSweep />}
-                {/* A floor on the name's width makes the date/badge/actions wrap to a
-                    second line on phones instead of squeezing the name to "J…". */}
-                <span className="min-w-40 flex-1 truncate text-sm">{name}</span>
-                <span className="font-mono text-xs text-muted-foreground tabular-nums">
-                  {formatDate(e.enrolledAt)}
-                </span>
-                <Badge variant={ENROLLMENT_VARIANT[e.status]}>
-                  {t(`enrollments.status.${e.status}`)}
-                </Badge>
-                <div className="flex gap-1">
-                  {e.status === 'pending' && canApprove && (
-                    <>
-                      <Button
-                        size="sm"
-                        onClick={() => onApprove(e.id)}
-                        disabled={approveDisabled}
-                        aria-label={t('enrollments.list.approveAria', { student: name })}
-                      >
-                        {t('common.actions.approve')}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onReject(e.id)}
-                        disabled={rejectDisabled}
-                        aria-label={t('enrollments.list.rejectAria', { student: name })}
-                      >
-                        {t('common.actions.reject')}
-                      </Button>
-                    </>
-                  )}
-                  {e.status === 'approved' && canDelete && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => onUnenroll({ id: e.id, name })}
-                      aria-label={t('common.actions.deleteItem', { name })}
-                    >
-                      {t('enrollments.list.unenroll')}
-                    </Button>
-                  )}
-                </div>
-              </motion.li>
-            )
-          })}
-        </AnimatePresence>
-      </ul>
-      {/* The border rides the Pager, so it vanishes with it on a one-page group. */}
-      <Pager pagination={pagination} className="border-t border-border/60 px-4 py-3" />
-    </Card>
   )
 }
