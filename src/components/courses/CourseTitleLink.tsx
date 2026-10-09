@@ -16,6 +16,12 @@ export interface CourseTitleLinkProps {
    * rather than letting both copies register the same `layoutId`.
    */
   shared: boolean
+  /**
+   * Show `course.name` instead of the Sede-stripped short name: where the row
+   * carries no Sede of its own, the short name collides across cohorts (the
+   * ADR-0021 trap) — the student's Browse list.
+   */
+  fullName?: boolean
   className?: string
 }
 
@@ -26,11 +32,16 @@ export interface CourseTitleLinkProps {
  * page's cache, which is what lets the heading paint in the same commit this node
  * leaves in; without that warmth the navigation is simply plain, never broken.
  */
-export function CourseTitleLink({ course, shared, className }: CourseTitleLinkProps) {
+export function CourseTitleLink({
+  course,
+  shared,
+  fullName = false,
+  className,
+}: CourseTitleLinkProps) {
   const reduce = useReducedMotion()
   const prefetchDetail = usePrefetchCourseDetail()
   const layoutId = shared && !reduce ? courseMorphLayoutId(course.id) : undefined
-  const name = shortCourseName(course)
+  const name = fullName ? course.name : shortCourseName(course)
 
   return (
     <Link
