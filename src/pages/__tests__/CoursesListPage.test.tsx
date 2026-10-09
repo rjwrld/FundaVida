@@ -137,6 +137,38 @@ describe('<CoursesListPage />', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 
+  // A column whose every value the viewer's scope already fixes is noise (ADR-0051):
+  // a teacher's 'own' Courses all name them as Teacher and share their one Sede
+  // (ADR-0011). Decided by the scope token, not by inspecting the rows.
+  it('hides the Teacher and Campus columns and the Campus filter for a teacher', async () => {
+    useStore.getState().setRole('teacher')
+    renderPage()
+
+    const table = await screen.findByRole('table')
+    const headers = within(table)
+      .getAllByRole('columnheader')
+      .map((h) => h.textContent)
+    expect(headers).not.toContain('Teacher')
+    expect(headers).not.toContain('Campus')
+    expect(screen.queryByRole('combobox', { name: 'Campus' })).not.toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Program' })).toBeInTheDocument()
+  })
+
+  it('keeps Teacher and Campus for an admin, and drops Program for everyone', async () => {
+    useStore.getState().setRole('admin')
+    renderPage()
+
+    const table = await screen.findByRole('table')
+    const headers = within(table)
+      .getAllByRole('columnheader')
+      .map((h) => h.textContent)
+    expect(headers).toEqual(expect.arrayContaining(['Teacher', 'Campus']))
+    // The Program repeats the course name's first word; its filter stays.
+    expect(headers).not.toContain('Program')
+    expect(screen.getByRole('combobox', { name: 'Campus' })).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Program' })).toBeInTheDocument()
+  })
+
   it('windows the scoped courses to the default page size', async () => {
     useStore.getState().setRole('admin')
     const total = useStore.getState().courses.length

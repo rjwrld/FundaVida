@@ -74,6 +74,33 @@ describe('<StudentsListPage /> pagination', () => {
     useStore.getState().setLocale('en')
   })
 
+  // A teacher's students are those enrolled in their own Courses, all at their one
+  // Sede (ADR-0011): Campus says nothing, and a teacher acts on no row (ADR-0051).
+  it('hides Campus, its filter, and the empty Actions column for a teacher', async () => {
+    useStore.getState().setRole('teacher')
+    renderList()
+
+    const table = await screen.findByRole('table')
+    const headers = within(table)
+      .getAllByRole('columnheader')
+      .map((h) => h.textContent)
+    expect(headers).not.toContain('Campus')
+    expect(headers).not.toContain('Actions')
+    expect(screen.queryByRole('combobox', { name: 'Campus' })).not.toBeInTheDocument()
+  })
+
+  it('keeps Campus and Actions for an admin', async () => {
+    useStore.getState().setRole('admin')
+    renderList()
+
+    const table = await screen.findByRole('table')
+    const headers = within(table)
+      .getAllByRole('columnheader')
+      .map((h) => h.textContent)
+    expect(headers).toEqual(expect.arrayContaining(['Campus', 'Actions']))
+    expect(screen.getByRole('combobox', { name: 'Campus' })).toBeInTheDocument()
+  })
+
   it('windows the scoped list to the default page size instead of rendering every row', async () => {
     const total = useStore.getState().students.length
     expect(total).toBeGreaterThan(10) // guard: the seed must exceed one page

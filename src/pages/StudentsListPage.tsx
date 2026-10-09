@@ -24,6 +24,8 @@ import { StudentsEmpty } from '@/components/empty-states/StudentsEmpty'
 import { StudentFormDialog } from '@/components/students/StudentFormDialog'
 import { useDeleteStudent, useStudents } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
+import { useStore } from '@/data/store'
+import { scopeFor } from '@/permissions'
 import { useFormDialogParams } from '@/hooks/useFormDialogParams'
 import type { StudentFilters } from '@/data/api/students'
 import type { Student } from '@/types'
@@ -41,6 +43,12 @@ export function StudentsListPage() {
   const canCreate = useCan('create', 'students')
   const canEdit = useCan('edit', 'students')
   const canDelete = useCan('delete', 'students')
+  const role = useStore((s) => s.role)
+  // A teacher's students are those in their own Courses, all at their one Sede
+  // (ADR-0011): the scope token fixes Campus, so its column and filter would only
+  // repeat it (ADR-0051).
+  const singleSede = role ? scopeFor(role).students === 'enrolledInOwnCourses' : false
+  const canActOnRows = canEdit || canDelete
 
   const hasFilters = Boolean(filters.search || filters.sede || filters.educationalLevel)
   const count = data.length
@@ -62,13 +70,17 @@ export function StudentsListPage() {
       header: t('students.list.columns.email'),
       cell: (s) => <span className="text-sm text-muted-foreground">{s.email}</span>,
     },
-    {
-      id: 'sede',
-      header: t('students.list.columns.sede'),
-      sortable: true,
-      sortAccessor: (s) => s.sede,
-      cell: (s) => s.sede,
-    },
+    ...(singleSede
+      ? []
+      : [
+          {
+            id: 'sede',
+            header: t('students.list.columns.sede'),
+            sortable: true,
+            sortAccessor: (s: Student) => s.sede,
+            cell: (s: Student) => s.sede,
+          },
+        ]),
     {
       id: 'level',
       header: t('students.list.columns.level'),
@@ -76,7 +88,9 @@ export function StudentsListPage() {
       sortAccessor: (s) => t(`students.form.level.${s.educationalLevel}`),
       cell: (s) => t(`students.form.level.${s.educationalLevel}`),
     },
-    {
+  ]
+  if (canActOnRows) {
+    columns.push({
       id: 'actions',
       header: t('students.list.columns.actions'),
       align: 'right',
@@ -91,8 +105,8 @@ export function StudentsListPage() {
           />
         )
       },
-    },
-  ]
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -123,22 +137,24 @@ export function StudentsListPage() {
             className="pl-9"
           />
         </div>
-        <Select
-          value={filters.sede ?? 'any'}
-          onValueChange={(v) => setFilters((f) => ({ ...f, sede: v === 'any' ? undefined : v }))}
-        >
-          <SelectTrigger aria-label={t('students.list.columns.sede')}>
-            <SelectValue placeholder={t('students.list.columns.sede')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any">{t('students.list.columns.sede')}</SelectItem>
-            {SEDES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {!singleSede && (
+          <Select
+            value={filters.sede ?? 'any'}
+            onValueChange={(v) => setFilters((f) => ({ ...f, sede: v === 'any' ? undefined : v }))}
+          >
+            <SelectTrigger aria-label={t('students.list.columns.sede')}>
+              <SelectValue placeholder={t('students.list.columns.sede')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">{t('students.list.columns.sede')}</SelectItem>
+              {SEDES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <Select
           value={filters.educationalLevel ?? 'any'}
           onValueChange={(v) =>
