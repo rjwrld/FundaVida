@@ -667,7 +667,8 @@
       "recentActivities": "Recent activities",
       "recentActivitiesList": "Recent activities",
       "sectionTitle": "Your TCU service",
-      "sedeLabel": "Campus"
+      "sedeLabel": "Campus",
+      "sessionToday": "Today"
     },
     "teacher": {
       "needsMarking": {

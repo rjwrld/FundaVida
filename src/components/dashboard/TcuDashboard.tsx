@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { isSameDay, parseISO } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { Clock, GraduationCap, MapPin, CalendarDays } from 'lucide-react'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
@@ -18,7 +19,7 @@ import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { SkeletonStatCard } from '@/components/shared/skeletons/SkeletonStatCard'
 import { LogTcuActivityDialog } from '@/components/tcu/LogTcuActivityDialog'
 import { resolveQueries } from '@/lib/resolveQueries'
-import { upcomingSessions } from '@/lib/sessions'
+import { sessionsFor, upcomingSessions } from '@/lib/sessions'
 import { tcuHoursByStatus, TCU_TARGET_HOURS } from '@/lib/tcuHours'
 import { clock } from '@/lib/clock'
 import { useFormat } from '@/hooks/useFormat'
@@ -72,8 +73,14 @@ export function TcuDashboard() {
   // so we render the hours stats alone rather than crash or flash a bogus card.
   const trainee = trainees[0] ?? null
   const assignedCourse = trainee ? (courses[0] ?? null) : null
+  // Today's Session is recordable, not upcoming (ADR-0034), so upcomingSessions
+  // skips it; on a session day the volunteer serves today, and the hero says so.
+  const today = clock.today()
+  const sessionToday = assignedCourse
+    ? sessionsFor(assignedCourse).some((s) => isSameDay(parseISO(s.date), today))
+    : false
   const nextSession = assignedCourse
-    ? (upcomingSessions([assignedCourse], clock.today(), 1)[0] ?? null)
+    ? (upcomingSessions([assignedCourse], today, 1)[0] ?? null)
     : null
   const meetingDays = assignedCourse
     ? assignedCourse.meetingDays.map((d) => t(`courses.form.weekdays.${d}`)).join(', ')
@@ -112,9 +119,11 @@ export function TcuDashboard() {
                   <Clock className="size-3.5" aria-hidden="true" />
                   <dt className="sr-only">{t('dashboard.tcu.nextSessionLabel')}</dt>
                   <dd className="text-foreground">
-                    {nextSession
-                      ? `${t('dashboard.tcu.nextSessionLabel')}: ${formatDate(nextSession.date)}`
-                      : t('dashboard.tcu.noUpcomingSessions')}
+                    {sessionToday
+                      ? `${t('dashboard.tcu.nextSessionLabel')}: ${t('dashboard.tcu.sessionToday')}`
+                      : nextSession
+                        ? `${t('dashboard.tcu.nextSessionLabel')}: ${formatDate(nextSession.date)}`
+                        : t('dashboard.tcu.noUpcomingSessions')}
                   </dd>
                 </div>
               </dl>
