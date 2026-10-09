@@ -6,7 +6,6 @@ import { useDashboardStats } from '@/hooks/api/useDashboardStats'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { StatRow } from './StatRow'
 import { CoursesToClose } from './CoursesToClose'
-import { CertsThisEpoch } from './CertsThisEpoch'
 import { AtRiskStudents } from './AtRiskStudents'
 import { DashboardAnnouncementsFeed } from './DashboardAnnouncementsFeed'
 import { DashboardShell } from './DashboardShell'
@@ -53,7 +52,6 @@ export function AdminDashboard() {
         </Suspense>
         <CoursesToClose />
         <AtRiskStudents />
-        <CertsThisEpoch />
         <div className="lg:col-span-2">
           <DashboardAnnouncementsFeed />
         </div>

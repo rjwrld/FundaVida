@@ -605,11 +605,6 @@
       "title": "Estudiantes en riesgo",
       "viewAll": "Ver todos los estudiantes"
     },
-    "certsThisEpoch": {
-      "subtitle": "Emitidos al cerrar cada curso, sin aprobación",
-      "title": "Certificados de esta época",
-      "viewAll": "Ver todos los certificados"
-    },
     "coursesToClose": {
       "empty": "No hay cursos listos para cerrar.",
       "ended": "El período terminó el {{date}}",
