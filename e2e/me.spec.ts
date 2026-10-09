@@ -16,9 +16,6 @@ const world = seedDemo(new Date())
 const me = world.students.find((s) => s.id === 'stu-1')
 if (!me) throw new Error('seed: stu-1 missing')
 const meName = fullName(me)
-// A passing Grade (>=70) stu-1 holds proves the per-course progress treatment.
-const passingGrade = world.grades.find((g) => g.studentId === 'stu-1' && g.score >= 70)
-if (!passingGrade) throw new Error('seed: stu-1 has no passing grade')
 
 test('a student reaches their self-service profile from the nav (#166, ADR-0043)', async ({
   page,
@@ -37,12 +34,10 @@ test('a student reaches their self-service profile from the nav (#166, ADR-0043)
   await expect(page.getByText(me.guardian.name)).toBeVisible()
   await expect(page.getByText(me.guardian.email)).toBeVisible()
 
-  // Enrollments-with-progress carries the per-course columns…
-  await expect(page.getByRole('columnheader', { name: 'Attendance' })).toBeVisible()
-  await expect(page.getByRole('columnheader', { name: 'Grade' })).toBeVisible()
-  await expect(page.getByRole('columnheader', { name: 'Certificate' })).toBeVisible()
-  // …and a passing Grade (>=70) shows the Passing treatment.
-  await expect(page.getByText('Passing').first()).toBeVisible()
+  // The per-course progress lives on the dashboard's My courses table, so the
+  // profile carries no enrollments table of its own (ADR-0051).
+  await expect(page.getByRole('heading', { name: 'Enrollments' })).toHaveCount(0)
+  await expect(page.getByRole('table')).toHaveCount(0)
 
   // The certificates section renders (empty for this persona — no closed-course
   // pass yet, ADR-0024).
@@ -65,10 +60,8 @@ test('the profile renders in Spanish when locale is ES (#166)', async ({ page })
   )
   await page.goto('/app/me')
 
-  // Scoped to main: the page's "Mi perfil" eyebrow, not the sidebar nav item of
-  // the same name (strict mode).
-  await expect(page.getByRole('main').getByText('Mi perfil')).toBeVisible()
   await expect(page.getByRole('heading', { name: meName })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Certificados' })).toBeVisible()
 })
 
 test('a non-student visiting /app/me is redirected to their dashboard (#166)', async ({ page }) => {
