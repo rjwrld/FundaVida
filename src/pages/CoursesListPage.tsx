@@ -54,7 +54,6 @@ export function CoursesListPage() {
   // now carries that entry point. Rides the enrollment `request` grant (ADR-0016),
   // which only Students hold.
   const canRequest = useCan('request', 'enrollments')
-  const canEdit = useCan('edit', 'courses')
   const canDelete = useCan('delete', 'courses')
   // A Teacher's edit/publish right is per-Course (courseOwned, ADR-0016), so it
   // must be evaluated against each Course — not the context-free page-level check
@@ -67,9 +66,10 @@ export function CoursesListPage() {
   const rowCanPublish = (course: Course) => canEditCourse(course) && course.status === 'draft'
   const canActOnRows = canDelete || data.some((c) => rowCanEdit(c) || rowCanPublish(c))
   // The form opens for the Course in the ?edit= param only when its row offers
-  // Edit, so a Teacher's own Course opens and anyone else's link no-ops.
+  // Edit, for every role: a Teacher's own live Course opens, while anyone else's
+  // Course or a closed (terminal, ADR-0024) one no-ops — admin included.
   const editCourse = editId ? data.find((c) => c.id === editId) : undefined
-  const canOpenEdit = canEdit || (editCourse ? rowCanEdit(editCourse) : false)
+  const canOpenEdit = editCourse ? rowCanEdit(editCourse) : false
 
   const hasFilters = Boolean(filters.search || filters.sede || filters.programId)
   const count = data.length
