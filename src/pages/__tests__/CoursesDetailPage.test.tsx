@@ -309,8 +309,27 @@ describe('<CoursesDetailPage /> — roster capacity gate (ADR-0016)', () => {
       .enrollments.filter((e) => e.courseId === courseId && e.status === 'approved').length
   }
 
+  // Direct-enroll is open only inside the enrollment window (ADR-0042), so the
+  // capacity tests need a Course that is still open and already has a roster.
+  function openCourseWithRoster() {
+    const s = useStore.getState()
+    const course = req(
+      s.courses.find((c) => isOpenForEnrollment(c, clock.now()) && approvedCount(c.id) > 0),
+      'seed: no open course with an approved roster'
+    )
+    const enrollment = req(
+      s.enrollments.find((e) => e.courseId === course.id && e.status === 'approved'),
+      'seed: open course has no approved enrollment'
+    )
+    const classmate = req(
+      s.students.find((st) => st.id === enrollment.studentId),
+      'seed: rostered student missing'
+    )
+    return { course, classmate }
+  }
+
   it('keeps the Enroll button enabled while the roster has room', async () => {
-    const { gradedCourse, classmate } = fixtures()
+    const { course: gradedCourse, classmate } = openCourseWithRoster()
     asRole('admin')
     useStore
       .getState()
@@ -327,7 +346,7 @@ describe('<CoursesDetailPage /> — roster capacity gate (ADR-0016)', () => {
   })
 
   it('disables the Enroll button and explains once the roster hits capacity', async () => {
-    const { gradedCourse } = fixtures()
+    const { course: gradedCourse } = openCourseWithRoster()
     asRole('admin')
     // Cap capacity at the already-approved count so the course reads as full.
     useStore.getState().updateCourse(gradedCourse.id, { capacity: approvedCount(gradedCourse.id) })
@@ -1129,15 +1148,19 @@ describe('<CoursesDetailPage /> — sessions surface & roster (issue 153, ADR-00
   })
 
   it('shows the Course’s derived Sessions surface (session ordinal + date) to an admin', async () => {
-    const { gradedCourse } = fixtures()
+    const s = useStore.getState()
+    const gradedCourse = req(
+      s.courses.find((c) => c.status === 'published' && isTermEnded(c, clock.now())),
+      'seed: no published, Term-ended course'
+    )
     const sessions = sessionsFor(gradedCourse)
     expect(sessions.length).toBeGreaterThan(0)
     asRole('admin')
     renderPage(gradedCourse.id)
 
     // The one state-grouped Sessions surface (ADR-0037) replaces the old Schedule
-    // wall. gradedCourse is an ended cohort, so its past Sessions surface in the
-    // expanded Needs-attendance queue (gated on the attendance window → findBy).
+    // wall. gradedCourse is an ended, unclosed cohort, so its past Sessions surface
+    // in the expanded Needs-attendance queue (gated on the attendance window → findBy).
     const heading = await screen.findByRole('heading', { name: 'Sessions' })
     const section = req(
       heading.closest('section') ?? undefined,
@@ -1329,5 +1352,72 @@ describe('<CoursesDetailPage /> — shared-element morph (ADR-0047 phase 6c)', (
 
     await screen.findByRole('heading', { name: shortCourseName(gradedCourse) })
     expect(container.querySelector('[data-morph-id]')).toBeNull()
+  })
+})
+
+/**
+ * A closed cohort is terminal (ADR-0024): the roster and Sessions surfaces keep
+ * their records but drop every write action the store would reject or that would
+ * rewrite a credentialed cohort. A Term-ended but still-published cohort keeps
+ * marking live — that is how it becomes closeable.
+ */
+describe('<CoursesDetailPage /> — a closed cohort is read-only (ADR-0024)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  function closedCourseWithRoster() {
+    const s = useStore.getState()
+    return req(
+      s.courses.find(
+        (c) =>
+          c.status === 'closed' &&
+          s.enrollments.some((e) => e.courseId === c.id && e.status === 'approved')
+      ),
+      'seed: no closed course with a roster'
+    )
+  }
+
+  it('offers an admin no Enroll or Remove on a closed course', async () => {
+    const course = closedCourseWithRoster()
+    asRole('admin')
+    renderPage(course.id)
+
+    // The roster has painted (its table header is up) before asserting absences.
+    await screen.findByRole('columnheader', { name: 'Name' })
+    expect(screen.queryByRole('button', { name: 'Enroll student' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Remove' })).not.toBeInTheDocument()
+  })
+
+  it('shows a closed course no need-attendance queue and no mark or review action', async () => {
+    const course = closedCourseWithRoster()
+    asRole('admin')
+    renderPage(course.id)
+
+    // The Recorded group is the verdict that resolves last; once it paints, the
+    // section has settled.
+    await screen.findByRole('button', { name: /^Recorded · \d+$/ })
+    expect(screen.queryByRole('list', { name: 'Needs attendance' })).not.toBeInTheDocument()
+    expect(screen.queryByText(/need attendance/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /^(Mark attendance|Review) —/ })).toBeNull()
+  })
+
+  it('keeps marking live on a Term-ended course that is not closed yet', async () => {
+    const s = useStore.getState()
+    const course = req(
+      s.courses.find((c) => c.status === 'published' && isTermEnded(c, clock.now())),
+      'seed: no published, Term-ended course'
+    )
+    asRole('admin')
+    renderPage(course.id)
+
+    const queue = await screen.findByRole('list', { name: 'Needs attendance' })
+    expect(
+      within(queue).getAllByRole('link', { name: /^Mark attendance —/ }).length
+    ).toBeGreaterThan(0)
   })
 })

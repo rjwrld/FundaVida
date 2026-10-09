@@ -15,6 +15,7 @@ import { useFormat } from '@/hooks/useFormat'
 import { useCreateSessionException } from '@/hooks/api'
 import { isSessionRecordable, isSessionUpcoming, type Session } from '@/lib/sessions'
 import type { CloseReadiness } from '@/lib/closeReadiness'
+import { isLiveCohort } from '@/lib/courseDisplayState'
 import type { AttendanceRecord, Course } from '@/types'
 
 /** How many Upcoming rows stay visible before the rest fold into a disclosure. */
@@ -106,8 +107,14 @@ export function CourseSessionsSection({
   const showVerdicts = canMark && readiness !== null
   const pastPending = canMark && readiness === null && past.length > 0
 
+  // A closed cohort is terminal (ADR-0024): its attendance is final, so a marker
+  // sees only what was recorded — no Needs-attendance queue, no mark or review
+  // action. A Term-ended but unclosed cohort stays live: marking is how it closes.
+  const frozen = !isLiveCohort(course)
+
   const unrecordedDates = new Set(readiness?.unrecordedSessions.map((s) => s.date) ?? [])
-  const needsAttendance = showVerdicts ? past.filter((s) => unrecordedDates.has(s.date)) : []
+  const needsAttendance =
+    showVerdicts && !frozen ? past.filter((s) => unrecordedDates.has(s.date)) : []
   const recorded = showVerdicts ? past.filter((s) => !unrecordedDates.has(s.date)) : []
 
   const markAction = (session: Session, primary: boolean) => (
@@ -168,7 +175,7 @@ export function CourseSessionsSection({
           {t('courses.detail.sessions.heading')}
         </h2>
         <div className="flex items-center gap-3">
-          {showVerdicts && (
+          {showVerdicts && !frozen && (
             <p className="font-mono text-xs tabular-nums text-muted-foreground">
               {t('courses.detail.sessions.summary', {
                 recorded: recorded.length,
@@ -209,7 +216,7 @@ export function CourseSessionsSection({
             <SessionGroup label={t('courses.detail.sessions.groups.today')}>
               <SessionRow
                 label={sessionLabel(todaySession)}
-                action={canMark ? markAction(todaySession, true) : undefined}
+                action={canMark && !frozen ? markAction(todaySession, true) : undefined}
               />
             </SessionGroup>
           )}
@@ -268,7 +275,7 @@ export function CourseSessionsSection({
                         present: presentCount(session),
                         total: enrolledCount,
                       })}
-                      action={reviewAction(session)}
+                      action={frozen ? undefined : reviewAction(session)}
                     />
                   ))}
                 </ul>
