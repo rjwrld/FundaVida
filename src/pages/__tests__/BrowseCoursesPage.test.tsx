@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -6,14 +6,14 @@ import { I18nProvider } from '@/lib/i18n'
 import { BrowseCoursesPage } from '@/pages/BrowseCoursesPage'
 import { useStore } from '@/data/store'
 import { api } from '@/data/api'
+import { COURSES_KEY } from '@/hooks/api/queryKeys'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
   clearPersistedState,
 } from '@/data/persistence'
 
-function renderPage() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
+function renderPage(client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })) {
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
@@ -34,6 +34,10 @@ async function openCourses() {
 }
 
 describe('<BrowseCoursesPage /> — the student Courses page (ADR-0043/0051)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   beforeEach(() => {
     clearPersistedState()
     clearPersistedRole()
@@ -66,6 +70,60 @@ describe('<BrowseCoursesPage /> — the student Courses page (ADR-0043/0051)', (
     await screen.findByRole('table')
     expect(screen.queryByRole('columnheader', { name: 'Level' })).not.toBeInTheDocument()
     expect(screen.queryByRole('columnheader', { name: 'Program' })).not.toBeInTheDocument()
+  })
+
+  // One read for the whole list, not one fake-async call per row.
+  it('reads every row’s seats in one batched call', async () => {
+    const perRow = vi.spyOn(api.courses, 'seatsRemaining')
+    const batched = vi.spyOn(api.courses, 'seatsRemainingFor')
+    const open = await openCourses()
+    perRow.mockClear()
+    renderPage()
+
+    const table = await screen.findByRole('table')
+    const first = open[0]
+    if (!first) throw new Error('seed has no open course for the student persona')
+    expect(await within(table).findByText(`${first.seats} seats left`)).toBeInTheDocument()
+    expect(batched).toHaveBeenCalledTimes(1)
+    expect(perRow).not.toHaveBeenCalled()
+  })
+
+  // An approval writes the enrollments slice, whose write-set invalidates the
+  // ['courses'] prefix (ADR-0029) — the batched seats read sits under it.
+  it('refreshes the seats when an enrollment is approved', async () => {
+    const [first] = await openCourses()
+    if (!first) throw new Error('seed has no open course for the student persona')
+    const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
+    renderPage(client)
+    const table = await screen.findByRole('table')
+    expect(await within(table).findByText(`${first.seats} seats left`)).toBeInTheDocument()
+
+    // Another Student's pending request on that Course is approved by an admin.
+    const s = useStore.getState()
+    const other = s.students.find(
+      (st) =>
+        st.id !== s.currentUserId &&
+        st.sede === first.course.sede &&
+        st.educationalLevel === first.course.level &&
+        !s.enrollments.some((e) => e.studentId === st.id && e.courseId === first.course.id)
+    )
+    if (!other) throw new Error('seed: no eligible student to enroll')
+    useStore.setState({
+      enrollments: [
+        ...s.enrollments,
+        {
+          id: 'enr-seat-test',
+          studentId: other.id,
+          courseId: first.course.id,
+          status: 'approved',
+          requestedAt: new Date().toISOString(),
+          enrolledAt: new Date().toISOString(),
+        },
+      ],
+    })
+    await client.invalidateQueries({ queryKey: COURSES_KEY })
+
+    expect(await within(table).findByText(`${first.seats - 1} seats left`)).toBeInTheDocument()
   })
 
   it('reads the seats in Spanish too', async () => {

@@ -54,12 +54,25 @@ export const coursesApi = {
    */
   async seatsRemaining(courseId: string): Promise<number> {
     await delay()
-    const state = useStore.getState()
-    const course = state.courses.find((c) => c.id === courseId)
-    if (!course) return 0
-    const approved = state.enrollments.filter(
-      (e) => e.courseId === courseId && e.status === 'approved'
-    ).length
-    return Math.max(0, course.capacity - approved)
+    return seatsLeft(courseId)
   },
+  /**
+   * The same aggregate for a whole list in one read (the Browse page, ADR-0051),
+   * keyed by Course id. An unknown id reads as no seats, like the single read.
+   */
+  async seatsRemainingFor(courseIds: string[]): Promise<Record<string, number>> {
+    await delay()
+    return Object.fromEntries(courseIds.map((id) => [id, seatsLeft(id)]))
+  },
+}
+
+/** capacity − approved enrollments, floored at zero; 0 for an unknown Course. */
+function seatsLeft(courseId: string): number {
+  const state = useStore.getState()
+  const course = state.courses.find((c) => c.id === courseId)
+  if (!course) return 0
+  const approved = state.enrollments.filter(
+    (e) => e.courseId === courseId && e.status === 'approved'
+  ).length
+  return Math.max(0, course.capacity - approved)
 }
