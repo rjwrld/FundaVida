@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { CertificateCard } from '@/components/certificates/CertificateCard'
-import { NoResults } from '@/components/shared/NoResults'
 import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog'
 import { useStore } from '@/data/store'
 import { useCertificates } from '@/hooks/api'
@@ -113,29 +112,35 @@ export function CourseCertificatesSection({ course }: { course: Course }) {
   )
   const dataUrl = useCertificateBlobUrl(payload)
 
+  // Before the close there is nothing to preview: one quiet line says when the
+  // Certificates arrive, rather than an empty section (ADR-0051).
+  if (items.length === 0) {
+    return <p className="text-xs text-muted-foreground">{t('courses.detail.certificates.empty')}</p>
+  }
+
   return (
     <section className="space-y-3">
-      <SectionHeader title={t('courses.detail.sections.certificates')} />
-      {items.length === 0 ? (
-        <NoResults message={t('courses.detail.certificates.empty')} />
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => (
-            <CertificateCard
-              key={item.id}
-              cert={{
-                id: item.id,
-                studentName: item.studentName,
-                courseName: course.name,
-                issuedAt: item.issuedAt,
-                grade: item.grade,
-              }}
-              onOpen={() => setSelectedId(item.id)}
-              justIssued={justIssuedIds.has(item.id)}
-            />
-          ))}
-        </div>
-      )}
+      <SectionHeader
+        title={t('courses.detail.sections.certificates')}
+        count={t('courses.detail.certificates.issued', { count: items.length })}
+      />
+      {/* Previews at a glance size (ADR-0051): the card opens the full preview. */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {items.map((item) => (
+          <CertificateCard
+            key={item.id}
+            cert={{
+              id: item.id,
+              studentName: item.studentName,
+              courseName: course.name,
+              issuedAt: item.issuedAt,
+              grade: item.grade,
+            }}
+            onOpen={() => setSelectedId(item.id)}
+            justIssued={justIssuedIds.has(item.id)}
+          />
+        ))}
+      </div>
 
       <CertificatePreviewDialog
         open={selected !== null}

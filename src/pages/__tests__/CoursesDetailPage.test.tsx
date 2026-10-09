@@ -560,27 +560,15 @@ describe('<CoursesDetailPage /> — Sent messages card (ADR-0046)', () => {
     expect(screen.queryByRole('button', { name: campaign.subject })).not.toBeInTheDocument()
   })
 
-  // "the card shows on every Course the viewer may see, empty-state included"
-  // (ADR-0046) — for BOTH audiences the view permission admits, not just the teacher.
-  it.each(['teacher', 'admin'] as const)(
-    'shows %s an empty state on a Course nobody has messaged',
-    async (role) => {
-      const { publishedOwnCourse } = fixtures()
-      asRole(role)
-      renderPage(publishedOwnCourse.id)
-
-      expect(await screen.findByRole('heading', { name: 'Sent messages' })).toBeInTheDocument()
-      expect(await screen.findByText('No messages sent to this class yet.')).toBeInTheDocument()
-    }
-  )
-
   it('lands a freshly sent class message in the card, with no reload', async () => {
     const { publishedOwnCourse } = fixtures()
     asRole('teacher')
     renderPage(publishedOwnCourse.id)
 
-    // Nothing targets this live cohort yet — cam-4 was sent to the closed one.
-    expect(await screen.findByText('No messages sent to this class yet.')).toBeInTheDocument()
+    // Nothing targets this live cohort yet — cam-4 was sent to the closed one —
+    // so there is no outbox card until the first message lands (ADR-0051).
+    await screen.findByRole('heading', { name: 'Students' })
+    expect(screen.queryByRole('heading', { name: 'Sent messages' })).not.toBeInTheDocument()
 
     fireEvent.click(await screen.findByRole('button', { name: 'Message the class' }))
     const dialog = await screen.findByRole('dialog')
@@ -605,23 +593,31 @@ describe('<CoursesDetailPage /> — Sent messages card (ADR-0046)', () => {
       },
       { timeout: 4000 }
     )
-    expect(screen.queryByText('No messages sent to this class yet.')).not.toBeInTheDocument()
   })
 
-  it('sits beside the compose action, above the overview and the feed', async () => {
+  // ADR-0051 (amends 0046): the outbox is a record, read after the roster it was
+  // sent to — compose stays in the header as "Message the class".
+  it('sits after the roster as a compact card', async () => {
     const { course } = teacherCampaign()
     asRole('teacher')
     renderPage(course.id)
 
-    // ADR-0046: compose and outbox are one channel, so the card mounts under the
-    // page header that carries "Message the class" — not down in the section flow.
     const outbox = await screen.findByRole('heading', { name: 'Sent messages' })
-    const overview = screen.getByRole('heading', { name: 'Overview' })
-    const feed = screen.getByRole('heading', { name: 'Announcements' })
+    const roster = screen.getByRole('heading', { name: 'Students' })
+    expect(roster.compareDocumentPosition(outbox) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByText('1 message to this class')).toBeInTheDocument()
+  })
 
-    for (const later of [overview, feed]) {
-      expect(outbox.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    }
+  it('hides the card on a Course that has no class messages', async () => {
+    const { course } = teacherCampaign()
+    useStore.setState({ emailCampaigns: [] })
+    asRole('teacher')
+    renderPage(course.id)
+
+    await screen.findByRole('heading', { name: 'Students' })
+    // Hold until the outbox's own reads have settled, then assert it never mounted.
+    await new Promise((r) => setTimeout(r, 400))
+    expect(screen.queryByRole('heading', { name: 'Sent messages' })).not.toBeInTheDocument()
   })
 
   it('never paints a zero recipient count while the students query is still open', async () => {
@@ -732,8 +728,10 @@ describe('<CoursesDetailPage /> — in-course certificates module (ADR-0024)', (
 
     // The certificates module renders for the roster-viewing admin, listing the
     // emitted Certificate — but offers no approval (closing the Course emits them).
-    expect(await screen.findByRole('heading', { name: 'Certificates' })).toBeInTheDocument()
-    expect(await screen.findByText(fullName(student))).toBeInTheDocument()
+    const heading = await screen.findByRole('heading', { name: 'Certificates' })
+    const section = req(heading.closest('section') ?? undefined, 'no certificates section')
+    // The roster names the student too, so read the certificate inside its section.
+    expect(await within(section).findByText(fullName(student))).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /approve certificate for/i })
     ).not.toBeInTheDocument()
@@ -1501,5 +1499,121 @@ describe('<CoursesDetailPage /> — Edit follows course ownership (ADR-0016)', (
 
     await screen.findByRole('heading', { name: shortCourseName(gradedCourse) })
     expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
+  })
+})
+
+describe('<CoursesDetailPage /> — one meta line and only sections with content (ADR-0051)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  /** The TCU persona's in-progress Course: live, with volunteers and posts. */
+  function liveCourse() {
+    const s = useStore.getState()
+    const trainee = req(
+      s.tcuTrainees.find((t) => t.id === 'tcu-1'),
+      'seed: tcu-1 missing'
+    )
+    const course = req(
+      s.courses.find((c) => c.id === trainee.courseId),
+      'seed: tcu-1 course missing'
+    )
+    expect(courseDisplayState(course, clock.now())).toBe('inProgress')
+    return course
+  }
+
+  it('opens with the facts on one line and no Overview or Description card', async () => {
+    const course = liveCourse()
+    const s = useStore.getState()
+    const teacher = req(
+      s.teachers.find((t) => t.id === course.teacherId),
+      'seed: teacher missing'
+    )
+    const enrolled = s.enrollments.filter(
+      (e) => e.courseId === course.id && e.status === 'approved'
+    ).length
+    asRole('admin')
+    renderPage(course.id)
+
+    await screen.findByRole('heading', { level: 1, name: shortCourseName(course) })
+    const meta = screen.getByTestId('course-meta')
+    expect(meta).toHaveTextContent(course.sede)
+    expect(meta).toHaveTextContent(fullName(teacher))
+    expect(within(meta).getByTestId('course-status-badge')).toBeInTheDocument()
+    expect(meta).toHaveTextContent(`${enrolled}/${course.capacity} enrolled`)
+    expect(screen.getByText(course.description)).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Overview' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Course', { selector: 'span' })).not.toBeInTheDocument()
+  })
+
+  // A Student's scope never counts classmates (ADR-0012/0016).
+  it('never shows a Student the enrolled count', async () => {
+    const { gradedCourse } = fixtures()
+    asRole('student')
+    renderPage(gradedCourse.id)
+
+    await screen.findByRole('heading', { level: 1, name: shortCourseName(gradedCourse) })
+    expect(screen.getByTestId('course-meta')).not.toHaveTextContent(/enrolled/)
+  })
+
+  it('orders Sessions, Announcements, Students, Volunteers on a live Course', async () => {
+    const course = liveCourse()
+    asRole('admin')
+    renderPage(course.id)
+
+    const volunteers = await screen.findByRole('heading', { name: 'Volunteers' })
+    const order = [
+      screen.getByRole('heading', { name: 'Sessions' }),
+      await screen.findByRole('heading', { name: 'Announcements' }),
+      screen.getByRole('heading', { name: 'Students' }),
+      volunteers,
+    ]
+    for (let i = 1; i < order.length; i++) {
+      const prev = req(order[i - 1], 'heading missing')
+      const next = req(order[i], 'heading missing')
+      expect(prev.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
+  })
+
+  it('gives a poster a Post button rather than an always-open compose box', async () => {
+    const course = liveCourse()
+    asRole('admin')
+    renderPage(course.id)
+
+    const post = await screen.findByRole('button', { name: 'Post' })
+    expect(
+      screen.queryByRole('textbox', { name: 'Share an update with the class…' })
+    ).not.toBeInTheDocument()
+    fireEvent.click(post)
+    const dialog = await screen.findByRole('dialog')
+    expect(
+      within(dialog).getByRole('textbox', { name: 'Share an update with the class…' })
+    ).toBeInTheDocument()
+  })
+
+  it('hides Announcements from a reader when the Course has no posts', async () => {
+    const { gradedCourse } = fixtures()
+    useStore.setState({ announcements: [] })
+    asRole('student')
+    renderPage(gradedCourse.id)
+
+    await screen.findByRole('heading', { name: 'Your records' })
+    await new Promise((r) => setTimeout(r, 400))
+    expect(screen.queryByRole('heading', { name: 'Announcements' })).not.toBeInTheDocument()
+  })
+
+  it('hides Volunteers when none are assigned', async () => {
+    const course = liveCourse()
+    useStore.setState({ tcuTrainees: [] })
+    asRole('admin')
+    renderPage(course.id)
+
+    await screen.findByRole('heading', { name: 'Students' })
+    await new Promise((r) => setTimeout(r, 400))
+    expect(screen.queryByRole('heading', { name: 'Volunteers' })).not.toBeInTheDocument()
   })
 })

@@ -16,7 +16,8 @@ import type { Course } from '@/types'
  * The dashboard compose Dialog (#367): a picker over the viewer's composable
  * cohorts plus the shared {@link AnnouncementComposer}. Keeps the picker
  * semantics the inline footer composer had (#266): a sole composable Course is
- * preselected so a single-cohort Teacher posts without touching the picker;
+ * preselected and the picker hidden, so a single-cohort Teacher (or the Course
+ * page's own Post button) posts without a picker;
  * with several, the picker stays on its "choose" placeholder until one is
  * chosen — posting has no undo (ADR-0040), so we never silently aim the box at
  * an unread cohort. A successful post closes the Dialog; closing resets the
@@ -49,18 +50,22 @@ export function PostAnnouncementDialog({
           <DialogTitle>{t('dashboard.announcements.compose.heading')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-2">
-          <Select value={selectedCourseId} onValueChange={setPickedCourseId}>
-            <SelectTrigger aria-label={t('dashboard.announcements.compose.selectCourse')}>
-              <SelectValue placeholder={t('dashboard.announcements.compose.selectCourse')} />
-            </SelectTrigger>
-            <SelectContent>
-              {courses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {shortCourseName(course)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* With one composable Course there is nothing to choose: the picker
+              would only restate it (the Course page's own Post button). */}
+          {courses.length > 1 && (
+            <Select value={selectedCourseId} onValueChange={setPickedCourseId}>
+              <SelectTrigger aria-label={t('dashboard.announcements.compose.selectCourse')}>
+                <SelectValue placeholder={t('dashboard.announcements.compose.selectCourse')} />
+              </SelectTrigger>
+              <SelectContent>
+                {courses.map((course) => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {shortCourseName(course)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <AnnouncementComposer courseId={selectedCourseId} onPosted={close} />
         </div>
       </DialogContent>

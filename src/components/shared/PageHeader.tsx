@@ -6,6 +6,8 @@ export interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string
   description?: string
   eyebrow?: string
+  /** One line of facts under the title (a detail page's Campus · Teacher · state). */
+  meta?: React.ReactNode
   action?: React.ReactNode
   /**
    * Pairs this heading with the identically-id'd node it was navigated from — the
@@ -20,6 +22,7 @@ export function PageHeader({
   title,
   description,
   eyebrow,
+  meta,
   action,
   titleLayoutId,
   className,
@@ -42,6 +45,7 @@ export function PageHeader({
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           {titleLayoutId ? <MorphSpan layoutId={titleLayoutId}>{title}</MorphSpan> : title}
         </h1>
+        {meta ?? null}
         {description ? (
           <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>
         ) : null}

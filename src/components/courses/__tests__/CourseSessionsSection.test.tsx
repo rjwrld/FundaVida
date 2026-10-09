@@ -178,6 +178,40 @@ describe('<CourseSessionsSection />', () => {
     ).toHaveAttribute('href', `/app/courses/${course.id}/sessions/${todaySession.date}/mark`)
   })
 
+  // One primary (Figure Green) Mark per page (ADR-0051, the dashboards' K4 rule):
+  // today's Session when there is one, every overdue Mark stays outline.
+  it('keeps every other Mark outline while Today carries the primary one', () => {
+    renderSection()
+
+    const marks = screen.getAllByRole('link', { name: /^Mark attendance — / })
+    const primary = marks.filter((m) => m.getAttribute('data-variant') === 'default')
+    expect(primary).toHaveLength(1)
+    expect(primary[0]).toHaveAttribute(
+      'href',
+      `/app/courses/${course.id}/sessions/${todaySession.date}/mark`
+    )
+  })
+
+  it('hands the primary Mark to the oldest overdue Session on a live day without class', () => {
+    renderSection({ sessions: [pastRecorded, pastUnrecorded, ...upcoming] })
+
+    const marks = screen.getAllByRole('link', { name: /^Mark attendance — / })
+    const primary = marks.filter((m) => m.getAttribute('data-variant') === 'default')
+    expect(primary).toHaveLength(1)
+    expect(primary[0]).toHaveAttribute(
+      'href',
+      `/app/courses/${course.id}/sessions/${pastUnrecorded.date}/mark`
+    )
+  })
+
+  it('gives no primary Mark once the Term is over (closing is the next step)', () => {
+    const ended = { ...course, term: { start: offsetDay(-60), end: offsetDay(-1) } }
+    renderSection({ course: ended, sessions: [pastRecorded, pastUnrecorded] })
+
+    const marks = screen.getAllByRole('link', { name: /^Mark attendance — / })
+    expect(marks.every((m) => m.getAttribute('data-variant') !== 'default')).toBe(true)
+  })
+
   it('collapses the Upcoming overflow behind a keyboard-native disclosure', async () => {
     renderSection()
 

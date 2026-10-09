@@ -15,7 +15,7 @@ import { useFormat } from '@/hooks/useFormat'
 import { useCreateSessionException } from '@/hooks/api'
 import { isSessionRecordable, isSessionUpcoming, type Session } from '@/lib/sessions'
 import type { CloseReadiness } from '@/lib/closeReadiness'
-import { isLiveCohort } from '@/lib/courseDisplayState'
+import { courseDisplayState, isLiveCohort } from '@/lib/courseDisplayState'
 import type { AttendanceRecord, Course } from '@/types'
 import { SectionHeader } from '@/components/shared/SectionHeader'
 
@@ -122,6 +122,16 @@ export function CourseSessionsSection({
   const notRecorded = frozen ? unrecorded : []
   const recorded = showVerdicts ? past.filter((s) => !unrecordedDates.has(s.date)) : []
 
+  // The page's one primary (Figure Green) Mark (ADR-0051, the dashboards' rule):
+  // today's Session when the class meets today, else the oldest overdue one while
+  // the Term still runs. Once it is over, closing is the next step, so no Mark
+  // outranks the rest.
+  const primaryMarkDate =
+    canMark && !frozen
+      ? (todaySession?.date ??
+        (courseDisplayState(course, today) === 'inProgress' ? needsAttendance[0]?.date : undefined))
+      : undefined
+
   const markAction = (session: Session, primary: boolean) => (
     <Button asChild size="sm" variant={primary ? 'default' : 'outline'}>
       <Link
@@ -208,7 +218,7 @@ export function CourseSessionsSection({
                   key={session.date}
                   label={sessionLabel(session)}
                   meta={t('courses.detail.sessions.unrecorded', { total: enrolledCount })}
-                  action={markAction(session, false)}
+                  action={markAction(session, session.date === primaryMarkDate)}
                 />
               ))}
             </SessionGroup>
@@ -220,7 +230,11 @@ export function CourseSessionsSection({
             <SessionGroup label={t('courses.detail.sessions.groups.today')}>
               <SessionRow
                 label={sessionLabel(todaySession)}
-                action={canMark && !frozen ? markAction(todaySession, true) : undefined}
+                action={
+                  canMark && !frozen
+                    ? markAction(todaySession, todaySession.date === primaryMarkDate)
+                    : undefined
+                }
               />
             </SessionGroup>
           )}
@@ -244,7 +258,7 @@ export function CourseSessionsSection({
                       })}
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <ul className="mt-2 space-y-2">
+                      <ul className="divide-y divide-border/60 border-t border-border/60">
                         {upcoming.slice(UPCOMING_VISIBLE).map((session) => (
                           <SessionRow
                             key={session.date}
@@ -269,7 +283,7 @@ export function CourseSessionsSection({
               <CollapsibleContent>
                 <ul
                   aria-label={t('courses.detail.sessions.groups.recorded')}
-                  className="mt-2 space-y-2"
+                  className="mt-2 divide-y divide-border/60 rounded-md border bg-card"
                 >
                   {recorded.map((session) => (
                     <SessionRow
@@ -354,7 +368,7 @@ function SessionGroup({ label, children }: { label: string; children: React.Reac
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-semibold tracking-tight text-muted-foreground">{label}</h3>
-      <ul aria-label={label} className="space-y-2">
+      <ul aria-label={label} className="divide-y divide-border/60 rounded-md border bg-card">
         {children}
       </ul>
     </div>
@@ -370,7 +384,7 @@ interface SessionRowProps {
 
 function SessionRow({ label, meta, action }: SessionRowProps) {
   return (
-    <li className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-card px-3 py-2 text-sm text-foreground">
+    <li className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm text-foreground">
       <span>{label}</span>
       <div className="flex items-center gap-3">
         {meta && (

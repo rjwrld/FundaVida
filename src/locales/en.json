@@ -410,7 +410,9 @@
         }
       },
       "certificates": {
-        "empty": "Certificates appear here once this course is closed."
+        "empty": "Certificates appear here once this course is closed.",
+        "issued_one": "{{count}} issued",
+        "issued_other": "{{count}} issued"
       },
       "close": "Close course",
       "closeConfirm": {
@@ -422,6 +424,7 @@
       "deleteConfirm": "Delete this course?",
       "edit": "Edit",
       "enrollButton": "Enroll student",
+      "enrolledCount": "{{enrolled}}/{{capacity}} enrolled",
       "enrolledTable": {
         "actions": "Actions",
         "grade": "Grade",
@@ -453,16 +456,17 @@
       "sections": {
         "certificates": "Certificates",
         "noStudents": "No students enrolled.",
-        "noVolunteers": "No volunteers assigned to this course.",
-        "overview": "Overview",
         "students": "Students",
         "volunteers": "Volunteers",
         "yourAttendance": "Your attendance",
         "yourRecords": "Your records"
       },
       "sentMessages": {
-        "empty": "No messages sent to this class yet.",
-        "heading": "Sent messages"
+        "count_one": "{{count}} message to this class",
+        "count_other": "{{count}} messages to this class",
+        "heading": "Sent messages",
+        "recipients_one": "{{n}} recipient",
+        "recipients_other": "{{n}} recipients"
       },
       "sessions": {
         "empty": "No sessions scheduled for this course.",
