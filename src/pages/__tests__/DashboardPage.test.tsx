@@ -86,8 +86,8 @@ describe('<DashboardPage /> (admin)', () => {
     renderDashboard()
     // The filler TopCourses/RecentActivity cards are replaced by role-scoped,
     // actionable cards (issue #155).
-    expect(screen.getByRole('heading', { name: /courses to close/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /students at risk/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /courses to close/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /students at risk/i })).toBeInTheDocument()
     // The funnel gates on its queries (ADR-0030) AND arrives through a lazy
     // chunk (#353), so its heading paints two async layers late — past findBy's
     // default 1s on a slow CI runner.

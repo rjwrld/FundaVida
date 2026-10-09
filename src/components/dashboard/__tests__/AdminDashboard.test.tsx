@@ -52,9 +52,9 @@ describe('AdminDashboard — hero + supporting layout', () => {
 
   it('renders the actionable supporting cards (courses to close, certs, at-risk, funnel)', async () => {
     renderDashboard()
-    expect(screen.getByText(/courses to close/i)).toBeInTheDocument()
+    expect(await screen.findByText(/courses to close/i)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /certificates this epoch/i })).toBeInTheDocument()
-    expect(screen.getByText(/students at risk/i)).toBeInTheDocument()
+    expect(await screen.findByText(/students at risk/i)).toBeInTheDocument()
     // The funnel gates on its queries (ADR-0030) AND arrives through a lazy
     // chunk (#353), so its title paints two async layers late — past findBy's
     // default 1s on a slow CI runner.

@@ -1,10 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
 import { setDemoEpoch } from '@/lib/clock'
 import { useStore } from '@/data/store'
+import { api } from '@/data/api'
+import { delay } from '@/data/api/_delay'
 import type { AttendanceRecord, Grade, Student } from '@/types'
 import { AtRiskStudents } from '../AtRiskStudents'
 
@@ -69,6 +71,7 @@ describe('AtRiskStudents', () => {
   })
   afterEach(() => {
     useStore.setState(snapshot)
+    vi.restoreAllMocks()
   })
 
   it('lists at-risk students with the reason, linking to their profile, and omits safe students', async () => {
@@ -98,5 +101,51 @@ describe('AtRiskStudents', () => {
     renderCard()
 
     expect(await screen.findByText('No students need attention right now.')).toBeInTheDocument()
+  })
+
+  // The verdict joins three reads. Holding grades open past students would let an
+  // ungated card judge everyone on an empty ([]) grade list and flash the
+  // all-clear before the failing student arrives (ADR-0030).
+  it('never paints the all-clear before every read resolves', async () => {
+    useStore.setState({
+      students: [makeStudent('stu-fail', 'Ana')],
+      grades: [grade('stu-fail', 55)],
+      attendance: [],
+    })
+    const listGrades = api.grades.list
+    vi.spyOn(api.grades, 'list').mockImplementation(async (...args) => {
+      await delay(400)
+      return listGrades(...args)
+    })
+
+    let sawAllClear = false
+    const observer = new MutationObserver(() => {
+      if (document.body.textContent?.includes('No students need attention')) sawAllClear = true
+    })
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true })
+    try {
+      renderCard()
+      expect(await screen.findByText('Ana Q')).toBeInTheDocument()
+      expect(sawAllClear).toBe(false)
+    } finally {
+      observer.disconnect()
+    }
+  })
+
+  it('counts the students at risk in the header and links onward to the roster', async () => {
+    useStore.setState({
+      students: [makeStudent('stu-a', 'Ana'), makeStudent('stu-b', 'Bea')],
+      grades: [grade('stu-a', 50), grade('stu-b', 40)],
+      attendance: [],
+    })
+
+    renderCard()
+
+    const region = await screen.findByRole('region', { name: 'Students at risk' })
+    expect(region).toHaveTextContent('2')
+    expect(screen.getByRole('link', { name: /view all students/i })).toHaveAttribute(
+      'href',
+      '/app/students'
+    )
   })
 })

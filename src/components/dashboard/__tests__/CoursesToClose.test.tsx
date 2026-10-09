@@ -158,17 +158,30 @@ describe('CoursesToClose', () => {
     }
   })
 
-  it('renders the indicator inside the row link, keeping the whole row navigable', async () => {
+  // The row is one stretched link named by the Course; the indicator sits beside
+  // it in the same row rather than bloating the link's accessible name.
+  it('keeps the whole row one link to the Course, with the indicator in the row', async () => {
     const closeable = coursesToClose(useStore.getState().courses, clock.now())
     const target = closeable[0]
     if (!target) throw new Error('seed should contain closeable courses')
 
     renderCard()
 
-    const link = (await screen.findByText(target.name)).closest('a')
-    if (!link) throw new Error('course row should be a link')
+    const link = await screen.findByRole('link', { name: target.name })
     expect(link).toHaveAttribute('href', `/app/courses/${target.id}`)
-    await within(link).findByTestId('close-readiness-indicator')
+    const row = link.closest('li')
+    if (!row) throw new Error('course row should be a list item')
+    await within(row).findByTestId('close-readiness-indicator')
+  })
+
+  it('counts the closeable Courses in its header', async () => {
+    const closeable = coursesToClose(useStore.getState().courses, clock.now())
+
+    renderCard()
+
+    const region = await screen.findByRole('region', { name: 'Courses to close' })
+    const heading = within(region).getByRole('heading', { name: 'Courses to close' })
+    expect(heading.parentElement).toHaveTextContent(String(closeable.length))
   })
 
   it('shows an all-clear empty state when nothing is ready to close', async () => {
