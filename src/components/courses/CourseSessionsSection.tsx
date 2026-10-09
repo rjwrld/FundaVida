@@ -13,7 +13,12 @@ import {
 } from '@/components/courses/SessionExceptionDialog'
 import { useFormat } from '@/hooks/useFormat'
 import { useCreateSessionException } from '@/hooks/api'
-import { isSessionRecordable, isSessionUpcoming, type Session } from '@/lib/sessions'
+import {
+  isSessionMarked,
+  isSessionRecordable,
+  isSessionUpcoming,
+  type Session,
+} from '@/lib/sessions'
 import type { CloseReadiness } from '@/lib/closeReadiness'
 import { courseDisplayState, isLiveCohort } from '@/lib/courseDisplayState'
 import type { AttendanceRecord, Course } from '@/types'
@@ -122,18 +127,14 @@ export function CourseSessionsSection({
   const notRecorded = frozen ? unrecorded : []
   const recorded = showVerdicts ? past.filter((s) => !unrecordedDates.has(s.date)) : []
 
-  // The page's one primary (Figure Green) Mark (ADR-0051, the dashboards' rule):
-  // today's Session when the class meets today, else the oldest overdue one while
-  // the Term still runs. Once it is over, closing is the next step, so no Mark
-  // outranks the rest.
   const primaryMarkDate =
     canMark && !frozen
-      ? (todaySession?.date ??
-        (courseDisplayState(course, today) === 'inProgress' ? needsAttendance[0]?.date : undefined))
+      ? primaryMarkSessionDate({ course, today, todaySession, attendance, needsAttendance })
       : undefined
 
-  const markAction = (session: Session, primary: boolean) => (
-    <Button asChild size="sm" variant={primary ? 'default' : 'outline'}>
+  // The one place a Mark decides its weight: only the primary Session's is green.
+  const markAction = (session: Session) => (
+    <Button asChild size="sm" variant={session.date === primaryMarkDate ? 'default' : 'outline'}>
       <Link
         to={markHref(session)}
         aria-label={t('courses.detail.sessions.markNamed', { session: sessionLabel(session) })}
@@ -223,7 +224,7 @@ export function CourseSessionsSection({
                   key={session.date}
                   label={sessionLabel(session)}
                   meta={t('courses.detail.sessions.unrecorded', { total: enrolledCount })}
-                  action={markAction(session, session.date === primaryMarkDate)}
+                  action={markAction(session)}
                 />
               ))}
             </SessionGroup>
@@ -235,11 +236,7 @@ export function CourseSessionsSection({
             <SessionGroup label={t('courses.detail.sessions.groups.today')}>
               <SessionRow
                 label={sessionLabel(todaySession)}
-                action={
-                  canMark && !frozen
-                    ? markAction(todaySession, todaySession.date === primaryMarkDate)
-                    : undefined
-                }
+                action={canMark && !frozen ? markAction(todaySession) : undefined}
               />
             </SessionGroup>
           )}
@@ -366,6 +363,32 @@ export function CourseSessionsSection({
       )}
     </section>
   )
+}
+
+/**
+ * The page's one primary (Figure Green) Mark (ADR-0051, the dashboards' rule):
+ * today's Session while it is still unrecorded, else the oldest overdue Session
+ * waiting for attendance — but only while the Term runs. Once it is over,
+ * closing is the next step, so no Mark outranks the rest.
+ */
+function primaryMarkSessionDate({
+  course,
+  today,
+  todaySession,
+  attendance,
+  needsAttendance,
+}: {
+  course: Course
+  today: Date
+  todaySession: Session | null
+  attendance: AttendanceRecord[]
+  needsAttendance: Session[]
+}): string | undefined {
+  if (todaySession && !isSessionMarked(course.id, todaySession.date, attendance)) {
+    return todaySession.date
+  }
+  if (courseDisplayState(course, today) !== 'inProgress') return undefined
+  return needsAttendance[0]?.date
 }
 
 /** A labeled group heading with its named list of Session rows (a11y: ADR-0037). */
