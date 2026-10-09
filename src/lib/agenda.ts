@@ -108,12 +108,15 @@ export function buildAgenda(input: BuildAgendaInput): RoleAgenda {
  * (the shared {@link isSessionMarked} rule), ascending by date — the most
  * overdue Session first.
  *
+ * The one definition of "needs marking": the calendar's teacher worklist and
+ * admin pulse and the Attendance rollup all count through it (ADR-0051).
+ *
  * Scoped to *in-progress* Courses only (Term contains today, ADR-0044): a
  * term-ended Course's unmarked backlog is close-readiness's business on the
  * Courses page (it already blocks closing there), not an operational worklist
  * that should read as abandonment on the calendar.
  */
-function needsMarking(
+export function needsMarking(
   courses: Course[],
   attendance: AttendanceRecord[],
   now: Date,

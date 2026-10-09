@@ -9,6 +9,7 @@ import { delay } from '@/data/api/_delay'
 import { useStore } from '@/data/store'
 import { clock } from '@/lib/clock'
 import { attendanceRollup } from '@/lib/attendanceRollup'
+import { buildAgenda } from '@/lib/agenda'
 import { effectiveSessions, isSessionRecordable } from '@/lib/sessions'
 import { formatPercent } from '@/lib/format'
 import {
@@ -82,10 +83,29 @@ describe('<AttendanceListPage /> — the per-course rollup (ADR-0051)', () => {
     expect(first).toHaveTextContent(`${worst.unmarked} unmarked`)
   })
 
+  // The calendar's admin pulse links here with "N sessions need marking"; the
+  // page states the same number, counted by the same rule (ADR-0051).
+  it('states the calendar pulse’s needs-marking count above the table', async () => {
+    const s = useStore.getState()
+    const agenda = buildAgenda({
+      role: 'admin',
+      courses: s.courses,
+      attendance: s.attendance,
+      sessionExceptions: s.sessionExceptions,
+      now: clock.today(),
+    })
+    if (agenda.role !== 'admin') throw new Error('expected the admin agenda')
+    const n = agenda.pulse.unmarkedCount
+    expect(n).toBeGreaterThan(1)
+    renderPage()
+
+    expect(await screen.findByText(`${n} sessions need marking`)).toBeInTheDocument()
+  })
+
   it('reads a fully marked course as a dash, not a zero chip', async () => {
     const s = useStore.getState()
-    const live = expectedRows().find((r) => r.live && r.sessionsHeld > 0)
-    if (!live) throw new Error('seed: no live course that has held a session')
+    const live = expectedRows().find((r) => r.needsMarking > 0)
+    if (!live) throw new Error('seed: no in-progress course with sessions to mark')
     const course = live.course
     // One course, one present record on every Session it has held: nothing unmarked.
     const held = effectiveSessions(

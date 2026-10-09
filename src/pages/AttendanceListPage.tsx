@@ -18,7 +18,8 @@ import { resolveQueries } from '@/lib/resolveQueries'
  * The admin's Attendance page (ADR-0051): one row per scoped Course that has held
  * a Session — Course · Campus · Sessions held · Attendance · Unmarked — worst
  * first, each linking to that Course's Sessions, where marking happens. A rollup
- * over the existing reads, never a per-record ledger.
+ * over the existing reads, never a per-record ledger. Only an in-progress
+ * cohort's gaps are chips; their total is the calendar pulse's number.
  */
 export function AttendanceListPage() {
   const { t } = useTranslation()
@@ -34,6 +35,8 @@ export function AttendanceListPage() {
         sessionExceptions: gate.data[2],
         now: clock.today(),
       })
+
+  const needsMarkingTotal = rows.reduce((sum, r) => sum + r.needsMarking, 0)
 
   const columns: DataTableColumn<AttendanceRollupRow>[] = [
     {
@@ -79,10 +82,11 @@ export function AttendanceListPage() {
       cell: (r) =>
         r.unmarked === 0 ? (
           <span className="text-muted-foreground">—</span>
-        ) : r.live ? (
+        ) : r.needsMarking > 0 ? (
           <Badge variant="warning">{t('attendance.list.unmarked', { count: r.unmarked })}</Badge>
         ) : (
-          // A closed cohort's gaps are final (ADR-0024): a record, not a task.
+          // A Term-ended cohort's gaps are close-readiness's business (ADR-0044)
+          // and a closed one's are final (ADR-0024): a record, not today's work.
           <span className="text-sm text-muted-foreground">
             {t('attendance.list.unmarked', { count: r.unmarked })}
           </span>
@@ -93,6 +97,14 @@ export function AttendanceListPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={t('attendance.list.title')} />
+
+      {/* The number the calendar's admin pulse links here with — the in-progress
+          Sessions waiting for attendance, the chips below (ADR-0051). */}
+      {needsMarkingTotal > 0 && (
+        <p className="text-sm font-medium text-foreground">
+          {t('attendance.list.needsMarking', { count: needsMarkingTotal })}
+        </p>
+      )}
 
       <ListView
         state={listViewState({ isLoading: gate.isPending, count: rows.length, hasFilters: false })}
