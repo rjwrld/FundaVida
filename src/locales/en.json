@@ -385,8 +385,7 @@
   "courses": {
     "browse": {
       "columns": {
-        "actions": "Actions",
-        "seats": "Seats available"
+        "seats": "Seats"
       },
       "courseFullWarning": "This course is full. Requested seats are held as pending approval.",
       "empty": "No courses available to request at your campus and level.",
@@ -399,9 +398,10 @@
       "requestSection": "Request enrollment",
       "searchPlaceholder": "Search by name",
       "seatsLabel": "Seats remaining",
+      "seatsLeft_one": "{{count}} seat left",
+      "seatsLeft_other": "{{count}} seats left",
       "subtitle": "Find and request courses offered at your campus.",
       "title": "Browse courses",
-      "viewButton": "View",
       "withdrawButton": "Withdraw request"
     },
     "detail": {
@@ -560,7 +560,6 @@
     },
     "list": {
       "addButton": "Add course",
-      "browseButton": "Browse open courses",
       "columns": {
         "actions": "Actions",
         "name": "Name",

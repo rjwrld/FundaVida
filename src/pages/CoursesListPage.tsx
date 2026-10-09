@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -49,11 +48,6 @@ export function CoursesListPage() {
   const role = useStore((s) => s.role)
   const currentUserId = useStore((s) => s.currentUserId)
   const canCreate = useCan('create', 'courses')
-  // A Student reaches the browse-and-request surface from here (ADR-0043): the
-  // dashboard's old "Browse open courses" shortcut card is gone, so `/app/courses`
-  // now carries that entry point. Rides the enrollment `request` grant (ADR-0016),
-  // which only Students hold.
-  const canRequest = useCan('request', 'enrollments')
   const canDelete = useCan('delete', 'courses')
   // A Teacher's edit/publish right is per-Course (courseOwned, ADR-0016), so it
   // must be evaluated against each Course — not the context-free page-level check
@@ -163,13 +157,6 @@ export function CoursesListPage() {
             <Button onClick={openCreate}>
               <Plus size={16} className="mr-2" />
               {t('courses.list.addButton')}
-            </Button>
-          ) : canRequest ? (
-            <Button asChild>
-              <Link to="/app/courses/browse">
-                <Search size={16} className="mr-2" />
-                {t('courses.list.browseButton')}
-              </Link>
             </Button>
           ) : null
         }

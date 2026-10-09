@@ -63,6 +63,25 @@ describe('App routes per role (ADR-0051)', () => {
     }
   )
 
+  // For a student, Courses IS the browse-and-request view (ADR-0043/0051); the
+  // roles that teach or administer keep the catalog list.
+  it('opens the browse view on Courses for a student', async () => {
+    useStore.getState().setRole('student')
+    renderAppAt('/app/courses')
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Browse courses' })
+    ).toBeInTheDocument()
+  })
+
+  it.each(['admin', 'teacher'] as Role[])(
+    'opens the course list on Courses for %s',
+    async (role) => {
+      useStore.getState().setRole(role)
+      renderAppAt('/app/courses')
+      expect(await screen.findByRole('heading', { level: 1, name: 'Courses' })).toBeInTheDocument()
+    }
+  )
+
   it("keeps the marking route open to the Course's own teacher", async () => {
     useStore.getState().setRole('teacher')
     const { currentUserId, courses } = useStore.getState()
