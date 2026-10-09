@@ -41,14 +41,16 @@ describe('<TcuListPage /> — roster multi-query gate (ADR-0030)', () => {
     vi.restoreAllMocks()
   })
 
-  /** The roster is the only TCU table with a "Status" column; find it by that. */
-  function rosterTable(): HTMLTableElement | null {
+  /** The table whose header row carries `header` (the roster: "Progress"; the log: "Status"). */
+  function tableWith(header: string): HTMLTableElement | null {
     return (
       Array.from(document.querySelectorAll('table')).find((tbl) =>
-        Array.from(tbl.querySelectorAll('th')).some((th) => th.textContent === 'Status')
+        Array.from(tbl.querySelectorAll('th')).some((th) => th.textContent === header)
       ) ?? null
     )
   }
+  const rosterTable = () => tableWith('Progress')
+  const logTable = () => tableWith('Status')
 
   // First-paint regression: each roster row reads a trainee name from the
   // separate trainees query, so gating the table on the activities query alone
@@ -92,38 +94,20 @@ describe('<TcuListPage /> — roster multi-query gate (ADR-0030)', () => {
     }
   })
 
-  // Status labels resolve through a dynamic key (t(`tcu.list.status.${a.status}`)),
-  // which the i18n extractor can't see — without manifest lines in keys.ts the
-  // extractor prunes the keys and the raw key string renders in the badge.
-  it('status badges render translated labels, not raw i18n keys', async () => {
-    useStore.getState().setRole('admin')
-    const trainee = useStore.getState().tcuTrainees[0]
-    if (!trainee) throw new Error('seed: no TCU trainees')
-
-    renderPage()
-    await screen.findAllByText(fullName(trainee))
-
-    const roster = rosterTable()
-    if (!roster) throw new Error('roster table not found')
-    expect(roster.textContent).not.toContain('tcu.list.status.')
-    expect(
-      ['Pending', 'Approved', 'Rejected'].some((label) => roster.textContent?.includes(label))
-    ).toBe(true)
-  })
-
-  // The trainee-progress roster (#367) replaces the old trainee dropdown: one row
-  // per scoped trainee with the approved/pending split, and selecting a row is the
-  // activity log's filter.
-  it('shows per-trainee hours and filters the log by roster selection (toggle to clear)', async () => {
+  // The roster is the log's filter (#367): with no trainee selected there is no
+  // log at all; selecting a row opens that trainee's log, newest first and
+  // paginated, without a Trainee column it would only repeat (ADR-0051).
+  it('opens a trainee’s log only when the roster selects them (toggle to clear)', async () => {
     useStore.getState().setRole('admin')
     const { tcuActivities, tcuTrainees } = useStore.getState()
-    const activity = tcuActivities[0]
-    if (!activity) throw new Error('seed: no TCU activities')
-    const trainee = tcuTrainees.find((tr) => tr.id === activity.traineeId)
-    if (!trainee) throw new Error('seed: activity without trainee')
+    const counts = new Map<string, number>()
+    for (const a of tcuActivities) counts.set(a.traineeId, (counts.get(a.traineeId) ?? 0) + 1)
+    const trainee = tcuTrainees.find((tr) => (counts.get(tr.id) ?? 0) > 0)
+    if (!trainee) throw new Error('seed: no trainee with activities')
     const name = fullName(trainee)
-    const ownCount = tcuActivities.filter((a) => a.traineeId === trainee.id).length
-    const totalCount = tcuActivities.length
+    const own = tcuActivities
+      .filter((a) => a.traineeId === trainee.id)
+      .sort((a, b) => b.date.localeCompare(a.date))
 
     renderPage()
 
@@ -134,20 +118,36 @@ describe('<TcuListPage /> — roster multi-query gate (ADR-0030)', () => {
     })
     const rosterRow = toggle.closest('tr')
     if (!rosterRow) throw new Error('roster row not found')
-    const approved = tcuActivities
-      .filter((a) => a.traineeId === trainee.id && a.status === 'approved')
-      .reduce((sum, a) => sum + a.hours, 0)
+    const approved = own.filter((a) => a.status === 'approved').reduce((sum, a) => sum + a.hours, 0)
     expect(within(rosterRow).getByText(`${approved}/300`)).toBeInTheDocument()
+    expect(logTable()).toBeNull()
 
-    // Select: the log narrows to the trainee's activities — every row names them.
     await userEvent.click(toggle)
     expect(toggle).toHaveAttribute('aria-pressed', 'true')
-    const log = rosterTable()
+    const log = logTable()
     if (!log) throw new Error('activity log table not found')
-    expect(within(log).getAllByRole('row')).toHaveLength(ownCount + 1) // + header row
-    // Toggle again: the filter clears and the full log returns.
+    const rows = within(log).getAllByRole('row').slice(1)
+    expect(rows).toHaveLength(Math.min(own.length, 10))
+    expect(rows[0]).toHaveTextContent(own[0]?.title ?? '')
+    expect(within(log).queryByRole('columnheader', { name: 'Trainee' })).not.toBeInTheDocument()
+    // Status labels resolve through a dynamic key the extractor can't see; the
+    // keys.ts manifest keeps them, so no raw key string renders in a badge.
+    expect(log.textContent).not.toContain('tcu.list.status.')
+
     await userEvent.click(toggle)
     expect(toggle).toHaveAttribute('aria-pressed', 'false')
-    expect(within(log).getAllByRole('row')).toHaveLength(totalCount + 1)
+    expect(logTable()).toBeNull()
+  })
+
+  // The page's queue is the dashboard's TcuApprovalQueue, uncapped: every pending
+  // activity, no "View all" onward link (ADR-0050/0051).
+  it('shows the full approval queue', async () => {
+    useStore.getState().setRole('admin')
+    const pending = useStore.getState().tcuActivities.filter((a) => a.status === 'pending')
+    renderPage()
+
+    const queue = await screen.findByRole('region', { name: 'TCU hours to approve' })
+    expect(within(queue).getByText(String(pending.length))).toBeInTheDocument()
+    expect(within(queue).queryByRole('link', { name: /view all/i })).not.toBeInTheDocument()
   })
 })

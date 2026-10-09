@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { useStore } from '@/data/store'
+import { fullName } from '@/lib/personName'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
@@ -92,8 +94,14 @@ describe('TCU activity order', () => {
   })
 
   it('orders the TCU page’s log newest first and its queue oldest first', async () => {
+    const trainee = useStore.getState().tcuTrainees[0]
+    if (!trainee) throw new Error('seed: no TCU trainees')
     useStore.setState({ tcuActivities: scrambled() })
     renderWithProviders(<TcuListPage />)
+    // The log opens once the roster selects its trainee (ADR-0051).
+    await userEvent.click(
+      await screen.findByRole('button', { name: `Show only ${fullName(trainee)}'s activities` })
+    )
 
     const all = [
       'Approved newest',

@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { enterAs } from './helpers/auth'
 import { seedDemo } from '../src/data/seed'
+import { fullName } from '../src/lib/personName'
 
 // The TCU approver is the Teacher who owns the volunteer's assigned Course
 // (ADR-0017). Derive that owner from the seed (deterministic under faker.seed(42))
@@ -12,18 +13,32 @@ const tcuCourse = tcuSnapshot.courses.find((c) => c.id === tcuTrainee.courseId)
 if (!tcuCourse) throw new Error(`seed must include the trainee's course ${tcuTrainee.courseId}`)
 const TCU_COURSE_OWNER_ID = tcuCourse.teacherId
 
-test('tcu trainee sees only their own TCU activities', async ({ page }) => {
+test('tcu trainee works from the dashboard; the TCU page is not theirs', async ({ page }) => {
   await enterAs(page, 'tcu')
-  await page.getByRole('link', { name: 'TCU' }).click()
+
+  // The dashboard is the trainee's single home (ADR-0050/0051): no TCU nav item,
+  // and a deep link to /app/tcu lands back on the dashboard.
+  await expect(page.getByRole('link', { name: 'TCU', exact: true })).toHaveCount(0)
+  const log = page.getByRole('region', { name: 'My activities' })
+  await expect(log.getByRole('row').nth(1)).toBeVisible()
+
+  await page.goto('/app/tcu')
+  await expect(page).toHaveURL(/\/app$/)
+})
+
+test('admin opens a trainee log from the progress roster', async ({ page }) => {
+  await enterAs(page, 'admin')
+  await page.getByRole('link', { name: 'TCU', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'TCU activities' })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'TCU hours to approve' })).toBeVisible()
 
-  // At least one row should be visible once the table renders; the trainee role
-  // sees only tcu-1's organized activities, and the seeded snapshot guarantees
-  // tcu-1 organizes at least one activity.
-  await expect(page.getByRole('row').nth(1)).toBeVisible()
-
-  // The trainee has no visible students, so the filter section stays hidden.
-  await expect(page.getByRole('combobox', { name: /student/i })).toHaveCount(0)
+  // No log until a trainee is selected; selecting opens theirs.
+  const trainee = tcuSnapshot.tcuTrainees[0]
+  if (!trainee) throw new Error('seed must include a trainee')
+  const name = fullName(trainee)
+  await expect(page.getByRole('heading', { name: `${name}'s activities` })).toHaveCount(0)
+  await page.getByRole('button', { name: `Show only ${name}'s activities` }).click()
+  await expect(page.getByRole('heading', { name: `${name}'s activities` })).toBeVisible()
 })
 
 test('renders in Spanish when locale is ES', async ({ page }) => {
@@ -35,13 +50,9 @@ test('renders in Spanish when locale is ES', async ({ page }) => {
 })
 
 test('volunteer logs activity (pending) and teacher approves it', async ({ page }) => {
-  // Volunteer logs an activity
+  // Volunteer logs an activity from their dashboard (ADR-0050/0051)
   await enterAs(page, 'tcu')
-  await page.getByRole('link', { name: 'TCU' }).click()
-  await expect(page.getByRole('heading', { name: 'TCU activities' })).toBeVisible()
-
-  // Click log activity button
-  await page.getByRole('button', { name: 'Log an activity' }).click()
+  await page.getByRole('button', { name: 'Log hours' }).click()
   await expect(page.getByRole('heading', { name: 'Log an activity' })).toBeVisible()
 
   // Fill in the form

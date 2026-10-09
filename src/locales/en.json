@@ -1021,11 +1021,6 @@
       "title": "TCU hours to approve",
       "unknownTrainee": "Unknown trainee"
     },
-    "dashboard": {
-      "approvedHours": "Approved hours",
-      "pendingHours": "Pending hours",
-      "progress": "Progress toward 300 hours"
-    },
     "dialog": {
       "logActivityTitle": "Log an activity",
       "submit": "Log activity",
@@ -1047,13 +1042,12 @@
         "trainee": "Trainee"
       },
       "empty": "No activities logged yet.",
-      "emptyFiltered": "No activities match your filter.",
+      "logTitle": "{{name}}'s activities",
       "status": {
         "approved": "Approved",
         "pending": "Pending",
         "rejected": "Rejected"
       },
-      "subtitle": "Community service hours logged by trainees toward their 300-hour requirement.",
       "title": "TCU activities"
     },
     "progressAria": "{{approved}} of {{target}} approved hours",
