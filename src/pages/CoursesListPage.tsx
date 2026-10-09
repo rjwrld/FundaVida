@@ -160,8 +160,8 @@ export function CoursesListPage() {
         }
       />
 
-      <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-3">
-        <div className="relative">
+      <section aria-label={t('common.a11y.filters')} className="flex flex-wrap items-center gap-2">
+        <div className="relative max-w-sm flex-1">
           <Search
             size={16}
             className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -179,7 +179,7 @@ export function CoursesListPage() {
             value={filters.sede ?? 'any'}
             onValueChange={(v) => setFilters((f) => ({ ...f, sede: v === 'any' ? undefined : v }))}
           >
-            <SelectTrigger aria-label={t('courses.form.fields.sede')}>
+            <SelectTrigger className="w-40" aria-label={t('courses.form.fields.sede')}>
               <SelectValue placeholder={t('courses.form.fields.sede')} />
             </SelectTrigger>
             <SelectContent>
@@ -198,7 +198,7 @@ export function CoursesListPage() {
             setFilters((f) => ({ ...f, programId: v === 'any' ? undefined : v }))
           }
         >
-          <SelectTrigger aria-label={t('courses.list.columns.program')}>
+          <SelectTrigger className="w-44" aria-label={t('courses.list.columns.program')}>
             <SelectValue placeholder={t('courses.list.columns.program')} />
           </SelectTrigger>
           <SelectContent>

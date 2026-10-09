@@ -147,13 +147,25 @@ export function CertificatesListPage() {
   // gallery, so it is hoisted once and shared by the two branches below; the
   // unfiltered-empty state (`CertificatesEmpty`) deliberately hides it.
   const filtersRow = (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-      <div className="flex-1">
-        <SearchBox value={query} onChange={setQuery} />
+    <section aria-label={t('common.a11y.filters')} className="flex flex-wrap items-center gap-2">
+      <div className="relative max-w-sm flex-1">
+        <Search
+          size={16}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+          aria-hidden="true"
+        />
+        <Input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('certificates.list.search.placeholder')}
+          aria-label={t('certificates.list.search.ariaLabel')}
+          className="pl-9"
+        />
       </div>
       {courseOptions.length > 1 && (
         <Select value={courseId} onValueChange={setCourseId}>
-          <SelectTrigger aria-label={t('certificates.list.filterByCourse')} className="sm:w-56">
+          <SelectTrigger aria-label={t('certificates.list.filterByCourse')} className="w-56">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -166,7 +178,7 @@ export function CertificatesListPage() {
           </SelectContent>
         </Select>
       )}
-    </div>
+    </section>
   )
 
   return (
@@ -242,28 +254,5 @@ export function CertificatesListPage() {
         onClose={() => setSelectedId(null)}
       />
     </div>
-  )
-}
-
-function SearchBox({ value, onChange }: { value: string; onChange: (next: string) => void }) {
-  const { t } = useTranslation()
-  return (
-    <section aria-label={t('common.a11y.filters')} className="max-w-md">
-      <div className="relative">
-        <Search
-          size={16}
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <Input
-          type="search"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={t('certificates.list.search.placeholder')}
-          aria-label={t('certificates.list.search.ariaLabel')}
-          className="pl-9"
-        />
-      </div>
-    </section>
   )
 }

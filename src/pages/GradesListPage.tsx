@@ -139,7 +139,7 @@ export function GradesListPage() {
     <div className="space-y-6">
       <PageHeader title={t('grades.list.title')} />
 
-      <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
+      <section aria-label={t('common.a11y.filters')} className="flex flex-wrap items-center gap-2">
         {students.length > 0 && (
           <Select
             value={filters.studentId ?? 'any'}
@@ -147,7 +147,10 @@ export function GradesListPage() {
               setFilters((f) => ({ ...f, studentId: v === 'any' ? undefined : v }))
             }
           >
-            <SelectTrigger aria-label={t('grades.list.filters.studentPlaceholder')}>
+            <SelectTrigger
+              className="w-56"
+              aria-label={t('grades.list.filters.studentPlaceholder')}
+            >
               <SelectValue placeholder={t('grades.list.filters.studentPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
@@ -166,7 +169,7 @@ export function GradesListPage() {
             setFilters((f) => ({ ...f, courseId: v === 'any' ? undefined : v }))
           }
         >
-          <SelectTrigger aria-label={t('grades.list.filters.coursePlaceholder')}>
+          <SelectTrigger className="w-56" aria-label={t('grades.list.filters.coursePlaceholder')}>
             <SelectValue placeholder={t('grades.list.filters.coursePlaceholder')} />
           </SelectTrigger>
           <SelectContent>
