@@ -1617,3 +1617,62 @@ describe('<CoursesDetailPage /> — one meta line and only sections with content
     expect(screen.queryByRole('heading', { name: 'Volunteers' })).not.toBeInTheDocument()
   })
 })
+
+describe('<CoursesDetailPage /> — #sessions deep link (ADR-0051)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  // The Attendance rollup links to a Course's Sessions. The close-readiness
+  // checklist and the held past groups mount above #sessions only once grades
+  // and attendance resolve, so scrolling before then lands on the wrong spot.
+  it('scrolls to Sessions only after the reads that shape the page above it resolve', async () => {
+    const course = req(
+      useStore
+        .getState()
+        .courses.find(
+          (c) => c.status === 'published' && courseDisplayState(c, clock.now()) === 'termEnded'
+        ),
+      'seed: no Term-ended published course'
+    )
+    asRole('admin')
+    const listGrades = api.grades.list
+    let gradesResolved = false
+    vi.spyOn(api.grades, 'list').mockImplementation(async (filters) => {
+      await delay(500)
+      const result = await listGrades(filters)
+      gradesResolved = true
+      return result
+    })
+    const scrolledWhileGradesPending: boolean[] = []
+    vi.spyOn(HTMLElement.prototype, 'scrollIntoView').mockImplementation(function (
+      this: HTMLElement
+    ) {
+      if (this.id === 'sessions') scrolledWhileGradesPending.push(!gradesResolved)
+    })
+    const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
+    render(
+      <I18nProvider>
+        <QueryClientProvider client={client}>
+          <MemoryRouter initialEntries={[`/app/courses/${course.id}#sessions`]}>
+            <Routes>
+              <Route path="/app/courses/:id" element={<CoursesDetailPage />} />
+            </Routes>
+          </MemoryRouter>
+        </QueryClientProvider>
+      </I18nProvider>
+    )
+
+    await screen.findByTestId('close-readiness-verdict', {}, { timeout: 3000 })
+    await waitFor(() => expect(scrolledWhileGradesPending.length).toBeGreaterThan(0))
+    expect(scrolledWhileGradesPending).toEqual([false])
+  })
+})
