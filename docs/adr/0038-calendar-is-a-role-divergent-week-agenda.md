@@ -1,5 +1,7 @@
 # The calendar is a role-divergent week agenda over derived Sessions, not a month of dots
 
+_Amended by [ADR-0051](0051-each-role-sees-only-its-jobs.md) — the calendar sidebar is admin and teacher only; the Student and TCU bullets below are retired and their canvas runs full width._
+
 _Amended by [ADR-0050](0050-dashboards-are-worklists.md) — the dashboard aside is per-role opt-in: admin and TCU have none, teacher and student keep Upcoming only. The calendar page's sidebar is unchanged._
 
 Supersedes the _UI model_ of ADR-0013 while keeping its invariants: the calendar rides the existing Courses scope (no new permission), its Sessions are derived per ADR-0001, and no Session leaks outside its Course. What changes is what the surface is _for_. The month-of-dots + click-a-day-panel model answered "which days have Sessions?" — a question no role urgently has — so it read as decorative. The calendar becomes an **actionable agenda**: it answers the question each role actually has, and the answer differs by role.

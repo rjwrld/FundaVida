@@ -1,5 +1,7 @@
 # Page-layer duplication collapses into a list-view discriminant and a student-progress card
 
+_Amended by [ADR-0051](0051-each-role-sees-only-its-jobs.md) — /me no longer renders the shared hub: it composes the identity and guardian panels around its certificates (still no `mode` prop); StudentsDetailPage keeps `StudentProgress`._
+
 _Accepted (architecture review 2026-07-03)._
 
 Two page-layer duplications, extracted along different lines because they are duplications of different depth.

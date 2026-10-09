@@ -1,5 +1,7 @@
 # Announcements are course-scoped, and session changes auto-post one
 
+_Amended by [ADR-0051](0051-each-role-sees-only-its-jobs.md) — on the Course page the feed renders only with posts or a poster, and composing is a Post button opening a dialog rather than an always-open box._
+
 _Accepted (design grilling 2026-07-07)._
 
 Teachers need a channel to the class — "Thursday's session moved", "bring your workbook" — and the dashboard redesign (ADR-0043) needs live content. A new stored entity **Announcement** `{ id, courseId, body, kind: 'manual' | 'sessionChange', createdAt }` is course-scoped: its audience is exactly the Course's roster. We rejected Sede/org-wide bulletins — a second audience model and a bigger permission surface than the demo warrants; bulk email (ADR-0041) already covers the broadcast case.
