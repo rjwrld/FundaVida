@@ -59,7 +59,10 @@ describe('useDeleteEnrollment', () => {
     const { toast } = await import('sonner')
     const { result } = renderHook(() => useDeleteEnrollment(), { wrapper: createWrapper() })
 
-    const enrollment = useStore.getState().enrollments[0]
+    const enrollment = useStore.getState().enrollments.find(
+      // A live cohort: a closed one rejects unenrolls (ADR-0024).
+      (e) => useStore.getState().courses.find((c) => c.id === e.courseId)?.status !== 'closed'
+    )
     if (!enrollment) throw new Error('expected at least one enrollment')
     const enrollmentId = enrollment.id
 
@@ -83,7 +86,10 @@ describe('useDeleteEnrollment', () => {
       },
     })
 
-    const enrollment = useStore.getState().enrollments[0]
+    const enrollment = useStore.getState().enrollments.find(
+      // A live cohort: a closed one rejects unenrolls (ADR-0024).
+      (e) => useStore.getState().courses.find((c) => c.id === e.courseId)?.status !== 'closed'
+    )
     if (!enrollment) throw new Error('expected at least one enrollment')
     const enrollmentId = enrollment.id
 
