@@ -168,6 +168,17 @@ describe('Course authoring (ADR-0016)', () => {
       expect(useStore.getState().courses.find((c) => c.id === own.id)?.capacity).toBe(30)
     })
 
+    it('rejects an edit to a closed course, even from admin (ADR-0024 closed is terminal)', () => {
+      useStore.getState().setRole('admin')
+      const closed = useStore.getState().courses.find((c) => c.status === 'closed')
+      if (!closed) throw new Error('seed: no closed course')
+
+      expect(() => useStore.getState().updateCourse(closed.id, { status: 'published' })).toThrow(
+        /closed/
+      )
+      expect(useStore.getState().courses.find((c) => c.id === closed.id)?.status).toBe('closed')
+    })
+
     it("teacher cannot edit another teacher's course", () => {
       const { other } = teacherCourses()
 

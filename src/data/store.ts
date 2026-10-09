@@ -581,6 +581,11 @@ export const useStore = create<StoreState>((set, get) => ({
       course: target,
       userId: existing.currentUserId ?? undefined,
     })
+    // A closed cohort is terminal (ADR-0024): its record is final, for every role.
+    // The close ceremony is the only way into 'closed', and nothing edits it after.
+    if (target?.status === 'closed') {
+      throw new Error(`cannot update course ${id}: it is closed`)
+    }
     // ADR-0016 lets a Teacher edit their own Course, not hand it off: reassigning
     // the Teacher stays an admin act.
     if (

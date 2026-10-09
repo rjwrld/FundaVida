@@ -12,12 +12,12 @@ import {
   clearPersistedState,
 } from '@/data/persistence'
 
-function renderPage() {
+function renderPage(entry = '/app/courses') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
-        <MemoryRouter initialEntries={['/app/courses']}>
+        <MemoryRouter initialEntries={[entry]}>
           <Routes>
             <Route path="/app/courses" element={<CoursesListPage />} />
           </Routes>
@@ -128,6 +128,27 @@ describe('<CoursesListPage />', () => {
       )
     )
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  // A closed cohort is terminal (ADR-0024): no row offers Edit on it, so a
+  // hand-typed ?edit= link must not open the form either — not even for admin.
+  it('does not open the edit form for a closed course from a ?edit= link', async () => {
+    useStore.getState().setRole('admin')
+    const closed = useStore.getState().courses.find((c) => c.status === 'closed')
+    if (!closed) throw new Error('seed: no closed course')
+    renderPage(`/app/courses?edit=${closed.id}`)
+
+    await screen.findByRole('table')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('still opens the edit form for a live course from a ?edit= link', async () => {
+    useStore.getState().setRole('admin')
+    const live = useStore.getState().courses.find((c) => c.status === 'published')
+    if (!live) throw new Error('seed: no live course')
+    renderPage(`/app/courses?edit=${live.id}`)
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 
   it('hides the Actions column for a student, who can act on no row', async () => {

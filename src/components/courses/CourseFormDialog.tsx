@@ -77,9 +77,10 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
         sede: existing.sede,
         programId: existing.programId,
         level: existing.level,
-        // The authoring form only handles draft/published; a 'closed' cohort is
-        // terminal and its Edit entry points are gated off (ADR-0024), so this
-        // fallback is defensive — closed never actually reaches the form.
+        // The authoring form only handles draft/published. A 'closed' cohort is
+        // terminal (ADR-0024): no row offers Edit on it, the list page refuses to
+        // open the form for it, and updateCourse rejects the save — this mapping
+        // only keeps the select valid if one were ever loaded.
         status: existing.status === 'closed' ? 'published' : existing.status,
         capacity: existing.capacity,
         teacherId: existing.teacherId,
