@@ -176,6 +176,9 @@ describe('<AgendaSlice />', () => {
       await screen.findByRole('link', { name: /open calendar/i })
       // The pulse renders numeric counts, not a per-session firehose.
       expect(screen.queryAllByRole('link', { name: /mark attendance/i })).toHaveLength(0)
+      // It counts Term-ended cohorts, which are mostly blocked — never "ready".
+      expect(screen.getByText('To close')).toBeInTheDocument()
+      expect(screen.queryByText(/ready to close/i)).not.toBeInTheDocument()
     })
   })
 

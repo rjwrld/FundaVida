@@ -104,7 +104,10 @@ describe('<AgendaSidebar />', () => {
 
       expect(screen.getByText('Operational pulse')).toBeInTheDocument()
       expect(screen.getByText('unmarked sessions in active courses')).toBeInTheDocument()
-      expect(screen.getByText('courses ready to close')).toBeInTheDocument()
+      // Term-ended cohorts are counted, not ready ones — most are still blocked, so
+      // the label must not promise "ready" (the Courses-to-close card says why).
+      expect(screen.getByText('courses to close')).toBeInTheDocument()
+      expect(screen.queryByText(/ready to close/i)).not.toBeInTheDocument()
       const view = screen.getByRole('link', { name: /View/ })
       expect(view.getAttribute('href')).toBe('/app/attendance')
       const review = screen.getByRole('link', { name: /Review/ })

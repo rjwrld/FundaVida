@@ -46,13 +46,15 @@ test('dashboard readiness indicator agrees with the course detail checklist (iss
   await pinDemoEpoch(page, EPOCH)
   await enterAs(page, 'admin')
 
-  // Dashboard: the Courses-to-close card row for the anchor course carries the
-  // blocked indicator.
+  // Dashboard: the Courses-to-close card row for the anchor course names both
+  // blockers, with the counts the detail checklist reports below.
   const card = page
     .locator('[data-slot="card"]')
     .filter({ has: page.getByRole('heading', { name: 'Courses to close' }) })
   const row = card.getByRole('link', { name: anchorCourse.name })
-  await expect(row.getByTestId('close-readiness-indicator')).toHaveText('Blocked')
+  const indicator = row.getByTestId('close-readiness-indicator')
+  await expect(indicator).toContainText(gradesGap)
+  await expect(indicator).toContainText(attendanceGap)
 
   // The indicator does not break the row link: it navigates to the detail page.
   await row.click()

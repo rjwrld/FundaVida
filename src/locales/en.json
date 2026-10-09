@@ -243,11 +243,11 @@
     "sidebar": {
       "admin": {
         "caughtUpBody": "Every active session is marked.",
-        "coursesToClose_one": "{{count}} course ready to close",
-        "coursesToClose_other": "{{count}} courses ready to close",
+        "coursesToClose_one": "{{count}} course to close",
+        "coursesToClose_other": "{{count}} courses to close",
         "pulseTitle": "Operational pulse",
         "review": "Review",
-        "toCloseLabel": "courses ready to close",
+        "toCloseLabel": "courses to close",
         "unmarked_one": "{{count}} session needs marking",
         "unmarked_other": "{{count}} sessions need marking",
         "unmarkedLabel": "unmarked sessions in active courses",
@@ -628,7 +628,7 @@
       "progressEmpty": "No enrollments yet.",
       "progressTitle": "My progress",
       "pulse": {
-        "toClose": "Ready to close",
+        "toClose": "To close",
         "unmarked": "Unmarked sessions"
       }
     },
