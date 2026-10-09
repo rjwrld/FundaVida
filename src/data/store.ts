@@ -581,6 +581,16 @@ export const useStore = create<StoreState>((set, get) => ({
       course: target,
       userId: existing.currentUserId ?? undefined,
     })
+    // ADR-0016 lets a Teacher edit their own Course, not hand it off: reassigning
+    // the Teacher stays an admin act.
+    if (
+      target &&
+      existing.role === 'teacher' &&
+      patch.teacherId !== undefined &&
+      patch.teacherId !== target.teacherId
+    ) {
+      throw new Error(`cannot update course ${id}: a teacher cannot reassign their course`)
+    }
     // Preserve the Course↔Teacher Sede invariant across edits: whichever of sede
     // or teacherId the patch changes, the effective pair must still match (ADR-0011).
     if (target) {

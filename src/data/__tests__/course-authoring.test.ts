@@ -148,6 +148,26 @@ describe('Course authoring (ADR-0016)', () => {
       expect(saved?.description).toBe('Edited by its teacher')
     })
 
+    it('teacher cannot hand their own course to another teacher', () => {
+      const { own } = teacherCourses()
+      const state = useStore.getState()
+      const colleague = state.teachers.find((t) => t.id !== own.teacherId && t.sede === own.sede)
+      if (!colleague) throw new Error('seed: no same-Sede colleague')
+
+      expect(() => state.updateCourse(own.id, { teacherId: colleague.id })).toThrow(/reassign/)
+      expect(useStore.getState().courses.find((c) => c.id === own.id)?.teacherId).toBe(
+        own.teacherId
+      )
+    })
+
+    it('teacher may resubmit their own course with its teacher unchanged', () => {
+      const { own } = teacherCourses()
+
+      useStore.getState().updateCourse(own.id, { teacherId: own.teacherId, capacity: 30 })
+
+      expect(useStore.getState().courses.find((c) => c.id === own.id)?.capacity).toBe(30)
+    })
+
     it("teacher cannot edit another teacher's course", () => {
       const { other } = teacherCourses()
 

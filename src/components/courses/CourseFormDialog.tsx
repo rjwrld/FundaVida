@@ -307,7 +307,9 @@ export function CourseForm({ courseId, onSuccess, onCancel }: CourseFormProps) {
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="teacherId">{t('courses.form.fields.teacherId')}</Label>
-        {isTeacher && !isEdit ? (
+        {/* A Teacher authors and edits only their own Courses and cannot hand one
+            off (ADR-0016), so the field is locked to them on create and edit alike. */}
+        {isTeacher ? (
           <div
             className="rounded-sm border border-input bg-muted px-3 py-2 text-sm"
             data-testid="teacher-locked"
