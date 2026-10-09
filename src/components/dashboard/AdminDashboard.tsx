@@ -9,6 +9,8 @@ import { EnrollmentApprovalQueue } from '@/components/enrollments/EnrollmentAppr
 import { TcuApprovalQueue } from '@/components/tcu/TcuApprovalQueue'
 import { DashboardShell } from './DashboardShell'
 
+const QUEUE_ROWS = 5
+
 /**
  * The admin's dashboard (ADR-0050): four plain org numbers, then the admin's
  * real pending work in the order it should be done — enrollment requests, TCU
@@ -32,13 +34,15 @@ export function AdminDashboard() {
         />
       </motion.div>
 
-      {/* The table-backed approval queues keep the full width. */}
+      {/* The table-backed approval queues keep the full width, capped to their five
+          longest-waiting rows so the close and at-risk worklists stay in view; each
+          links to its full page. */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
-        <EnrollmentApprovalQueue />
+        <EnrollmentApprovalQueue limit={{ rows: QUEUE_ROWS, viewAllTo: '/app/enrollments' }} />
       </motion.div>
 
       <motion.div variants={fadeUp} transition={transitionDefaults}>
-        <TcuApprovalQueue />
+        <TcuApprovalQueue limit={{ rows: QUEUE_ROWS, viewAllTo: '/app/tcu' }} />
       </motion.div>
 
       <motion.div
