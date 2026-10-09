@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, Fragment } from 'react'
+import { useEffect, useMemo, useRef, useState, Fragment } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
@@ -241,12 +241,23 @@ export function CoursesDetailPage() {
     readinessGate.isPending,
   ])
 
-  // The Attendance rollup links straight to a Course's Sessions (ADR-0051): once
-  // the page has painted past its loading gate, bring that section into view.
+  // The Attendance rollup links straight to a Course's Sessions (ADR-0051). What
+  // sits above that section — the close-readiness checklist, and the Sessions'
+  // own held past groups — only mounts once the readiness reads resolve, so the
+  // scroll waits for the page gate AND that one; scrolling earlier lands on a
+  // spot the late content then pushes down. Once per arrival, so a later refetch
+  // never yanks the viewer back.
+  const layoutSettled = !isLoading && !readinessGate.isPending
+  const scrolledForHash = useRef<string | null>(null)
   useEffect(() => {
-    if (isLoading || hash !== '#sessions') return
+    if (hash !== '#sessions') {
+      scrolledForHash.current = null
+      return
+    }
+    if (!layoutSettled || scrolledForHash.current === hash) return
+    scrolledForHash.current = hash
     document.getElementById('sessions')?.scrollIntoView({ block: 'start' })
-  }, [isLoading, hash])
+  }, [layoutSettled, hash])
 
   if (isLoading)
     return <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
