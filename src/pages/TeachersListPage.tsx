@@ -67,8 +67,8 @@ export function TeachersListPage() {
         }
       />
 
-      <section aria-label={t('common.a11y.filters')}>
-        <div className="relative max-w-sm">
+      <section aria-label={t('common.a11y.filters')} className="flex flex-wrap items-center gap-2">
+        <div className="relative max-w-sm flex-1">
           <Search
             size={16}
             className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"

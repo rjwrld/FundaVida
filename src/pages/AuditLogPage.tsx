@@ -127,14 +127,14 @@ export function AuditLogPage() {
     <div className="space-y-6">
       <PageHeader title={t('auditLog.title')} />
 
-      <section aria-label={t('common.a11y.filters')} className="grid gap-3 sm:grid-cols-2">
+      <section aria-label={t('common.a11y.filters')} className="flex flex-wrap items-center gap-2">
         <Select
           value={filters.action ?? 'any'}
           onValueChange={(v) =>
             setFilters((f) => ({ ...f, action: v === 'any' ? undefined : (v as AuditAction) }))
           }
         >
-          <SelectTrigger aria-label={t('auditLog.columns.action')}>
+          <SelectTrigger className="w-44" aria-label={t('auditLog.columns.action')}>
             <SelectValue placeholder={t('auditLog.columns.action')} />
           </SelectTrigger>
           <SelectContent>
@@ -152,7 +152,7 @@ export function AuditLogPage() {
             setFilters((f) => ({ ...f, entity: v === 'any' ? undefined : (v as AuditEntity) }))
           }
         >
-          <SelectTrigger aria-label={t('auditLog.columns.entity')}>
+          <SelectTrigger className="w-44" aria-label={t('auditLog.columns.entity')}>
             <SelectValue placeholder={t('auditLog.columns.entity')} />
           </SelectTrigger>
           <SelectContent>
