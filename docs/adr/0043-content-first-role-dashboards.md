@@ -1,5 +1,7 @@
 # Dashboards are content-first and role-divergent; navigation shortcut cards die
 
+_Amended by [ADR-0050](0050-dashboards-are-worklists.md) — per-role composition is now a short worklist per role (admin gains its approval queues and loses the feed; the teacher's My courses card, the TCU stat tiles, and the student's Schedule column are gone; the feed is slimmed to two posts)._
+
 _Accepted (design grilling 2026-07-07). Sequences after 0039–0042 — it is their display surface._
 
 > **Implementation note (2026-07-08, #252).** The Teacher bullet's "pending Certificate approvals (ADR-0019)" is stale: ADR-0024 removed Certificate approval entirely (closing a Course emits its Certificates already downloadable — no pending state, no `approve` action). A Teacher's real remaining approval worklists are the enrollment-request queue and the TCU-hours queue, so the dashboard leads with those instead. The rest of the spec shipped as written.
