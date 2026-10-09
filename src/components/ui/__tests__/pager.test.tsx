@@ -77,7 +77,22 @@ describe('<Pager />', () => {
     const pagination = fakePagination()
     renderPager(pagination, [10, 25, 50])
 
-    await user.selectOptions(screen.getByLabelText('Rows per page'), '25')
+    await user.click(screen.getByRole('combobox', { name: 'Rows per page' }))
+    await user.click(screen.getByRole('option', { name: '25' }))
     expect(pagination.setPageSize).toHaveBeenCalledWith(25)
+  })
+
+  // A pager over rows that all fit on the smallest page is chrome with no job:
+  // every control is disabled and the size choice changes nothing.
+  it('renders nothing when every row fits on the smallest page size', () => {
+    renderPager(fakePagination({ total: 10, pageCount: 1, canNext: false }), [10, 25, 50])
+
+    expect(screen.queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument()
+  })
+
+  it('stays when the rows outgrow the smallest page size', () => {
+    renderPager(fakePagination({ total: 11, pageCount: 2 }), [10, 25, 50])
+
+    expect(screen.getByRole('navigation', { name: 'Pagination' })).toBeInTheDocument()
   })
 })
