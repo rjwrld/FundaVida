@@ -59,20 +59,6 @@ describe('<CoursesListPage />', () => {
     expect(addButton).toBeInTheDocument()
   })
 
-  it('hides add course button for student role', async () => {
-    useStore.getState().setRole('student')
-    renderPage()
-
-    // Wait for page to be fully loaded
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /courses/i })).toBeInTheDocument()
-    })
-
-    // Button should not exist
-    const addButton = screen.queryByRole('button', { name: /add course/i })
-    expect(addButton).not.toBeInTheDocument()
-  })
-
   it('shows action column header only for admin role', async () => {
     useStore.getState().setRole('admin')
     renderPage()
@@ -149,14 +135,6 @@ describe('<CoursesListPage />', () => {
     renderPage(`/app/courses?edit=${live.id}`)
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
-  })
-
-  it('hides the Actions column for a student, who can act on no row', async () => {
-    useStore.getState().setRole('student')
-    renderPage()
-
-    await screen.findByRole('table')
-    expect(screen.queryByRole('columnheader', { name: 'Actions' })).not.toBeInTheDocument()
   })
 
   it('windows the scoped courses to the default page size', async () => {

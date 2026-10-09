@@ -389,8 +389,7 @@
   "courses": {
     "browse": {
       "columns": {
-        "actions": "Acciones",
-        "seats": "Espacios disponibles"
+        "seats": "Espacios"
       },
       "courseFullWarning": "Este curso está lleno. Los espacios solicitados se retienen como aprobación pendiente.",
       "empty": "No hay cursos disponibles para solicitar en tu sede y nivel.",
@@ -403,9 +402,11 @@
       "requestSection": "Solicitar matrícula",
       "searchPlaceholder": "Buscar por nombre",
       "seatsLabel": "Espacios restantes",
+      "seatsLeft_one": "Queda {{count}} espacio",
+      "seatsLeft_many": "Quedan {{count}} espacios",
+      "seatsLeft_other": "Quedan {{count}} espacios",
       "subtitle": "Encuentra y solicita cursos ofrecidos en tu sede.",
       "title": "Explorar cursos",
-      "viewButton": "Ver",
       "withdrawButton": "Retirar solicitud"
     },
     "detail": {
@@ -566,7 +567,6 @@
     },
     "list": {
       "addButton": "Agregar curso",
-      "browseButton": "Explorar cursos abiertos",
       "columns": {
         "actions": "Acciones",
         "name": "Nombre",

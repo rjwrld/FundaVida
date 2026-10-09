@@ -8,6 +8,7 @@ import { LandingPage } from '@/pages/LandingPage'
 import { RoleRequired } from '@/components/demo/RoleRequired'
 import { RoleGate } from '@/components/demo/RoleGate'
 import { coursesDetailRoute } from '@/pages/coursesDetailRoute'
+import { useCan } from '@/hooks/useCan'
 
 // Every /app page is code-split into its own chunk (#353): the landing page is
 // the entry surface and stays eager, while the heavy leaves (TanStack Table on
@@ -74,6 +75,17 @@ const AuditLogPage = lazy(() =>
 const BulkEmailPage = lazy(() =>
   import('@/pages/BulkEmailPage').then((m) => ({ default: m.BulkEmailPage }))
 )
+/**
+ * `/app/courses` is each role's Courses job (ADR-0043/0051): the roles that teach
+ * or administer get the catalog list, while a Student — the one role that
+ * requests enrollments — gets the browse-and-request view. Their own Courses
+ * already live on the dashboard's My courses table.
+ */
+function CoursesIndex() {
+  const canRequest = useCan('request', 'enrollments')
+  return canRequest ? <BrowseCoursesPage /> : <CoursesListPage />
+}
+
 const NotFoundPage = lazy(() =>
   import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage }))
 )
@@ -112,8 +124,7 @@ export function App() {
                 <Route path="programs/:id" element={<ProgramsDetailPage />} />
               </Route>
               <Route element={<RoleGate resource="courses" />}>
-                <Route path="courses" element={<CoursesListPage />} />
-                <Route path="courses/browse" element={<BrowseCoursesPage />} />
+                <Route path="courses" element={<CoursesIndex />} />
                 {/* Preloadable rather than plain-lazy: the list warms this route on
                     hover so the detail page mounts without the extra suspended commit
                     `React.lazy` costs on its first render — the commit that would

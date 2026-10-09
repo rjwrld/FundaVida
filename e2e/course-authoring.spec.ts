@@ -142,7 +142,8 @@ test('a published course appears in a matching student browse list (ADR-0016)', 
 
   // A Linda Vista / primaria student now finds it in Browse.
   await enterAs(page, 'student')
-  await page.goto('/app/courses/browse')
+  // For a student, Courses is the browse-and-request view (ADR-0051).
+  await page.goto('/app/courses')
   await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Intro Biology' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Intro Biology' })).toBeVisible()
 })
