@@ -145,6 +145,47 @@ describe('<TcuDashboard /> — assigned Course card + approved-only hours (ADR-0
     expect(await screen.findByText('Next session: Today')).toBeInTheDocument()
   })
 
+  // Session exceptions overlay the base schedule (ADR-0039): a cancelled Session
+  // is not "Today", and one rescheduled onto today is.
+  it('does not read "Today" when today’s Session was cancelled', async () => {
+    setDemoEpoch(new Date(2026, 5, 23, 10, 0)) // Tue, a meeting day
+    useStore.setState({
+      sessionExceptions: [
+        {
+          id: 'sx-cancel',
+          courseId: 'cou-tcu',
+          type: 'cancelled',
+          date: isoDay(2026, 5, 23),
+          createdAt: isoDay(2026, 5, 1),
+        },
+      ],
+    })
+    renderDashboard()
+
+    const line = await screen.findByText(/^Next session: /)
+    expect(line).not.toHaveTextContent('Today')
+    expect(line).toHaveTextContent(/25/)
+  })
+
+  it('reads "Today" when a Session was rescheduled onto today', async () => {
+    setDemoEpoch(new Date(2026, 5, 24, 10, 0)) // Wed, not a meeting day
+    useStore.setState({
+      sessionExceptions: [
+        {
+          id: 'sx-move',
+          courseId: 'cou-tcu',
+          type: 'rescheduled',
+          date: isoDay(2026, 5, 25),
+          newDate: isoDay(2026, 5, 24),
+          createdAt: isoDay(2026, 5, 1),
+        },
+      ],
+    })
+    renderDashboard()
+
+    expect(await screen.findByText('Next session: Today')).toBeInTheDocument()
+  })
+
   it('names the next meeting day on a day without a session', async () => {
     setDemoEpoch(new Date(2026, 5, 24, 10, 0)) // Wed → next is Thu, Jun 25
     renderDashboard()
