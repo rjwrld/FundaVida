@@ -27,21 +27,21 @@ test.describe('app shell — sidebar nav', () => {
     await expect(navLink(page, 'Audit Logs')).toBeVisible()
   })
 
-  test('derives the student nav from the matrix', async ({ page }) => {
-    await enterAs(page, 'student')
-    await expect(navLink(page, 'Courses')).toBeVisible()
-    await expect(navLink(page, 'My profile')).toBeVisible()
-    await expect(navLink(page, 'Students')).toHaveCount(0)
-    await expect(navLink(page, 'Audit Logs')).toHaveCount(0)
-  })
-
-  // The TCU role is the one that derives the Program catalog away (ADR-0035).
-  test('derives the tcu nav from the matrix', async ({ page }) => {
-    await enterAs(page, 'tcu')
-    await expect(navLink(page, 'Calendar')).toBeVisible()
-    await expect(navLink(page, 'Programs')).toHaveCount(0)
-    await expect(navLink(page, 'Students')).toHaveCount(0)
-  })
+  // Each role's nav is exactly its own jobs (ADR-0051), derived from the matrix.
+  for (const [role, items] of [
+    ['teacher', ['Dashboard', 'Calendar', 'Courses', 'Students']],
+    ['student', ['Dashboard', 'Calendar', 'Courses', 'My profile']],
+    ['tcu', ['Dashboard', 'Calendar']],
+  ] as const) {
+    test(`derives exactly the ${role} nav from the matrix`, async ({ page }) => {
+      await enterAs(page, role)
+      await expect(
+        page
+          .getByRole('navigation', { name: 'Navigation' })
+          .locator('[data-slot="sidebar-menu-button"]')
+      ).toHaveText([...items])
+    })
+  }
 
   // The footer's role menu is the switch itself: picking a role must re-derive the visible
   // items on the spot, with no reload (ADR-0010 — the block is presentation, the matrix is truth).

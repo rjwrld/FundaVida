@@ -1,4 +1,19 @@
 import { test, expect } from '@playwright/test'
+import { seedDemo } from '../src/data/seed'
+import { fullName } from '../src/lib/personName'
+
+// An approved enrollment in a live cohort: only those offer Unenroll (a closed
+// cohort is terminal, ADR-0024). Derived from the seed, then found by search.
+const world = seedDemo(new Date())
+const liveApproved = world.enrollments.find(
+  (e) =>
+    e.status === 'approved' &&
+    world.courses.find((c) => c.id === e.courseId)?.status === 'published'
+)
+if (!liveApproved) throw new Error('seed: no approved enrollment in a live course')
+const liveStudent = world.students.find((s) => s.id === liveApproved.studentId)
+if (!liveStudent) throw new Error('seed: enrollment student missing')
+const LIVE_NAME = fullName(liveStudent)
 
 test('admin unenrolls a student from the enrollments list', async ({ page }) => {
   await page.goto('/')
@@ -11,17 +26,16 @@ test('admin unenrolls a student from the enrollments list', async ({ page }) => 
   await page.getByRole('combobox', { name: 'Filter by status' }).click()
   await page.getByRole('option', { name: 'Approved' }).click()
 
-  const rowUnenroll = page.getByRole('button', { name: /^Delete / })
-  await expect(rowUnenroll.first()).toBeVisible()
-  // The table pages, so a removed row is backfilled: follow the clicked name.
-  const label = (await rowUnenroll.first().getAttribute('aria-label')) ?? ''
-  const sameName = page.getByRole('button', { name: label, exact: true })
-  const initialCount = await sameName.count()
-  await rowUnenroll.first().click()
+  await page.getByPlaceholder('Search students').fill(LIVE_NAME)
+
+  const unenroll = page.getByRole('button', { name: `Delete ${LIVE_NAME}`, exact: true })
+  await expect(unenroll.first()).toBeVisible()
+  const initialCount = await unenroll.count()
+  await unenroll.first().click()
   // Styled confirmation modal — confirm with the "Unenroll" action.
   await page.getByRole('button', { name: 'Unenroll' }).click()
 
-  await expect.poll(async () => sameName.count()).toBeLessThan(initialCount)
+  await expect.poll(async () => unenroll.count()).toBeLessThan(initialCount)
 })
 
 test('list renders in Spanish when locale is ES', async ({ page }) => {

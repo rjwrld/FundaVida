@@ -29,7 +29,7 @@ if (!cleanBrowseCourse) throw new Error('seed has no clean open browseable cours
 
 // A published cohort at stu-1's Sede/level whose Term has already ended (ADR-0042):
 // still viewable (its "Term ended" badge shows) but no longer open for enrollment,
-// so it must NOT appear in the "Browse open courses" list (issue #257).
+// so it must NOT appear in the student's open-course browse list (issue #257).
 const termEndedBrowseCourse = browseWorld.courses.find(
   (c) =>
     c.status === 'published' &&
@@ -164,16 +164,14 @@ test('student requests a course and withdraws the request without reload (ADR-00
   page,
 }) => {
   await enterAs(page, 'student')
-  // The dashboard's browse shortcut card is gone (ADR-0043); the browse-and-request
-  // entry now lives on the Courses page.
+  // For a student, Courses IS the browse-and-request view (ADR-0043/0051).
   await page.goto('/app/courses')
-  await page.getByRole('link', { name: 'Browse open courses' }).click()
   await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
 
   // Open a clean browseable course (no prior enrollment for stu-1) so this exercises
   // a fresh request rather than a re-request of a rejected/withdrawn cohort. Each
-  // row's name is a button (not a link) that navigates to the read-only detail.
-  await page.getByRole('table').getByRole('button', { name: cleanBrowseCourse.name }).click()
+  // row's name links to the read-only detail.
+  await page.getByRole('table').getByRole('link', { name: cleanBrowseCourse.name }).click()
 
   // The browse list shows the full name; the detail heading shows the
   // Sede-stripped display name (ADR-0021).
@@ -205,14 +203,13 @@ test('Browse list surfaces only open courses — a Term-ended cohort is hidden y
 }) => {
   await enterAs(page, 'student')
   await page.goto('/app/courses')
-  await page.getByRole('link', { name: 'Browse open courses' }).click()
   await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
 
   const table = page.getByRole('table')
   // An open cohort lists (waits for the table to populate)…
-  await expect(table.getByRole('button', { name: cleanBrowseCourse.name })).toBeVisible()
+  await expect(table.getByRole('link', { name: cleanBrowseCourse.name })).toBeVisible()
   // …but the Term-ended cohort — the list is literally titled "open courses" — does not.
-  await expect(table.getByRole('button', { name: termEndedBrowseCourse.name })).toHaveCount(0)
+  await expect(table.getByRole('link', { name: termEndedBrowseCourse.name })).toHaveCount(0)
 
   // Its detail nonetheless stays viewable: the badge shows and the request action
   // is gone. View access must not collapse when the enrollment window closes.
@@ -227,12 +224,11 @@ test('Browse list surfaces only open courses — a Term-ended cohort is hidden y
 test('student can re-request a course after withdrawing the prior request', async ({ page }) => {
   await enterAs(page, 'student')
   await page.goto('/app/courses')
-  await page.getByRole('link', { name: 'Browse open courses' }).click()
   await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
 
   // Open the clean, still-open browseable course so the Request button renders
   // (a Term-ended course would hide it — ADR-0042).
-  await page.getByRole('table').getByRole('button', { name: cleanBrowseCourse.name }).click()
+  await page.getByRole('table').getByRole('link', { name: cleanBrowseCourse.name }).click()
 
   // Request a spot, then withdraw it — leaving a withdrawn enrollment on record.
   const requestButton = page.getByRole('button', { name: 'Request a spot' })

@@ -176,12 +176,13 @@ test('lowering a passing grade below 70 after close revokes the certificate (ADR
 
   // 3. Admin lowers that Student's grade below 70 on the Grades page (updateGradeScore).
   await page.getByRole('link', { name: 'Grades' }).click()
-  // Scope to the page's Filters region — the app header also has a (role-switcher)
-  // combobox, so a bare nth() would pick the wrong control.
-  const filters = page.getByRole('region', { name: 'Filters' }).getByRole('combobox')
-  await filters.nth(0).click() // student filter
+  // Scope to the page's Filters region and name each select: the Student filter
+  // mounts only once the students read resolves, so a positional nth() can grab
+  // the Course select first.
+  const filters = page.getByRole('region', { name: 'Filters' })
+  await filters.getByRole('combobox', { name: 'Student' }).click()
   await page.getByRole('option', { name: revokedStudentName }).click()
-  await filters.nth(1).click() // course filter
+  await filters.getByRole('combobox', { name: 'Course' }).click()
   await page.getByRole('option', { name: revocableCourse.name }).click()
   await page
     .getByRole('button', { name: /^Edit / })
