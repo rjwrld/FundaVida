@@ -26,6 +26,7 @@ import { useFormat } from '@/hooks/useFormat'
 import { TcuActivityList } from './TcuActivityList'
 import { DashboardAnnouncementsFeed } from './DashboardAnnouncementsFeed'
 import { DashboardShell } from './DashboardShell'
+import { AgendaSlice } from './AgendaSlice'
 
 export function TcuDashboard() {
   const { t } = useTranslation()
@@ -47,7 +48,7 @@ export function TcuDashboard() {
     // Mirror the loaded happy-path layout — course card, three stat cards, and
     // the activity list — so resolving the gate doesn't shift the page.
     return (
-      <DashboardShell sectionTitle={t('dashboard.tcu.sectionTitle')}>
+      <DashboardShell aside={<AgendaSlice />} sectionTitle={t('dashboard.tcu.sectionTitle')}>
         <SkeletonCard lines={4} />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <SkeletonStatCard />
@@ -92,7 +93,7 @@ export function TcuDashboard() {
     : ''
 
   return (
-    <DashboardShell sectionTitle={t('dashboard.tcu.sectionTitle')}>
+    <DashboardShell aside={<AgendaSlice />} sectionTitle={t('dashboard.tcu.sectionTitle')}>
       {/* Hero: the assigned Course — where the volunteer serves (ADR-0036). */}
       {assignedCourse && (
         <motion.div variants={fadeUp} transition={transitionDefaults}>

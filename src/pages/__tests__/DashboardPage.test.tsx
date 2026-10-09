@@ -73,14 +73,13 @@ describe('<DashboardPage /> (admin)', () => {
     expect(await screen.findByRole('heading', { name: /students at risk/i })).toBeInTheDocument()
   })
 
-  it('renders the right-panel agenda slice', async () => {
+  // The admin's agenda pulse repeated the worklists beside it; the dashboard drops
+  // the aside and the main column takes the full width (ADR-0050). The calendar
+  // page's own sidebar keeps the pulse.
+  it('renders no agenda aside', async () => {
     renderDashboard()
-    // The agenda slice replaces the decorative DashboardCalendar (ADR-0038); it
-    // always ends with an Open Calendar link. The static "On your radar" nudges
-    // were removed — the supporting cards already link to where the work happens.
-    const aside = screen.getByRole('complementary')
-    expect(aside).toBeInTheDocument()
-    expect(await within(aside).findByRole('link', { name: /open calendar/i })).toBeInTheDocument()
+    await screen.findByRole('heading', { name: /students at risk/i })
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
   })
 })
 

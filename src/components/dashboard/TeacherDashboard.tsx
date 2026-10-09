@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { DashboardShell } from './DashboardShell'
+import { AgendaSlice } from './AgendaSlice'
 import { NeedsMarkingWorklist } from './NeedsMarkingWorklist'
 import { CoursesToClose } from './CoursesToClose'
 import { OwnCoursesList } from './OwnCoursesList'
@@ -28,7 +29,7 @@ export function TeacherDashboard() {
   const { t } = useTranslation()
 
   return (
-    <DashboardShell sectionTitle={t('dashboard.teacher.sectionTitle')}>
+    <DashboardShell aside={<AgendaSlice />} sectionTitle={t('dashboard.teacher.sectionTitle')}>
       {/* Worklists first — the time-sensitive jobs. The table-backed approval
           queues keep the full width (their columns overflow a half column). */}
       <motion.div variants={fadeUp} transition={transitionDefaults}>
