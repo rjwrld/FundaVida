@@ -600,9 +600,6 @@
     },
     "atRisk": {
       "empty": "Ningún estudiante necesita atención ahora.",
-      "more_one": "+{{count}} más",
-      "more_many": "",
-      "more_other": "+{{count}} más",
       "reasonFailing": "Nota reprobatoria",
       "reasonLowAttendance": "Baja asistencia",
       "title": "Estudiantes en riesgo",
@@ -689,7 +686,11 @@
       },
       "sectionTitle": "Tu lista de trabajo"
     },
-    "title": "Sesión como {{role}}"
+    "title": "Sesión como {{role}}",
+    "worklist": {
+      "mark": "Registrar",
+      "sessionLine": "Sesión {{n}} · {{date}}"
+    }
   },
   "demoBanner": {
     "badge": "Versión de demostración",
