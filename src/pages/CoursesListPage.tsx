@@ -26,7 +26,7 @@ import { CourseStateBadge } from '@/components/courses/CourseStateBadge'
 import { CourseTitleLink } from '@/components/courses/CourseTitleLink'
 import { useCourses, useDeleteCourse, usePublishCourse } from '@/hooks/api'
 import { useCan } from '@/hooks/useCan'
-import { can } from '@/permissions'
+import { can, scopeFor } from '@/permissions'
 import { useFormDialogParams } from '@/hooks/useFormDialogParams'
 import { SEDES } from '@/constants/sede'
 import type { CourseFilters } from '@/data/api/courses'
@@ -49,6 +49,10 @@ export function CoursesListPage() {
   const currentUserId = useStore((s) => s.currentUserId)
   const canCreate = useCan('create', 'courses')
   const canDelete = useCan('delete', 'courses')
+  // A teacher's 'own' Courses all name them as Teacher and sit at their one Sede
+  // (ADR-0011), so the scope token alone fixes both columns and the Campus filter
+  // (ADR-0051) — never a guess from the rows on screen.
+  const ownCourses = role ? scopeFor(role).courses === 'own' : false
   // A Teacher's edit/publish right is per-Course (courseOwned, ADR-0016), so it
   // must be evaluated against each Course — not the context-free page-level check
   // that only resolves for admin's blanket grant.
@@ -67,15 +71,12 @@ export function CoursesListPage() {
 
   const hasFilters = Boolean(filters.search || filters.sede || filters.programId)
   const count = data.length
-  const columnCount = canActOnRows ? 6 : 5
+  const columnCount = (canActOnRows ? 1 : 0) + (ownCourses ? 2 : 4)
 
   const teacherName = (teacherId: string) => {
     const teacher = teachers.find((x) => x.id === teacherId)
     return teacher ? fullName(teacher) : teacherId
   }
-  const programName = (programId: string) =>
-    programs.find((p) => p.id === programId)?.name ?? programId
-
   const columns: DataTableColumn<Course>[] = [
     {
       id: 'name',
@@ -84,25 +85,23 @@ export function CoursesListPage() {
       sortAccessor: (c) => c.name,
       cell: (c) => <CourseTitleLink course={c} shared={surface === 'table'} />,
     },
-    {
-      id: 'program',
-      header: t('courses.list.columns.program'),
-      sortable: true,
-      sortAccessor: (c) => programName(c.programId),
-      cell: (c) => programName(c.programId),
-    },
-    {
-      id: 'sede',
-      header: t('courses.form.fields.sede'),
-      sortable: true,
-      sortAccessor: (c) => c.sede,
-      cell: (c) => c.sede,
-    },
-    {
-      id: 'teacher',
-      header: t('courses.list.columns.teacher'),
-      cell: (c) => teacherName(c.teacherId),
-    },
+    // No Program column: the course name already leads with it (the filter stays).
+    ...(ownCourses
+      ? []
+      : [
+          {
+            id: 'sede',
+            header: t('courses.form.fields.sede'),
+            sortable: true,
+            sortAccessor: (c: Course) => c.sede,
+            cell: (c: Course) => c.sede,
+          },
+          {
+            id: 'teacher',
+            header: t('courses.list.columns.teacher'),
+            cell: (c: Course) => teacherName(c.teacherId),
+          },
+        ]),
     {
       id: 'status',
       header: t('courses.list.columns.status'),
@@ -176,22 +175,24 @@ export function CoursesListPage() {
             className="pl-9"
           />
         </div>
-        <Select
-          value={filters.sede ?? 'any'}
-          onValueChange={(v) => setFilters((f) => ({ ...f, sede: v === 'any' ? undefined : v }))}
-        >
-          <SelectTrigger aria-label={t('courses.form.fields.sede')}>
-            <SelectValue placeholder={t('courses.form.fields.sede')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any">{t('courses.form.fields.sede')}</SelectItem>
-            {SEDES.map((h) => (
-              <SelectItem key={h} value={h}>
-                {h}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {!ownCourses && (
+          <Select
+            value={filters.sede ?? 'any'}
+            onValueChange={(v) => setFilters((f) => ({ ...f, sede: v === 'any' ? undefined : v }))}
+          >
+            <SelectTrigger aria-label={t('courses.form.fields.sede')}>
+              <SelectValue placeholder={t('courses.form.fields.sede')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">{t('courses.form.fields.sede')}</SelectItem>
+              {SEDES.map((h) => (
+                <SelectItem key={h} value={h}>
+                  {h}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <Select
           value={filters.programId ?? 'any'}
           onValueChange={(v) =>
