@@ -37,7 +37,11 @@ export function TcuApprovalQueue() {
   const rows: PendingRow[] = oldestFirst(activities.filter((a) => a.status === 'pending')).map(
     (activity) => {
       const trainee = traineeById.get(activity.traineeId)
-      return { activity, traineeName: trainee ? fullName(trainee) : '' }
+      // A missing trainee record still gets a name, so no label reads "… by ".
+      return {
+        activity,
+        traineeName: trainee ? fullName(trainee) : t('tcu.approvalQueue.unknownTrainee'),
+      }
     }
   )
 

@@ -1043,7 +1043,8 @@
       "approveAria": "Approve {{activity}} by {{trainee}}",
       "empty": "No hours waiting for approval.",
       "rejectAria": "Reject {{activity}} by {{trainee}}",
-      "title": "TCU hours to approve"
+      "title": "TCU hours to approve",
+      "unknownTrainee": "Unknown trainee"
     },
     "dashboard": {
       "approvedHours": "Approved hours",

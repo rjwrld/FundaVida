@@ -80,4 +80,30 @@ describe('<TcuApprovalQueue /> (admin: every pending activity)', () => {
     expect(within(card).getByText('No hours waiting for approval.')).toBeInTheDocument()
     expect(within(card).queryByRole('table')).not.toBeInTheDocument()
   })
+
+  // A row whose trainee record is missing must still name its buttons fully,
+  // never "Approve Tutoring by ".
+  it('names an orphaned activity’s actions with an unknown-trainee fallback', async () => {
+    useStore.setState({
+      tcuActivities: [
+        {
+          id: 'act-orphan',
+          traineeId: 'tcu-missing',
+          title: 'Tutoring',
+          hours: 3,
+          date: '2026-06-01T00:00:00.000Z',
+          status: 'pending',
+        },
+      ],
+    })
+    renderQueue()
+
+    const table = await screen.findByRole('table')
+    expect(
+      within(table).getByRole('button', { name: 'Approve Tutoring by Unknown trainee' })
+    ).toBeInTheDocument()
+    expect(
+      within(table).getByRole('button', { name: 'Reject Tutoring by Unknown trainee' })
+    ).toBeInTheDocument()
+  })
 })
