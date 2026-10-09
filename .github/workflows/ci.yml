@@ -1,8 +1,9 @@
 name: CI
 
 on:
+  # Every PR, whatever its base: stacked PRs get the full gate set before anything
+  # reaches main (a push to main is a production deploy).
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 
