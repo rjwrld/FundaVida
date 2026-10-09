@@ -1050,7 +1050,8 @@
       "approveAria": "Aprobar {{activity}} de {{trainee}}",
       "empty": "No hay horas esperando aprobación.",
       "rejectAria": "Rechazar {{activity}} de {{trainee}}",
-      "title": "Horas TCU por aprobar"
+      "title": "Horas TCU por aprobar",
+      "unknownTrainee": "Becario desconocido"
     },
     "dashboard": {
       "approvedHours": "Horas aprobadas",
