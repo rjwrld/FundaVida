@@ -1,26 +1,25 @@
 import { test, expect } from '@playwright/test'
 import { enterAs } from './helpers/auth'
 
-test('teacher sees attendance only for their own courses', async ({ page }) => {
-  await enterAs(page, 'teacher')
+test('admin reads attendance as one row per course and opens its sessions', async ({ page }) => {
+  await enterAs(page, 'admin')
   await page.getByRole('link', { name: 'Attendance' }).click()
   await expect(page.getByRole('heading', { name: 'Attendance' })).toBeVisible()
 
-  // Teacher role hides the student filter (admin-only).
-  await expect(page.getByRole('combobox').filter({ hasText: /student/i })).toHaveCount(0)
+  // One rollup row per course (ADR-0051), not the per-record ledger.
+  await expect(page.getByRole('columnheader', { name: 'Sessions held' })).toBeVisible()
+  const firstRow = page.getByRole('row').nth(1)
+  await expect(firstRow).toBeVisible()
 
-  // At least one row renders (tea-1 owns courses with seeded enrollments).
-  await expect(page.getByRole('row').nth(1)).toBeVisible()
+  // The course link lands on that course's Sessions section, where marking lives.
+  await firstRow.getByRole('link').click()
+  await expect(page).toHaveURL(/\/app\/courses\/cou-\d+#sessions$/)
+  await expect(page.getByRole('heading', { name: 'Sessions' })).toBeInViewport()
+})
 
-  // Filter by status=present — rows should remain present-only.
-  await page
-    .getByRole('combobox')
-    .filter({ hasText: /status/i })
-    .click()
-  await page.getByRole('option', { name: 'Present' }).click()
-
-  const presentBadges = page.getByText('Present', { exact: true })
-  await expect(presentBadges.first()).toBeVisible()
+test('teacher has no Attendance page — marking lives on the course', async ({ page }) => {
+  await enterAs(page, 'teacher')
+  await expect(page.getByRole('link', { name: 'Attendance', exact: true })).toHaveCount(0)
 })
 
 test('renders in Spanish when locale is ES', async ({ page }) => {

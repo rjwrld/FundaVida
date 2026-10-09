@@ -12,28 +12,23 @@
     "list": {
       "columns": {
         "course": "Course",
+        "rate": "Attendance",
         "session": "Session",
+        "sessionsHeld": "Sessions held",
         "status": "Status",
-        "student": "Student"
+        "unmarked": "Unmarked"
       },
       "empty": "No attendance recorded yet.",
-      "emptyFiltered": "No attendance records match the current filters.",
-      "filters": {
-        "anyCourse": "Any course",
-        "anyStatus": "Any status",
-        "anyStudent": "Any student",
-        "coursePlaceholder": "Course",
-        "statusPlaceholder": "Status",
-        "studentPlaceholder": "Student"
-      },
+      "rateAria": "{{course}}: {{rate}} attendance",
       "session": "Session {{ordinal}}",
       "status": {
         "absent": "Absent",
         "excused": "Excused",
         "present": "Present"
       },
-      "subtitle": "Per-session attendance across your scope.",
-      "title": "Attendance"
+      "title": "Attendance",
+      "unmarked_one": "{{count}} unmarked",
+      "unmarked_other": "{{count}} unmarked"
     },
     "mark": {
       "cancel": "Cancel",

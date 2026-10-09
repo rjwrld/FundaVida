@@ -12,28 +12,24 @@
     "list": {
       "columns": {
         "course": "Curso",
+        "rate": "Asistencia",
         "session": "Sesión",
+        "sessionsHeld": "Sesiones dadas",
         "status": "Estado",
-        "student": "Estudiante"
+        "unmarked": "Sin marcar"
       },
       "empty": "Aún no hay asistencia registrada.",
-      "emptyFiltered": "Ninguna asistencia coincide con los filtros.",
-      "filters": {
-        "anyCourse": "Cualquier curso",
-        "anyStatus": "Cualquier estado",
-        "anyStudent": "Cualquier estudiante",
-        "coursePlaceholder": "Curso",
-        "statusPlaceholder": "Estado",
-        "studentPlaceholder": "Estudiante"
-      },
+      "rateAria": "{{course}}: {{rate}} de asistencia",
       "session": "Sesión {{ordinal}}",
       "status": {
         "absent": "Ausente",
         "excused": "Justificado",
         "present": "Presente"
       },
-      "subtitle": "Asistencia por sesión en tu ámbito.",
-      "title": "Asistencia"
+      "title": "Asistencia",
+      "unmarked_one": "{{count}} sin marcar",
+      "unmarked_many": "{{count}} sin marcar",
+      "unmarked_other": "{{count}} sin marcar"
     },
     "mark": {
       "cancel": "Cancelar",

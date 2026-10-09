@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, Fragment } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Check } from 'lucide-react'
@@ -68,6 +68,7 @@ export function CoursesDetailPage() {
   const { formatGrade, formatDate } = useFormat()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { hash } = useLocation()
   const courseQuery = useCourse(id ?? '')
   const enrolledCourse = courseQuery.data
   const currentRole = useStore((s) => s.role)
@@ -239,6 +240,13 @@ export function CoursesDetailPage() {
     sessionExceptions,
     readinessGate.isPending,
   ])
+
+  // The Attendance rollup links straight to a Course's Sessions (ADR-0051): once
+  // the page has painted past its loading gate, bring that section into view.
+  useEffect(() => {
+    if (isLoading || hash !== '#sessions') return
+    document.getElementById('sessions')?.scrollIntoView({ block: 'start' })
+  }, [isLoading, hash])
 
   if (isLoading)
     return <p className="text-sm text-muted-foreground">{t('courses.detail.loading')}</p>
