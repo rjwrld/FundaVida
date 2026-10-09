@@ -610,6 +610,7 @@
       "ended": "El período terminó el {{date}}",
       "title": "Cursos por cerrar"
     },
+    "greeting": "Hola, {{name}}",
     "rightPanel": {
       "agendaTitle": "Agenda",
       "agendaUpcomingEmpty": "Nada en la agenda.",
@@ -658,7 +659,6 @@
       },
       "sectionTitle": "Tu lista de trabajo"
     },
-    "title": "Sesión como {{role}}",
     "worklist": {
       "mark": "Registrar",
       "sessionLine": "Sesión {{n}} · {{date}}"

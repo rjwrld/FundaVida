@@ -30,7 +30,7 @@ test.describe('smoke', () => {
     await page.goto('/')
     await page.getByRole('button', { name: 'Enter as admin' }).first().click()
     await expect(page).toHaveURL(/\/app$/)
-    await expect(page.getByRole('heading', { level: 1, name: /signed in as/i })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible()
   })
 
   // Role entry lives on the persona badges (ADR-0049). Locators use the full
@@ -43,7 +43,9 @@ test.describe('smoke', () => {
       })
       .click()
     await expect(page).toHaveURL(/\/app$/)
-    await expect(page.getByRole('heading', { level: 1, name: /signed in as/i })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { level: 1, name: `Hi, ${student.firstName}` })
+    ).toBeVisible()
   })
 
   test('the teacher badge inherits the golden-path drop onto its gradeable Course', async ({
@@ -103,7 +105,7 @@ test.describe('smoke', () => {
 
     await page.getByRole('button', { name: 'Open the app' }).click()
     await expect(page).toHaveURL(/\/app$/)
-    await expect(page.getByRole('heading', { level: 1, name: /signed in as/i })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible()
   })
 
   // The final CTA (ADR-0049, #385) reprises the persona badges small — same
@@ -113,7 +115,9 @@ test.describe('smoke', () => {
     await page.goto('/')
     await page.getByRole('button', { name: `Student ${fullName(student)}`, exact: true }).click()
     await expect(page).toHaveURL(/\/app$/)
-    await expect(page.getByRole('heading', { level: 1, name: /signed in as/i })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { level: 1, name: `Hi, ${student.firstName}` })
+    ).toBeVisible()
   })
 
   test('the footer links out to the source, LinkedIn, and the foundation', async ({ page }) => {
