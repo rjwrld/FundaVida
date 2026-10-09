@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
@@ -101,6 +102,32 @@ describe('<CoursesListPage />', () => {
     // The edit form opens for the Teacher, not just the button.
     edits[0]?.click()
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('lets a teacher save an edit to their own live course end to end', async () => {
+    const user = userEvent.setup()
+    useStore.getState().setRole('teacher')
+    const { courses, currentUserId } = useStore.getState()
+    const live = courses.find((c) => c.teacherId === currentUserId && c.status === 'published')
+    if (!live) throw new Error('seed: acting teacher needs a live course')
+    renderPage()
+
+    const [edit] = await screen.findAllByRole('button', { name: `Edit ${live.name}` })
+    if (!edit) throw new Error('expected an Edit button')
+    await user.click(edit)
+    const dialog = await screen.findByRole('dialog')
+    const description = within(dialog).getByLabelText('Description')
+    await waitFor(() => expect(description).toHaveValue(live.description))
+    await user.clear(description)
+    await user.type(description, 'Updated by its teacher')
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() =>
+      expect(useStore.getState().courses.find((c) => c.id === live.id)?.description).toBe(
+        'Updated by its teacher'
+      )
+    )
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 
   it('hides the Actions column for a student, who can act on no row', async () => {
