@@ -599,11 +599,6 @@
       "title": "Students at risk",
       "viewAll": "View all students"
     },
-    "certsThisEpoch": {
-      "subtitle": "All issued on course close — no approval needed",
-      "title": "Certificates this epoch",
-      "viewAll": "View all certificates"
-    },
     "coursesToClose": {
       "empty": "No courses are ready to close.",
       "ended": "Term ended {{date}}",
