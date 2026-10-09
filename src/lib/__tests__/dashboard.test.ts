@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import type { AttendanceRecord, Course, Enrollment, Grade, Student } from '@/types'
-import { atRiskStudents, coursesToClose, enrollmentFunnelBySede } from '../dashboard'
+import type { AttendanceRecord, Course, Grade, Student } from '@/types'
+import { atRiskStudents, coursesToClose } from '../dashboard'
 
 function makeCourse(overrides: Partial<Course>): Course {
   return {
@@ -110,41 +110,5 @@ describe('atRiskStudents', () => {
     expect(result.map((r) => r.student.id)).toEqual(['s1', 's2'])
     expect(result[0]?.reasons).toEqual(['failing'])
     expect(result[1]?.reasons).toEqual(['lowAttendance'])
-  })
-})
-
-function makeEnrollment(courseId: string, status: Enrollment['status']): Enrollment {
-  return {
-    id: `enr-${courseId}-${status}-${Math.random()}`,
-    studentId: 'stu-1',
-    courseId,
-    enrolledAt: '2026-05-01',
-    status,
-    requestedAt: '2026-05-01',
-  }
-}
-
-describe('enrollmentFunnelBySede', () => {
-  it('counts pending vs approved per Sede in SEDES order, skipping Sedes with no activity', () => {
-    const courses = [
-      makeCourse({ id: 'cx', sede: 'Hatillo' }),
-      makeCourse({ id: 'cy', sede: 'Alajuelita' }),
-    ]
-    const enrollments = [
-      makeEnrollment('cx', 'pending'),
-      makeEnrollment('cx', 'pending'),
-      makeEnrollment('cx', 'approved'),
-      makeEnrollment('cx', 'approved'),
-      makeEnrollment('cx', 'approved'),
-      makeEnrollment('cx', 'rejected'),
-      makeEnrollment('cy', 'pending'),
-    ]
-
-    const result = enrollmentFunnelBySede(enrollments, courses)
-
-    expect(result).toEqual([
-      { sede: 'Hatillo', pending: 2, approved: 3 },
-      { sede: 'Alajuelita', pending: 1, approved: 0 },
-    ])
   })
 })

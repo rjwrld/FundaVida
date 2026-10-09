@@ -1,5 +1,4 @@
-import type { AttendanceRecord, Course, Enrollment, Grade, Student } from '@/types'
-import { SEDES, type Sede } from '@/constants/sede'
+import type { AttendanceRecord, Course, Grade, Student } from '@/types'
 import { PASSING_SCORE } from './certificates'
 import { isTermEnded } from './closeReadiness'
 
@@ -68,36 +67,4 @@ export function atRiskStudents(
   })
 
   return result
-}
-
-export interface SedeFunnel {
-  sede: Sede
-  pending: number
-  approved: number
-}
-
-/**
- * The enrollment funnel — pending → approved — grouped by the Sede of each
- * Enrollment's Course. Only `pending` and `approved` feed the funnel; rejected
- * and withdrawn are terminal and excluded. Sedes are returned in {@link SEDES}
- * order, skipping any with no pending or approved enrollments so the card only
- * shows Sedes with live activity.
- */
-export function enrollmentFunnelBySede(enrollments: Enrollment[], courses: Course[]): SedeFunnel[] {
-  const sedeByCourseId = new Map(courses.map((c) => [c.id, c.sede]))
-  const counts = new Map<Sede, { pending: number; approved: number }>()
-
-  enrollments.forEach((e) => {
-    if (e.status !== 'pending' && e.status !== 'approved') return
-    const sede = sedeByCourseId.get(e.courseId)
-    if (!sede) return
-    const bucket = counts.get(sede) ?? { pending: 0, approved: 0 }
-    bucket[e.status] += 1
-    counts.set(sede, bucket)
-  })
-
-  return SEDES.filter((sede) => counts.has(sede)).map((sede) => {
-    const bucket = counts.get(sede) ?? { pending: 0, approved: 0 }
-    return { sede, pending: bucket.pending, approved: bucket.approved }
-  })
 }
