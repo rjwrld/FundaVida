@@ -35,13 +35,32 @@ describe('navItemsForRole', () => {
     }
   })
 
-  it('exposes the Program catalog to viewing roles but not tcu (ADR-0035)', () => {
-    for (const role of ['admin', 'teacher', 'student'] as Role[]) {
-      const items = navItemsForRole(role)
-      expect(items.some((item) => item.to === '/app/programs')).toBe(true)
-    }
-    const tcuItems = navItemsForRole('tcu')
-    expect(tcuItems.some((item) => item.to === '/app/programs')).toBe(false)
+  // Each role's nav is exactly that role's jobs (ADR-0051): the matrix `view`
+  // cells decide it (ADR-0010), so this pins the derivation end to end.
+  it.each([
+    [
+      'admin',
+      [
+        '/app',
+        '/app/calendar',
+        '/app/programs',
+        '/app/courses',
+        '/app/certificates',
+        '/app/students',
+        '/app/teachers',
+        '/app/enrollments',
+        '/app/grades',
+        '/app/attendance',
+        '/app/tcu',
+        '/app/bulk-email',
+        '/app/audit-log',
+      ],
+    ],
+    ['teacher', ['/app', '/app/calendar', '/app/courses', '/app/students']],
+    ['student', ['/app', '/app/calendar', '/app/courses', '/app/me']],
+    ['tcu', ['/app', '/app/calendar']],
+  ] as [Role, string[]][])('gives %s exactly its own destinations', (role, expected) => {
+    expect(navItemsForRole(role).map((item) => item.to)).toEqual(expected)
   })
 
   it('exposes My profile to the student role only (self-only /app/me is structural)', () => {

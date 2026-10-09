@@ -100,12 +100,19 @@ describe('<CommandPalette />', () => {
     useStore.getState().setRole('tcu')
     renderPalette()
     await user.click(screen.getByRole('button', { name: 'open' }))
-    // Reachable for tcu: Dashboard, Calendar, TCU.
+    // Reachable for tcu: Dashboard and Calendar — the dashboard is their TCU
+    // home, so the TCU page is not a destination (ADR-0051).
     await screen.findByRole('option', { name: /Dashboard/i })
     expect(screen.getByRole('option', { name: /Calendar/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /^TCU/i })).toBeInTheDocument()
     // Gated destinations must not appear (they'd bounce off RoleGate).
-    for (const name of [/Students/i, /Courses/i, /Certificates/i, /Programs/i, /Bulk Email/i]) {
+    for (const name of [
+      /^TCU/i,
+      /Students/i,
+      /Courses/i,
+      /Certificates/i,
+      /Programs/i,
+      /Bulk Email/i,
+    ]) {
       expect(screen.queryByRole('option', { name })).not.toBeInTheDocument()
     }
   })
