@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
@@ -9,7 +9,14 @@ import { coursesToClose } from '@/lib/dashboard'
 import { sessionsFor } from '@/lib/sessions'
 import { useStore } from '@/data/store'
 import type { AttendanceRecord, Grade } from '@/types'
+import { closeReadiness } from '@/lib/closeReadiness'
 import { CoursesToClose } from '../CoursesToClose'
+
+// A pass-through spy, so a test can count derivations without changing them.
+vi.mock('@/lib/closeReadiness', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/closeReadiness')>()
+  return { ...actual, closeReadiness: vi.fn(actual.closeReadiness) }
+})
 
 // Clock pinned to the seed epoch (src/test/setup.ts) so Term boundaries in the
 // seeded store line up with `clock.now()`.
@@ -17,7 +24,7 @@ const EPOCH = new Date('2026-06-15T12:00:00.000Z')
 
 function renderCard() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return render(
+  const tree = () => (
     <I18nProvider>
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
@@ -26,6 +33,8 @@ function renderCard() {
       </QueryClientProvider>
     </I18nProvider>
   )
+  const result = render(tree())
+  return { ...result, rerenderSame: () => result.rerender(tree()) }
 }
 
 describe('CoursesToClose', () => {
@@ -196,5 +205,19 @@ describe('CoursesToClose', () => {
     } finally {
       useStore.setState({ courses: original })
     }
+  })
+
+  // Readiness walks every Session of every closeable Course; it derives from the
+  // gated reads, so a re-render with the same data must not redo it.
+  it('does not re-derive readiness on a re-render with unchanged data', async () => {
+    const { rerenderSame } = renderCard()
+    await screen.findAllByTestId('close-readiness-indicator')
+    const calls = vi.mocked(closeReadiness).mock.calls.length
+    expect(calls).toBeGreaterThan(0)
+
+    rerenderSame()
+    rerenderSame()
+
+    expect(vi.mocked(closeReadiness).mock.calls.length).toBe(calls)
   })
 })

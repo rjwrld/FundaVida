@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -26,11 +27,22 @@ const REASON_KEY: Record<AtRiskReason, string> = {
  */
 export function AtRiskStudents() {
   const { t } = useTranslation()
-  const gate = resolveQueries([useStudents(), useGrades(), useAttendance()])
-  if (gate.isPending) return <SkeletonCard lines={3} />
+  const studentsQuery = useStudents()
+  const gradesQuery = useGrades()
+  const attendanceQuery = useAttendance()
+  const gate = resolveQueries([studentsQuery, gradesQuery, attendanceQuery])
 
-  const [students, grades, attendance] = gate.data
-  const atRisk = atRiskStudents(students, grades, attendance)
+  // Memoized over the reads' (structurally shared) data, so a re-render with
+  // unchanged reads does not re-join every student's grades and attendance.
+  const students = studentsQuery.data
+  const grades = gradesQuery.data
+  const attendance = attendanceQuery.data
+  const atRisk = useMemo(
+    () => (students && grades && attendance ? atRiskStudents(students, grades, attendance) : null),
+    [students, grades, attendance]
+  )
+  if (gate.isPending || !atRisk) return <SkeletonCard lines={3} />
+
   const shown = atRisk.slice(0, LIMIT)
 
   return (
