@@ -220,6 +220,51 @@ test.describe('enrollment approval workflow', () => {
     await expect(page.getByText('Enrollment approved.')).toBeVisible()
   })
 
+  // Requesting happens on the browse row itself (ADR-0051): the row stays and
+  // reads Requested, and the admin dashboard's queue counts the new request.
+  test('student requests from the browse row and the admin queue counts it', async ({ page }) => {
+    const snapshot = seedDemo(EPOCH)
+    const pendingBefore = snapshot.enrollments.filter((e) => e.status === 'pending').length
+    await seedAndEnter(page, snapshot, 'student', STUDENT_ID)
+
+    await page.getByRole('link', { name: 'Courses', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Browse courses' })).toBeVisible()
+    const row = page.getByRole('row').filter({ has: page.getByRole('link', { name: COURSE_NAME }) })
+    const request = row.getByRole('button', { name: `Request a spot in ${COURSE_NAME}` })
+    await expect(request).toBeEnabled()
+    await request.click()
+
+    await expect(page.getByText('Request submitted. Awaiting teacher approval.')).toBeVisible()
+    await expect(row.getByRole('button', { name: 'Requested' })).toBeDisabled()
+
+    // The request must persist before we switch roles.
+    await expect
+      .poll(async () =>
+        page.evaluate(
+          ({ key, studentId, courseId }) => {
+            const raw = window.localStorage.getItem(key)
+            if (!raw) return null
+            const state = JSON.parse(raw) as {
+              enrollments: { studentId: string; courseId: string; status: string }[]
+            }
+            return (
+              state.enrollments.find((e) => e.studentId === studentId && e.courseId === courseId)
+                ?.status ?? null
+            )
+          },
+          { key: STATE_KEY, studentId: STUDENT_ID, courseId: COURSE_ID }
+        )
+      )
+      .toBe('pending')
+
+    // The admin dashboard shows its five oldest requests, so read the count the
+    // queue reports — the badge and its "View all (N)" link.
+    await switchTo(page, 'admin', 'admin')
+    const queue = page.getByRole('region', { name: 'Enrollment requests' })
+    await expect(queue).toBeVisible()
+    await expect(queue.getByRole('link', { name: `View all (${pendingBefore + 1})` })).toBeVisible()
+  })
+
   test('approval queue renders in Spanish when locale is ES', async ({ page }) => {
     await page.goto('/')
     await page.evaluate(
