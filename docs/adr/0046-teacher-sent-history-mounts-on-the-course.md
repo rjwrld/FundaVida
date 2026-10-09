@@ -1,5 +1,7 @@
 # Teacher sent history mounts on the Course, not a BulkEmailPage list
 
+_Amended by [ADR-0051](0051-each-role-sees-only-its-jobs.md) — the card now sits after the roster as a compact list, and hides until the Course has a message; the gate and the viewer-agnostic contents are unchanged._
+
 _Accepted (design grilling 2026-07-08). Amends ADR-0041._
 
 ADR-0041 bullet 2 claimed a teacher's own-scoped campaigns surface as a "history list [that] shows only their campaigns." No such list was ever mounted: the sole caller of `useEmailCampaigns` is the admin-only `BulkEmailPage`, so the `'own'` branch of `applyEmailCampaignsScope` is reachable in tests but dead in the product. ADR-0045 sharpened the loss — a teacher can preview a draft through "Message the class", but once they hit Send the rendered email is gone for good. The teacher's outbox needs a home, and the Course is it, not the admin surface.

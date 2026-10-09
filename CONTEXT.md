@@ -67,5 +67,5 @@ The adult responsible for a Student — name, relationship (Madre/Padre/Tutor/Ot
 _Avoid_: parent (a guardian need not be a parent — use Encargado/Guardian)
 
 **Student Progress**:
-A Student's per-Course roll-up across their Enrollments — for each enrolled Course, the attendance rate, the Grade (if issued), and whether a Certificate was earned. A **derived** view, never stored; shown on the admin/teacher student-detail page and on the Student's own profile.
+A Student's per-Course roll-up across their Enrollments — for each enrolled Course, the attendance rate, the Grade (if issued), and whether a Certificate was earned. A **derived** view, never stored; shown on the admin/teacher student-detail page and, as the My courses table, on the Student's own dashboard.
 _Avoid_: grade (that names the single 0–100 Course score — see Grade); progress unqualified (a TCU Trainee's 300-hour completion is a different progress)

@@ -1,5 +1,7 @@
 # Program visibility is per-role; every nav surface derives from the matrix
 
+_Extended by [ADR-0051](0051-each-role-sees-only-its-jobs.md) — the same `view`-cell cut now trims the teacher, student, and TCU navs to their own jobs (admin keeps Programs)._
+
 _Proposed (UX pass 2026-07-03). Supersedes ADR-0015 in part._
 
 ADR-0015 made the Program catalog org-wide and viewable by every role. For a TCU Trainee that grant buys nothing: Trainees are not enrolled in Courses (CONTEXT.md), no tcu surface reads the catalog, and the nav item is one of only four the role sees — a quarter of the volunteer's navigation pointing at a page irrelevant to their work. The org-wide _scope_ stance stays; the _every role views it_ stance is dropped.
