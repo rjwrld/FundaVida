@@ -1,32 +1,47 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { render, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { AttendanceListPage } from '@/pages/AttendanceListPage'
+import { api } from '@/data/api'
+import { delay } from '@/data/api/_delay'
 import { useStore } from '@/data/store'
+import { clock } from '@/lib/clock'
+import { attendanceRollup } from '@/lib/attendanceRollup'
+import { effectiveSessions, isSessionRecordable } from '@/lib/sessions'
+import { formatPercent } from '@/lib/format'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
   clearPersistedState,
 } from '@/data/persistence'
 
-function renderPage(entry = '/app/attendance') {
+function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
-        <MemoryRouter initialEntries={[entry]}>
-          <Routes>
-            <Route path="/app/attendance" element={<AttendanceListPage />} />
-          </Routes>
+        <MemoryRouter>
+          <AttendanceListPage />
         </MemoryRouter>
       </QueryClientProvider>
     </I18nProvider>
   )
 }
 
-describe('<AttendanceListPage />', () => {
+/** The rollup the page should paint, derived from the seeded store through the same lib. */
+function expectedRows() {
+  const s = useStore.getState()
+  return attendanceRollup({
+    courses: s.courses,
+    attendance: s.attendance,
+    sessionExceptions: s.sessionExceptions,
+    now: clock.today(),
+  })
+}
+
+describe('<AttendanceListPage /> — the per-course rollup (ADR-0051)', () => {
   beforeEach(() => {
     clearPersistedState()
     clearPersistedRole()
@@ -36,104 +51,99 @@ describe('<AttendanceListPage />', () => {
     useStore.getState().setLocale('en')
   })
 
-  it('shows the illustrated empty state when there is no attendance', async () => {
-    useStore.setState({ attendance: [] })
-    renderPage()
-
-    expect(await screen.findByRole('heading', { name: /no attendance yet/i })).toBeInTheDocument()
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
-  it('renders session column header', async () => {
-    renderPage()
-    await waitFor(() => {
-      expect(screen.getByRole('columnheader', { name: 'Session' })).toBeInTheDocument()
-    })
-  })
-
-  it('renders Session N · date for each attendance record', async () => {
-    renderPage()
-
-    // The "Session N" label needs the courses query (findSession) as well as the
-    // attendance rows; those queries resolve independently, so poll until the
-    // enriched label appears rather than reading the rows the instant they mount
-    // (courses may still be loading, leaving a date-only fallback — a CI race).
-    await waitFor(() => {
-      const rows = screen.getAllByRole('row').slice(1) // Skip header
-      expect(rows.length).toBeGreaterThan(0)
-      expect(rows.some((row) => /Session \d+/.test(row.textContent || ''))).toBe(true)
-    })
-  })
-
-  it('renders fallback date when session not found (graceful degradation)', async () => {
-    // This test verifies that if somehow a sessionDate doesn't match a real session,
-    // we fall back to just showing the date without crashing
-    renderPage()
-
-    // Wait for the data to load
-    await waitFor(() => {
-      expect(screen.getByRole('columnheader', { name: 'Session' })).toBeInTheDocument()
-    })
-
-    const rows = screen.getAllByRole('row').slice(1)
+  it('shows one row per course, worst first, each linking to its Sessions', async () => {
+    const rows = expectedRows()
     expect(rows.length).toBeGreaterThan(0)
-    // Just verify the page header rendered without errors
-    expect(screen.getByRole('heading', { name: 'Attendance' })).toBeInTheDocument()
-  })
-
-  it('hides the Student column for the student role (self-only view, ADR-0012)', async () => {
-    useStore.getState().setRole('student')
-    renderPage()
-
-    // Wait for the student's own attendance rows to load.
-    await waitFor(() => {
-      expect(screen.getAllByRole('row').length).toBeGreaterThan(1)
-    })
-
-    // A Student can't resolve other students, and the view is self-only, so the
-    // Student identity column would only ever render an empty cell — drop it.
-    expect(screen.queryByRole('columnheader', { name: 'Student' })).not.toBeInTheDocument()
-  })
-
-  it('shows the Student column for the admin roster view', async () => {
-    // Default role is admin (beforeEach). The roster view spans many students,
-    // so the identity column is meaningful and must remain.
-    renderPage()
-    await waitFor(() => {
-      expect(screen.getByRole('columnheader', { name: 'Student' })).toBeInTheDocument()
-    })
-  })
-
-  it('pre-filters attendance to the ?courseId= query param, then windows it (ADR-0026)', async () => {
-    const { attendance } = useStore.getState()
-    const sample = attendance[0]
-    if (!sample) throw new Error('demo seed produced no attendance')
-    const courseId = sample.courseId
-    const expected = attendance.filter((a) => a.courseId === courseId)
-    // Guard: the demo must hold other courses' attendance, else the filter is untested.
-    expect(expected.length).toBeLessThan(attendance.length)
-    // Guard: this course must exceed one page, so windowing is actually exercised.
-    expect(expected.length).toBeGreaterThan(10)
-
-    renderPage(`/app/attendance?courseId=${courseId}`)
-
-    // The filter narrows the scoped set first; pagination windows the result.
-    // Only the first page renders, but the pager total reflects the full filtered
-    // count — proving the filter ran before the window, not the other way around.
-    const pageCount = Math.ceil(expected.length / 10)
-    await waitFor(() => {
-      expect(screen.getByText(`Page 1 of ${pageCount}`)).toBeInTheDocument()
-    })
-    const table = screen.getByRole('table')
-    expect(within(table).getAllByRole('row').slice(1)).toHaveLength(10)
-  })
-
-  it('windows the scoped attendance to the default page size', async () => {
-    const total = useStore.getState().attendance.length
-    expect(total).toBeGreaterThan(10) // guard: the seed must exceed one page
     renderPage()
 
     const table = await screen.findByRole('table')
-    expect(within(table).getAllByRole('row').slice(1)).toHaveLength(10)
-    expect(screen.getByText(`Page 1 of ${Math.ceil(total / 10)}`)).toBeInTheDocument()
+    expect(
+      within(table)
+        .getAllByRole('columnheader')
+        .map((h) => h.textContent)
+    ).toEqual(['Course', 'Campus', 'Sessions held', 'Attendance', 'Unmarked'])
+    const bodyRows = within(table).getAllByRole('row').slice(1)
+    expect(bodyRows).toHaveLength(Math.min(rows.length, 10))
+
+    const worst = rows[0]
+    if (!worst) throw new Error('rollup is empty')
+    const first = bodyRows[0]
+    if (!first) throw new Error('table is empty')
+    expect(within(first).getByRole('link', { name: worst.course.name })).toHaveAttribute(
+      'href',
+      `/app/courses/${worst.course.id}#sessions`
+    )
+    expect(first).toHaveTextContent(String(worst.sessionsHeld))
+    if (worst.rate !== null) expect(first).toHaveTextContent(formatPercent(worst.rate, 'en'))
+    expect(first).toHaveTextContent(`${worst.unmarked} unmarked`)
+  })
+
+  it('reads a fully marked course as a dash, not a zero chip', async () => {
+    const s = useStore.getState()
+    const live = expectedRows().find((r) => r.live && r.sessionsHeld > 0)
+    if (!live) throw new Error('seed: no live course that has held a session')
+    const course = live.course
+    // One course, one present record on every Session it has held: nothing unmarked.
+    const held = effectiveSessions(
+      course,
+      s.sessionExceptions.filter((e) => e.courseId === course.id)
+    ).filter((x) => isSessionRecordable(x, clock.today()))
+    useStore.setState({
+      courses: [course],
+      attendance: held.map((x, i) => ({
+        id: `att-full-${i}`,
+        courseId: course.id,
+        studentId: 'stu-1',
+        sessionDate: x.date,
+        status: 'present' as const,
+      })),
+    })
+    renderPage()
+
+    const table = await screen.findByRole('table')
+    const [row] = within(table).getAllByRole('row').slice(1)
+    if (!row) throw new Error('table is empty')
+    expect(row).not.toHaveTextContent('unmarked')
+    expect(within(row).getAllByRole('cell').at(-1)).toHaveTextContent('—')
+  })
+
+  it('shows the illustrated empty state when no course has held a session', async () => {
+    useStore.setState({ courses: [] })
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: /no attendance/i })).toBeInTheDocument()
+  })
+
+  // First-paint regression (ADR-0030): the rollup joins courses, attendance, and
+  // session exceptions; holding attendance open must not paint every course as
+  // fully unmarked off the default [].
+  it('never paints a row before every read it joins has resolved', async () => {
+    const listAttendance = api.attendance.list
+    vi.spyOn(api.attendance, 'list').mockImplementation(async (filters) => {
+      await delay(600)
+      return listAttendance(filters)
+    })
+    const worst = expectedRows()[0]
+    if (!worst) throw new Error('rollup is empty')
+
+    let firstRowText: string | null = null
+    const observer = new MutationObserver(() => {
+      if (firstRowText !== null) return
+      const row = document.querySelector('table tbody tr')
+      if (row) firstRowText = row.textContent
+    })
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true })
+    try {
+      renderPage()
+      await screen.findByRole('table', {}, { timeout: 3000 })
+      expect(firstRowText).toContain(worst.course.name)
+      expect(firstRowText).toContain(`${worst.unmarked} unmarked`)
+    } finally {
+      observer.disconnect()
+    }
   })
 })

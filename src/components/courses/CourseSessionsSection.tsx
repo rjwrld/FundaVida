@@ -184,7 +184,12 @@ export function CourseSessionsSection({
     ) : undefined
 
   return (
-    <section aria-labelledby="course-sessions-heading" className="space-y-3">
+    // `id="sessions"` is the Attendance rollup's deep-link target (ADR-0051).
+    <section
+      id="sessions"
+      aria-labelledby="course-sessions-heading"
+      className="scroll-mt-20 space-y-3"
+    >
       <SectionHeader
         id="course-sessions-heading"
         title={t('courses.detail.sessions.heading')}
