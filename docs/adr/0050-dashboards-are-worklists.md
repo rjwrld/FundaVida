@@ -8,8 +8,8 @@ The demo is skimmed by reviewers for a minute or so per role, and the dashboards
 
 **Per-role composition after this ADR.**
 
-- **Admin** — four plain stat numbers (no trend chip, no gradient), then the admin's real pending work in the order it gets done: Enrollment requests → TCU hours to approve → Courses to close → Students at risk. No aside, no announcements feed: the admin has no session to attend and no class to read to.
-- **Teacher** — one column: Needs marking → Courses to close → Enrollment requests → TCU hours to approve → the slim announcements feed. The "My courses" card is gone; the Courses page is already teacher-scoped.
+- **Admin** — four plain stat numbers (no trend chip, no gradient), then the admin's real pending work in the order it gets done: Enrollment requests → TCU hours to approve → Courses to close → Students at risk. The two queues show only their five longest-waiting rows (oldest first), the badge keeps the full count, and "View all (N)" links to the queue's full page (`/app/enrollments`, `/app/tcu`) — uncapped, a 15-row queue pushed the other worklists below the fold. No aside, no announcements feed: the admin has no session to attend and no class to read to.
+- **Teacher** — one column: Needs marking → Courses to close → Enrollment requests → TCU hours to approve → the slim announcements feed. The queues stay uncapped with the pager: the teacher has no Enrollments or TCU page to send "View all" to (both are denied without a Course in context). The "My courses" card is gone; the Courses page is already teacher-scoped.
 - **Student** — the My courses table (Course · Status · Attendance · Grade · Certificate) and the slim feed. The Schedule column gave way to a Certificate column: an Issued badge with a download through the shared preview dialog, or a dash.
 - **TCU** — the trainee's single home: the assigned Course card with its next Session, one approved-hours progress bar with pending named beside it ("107 / 300 h approved · +9 pending", approved-only per ADR-0036), and **Log hours** as the one primary action; then the full activity log (Activity · Hours · Date · Status, newest first, paginated); then the Course's slim feed. The three stat tiles and the recent-activities list are gone.
 - **Every role** — the H1 greets the person behind the persona ("Hi, Jessica" / "Hola, Jessica"); admin, a seat rather than a seeded person, reads "Dashboard". "Signed in as {role}" restated the role switcher.
@@ -22,7 +22,7 @@ The demo is skimmed by reviewers for a minute or so per role, and the dashboards
 
 ## Consequences
 
-- The Pager hides itself when every row fits on the smallest page size, decided once for every windowed surface, and its page-size control is the stock shadcn `Select`.
+- The Pager hides itself when every row fits on the smallest page size — the current one included, since a table may open below its smallest option — decided once for every windowed surface; callers render it unconditionally and never guard on `pageCount`. Its page-size control is the stock shadcn `Select`.
 - Cards that join several reads gate on all of them (`resolveQueries`, ADR-0030) — Students at risk no longer flashes its all-clear while grades load, and Courses to close no longer paints rows before their readiness.
-- No matrix, scope, API, seed, or `STATE_KEY` change. Approve/reject on the dashboard queues refreshes their counts through the existing write-set invalidation (ADR-0029); the admin stats read the store directly.
+- No matrix, scope, API, seed, or `STATE_KEY` change. Both queues read through the scoped hooks (ADR-0008) and gate on every read they join. Approve/reject refreshes them through the write-set invalidation (ADR-0029), which gains one edge: the `enrollments` slice also invalidates `students`, because a Teacher's scoped students derive from enrollments and a rejection writes only that slice. The admin stats read the store directly.
 - Navigation is untouched here: removing the TCU nav item for the trainee and making `TcuListPage` reuse `TcuApprovalQueue` are follow-up work.
