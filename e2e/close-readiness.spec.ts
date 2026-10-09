@@ -48,16 +48,20 @@ test('dashboard readiness indicator agrees with the course detail checklist (iss
 
   // Dashboard: the Courses-to-close card row for the anchor course names both
   // blockers, with the counts the detail checklist reports below.
-  const card = page
-    .locator('[data-slot="card"]')
-    .filter({ has: page.getByRole('heading', { name: 'Courses to close' }) })
-  const row = card.getByRole('link', { name: anchorCourse.name })
-  const indicator = row.getByTestId('close-readiness-indicator')
+  // The row is one stretched link named by the Course, with the indicator beside
+  // it in the same list item (ADR-0050).
+  const card = page.getByRole('region', { name: 'Courses to close' })
+  const link = card.getByRole('link', { name: anchorCourse.name })
+  const indicator = card
+    .getByRole('listitem')
+    // `has` resolves inside each list item, so it takes a page-rooted locator.
+    .filter({ has: page.getByRole('link', { name: anchorCourse.name }) })
+    .getByTestId('close-readiness-indicator')
   await expect(indicator).toContainText(gradesGap)
   await expect(indicator).toContainText(attendanceGap)
 
   // The indicator does not break the row link: it navigates to the detail page.
-  await row.click()
+  await link.click()
   await expect(page.getByRole('heading', { name: shortCourseName(anchorCourse) })).toBeVisible()
 
   // Detail: the checklist shows the same verdict and the concrete gaps the
