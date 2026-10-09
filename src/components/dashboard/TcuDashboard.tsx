@@ -4,7 +4,7 @@ import { isSameDay, parseISO } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { Clock, GraduationCap, MapPin, CalendarDays } from 'lucide-react'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
-import { useTcuActivities, useTcuTrainees, useCourses } from '@/hooks/api'
+import { useTcuActivities, useTcuTrainees, useCourses, useSessionExceptions } from '@/hooks/api'
 import { StatCard } from '@/components/shared/StatCard'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,7 +19,7 @@ import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { SkeletonStatCard } from '@/components/shared/skeletons/SkeletonStatCard'
 import { LogTcuActivityDialog } from '@/components/tcu/LogTcuActivityDialog'
 import { resolveQueries } from '@/lib/resolveQueries'
-import { sessionsFor, upcomingSessions } from '@/lib/sessions'
+import { effectiveSessions, upcomingSessions } from '@/lib/sessions'
 import { tcuHoursByStatus, TCU_TARGET_HOURS } from '@/lib/tcuHours'
 import { clock } from '@/lib/clock'
 import { useFormat } from '@/hooks/useFormat'
@@ -32,15 +32,16 @@ export function TcuDashboard() {
   const { formatDate } = useFormat()
   const [logDialogOpen, setLogDialogOpen] = useState(false)
 
-  // The dashboard derives its verdict from three scoped reads: the trainee's own
-  // activities, their trainee record (the 'assigned' Course pivot), and the
-  // scoped Courses (exactly the one Course they serve at, ADR-0036). Gate on all
-  // three (ADR-0030) so a default-`[]` window can never flash a "no course
-  // assigned" state before the Courses query resolves.
+  // The dashboard derives its verdict from four scoped reads: the trainee's own
+  // activities, their trainee record (the 'assigned' Course pivot), the scoped
+  // Courses (exactly the one Course they serve at, ADR-0036), and that Course's
+  // Session exceptions (ADR-0039). Gate on all four (ADR-0030) so a default-`[]`
+  // window can never flash a "no course assigned" state or a cancelled "Today".
   const activitiesQuery = useTcuActivities()
   const traineesQuery = useTcuTrainees()
   const coursesQuery = useCourses()
-  const gate = resolveQueries([activitiesQuery, traineesQuery, coursesQuery])
+  const exceptionsQuery = useSessionExceptions()
+  const gate = resolveQueries([activitiesQuery, traineesQuery, coursesQuery, exceptionsQuery])
 
   if (gate.isPending) {
     // Mirror the loaded happy-path layout — course card, three stat cards, and
@@ -58,7 +59,7 @@ export function TcuDashboard() {
     )
   }
 
-  const [activities, trainees, courses] = gate.data
+  const [activities, trainees, courses, sessionExceptions] = gate.data
 
   // Approved-only progress, matching TcuListPage via the shared split — the
   // divergence ADR-0036 fixes (the old dashboard summed ALL hours). Pending
@@ -75,12 +76,16 @@ export function TcuDashboard() {
   const assignedCourse = trainee ? (courses[0] ?? null) : null
   // Today's Session is recordable, not upcoming (ADR-0034), so upcomingSessions
   // skips it; on a session day the volunteer serves today, and the hero says so.
+  // Both read the exceptions overlay (ADR-0039): a cancelled Session is not
+  // "Today", and one rescheduled onto today is.
   const today = clock.today()
   const sessionToday = assignedCourse
-    ? sessionsFor(assignedCourse).some((s) => isSameDay(parseISO(s.date), today))
+    ? effectiveSessions(assignedCourse, sessionExceptions).some((s) =>
+        isSameDay(parseISO(s.date), today)
+      )
     : false
   const nextSession = assignedCourse
-    ? (upcomingSessions([assignedCourse], today, 1)[0] ?? null)
+    ? (upcomingSessions([assignedCourse], today, 1, sessionExceptions)[0] ?? null)
     : null
   const meetingDays = assignedCourse
     ? assignedCourse.meetingDays.map((d) => t(`courses.form.weekdays.${d}`)).join(', ')
