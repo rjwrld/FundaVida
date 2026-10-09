@@ -404,7 +404,8 @@
       "certificates": {
         "empty": "Certificates appear here once this course is closed.",
         "issued_one": "{{count}} issued",
-        "issued_other": "{{count}} issued"
+        "issued_other": "{{count}} issued",
+        "noneIssued": "No certificates were issued for this course."
       },
       "close": "Close course",
       "closeConfirm": {

@@ -411,7 +411,8 @@
         "empty": "Los certificados aparecen aquí cuando se cierra este curso.",
         "issued_one": "{{count}} emitido",
         "issued_many": "{{count}} emitidos",
-        "issued_other": "{{count}} emitidos"
+        "issued_other": "{{count}} emitidos",
+        "noneIssued": "No se emitieron certificados para este curso."
       },
       "close": "Cerrar curso",
       "closeConfirm": {

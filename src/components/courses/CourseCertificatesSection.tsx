@@ -112,10 +112,20 @@ export function CourseCertificatesSection({ course }: { course: Course }) {
   )
   const dataUrl = useCertificateBlobUrl(payload)
 
-  // Before the close there is nothing to preview: one quiet line says when the
-  // Certificates arrive, rather than an empty section (ADR-0051).
+  // Nothing to say until the list has loaded: the `[]` default would read as
+  // "none yet" on a Course that has some (ADR-0030).
+  if (certificatesQuery.isPending) return null
+
+  // No certificates: one quiet line instead of an empty section (ADR-0051). A
+  // live cohort is waiting for its close; a closed one is done, and issued none.
   if (items.length === 0) {
-    return <p className="text-xs text-muted-foreground">{t('courses.detail.certificates.empty')}</p>
+    return (
+      <p className="text-xs text-muted-foreground">
+        {course.status === 'closed'
+          ? t('courses.detail.certificates.noneIssued')
+          : t('courses.detail.certificates.empty')}
+      </p>
+    )
   }
 
   return (
