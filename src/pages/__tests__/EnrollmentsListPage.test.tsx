@@ -129,6 +129,43 @@ describe('<EnrollmentsListPage /> — admin oversight by Sede → Course (ADR-00
     expect(screen.getAllByText(/^Page 1 of [2-9]/).length).toBeGreaterThan(0)
   })
 
+  // A closed cohort is terminal (ADR-0024) and the store rejects unenrolling from
+  // it, so its approved rows offer no Unenroll; a live cohort's rows still do.
+  it('offers Unenroll on a live cohort but not on a closed one', async () => {
+    useStore.getState().setRole('admin')
+    const { courses, enrollments, students } = useStore.getState()
+    const statusOf = (courseId: string) => courses.find((c) => c.id === courseId)?.status
+    const inClosed = req(
+      enrollments.find((e) => e.status === 'approved' && statusOf(e.courseId) === 'closed'),
+      'seed: no approved enrollment in a closed course'
+    )
+    const inLive = req(
+      enrollments.find(
+        (e) =>
+          e.status === 'approved' &&
+          statusOf(e.courseId) === 'published' &&
+          e.studentId !== inClosed.studentId
+      ),
+      'seed: no approved enrollment in a live course'
+    )
+    const nameOf = (id: string) =>
+      fullName(
+        req(
+          students.find((st) => st.id === id),
+          'seed: student missing'
+        )
+      )
+    useStore.setState({ enrollments: [inClosed, inLive] })
+    renderPage()
+
+    expect(
+      await screen.findByRole('button', { name: `Delete ${nameOf(inLive.studentId)}` })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: `Delete ${nameOf(inClosed.studentId)}` })
+    ).not.toBeInTheDocument()
+  })
+
   it('hides rejected enrollments from the default view', async () => {
     useStore.getState().setRole('admin')
     const pending = req(

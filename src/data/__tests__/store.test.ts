@@ -165,13 +165,30 @@ describe('attendance cascades', () => {
     expect(useStore.getState().attendance.some((a) => a.courseId === courseId)).toBe(false)
   })
 
-  it('unenrollStudent removes attendance records matching that student+course pair', () => {
-    const attendance = useStore.getState().attendance
-    const enrollments = useStore.getState().enrollments
-    const match = attendance.find((a) =>
-      enrollments.some((e) => e.studentId === a.studentId && e.courseId === a.courseId)
+  // A closed cohort is terminal (ADR-0024): unenrolling would delete a credentialed
+  // Student's Grade, Attendance, and Certificate, so the store refuses it.
+  it('unenrollStudent rejects an enrollment in a closed course', () => {
+    const { courses, enrollments } = useStore.getState()
+    const enrollment = enrollments.find(
+      (e) =>
+        e.status === 'approved' && courses.find((c) => c.id === e.courseId)?.status === 'closed'
     )
-    if (!match) throw new Error('expected an attendance record with a matching enrollment')
+    if (!enrollment) throw new Error('seed: no approved enrollment in a closed course')
+
+    expect(() => useStore.getState().unenrollStudent(enrollment.id)).toThrow(/closed/)
+    expect(useStore.getState().enrollments.some((e) => e.id === enrollment.id)).toBe(true)
+  })
+
+  it('unenrollStudent removes attendance records matching that student+course pair', () => {
+    const { attendance, enrollments, courses } = useStore.getState()
+    // A live cohort: unenrolling from a closed one is rejected (ADR-0024).
+    const live = new Set(courses.filter((c) => c.status !== 'closed').map((c) => c.id))
+    const match = attendance.find(
+      (a) =>
+        live.has(a.courseId) &&
+        enrollments.some((e) => e.studentId === a.studentId && e.courseId === a.courseId)
+    )
+    if (!match) throw new Error('expected a live-course attendance record with an enrollment')
     const enrollment = enrollments.find(
       (e) => e.studentId === match.studentId && e.courseId === match.courseId
     )

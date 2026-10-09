@@ -1246,6 +1246,11 @@ export const useStore = create<StoreState>((set, get) => ({
     const { enrollments } = state
     const target = enrollments.find((e) => e.id === enrollmentId)
     if (!target) return
+    // A closed cohort is terminal (ADR-0024): removing a Student would delete the
+    // Grade, Attendance, and Certificate the close already emitted against them.
+    if (state.courses.find((c) => c.id === target.courseId)?.status === 'closed') {
+      throw new Error(`cannot unenroll from course ${target.courseId}: it is closed`)
+    }
     withAudit(set, (state) => {
       const updatedStudents = state.students.map((s) =>
         s.id === target.studentId
