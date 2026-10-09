@@ -545,8 +545,11 @@ describe('audit log characterization', () => {
   describe('unenrollStudent audit entry', () => {
     it('appends audit entry with correct action, entity, entityId, and summary', () => {
       let store = useStore.getState()
-      const enrollment = store.enrollments[0]
-      if (!enrollment) throw new Error('no enrollment in seed')
+      // A live cohort: unenrolling from a closed one is rejected (ADR-0024).
+      const enrollment = store.enrollments.find(
+        (e) => store.courses.find((c) => c.id === e.courseId)?.status !== 'closed'
+      )
+      if (!enrollment) throw new Error('no live-course enrollment in seed')
       const enrollmentId = enrollment.id
       const studentId = enrollment.studentId
       const courseId = enrollment.courseId

@@ -31,6 +31,7 @@ import {
   useRejectEnrollment,
 } from '@/hooks/api'
 import { useStore } from '@/data/store'
+import { isLiveCohort } from '@/lib/courseDisplayState'
 import { useFormat } from '@/hooks/useFormat'
 import { can } from '@/permissions'
 import { shortCourseName } from '@/lib/courseName'
@@ -258,7 +259,9 @@ export function EnrollmentsListPage() {
                     teacher={teacherById.get(course.teacherId)}
                     studentById={studentById}
                     canApprove={canApproveCourse(course.id)}
-                    canDelete={canDelete}
+                    // A closed cohort is terminal (ADR-0024): the store rejects an
+                    // unenroll from it, so its rows offer none.
+                    canDelete={canDelete && isLiveCohort(course)}
                     approveDisabled={approve.isPending}
                     rejectDisabled={reject.isPending}
                     onApprove={(id) => approve.mutate(id, { onSuccess: () => setSweepId(id) })}
