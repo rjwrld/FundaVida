@@ -204,6 +204,31 @@ describe('<CourseSessionsSection />', () => {
     )
   })
 
+  // Today already recorded is not work due now: the primary moves to the
+  // oldest Session still waiting for attendance (ADR-0051).
+  it('passes the primary Mark on to the oldest overdue Session once today is recorded', () => {
+    renderSection({
+      attendance: [
+        ...attendance,
+        {
+          id: 'a-today',
+          courseId: course.id,
+          studentId: 's1',
+          sessionDate: todaySession.date,
+          status: 'present',
+        },
+      ],
+    })
+
+    const marks = screen.getAllByRole('link', { name: /^Mark attendance — / })
+    const primary = marks.filter((m) => m.getAttribute('data-variant') === 'default')
+    expect(primary).toHaveLength(1)
+    expect(primary[0]).toHaveAttribute(
+      'href',
+      `/app/courses/${course.id}/sessions/${pastUnrecorded.date}/mark`
+    )
+  })
+
   it('gives no primary Mark once the Term is over (closing is the next step)', () => {
     const ended = { ...course, term: { start: offsetDay(-60), end: offsetDay(-1) } }
     renderSection({ course: ended, sessions: [pastRecorded, pastUnrecorded] })
