@@ -65,7 +65,10 @@ export function Pager({ pagination, pageSizeOptions = [10, 25, 50] }: PagerProps
       </div>
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <span id={pageSizeLabelId}>{t('common.pagination.pageSize')}</span>
+          {/* Still names the Select below `sm`, where a three-line wrap would crowd the controls. */}
+          <span id={pageSizeLabelId} className="whitespace-nowrap max-sm:sr-only">
+            {t('common.pagination.pageSize')}
+          </span>
           <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
             <SelectTrigger size="sm" aria-labelledby={pageSizeLabelId} className="text-foreground">
               <SelectValue />
