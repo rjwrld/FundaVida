@@ -353,7 +353,7 @@ test.describe('the month is a term map (ADR-0048)', () => {
 
     // …and landed on the milestone's week: every Session link the canvas paints
     // carries a date inside it (an admin's cards deep-link into Mark Attendance).
-    const link = page.getByRole('main').getByRole('link').first()
+    const link = page.getByRole('region', { name: 'Sessions this week' }).getByRole('link').first()
     await expect(link).toBeVisible()
     const href = (await link.getAttribute('href')) ?? ''
     const match = href.match(/\/sessions\/([^/]+)\/mark/)
@@ -427,4 +427,35 @@ test.describe('calendar quiet states + responsive (ADR-0044)', () => {
     // The canvas card is on screen — the calendar is the hero, not buried.
     await expect(page.getByText(COURSE_CARD, { exact: true }).first()).toBeVisible()
   })
+
+  // A laptop viewport must show the whole Mon–Fri week at once: the canvas used to
+  // share the row with the 300px sidebar and fall below its seven-column switch,
+  // so at 1440px the week rendered as a snap strip with Mon/Tue scrolled off.
+  for (const width of [1280, 1440]) {
+    test(`laptop viewport ${width}px: the full work week fits without scrolling`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 })
+      await seedAndEnter(page, seedSnapshot, 'admin', 'admin')
+
+      const week = page.getByRole('region', { name: /week/i })
+      await expect(week).toBeVisible()
+      const fit = await week.evaluate((el) => ({
+        overflow: el.scrollWidth - el.clientWidth,
+        offscreen: [...el.querySelectorAll('[role="group"]')].filter((day) => {
+          const box = day.getBoundingClientRect()
+          const frame = el.getBoundingClientRect()
+          return box.left < frame.left - 1 || box.right > frame.right + 1
+        }).length,
+        days: el.querySelectorAll('[role="group"]').length,
+      }))
+      expect(fit.days).toBeGreaterThanOrEqual(5)
+      expect(fit.overflow).toBeLessThanOrEqual(1)
+      expect(fit.offscreen).toBe(0)
+      // The role's top fact still leads, as a banner above the canvas.
+      await expect(
+        page.getByText(/unmarked sessions?|sessions? need marking/).first()
+      ).toBeVisible()
+    })
+  }
 })

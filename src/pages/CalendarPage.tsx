@@ -177,13 +177,17 @@ export function CalendarPage() {
       />
 
       {view === 'week' ? (
-        <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[300px_minmax(0,1fr)]">
-          {/* Below lg: the one-row action banner rides first, above the canvas. */}
-          <div className="lg:hidden">
+        // The sidebar takes a column only at 2xl: beside it, a laptop's canvas
+        // (≈650px at 1280, ≈810px at 1440) fell below the five-column switch and
+        // the week scrolled as a snap strip with days cut off. Below 2xl the
+        // banner rung of the ADR-0044 ladder carries the top fact instead.
+        <div className="flex flex-col gap-6 2xl:grid 2xl:grid-cols-[300px_minmax(0,1fr)]">
+          {/* Below 2xl: the one-row action banner rides first, above the canvas. */}
+          <div className="2xl:hidden">
             <AgendaSidebar agenda={agenda} variant="banner" />
           </div>
-          {/* The canvas is the hero at every width (lg: right column). */}
-          <div className="lg:order-2">
+          {/* The canvas is the hero at every width (2xl: right column). */}
+          <div className="2xl:order-2">
             <WeekCanvas
               courses={courses}
               sessionExceptions={sessionExceptions}
@@ -193,10 +197,10 @@ export function CalendarPage() {
               statusFor={statusFor}
             />
           </div>
-          {/* Full buckets: lg left column; below lg they follow the canvas. Card
+          {/* Full buckets: 2xl left column; below 2xl they follow the canvas. Card
               renders a div, so the complementary landmark the <aside> carried is
               restated with role rather than dropped. */}
-          <Card role="complementary" className="lg:order-1">
+          <Card role="complementary" className="2xl:order-1">
             <CardContent>
               <AgendaSidebar agenda={agenda} variant="full" />
             </CardContent>
