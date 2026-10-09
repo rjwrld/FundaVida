@@ -614,17 +614,7 @@
       "agendaTitle": "Agenda",
       "agendaUpcomingEmpty": "Nada en la agenda.",
       "agendaUpcomingTitle": "Próximas",
-      "needsMarkingEmpty": "Nada por registrar.",
-      "needsMarkingTitle": "Por registrar",
-      "noSessionsRecorded": "Aún no hay sesiones registradas",
-      "openCalendar": "Abrir calendario",
-      "progressCount": "{{present}}/{{total}} asistencias",
-      "progressEmpty": "Aún no hay matrículas.",
-      "progressTitle": "Mi progreso",
-      "pulse": {
-        "toClose": "Por cerrar",
-        "unmarked": "Sesiones sin registrar"
-      }
+      "openCalendar": "Abrir calendario"
     },
     "stats": {
       "activeCourses": "Cursos activos",
