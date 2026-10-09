@@ -8,7 +8,10 @@ export interface AnimatedNumberProps extends React.HTMLAttributes<HTMLSpanElemen
   format?: (value: number) => string
 }
 
-const defaultFormat = (n: number) => n.toLocaleString('en-US')
+// The tween passes fractional in-between values; a count is a whole number, so
+// the default rounds each frame. Fractional values (rates, grades) bring their own
+// `format`.
+const defaultFormat = (n: number) => Math.round(n).toLocaleString('en-US')
 
 function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - t, 3)
