@@ -328,7 +328,6 @@
       "breadcrumb": "Ruta de navegación",
       "filters": "Filtros",
       "loading": "Cargando",
-      "loadingStat": "Cargando indicador",
       "loadingTable": "Cargando tabla",
       "skipToMain": "Saltar al contenido principal"
     },
@@ -639,16 +638,15 @@
       }
     },
     "tcu": {
+      "activities": "Mis actividades",
       "assignedCourse": "Tu curso",
-      "hoursCompleted": "Horas completadas",
-      "hoursRemaining": "Horas restantes hacia 300",
       "logHours": "Registrar horas",
       "meetingDaysLabel": "Días de reunión",
       "nextSessionLabel": "Próxima sesión",
       "noActivities": "Aún no hay actividades registradas.",
       "noUpcomingSessions": "Sin próximas sesiones",
-      "recentActivities": "Actividades recientes",
-      "recentActivitiesList": "Actividades recientes",
+      "progressApproved": "{{approved}} / {{target}} h aprobadas",
+      "progressPending": "+{{pending}} pendientes",
       "sectionTitle": "Tu servicio de TCU",
       "sedeLabel": "Sede",
       "sessionToday": "Hoy"
