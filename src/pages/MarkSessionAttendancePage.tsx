@@ -35,6 +35,7 @@ import { fullName } from '@/lib/personName'
 import { useFormat } from '@/hooks/useFormat'
 import { can } from '@/permissions'
 import { useStore } from '@/data/store'
+import { isLiveCohort } from '@/lib/courseDisplayState'
 import type { AttendanceRecord } from '@/types'
 
 export function MarkSessionAttendancePage() {
@@ -158,9 +159,11 @@ export function MarkSessionAttendancePage() {
   // the courseOwned predicate, students/other teachers never.
   const role = useStore((s) => s.role)
   const currentUserId = useStore((s) => s.currentUserId)
+  // A closed cohort's attendance is final (ADR-0024) and the store rejects a save,
+  // so its marking route redirects like any other role without the right.
   const canMark = useMemo(
     () =>
-      role && course
+      role && course && isLiveCohort(course)
         ? can(role, 'mark', 'attendance', { userId: currentUserId ?? undefined, course })
         : false,
     [role, currentUserId, course]

@@ -1408,6 +1408,28 @@ describe('<CoursesDetailPage /> — a closed cohort is read-only (ADR-0024)', ()
     expect(screen.queryByRole('link', { name: /^(Mark attendance|Review) —/ })).toBeNull()
   })
 
+  it('still shows a marker the closed course’s unrecorded Sessions, read-only', async () => {
+    const course = closedCourseWithRoster()
+    asRole('admin')
+    // The seed records only the last sessions per enrollment, so a closed cohort
+    // keeps unrecorded past Sessions — the gap must stay visible after close.
+    const s = useStore.getState()
+    const expected = closeReadiness({
+      course,
+      enrollments: s.enrollments,
+      grades: s.grades,
+      attendance: s.attendance,
+      sessionExceptions: s.sessionExceptions,
+      now: clock.now(),
+    }).unrecordedSessions.length
+    expect(expected).toBeGreaterThan(0)
+    renderPage(course.id)
+
+    const gaps = await screen.findByRole('list', { name: 'Not recorded' })
+    expect(within(gaps).getAllByRole('listitem')).toHaveLength(expected)
+    expect(within(gaps).queryByRole('link')).toBeNull()
+  })
+
   it('keeps marking live on a Term-ended course that is not closed yet', async () => {
     const s = useStore.getState()
     const course = req(

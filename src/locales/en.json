@@ -481,6 +481,7 @@
         "empty": "No sessions scheduled for this course.",
         "groups": {
           "needsAttendance": "Needs attendance",
+          "notRecorded": "Not recorded",
           "past": "Past",
           "recorded": "Recorded",
           "today": "Today",

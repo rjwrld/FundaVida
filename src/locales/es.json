@@ -487,6 +487,7 @@
         "empty": "No hay sesiones programadas para este curso.",
         "groups": {
           "needsAttendance": "Por registrar",
+          "notRecorded": "Sin registrar",
           "past": "Pasadas",
           "recorded": "Registradas",
           "today": "Hoy",

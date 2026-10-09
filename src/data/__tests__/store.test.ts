@@ -525,11 +525,47 @@ describe('attendance marking', () => {
     useStore.getState().resetDemo()
   })
 
+  // A closed cohort is terminal (ADR-0024): its attendance is final, so neither
+  // marking path writes to it — the UI freeze is backed by the store.
+  function closedRecord() {
+    const state = useStore.getState()
+    const closedIds = new Set(state.courses.filter((c) => c.status === 'closed').map((c) => c.id))
+    const record = state.attendance.find((a) => closedIds.has(a.courseId))
+    if (!record) throw new Error('seed: no attendance in a closed course')
+    return record
+  }
+
+  it('markAttendance rejects a closed course', () => {
+    useStore.getState().setRole('admin')
+    const record = closedRecord()
+
+    expect(() =>
+      useStore
+        .getState()
+        .markAttendance(record.courseId, record.studentId, record.sessionDate, 'absent')
+    ).toThrow(/closed/)
+  })
+
+  it('markSessionAttendance rejects a closed course', () => {
+    useStore.getState().setRole('admin')
+    const record = closedRecord()
+
+    expect(() =>
+      useStore.getState().markSessionAttendance(record.courseId, record.sessionDate, {
+        [record.studentId]: 'absent',
+      })
+    ).toThrow(/closed/)
+    expect(useStore.getState().attendance.find((a) => a.id === record.id)?.status).toBe(
+      record.status
+    )
+  })
+
   it('markAttendance creates a new record if none exists for (courseId, studentId, sessionDate)', () => {
     useStore.getState().setRole('admin')
     const state = useStore.getState()
-    const course = state.courses[0]
-    if (!course) throw new Error('expected at least one course')
+    // A live cohort: a closed one's attendance is final (ADR-0024).
+    const course = state.courses.find((c) => c.status !== 'closed')
+    if (!course) throw new Error('expected at least one live course')
     const enrollment = state.enrollments.find((e) => e.courseId === course.id)
     if (!enrollment) throw new Error('expected at least one enrollment in the course')
     const sessions = sessionsFor(course)
@@ -557,7 +593,8 @@ describe('attendance marking', () => {
   it('markAttendance updates an existing record for (courseId, studentId, sessionDate)', () => {
     useStore.getState().setRole('admin')
     const state = useStore.getState()
-    const existing = state.attendance.find((a) => a.status === 'present')
+    const live = new Set(state.courses.filter((c) => c.status !== 'closed').map((c) => c.id))
+    const existing = state.attendance.find((a) => a.status === 'present' && live.has(a.courseId))
     if (!existing) throw new Error('expected an attendance record to update')
     const logLengthBefore = state.auditLog.length
     const updated = useStore
@@ -602,7 +639,7 @@ describe('attendance marking', () => {
     useStore.getState().setRole('teacher')
     const state = useStore.getState()
     const ownedCourseIds = new Set(
-      state.courses.filter((c) => c.teacherId === 'tea-1').map((c) => c.id)
+      state.courses.filter((c) => c.teacherId === 'tea-1' && c.status !== 'closed').map((c) => c.id)
     )
     const ownedRecord = state.attendance.find((a) => ownedCourseIds.has(a.courseId))
     if (!ownedRecord) throw new Error('expected an attendance record for a teacher-owned course')
@@ -637,8 +674,9 @@ describe('enrollment-status guard on grading/attendance (issue #408)', () => {
   // student who is not enrolled in it under any status.
   function unenrolledPair() {
     const state = useStore.getState()
-    const course = state.courses[0]
-    if (!course) throw new Error('expected at least one course')
+    // A live cohort, so the enrollment guard (not the closed-cohort freeze) answers.
+    const course = state.courses.find((c) => c.status !== 'closed')
+    if (!course) throw new Error('expected at least one live course')
     const enrolledIds = new Set(
       state.enrollments.filter((e) => e.courseId === course.id).map((e) => e.studentId)
     )

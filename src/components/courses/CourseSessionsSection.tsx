@@ -108,13 +108,17 @@ export function CourseSessionsSection({
   const pastPending = canMark && readiness === null && past.length > 0
 
   // A closed cohort is terminal (ADR-0024): its attendance is final, so a marker
-  // sees only what was recorded — no Needs-attendance queue, no mark or review
-  // action. A Term-ended but unclosed cohort stays live: marking is how it closes.
+  // sees its Recorded and Not-recorded Sessions read-only — no Needs-attendance
+  // queue, no mark or review action. A Term-ended but unclosed cohort stays live:
+  // marking is how it closes.
   const frozen = !isLiveCohort(course)
 
   const unrecordedDates = new Set(readiness?.unrecordedSessions.map((s) => s.date) ?? [])
-  const needsAttendance =
-    showVerdicts && !frozen ? past.filter((s) => unrecordedDates.has(s.date)) : []
+  const unrecorded = showVerdicts ? past.filter((s) => unrecordedDates.has(s.date)) : []
+  // Live: the gaps are a work queue. Closed: the same gaps stay visible as a
+  // read-only record, so closing never hides that attendance went unrecorded.
+  const needsAttendance = frozen ? [] : unrecorded
+  const notRecorded = frozen ? unrecorded : []
   const recorded = showVerdicts ? past.filter((s) => !unrecordedDates.has(s.date)) : []
 
   const markAction = (session: Session, primary: boolean) => (
@@ -281,6 +285,15 @@ export function CourseSessionsSection({
                 </ul>
               </CollapsibleContent>
             </Collapsible>
+          )}
+
+          {/* Not recorded — a closed cohort's unrecorded past Sessions, read-only. */}
+          {notRecorded.length > 0 && (
+            <SessionGroup label={t('courses.detail.sessions.groups.notRecorded')}>
+              {notRecorded.map((session) => (
+                <SessionRow key={session.date} label={sessionLabel(session)} />
+              ))}
+            </SessionGroup>
           )}
 
           {/* Past — a Student's read-only view: no verdicts, no actions (ADR-0037). */}
