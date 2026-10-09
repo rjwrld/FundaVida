@@ -431,14 +431,17 @@ test.describe('calendar quiet states + responsive (ADR-0044)', () => {
   // A laptop viewport must show the whole Mon–Fri week at once: the canvas used to
   // share the row with the 300px sidebar and fall below its seven-column switch,
   // so at 1440px the week rendered as a snap strip with Mon/Tue scrolled off.
-  for (const width of [1280, 1440]) {
-    test(`laptop viewport ${width}px: the full work week fits without scrolling`, async ({
-      page,
-    }) => {
+  // A classic (Windows-style) scrollbar eats ~15px that macOS overlay scrollbars
+  // do not — at 1536px it once tipped the canvas back under the switch. Headless
+  // Chromium hides scrollbars, so the gutter is emulated with right padding.
+  // 1920px covers the sidebar-beside-canvas layout.
+  for (const width of [1280, 1440, 1536, 1920]) {
+    test(`viewport ${width}px: the full work week fits without scrolling`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await seedAndEnter(page, seedSnapshot, 'admin', 'admin')
+      await page.addStyleTag({ content: 'html { padding-right: 15px }' })
 
-      const week = page.getByRole('region', { name: /week/i })
+      const week = page.getByRole('region', { name: 'Sessions this week' })
       await expect(week).toBeVisible()
       const fit = await week.evaluate((el) => ({
         overflow: el.scrollWidth - el.clientWidth,
@@ -452,9 +455,12 @@ test.describe('calendar quiet states + responsive (ADR-0044)', () => {
       expect(fit.days).toBeGreaterThanOrEqual(5)
       expect(fit.overflow).toBeLessThanOrEqual(1)
       expect(fit.offscreen).toBe(0)
-      // The role's top fact still leads, as a banner above the canvas.
+      // The role's top fact still leads — as the banner, or in the sidebar column.
       await expect(
-        page.getByText(/unmarked sessions?|sessions? need marking/).first()
+        page
+          .getByText(/unmarked sessions?|sessions? need marking/)
+          .filter({ visible: true })
+          .first()
       ).toBeVisible()
     })
   }

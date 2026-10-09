@@ -117,10 +117,12 @@ export function WeekCanvas({
       ) : (
         <div
           ref={scrollRef}
-          // The seven-column grid needs room, and the canvas shares the row with
-          // the sidebar (and the agenda rail), so it switches on the canvas's own
-          // width — on the viewport, a 1280px screen gave ~55px day columns.
-          // Narrower, the days scroll as a snap strip, which is keyboard-scrollable.
+          // The day grid (Mon–Fri, plus a weekend day only when it holds a
+          // Session) switches on the canvas's own width at @4xl (896px), not the
+          // viewport's: the canvas may share its row with the agenda sidebar.
+          // CalendarPage only puts the sidebar beside it when ≥960px remain, so a
+          // laptop always gets the grid. Narrower, the days scroll as a snap
+          // strip, which is keyboard-scrollable.
           role="region"
           aria-label={t('calendar.weekRegion')}
           // A scroll container must be focusable to be keyboard-scrollable (axe
