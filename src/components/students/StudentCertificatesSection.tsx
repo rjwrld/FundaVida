@@ -86,7 +86,8 @@ export function StudentCertificatesSection({ student }: { student: Student }) {
       {items.length === 0 ? (
         <NoResults message={t('students.detail.certificates.empty')} />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        // The same glance-size previews as a Course's section (ADR-0051).
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {items.map((item) => (
             <CertificateCard
               key={item.id}

@@ -352,7 +352,9 @@ export function CoursesDetailPage() {
         action={
           <>
             {canEdit && isLiveCohort(course) && (
-              <Button onClick={() => navigate(`/app/courses?edit=${course.id}`)}>
+              // Outline: the page's one primary action is the Mark on the Session
+              // due now (ADR-0051), not an edit.
+              <Button variant="outline" onClick={() => navigate(`/app/courses?edit=${course.id}`)}>
                 {t('courses.detail.edit')}
               </Button>
             )}
