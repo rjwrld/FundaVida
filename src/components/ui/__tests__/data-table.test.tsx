@@ -77,6 +77,12 @@ function bodyRowNames() {
 }
 
 /** Body (data) row elements in the rendered table, in DOM order. */
+/** Pick a page size through the Pager's Radix Select (a combobox, not a native select). */
+async function choosePageSize(user: ReturnType<typeof userEvent.setup>, size: string) {
+  await user.click(screen.getByRole('combobox', { name: 'Rows per page' }))
+  await user.click(screen.getByRole('option', { name: size }))
+}
+
 function dataRows(): HTMLElement[] {
   const table = screen.getByRole('table')
   return within(table).getAllByRole('row').slice(1) // drop header row
@@ -161,13 +167,15 @@ describe('<DataTable /> — pager integration (usePagination)', () => {
 
     expect(bodyRowNames()).toHaveLength(5)
     expect(screen.getByText('Page 1 of 5')).toBeInTheDocument()
-    expect(screen.getByLabelText('Rows per page')).toHaveValue('5')
+    expect(screen.getByRole('combobox', { name: 'Rows per page' })).toHaveTextContent('5')
   })
 
-  it('offers the caller-supplied page sizes in the select', () => {
+  it('offers the caller-supplied page sizes in the select', async () => {
+    const user = userEvent.setup()
     renderTable({ pageSize: 5, pageSizeOptions: [5, 15] })
 
-    const options = within(screen.getByLabelText('Rows per page')).getAllByRole('option')
+    await user.click(screen.getByRole('combobox', { name: 'Rows per page' }))
+    const options = screen.getAllByRole('option')
     expect(options.map((o) => o.textContent)).toEqual(['5', '15'])
   })
 
@@ -176,8 +184,7 @@ describe('<DataTable /> — pager integration (usePagination)', () => {
     renderTable()
     expect(screen.getByText('Page 1 of 3')).toBeInTheDocument()
 
-    const sizeSelect = screen.getByLabelText('Rows per page')
-    await user.selectOptions(sizeSelect, '25')
+    await choosePageSize(user, '25')
 
     expect(bodyRowNames()).toHaveLength(25)
     expect(screen.getByText('Page 1 of 1')).toBeInTheDocument()
@@ -190,7 +197,7 @@ describe('<DataTable /> — pager integration (usePagination)', () => {
     await user.click(screen.getByRole('button', { name: 'Last page' }))
     expect(screen.getByText('Page 3 of 3')).toBeInTheDocument()
 
-    await user.selectOptions(screen.getByLabelText('Rows per page'), '25')
+    await choosePageSize(user, '25')
     expect(screen.getByText('Page 1 of 1')).toBeInTheDocument()
     expect(bodyRowNames()[0]).toBe('Name 1')
   })
@@ -206,12 +213,13 @@ describe('<DataTable /> — pager integration (usePagination)', () => {
 
     rerender(
       <I18nProvider>
-        <DataTable data={makeRows(4)} columns={columns} getRowKey={(r) => r.id} />
+        <DataTable data={makeRows(12)} columns={columns} getRowKey={(r) => r.id} />
       </I18nProvider>
     )
 
-    expect(screen.getByText('Page 1 of 1')).toBeInTheDocument()
-    expect(bodyRowNames()).toEqual(['Name 1', 'Name 2', 'Name 3', 'Name 4'])
+    // 12 rows still outgrow one page, so the pager stays to show where it clamped.
+    expect(screen.getByText('Page 2 of 2')).toBeInTheDocument()
+    expect(bodyRowNames()).toEqual(['Name 11', 'Name 12'])
   })
 
   it('announces the current page in a labelled, polite live region', () => {

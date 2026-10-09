@@ -1,6 +1,14 @@
+import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import type { UsePaginationResult } from '@/hooks/usePagination'
 
 export interface PagerProps {
@@ -17,9 +25,14 @@ export interface PagerProps {
  * select, and the keyboard-operable first/prev/next/last buttons (ADR-0026), so
  * each list doesn't reinvent them. Presentation only: it never touches the
  * scoped data, it just drives the passed-in `usePagination` controls.
+ *
+ * It renders nothing when every row fits on the smallest page size: there is
+ * then no page to move to and no size choice that changes what is shown, so
+ * the control would be pure chrome — decided here, once, for every surface.
  */
 export function Pager({ pagination, pageSizeOptions = [10, 25, 50] }: PagerProps) {
   const { t } = useTranslation()
+  const pageSizeLabelId = useId()
   const {
     page,
     pageSize,
@@ -35,6 +48,8 @@ export function Pager({ pagination, pageSizeOptions = [10, 25, 50] }: PagerProps
     last,
   } = pagination
 
+  if (total <= Math.min(...pageSizeOptions)) return null
+
   return (
     <nav
       aria-label={t('common.pagination.label')}
@@ -49,20 +64,21 @@ export function Pager({ pagination, pageSizeOptions = [10, 25, 50] }: PagerProps
         </span>
       </div>
       <div className="flex items-center gap-3">
-        <label className="flex items-center gap-2">
-          <span>{t('common.pagination.pageSize')}</span>
-          <select
-            value={pageSize}
-            onChange={(e) => setPageSize(Number(e.target.value))}
-            className="h-9 rounded-lg border border-input bg-background px-2 text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
-            {pageSizeOptions.map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="flex items-center gap-2">
+          <span id={pageSizeLabelId}>{t('common.pagination.pageSize')}</span>
+          <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+            <SelectTrigger size="sm" aria-labelledby={pageSizeLabelId} className="text-foreground">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {pageSizeOptions.map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {n}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex items-center gap-1">
           {(
             [
