@@ -52,7 +52,7 @@ export function TeachersDetailPage() {
       <div className="space-y-4">
         <p className="text-sm text-muted-foreground">{t('teachers.detail.title')}</p>
         <Button asChild variant="outline">
-          <Link to="/app/teachers">{t('common.actions.backToHome')}</Link>
+          <Link to="/app">{t('common.actions.backToHome')}</Link>
         </Button>
       </div>
     )
@@ -82,9 +82,6 @@ export function TeachersDetailPage() {
         description={teacher.email}
         action={
           <>
-            <Button variant="outline" onClick={() => navigate('/app/teachers')}>
-              {t('common.actions.backToHome')}
-            </Button>
             <Button onClick={() => navigate(`/app/teachers?edit=${teacher.id}`)}>
               {t('teachers.detail.edit')}
             </Button>

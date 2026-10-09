@@ -35,7 +35,7 @@ export interface StudentProgressProps {
   /** PageHeader eyebrow — the page-specific label (`students.detail` vs `me`). */
   eyebrow: string
   /** PageHeader action slot — the page-specific controls (the scope seam, ADR-0012). */
-  action: ReactNode
+  action?: ReactNode
 }
 
 /**

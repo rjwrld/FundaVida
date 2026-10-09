@@ -1421,3 +1421,33 @@ describe('<CoursesDetailPage /> — a closed cohort is read-only (ADR-0024)', ()
     ).toBeGreaterThan(0)
   })
 })
+
+describe('<CoursesDetailPage /> — no mislabeled Back to home', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+  })
+
+  // The header breadcrumb already leads back to Courses; a "Back to home" button
+  // beside it went to the list too, so its label lied.
+  it('has no "Back to home" button that actually leads to the list', async () => {
+    const { publishedOwnCourse } = fixtures()
+    asRole('admin')
+    renderPage(publishedOwnCourse.id)
+
+    await screen.findByRole('heading', { name: shortCourseName(publishedOwnCourse) })
+    expect(screen.queryByRole('button', { name: 'Back to home' })).not.toBeInTheDocument()
+  })
+
+  it('sends a course the viewer cannot see home, as its link says', async () => {
+    const { notEnrolled } = fixtures()
+    asRole('student')
+    renderPage(notEnrolled.id)
+
+    const home = await screen.findByRole('link', { name: 'Back to home' })
+    expect(home).toHaveAttribute('href', '/app')
+  })
+})
