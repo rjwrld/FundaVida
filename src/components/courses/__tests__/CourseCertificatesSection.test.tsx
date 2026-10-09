@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useReducedMotion } from 'framer-motion'
@@ -7,6 +7,8 @@ import { CourseCertificatesSection } from '@/components/courses/CourseCertificat
 import { fireConfetti } from '@/lib/confetti'
 import { isPassingScore } from '@/lib/certificates'
 import { useStore } from '@/data/store'
+import { api } from '@/data/api'
+import { delay } from '@/data/api/_delay'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
@@ -154,5 +156,60 @@ describe('<CourseCertificatesSection /> — issuance celebration (ADR-0047 phase
     })
     expect(fireConfetti).not.toHaveBeenCalled()
     expect(screen.queryByTestId('celebration-sweep')).not.toBeInTheDocument()
+  })
+})
+
+describe('<CourseCertificatesSection /> — the line it shows with no certificates (ADR-0051)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setLocale('en')
+    useStore.getState().setRole('admin')
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('says certificates come at the close on a live course', async () => {
+    renderSection(closableCourse())
+    expect(
+      await screen.findByText('Certificates appear here once this course is closed.')
+    ).toBeInTheDocument()
+  })
+
+  // A closed cohort where nobody passed is done: it is not waiting for a close.
+  it('says none were issued on a closed course that emitted none', async () => {
+    const course = { ...closableCourse(), status: 'closed' as const }
+    useStore.setState({
+      courses: useStore.getState().courses.map((c) => (c.id === course.id ? course : c)),
+      certificates: useStore.getState().certificates.filter((c) => c.courseId !== course.id),
+    })
+    renderSection(course)
+
+    expect(
+      await screen.findByText('No certificates were issued for this course.')
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('Certificates appear here once this course is closed.')
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows neither line while the certificates are still loading', async () => {
+    const list = api.certificates.list
+    vi.spyOn(api.certificates, 'list').mockImplementation(async (filters) => {
+      await delay(400)
+      return list(filters)
+    })
+    renderSection(closableCourse())
+
+    expect(screen.queryByText(/certificates (appear|were)/i)).not.toBeInTheDocument()
+    await new Promise((r) => setTimeout(r, 150))
+    expect(screen.queryByText(/certificates (appear|were)/i)).not.toBeInTheDocument()
+    expect(
+      await screen.findByText('Certificates appear here once this course is closed.')
+    ).toBeInTheDocument()
   })
 })
