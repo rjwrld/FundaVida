@@ -650,10 +650,12 @@ describe('<CoursesDetailPage /> — Sent messages card (ADR-0046)', () => {
     // Every recipient contributes their own address and their Encargado's ('both').
     const fullCount = campaign.recipientIds.length * 2
 
-    // An admin hard-deletes one recipient's enrollments across every Course this
-    // teacher owns. Unlike a withdrawal — which keeps the record, and so keeps the
-    // Student in `enrolledInOwnCourses` — a delete removes it, dropping that Student
-    // out of the teacher's student scope entirely.
+    // One recipient's enrollments disappear across every Course this teacher owns.
+    // Unlike a withdrawal — which keeps the record, and so keeps the Student in
+    // `enrolledInOwnCourses` — a removed record drops that Student out of the
+    // teacher's student scope entirely. cam-4's Course is closed, and the store
+    // refuses to unenroll from a closed cohort (ADR-0024), so the records are
+    // removed directly rather than through unenrollStudent.
     asRole('admin')
     const victim = req(campaign.recipientIds[0], 'seed: cam-4 has no recipients')
     const ownCourseIds = new Set(
@@ -662,11 +664,11 @@ describe('<CoursesDetailPage /> — Sent messages card (ADR-0046)', () => {
         .courses.filter((c) => c.teacherId === 'tea-1')
         .map((c) => c.id)
     )
-    for (const enrollment of useStore
-      .getState()
-      .enrollments.filter((e) => e.studentId === victim && ownCourseIds.has(e.courseId))) {
-      useStore.getState().unenrollStudent(enrollment.id)
-    }
+    useStore.setState({
+      enrollments: useStore
+        .getState()
+        .enrollments.filter((e) => !(e.studentId === victim && ownCourseIds.has(e.courseId))),
+    })
 
     // The count is reconstructed from who the reader can see, not recorded at send
     // time (ADR-0046). The teacher loses the departed recipient from their count...
