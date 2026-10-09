@@ -1,12 +1,12 @@
-import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { GraduationCap } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { WorklistCard, WorklistRow } from '@/components/shared/WorklistCard'
+import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { clock } from '@/lib/clock'
 import { closeReadiness } from '@/lib/closeReadiness'
 import { coursesToClose } from '@/lib/dashboard'
+import { resolveQueries } from '@/lib/resolveQueries'
 import { useAttendance } from '@/hooks/api/attendance'
 import { useCourses } from '@/hooks/api/courses'
 import { useEnrollments } from '@/hooks/api/enrollments'
@@ -25,101 +25,78 @@ import { useFormat } from '@/hooks/useFormat'
 export function CoursesToClose() {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
-  const { data: courses = [], isLoading } = useCourses()
-  const { data: enrollments } = useEnrollments()
-  const { data: grades } = useGrades()
-  const { data: attendance } = useAttendance()
-  const { data: sessionExceptions } = useSessionExceptions()
-
-  const closeable = useMemo(() => coursesToClose(courses, clock.now()), [courses])
+  const gate = resolveQueries([
+    useCourses(),
+    useEnrollments(),
+    useGrades(),
+    useAttendance(),
+    useSessionExceptions(),
+  ])
 
   // Same derivation as the detail page's checklist (#204), over the SAME composed
   // seam (ADR-0039: close-readiness reads effectiveSessions), so the two verdicts
-  // agree by construction. Null until all record queries resolve — an empty
-  // grades/attendance/exceptions window would misread as "ready".
-  const readinessById = useMemo(() => {
-    if (!enrollments || !grades || !attendance || !sessionExceptions) return null
-    const now = clock.now()
-    return new Map(
-      closeable.map((course) => [
-        course.id,
-        closeReadiness({ course, enrollments, grades, attendance, sessionExceptions, now }),
-      ])
-    )
-  }, [closeable, enrollments, grades, attendance, sessionExceptions])
+  // agree by construction. Held until all five reads resolve — an empty
+  // grades/attendance/exceptions window would misread as "ready" (ADR-0030).
+  if (gate.isPending) return <SkeletonCard lines={3} />
+
+  const [courses, enrollments, grades, attendance, sessionExceptions] = gate.data
+  const now = clock.now()
+  const closeable = coursesToClose(courses, now)
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle as="h3">{t('dashboard.coursesToClose.title')}</CardTitle>
-        {closeable.length > 0 && (
-          <CardAction>
-            <Badge variant="secondary" className="tabular-nums">
-              {closeable.length}
-            </Badge>
-          </CardAction>
-        )}
-      </CardHeader>
-      <CardContent className="flex flex-1 flex-col">
-        {isLoading ? null : closeable.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t('dashboard.coursesToClose.empty')}</p>
-        ) : (
-          <ul className="flex flex-1 flex-col divide-y divide-border/60">
-            {closeable.map((course) => {
-              const readiness = readinessById?.get(course.id)
-              return (
-                <li key={course.id} className="py-2 first:pt-0 last:pb-0">
-                  <Link
-                    to={`/app/courses/${course.id}`}
-                    className="group flex items-center gap-3 rounded-md py-1"
-                  >
-                    <GraduationCap className="size-4 shrink-0 text-primary" aria-hidden="true" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-foreground group-hover:text-primary group-hover:underline">
-                        {course.name}
-                      </span>
-                      <span className="block truncate text-xs text-muted-foreground">
-                        {t('dashboard.coursesToClose.ended', { date: formatDate(course.term.end) })}
-                      </span>
-                    </span>
-                    {readiness && (
-                      // A blocked row names its blockers with the same counts the
-                      // detail checklist shows, so "why not yet" reads at a glance.
-                      <span
-                        className="flex shrink-0 flex-wrap justify-end gap-1"
-                        data-testid="close-readiness-indicator"
-                      >
-                        {readiness.ready ? (
-                          <Badge variant="success">
-                            {t('courses.detail.readiness.verdict.ready')}
-                          </Badge>
-                        ) : (
-                          <>
-                            {readiness.ungradedStudentIds.length > 0 && (
-                              <Badge variant="warning">
-                                {t('courses.detail.readiness.grades.fail', {
-                                  count: readiness.ungradedStudentIds.length,
-                                })}
-                              </Badge>
-                            )}
-                            {readiness.unrecordedSessions.length > 0 && (
-                              <Badge variant="warning">
-                                {t('courses.detail.readiness.attendance.fail', {
-                                  count: readiness.unrecordedSessions.length,
-                                })}
-                              </Badge>
-                            )}
-                          </>
-                        )}
-                      </span>
+    <WorklistCard
+      title={t('dashboard.coursesToClose.title')}
+      icon={GraduationCap}
+      count={closeable.length}
+      emptyLabel={t('dashboard.coursesToClose.empty')}
+    >
+      {closeable.map((course) => {
+        const readiness = closeReadiness({
+          course,
+          enrollments,
+          grades,
+          attendance,
+          sessionExceptions,
+          now,
+        })
+        return (
+          <WorklistRow
+            key={course.id}
+            to={`/app/courses/${course.id}`}
+            title={course.name}
+            subtitle={t('dashboard.coursesToClose.ended', { date: formatDate(course.term.end) })}
+            trailing={
+              // A blocked row names its blockers with the same counts the detail
+              // checklist shows, so "why not yet" reads at a glance.
+              <span
+                className="flex flex-wrap justify-end gap-1"
+                data-testid="close-readiness-indicator"
+              >
+                {readiness.ready ? (
+                  <Badge variant="success">{t('courses.detail.readiness.verdict.ready')}</Badge>
+                ) : (
+                  <>
+                    {readiness.ungradedStudentIds.length > 0 && (
+                      <Badge variant="warning">
+                        {t('courses.detail.readiness.grades.fail', {
+                          count: readiness.ungradedStudentIds.length,
+                        })}
+                      </Badge>
                     )}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
+                    {readiness.unrecordedSessions.length > 0 && (
+                      <Badge variant="warning">
+                        {t('courses.detail.readiness.attendance.fail', {
+                          count: readiness.unrecordedSessions.length,
+                        })}
+                      </Badge>
+                    )}
+                  </>
+                )}
+              </span>
+            }
+          />
+        )
+      })}
+    </WorklistCard>
   )
 }
