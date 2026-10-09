@@ -21,6 +21,11 @@ export interface WorklistCardProps {
   count?: number
   /** A header control beside the count (e.g. the announcements Post button). */
   action?: ReactNode
+  /**
+   * The title's heading level: h3 under a dashboard's section title, h2 where the
+   * card opens a page section directly under the h1 (the TCU page's queue).
+   */
+  headingLevel?: 'h2' | 'h3'
   /** Copy for the compact empty state, shown when there are no rows. */
   emptyLabel: string
   /** Footer link onward to where the full list lives. */
@@ -52,6 +57,7 @@ export function WorklistCard({
   viewAll,
   children,
   body,
+  headingLevel = 'h3',
   className,
   'data-testid': testId,
 }: WorklistCardProps) {
@@ -67,7 +73,7 @@ export function WorklistCard({
       data-testid={testId}
     >
       <CardHeader>
-        <CardTitle as="h3" id={headingId} className="flex items-center gap-2">
+        <CardTitle as={headingLevel} id={headingId} className="flex items-center gap-2">
           <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           {title}
         </CardTitle>

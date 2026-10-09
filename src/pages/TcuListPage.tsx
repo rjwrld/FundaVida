@@ -43,7 +43,7 @@ export function TcuListPage() {
         }
       />
 
-      <TcuApprovalQueue />
+      <TcuApprovalQueue headingLevel="h2" />
 
       <TraineeProgressRoster
         selectedTraineeId={selectedTraineeId}

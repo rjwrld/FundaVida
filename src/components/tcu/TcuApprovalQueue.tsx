@@ -25,7 +25,10 @@ interface PendingRow {
  * admin dashboard) it shows only the longest-waiting rows and links to the full
  * page; the count badge still reports every pending activity.
  */
-export function TcuApprovalQueue({ limit }: { limit?: WorklistLimit } = {}) {
+export function TcuApprovalQueue({
+  limit,
+  headingLevel,
+}: { limit?: WorklistLimit; headingLevel?: 'h2' | 'h3' } = {}) {
   const { t } = useTranslation()
   const { formatDate, formatNumber } = useFormat()
   // Rows render trainee names from a second read, so gate on both (ADR-0030).
@@ -100,6 +103,7 @@ export function TcuApprovalQueue({ limit }: { limit?: WorklistLimit } = {}) {
   return (
     <WorklistCard
       title={t('tcu.approvalQueue.title')}
+      headingLevel={headingLevel}
       icon={Clock}
       count={rows.length}
       emptyLabel={t('tcu.approvalQueue.empty')}

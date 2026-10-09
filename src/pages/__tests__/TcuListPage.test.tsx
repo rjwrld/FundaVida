@@ -147,6 +147,10 @@ describe('<TcuListPage /> — roster multi-query gate (ADR-0030)', () => {
     renderPage()
 
     const queue = await screen.findByRole('region', { name: 'TCU hours to approve' })
+    // It opens a page section under the h1, so its title is an h2 (heading order).
+    expect(
+      within(queue).getByRole('heading', { level: 2, name: 'TCU hours to approve' })
+    ).toBeInTheDocument()
     expect(within(queue).getByText(String(pending.length))).toBeInTheDocument()
     expect(within(queue).queryByRole('link', { name: /view all/i })).not.toBeInTheDocument()
   })
