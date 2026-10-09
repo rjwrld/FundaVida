@@ -53,9 +53,11 @@ describe('writeSetInvalidations', () => {
     },
     // Documented edges.
     {
-      name: 'enrollments → +courses (seats/browse derive from enrollments)',
+      // A Teacher's scoped students ('enrolledInOwnCourses') derive from enrollments
+      // too: rejecting a request writes only enrollments, yet the student drops out.
+      name: 'enrollments → +courses +students (seats/browse/teacher roster derive from enrollments)',
       written: 'enrollments',
-      expected: [['enrollments'], ['courses']],
+      expected: [['enrollments'], ['courses'], ['students']],
     },
     {
       name: 'tcuActivities → tcu + trainees (name mismatch + hour rollups)',
@@ -85,7 +87,11 @@ describe('writeSetInvalidations', () => {
     const { before, after } = writePair(['enrollments', 'courses'])
     // Iterated in SLICE_TO_KEYS order (courses before enrollments); courses'
     // identity key wins the first emit, so enrollments' edge does not repeat it.
-    expect(writeSetInvalidations(before, after)).toEqual([['courses'], ['enrollments']])
+    expect(writeSetInvalidations(before, after)).toEqual([
+      ['courses'],
+      ['enrollments'],
+      ['students'],
+    ])
   })
 
   it('unions the keys of every written slice', () => {
@@ -93,6 +99,7 @@ describe('writeSetInvalidations', () => {
     expect(writeSetInvalidations(before, after)).toEqual([
       ['enrollments'],
       ['courses'],
+      ['students'],
       ['auditLog'],
     ])
   })
