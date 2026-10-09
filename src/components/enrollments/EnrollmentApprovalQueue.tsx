@@ -5,10 +5,16 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { WorklistCard } from '@/components/shared/WorklistCard'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
-import { useEnrollments, useApproveEnrollment, useRejectEnrollment } from '@/hooks/api'
+import {
+  useCourses,
+  useEnrollments,
+  useStudents,
+  useApproveEnrollment,
+  useRejectEnrollment,
+} from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
-import { useStore } from '@/data/store'
 import { fullName } from '@/lib/personName'
+import { resolveQueries } from '@/lib/resolveQueries'
 
 interface PendingRow {
   id: string
@@ -26,43 +32,39 @@ interface PendingRow {
 export function EnrollmentApprovalQueue() {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
-  const role = useStore((s) => s.role)
-  const userId = useStore((s) => s.currentUserId)
-  const students = useStore((s) => s.students)
-  const courses = useStore((s) => s.courses)
-  const { data: enrollments = [], isPending } = useEnrollments({})
+  // Every read rides the scope seam (ADR-0008): a Teacher's enrollments are their
+  // own Courses' ('ownCourses'), their students those enrolled or requesting
+  // there, their Courses their own; an admin's are all. Rows join all three, so
+  // gate on all three (ADR-0030).
+  const gate = resolveQueries([useEnrollments({}), useStudents(), useCourses()])
   const approveMutation = useApproveEnrollment()
   const rejectMutation = useRejectEnrollment()
 
-  // Get teacher's courses and pending requests for those courses
-  const isTeacher = role === 'teacher'
-  const teacherCourseIds = isTeacher
-    ? courses.filter((c) => c.teacherId === userId).map((c) => c.id)
-    : []
+  if (gate.isPending) return <SkeletonCard lines={3} />
 
-  // Filter to pending enrollments for the user's scope
-  const pendingEnrollments = isTeacher
-    ? enrollments.filter((e) => e.status === 'pending' && teacherCourseIds.includes(e.courseId))
-    : role === 'admin'
-      ? enrollments.filter((e) => e.status === 'pending')
-      : []
-
-  if (isPending) return <SkeletonCard lines={3} />
-
-  const rows: PendingRow[] = pendingEnrollments.map((enrollment) => {
-    const student = students.find((s) => s.id === enrollment.studentId)
-    const course = courses.find((c) => c.id === enrollment.courseId)
-    const approvedCount = enrollments.filter(
-      (e) => e.courseId === enrollment.courseId && e.status === 'approved'
-    ).length
-    return {
-      id: enrollment.id,
-      studentName: student ? fullName(student) : '',
-      courseName: course?.name ?? '',
-      requestedAt: enrollment.requestedAt,
-      isAtCapacity: Boolean(course && approvedCount >= course.capacity),
+  const [enrollments, students, courses] = gate.data
+  const studentById = new Map(students.map((s) => [s.id, s]))
+  const courseById = new Map(courses.map((c) => [c.id, c]))
+  const approvedByCourse = new Map<string, number>()
+  for (const e of enrollments) {
+    if (e.status === 'approved') {
+      approvedByCourse.set(e.courseId, (approvedByCourse.get(e.courseId) ?? 0) + 1)
     }
-  })
+  }
+
+  const rows: PendingRow[] = enrollments
+    .filter((e) => e.status === 'pending')
+    .map((enrollment) => {
+      const student = studentById.get(enrollment.studentId)
+      const course = courseById.get(enrollment.courseId)
+      return {
+        id: enrollment.id,
+        studentName: student ? fullName(student) : '',
+        courseName: course?.name ?? '',
+        requestedAt: enrollment.requestedAt,
+        isAtCapacity: Boolean(course && (approvedByCourse.get(course.id) ?? 0) >= course.capacity),
+      }
+    })
 
   // A single column set drives both the desktop table and the mobile cards
   // (via `renderCard`), so the two layouts can never drift. Both copies of a
