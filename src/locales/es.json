@@ -241,7 +241,6 @@
     "next": "Semana siguiente",
     "noCourses": "Aún no hay cursos — las sesiones aparecerán aquí cuando tengas uno.",
     "previous": "Semana anterior",
-    "sessionEntry": "{{course}} — Sesión {{ordinal}}",
     "sidebar": {
       "admin": {
         "caughtUpBody": "Todas las sesiones activas están registradas.",
@@ -678,13 +677,10 @@
       "sedeLabel": "Sede"
     },
     "teacher": {
-      "markAttendance": "Registrar asistencia",
       "needsMarking": {
         "empty": "No hay nada por marcar. Estás al día.",
         "title": "Por marcar"
       },
-      "nextSessions": "Próximas sesiones para marcar asistencia",
-      "noUpcomingSessions": "No hay próximas sesiones para marcar.",
       "ownCourses": {
         "empty": "Aún no tienes cursos.",
         "title": "Mis cursos"

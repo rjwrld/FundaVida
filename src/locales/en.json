@@ -240,7 +240,6 @@
     "next": "Next week",
     "noCourses": "No courses yet — sessions will appear here once you have one.",
     "previous": "Previous week",
-    "sessionEntry": "{{course}} — Session {{ordinal}}",
     "sidebar": {
       "admin": {
         "caughtUpBody": "Every active session is marked.",
@@ -671,13 +670,10 @@
       "sedeLabel": "Campus"
     },
     "teacher": {
-      "markAttendance": "Mark attendance",
       "needsMarking": {
         "empty": "Nothing needs marking. You're all caught up.",
         "title": "Needs marking"
       },
-      "nextSessions": "Next sessions to mark",
-      "noUpcomingSessions": "No upcoming sessions to mark.",
       "ownCourses": {
         "empty": "You don't have any courses yet.",
         "title": "My courses"

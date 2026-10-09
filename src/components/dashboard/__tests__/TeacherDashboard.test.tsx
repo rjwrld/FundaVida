@@ -62,9 +62,8 @@ describe('TeacherDashboard — worklist-first (ADR-0043)', () => {
     expect(screen.getByRole('heading', { name: /courses to close/i })).toBeInTheDocument()
   })
 
-  it('carries the supporting reads: upcoming sessions, own courses, announcements', async () => {
+  it('carries the supporting reads: own courses and announcements', async () => {
     renderDashboard()
-    expect(screen.getByRole('heading', { name: /next sessions to mark/i })).toBeInTheDocument()
     // Own courses list (with display-state badges) + the announcements feed.
     expect(await screen.findByRole('heading', { name: /announcements/i })).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { name: 'My courses' }).length).toBeGreaterThan(0)
@@ -89,7 +88,6 @@ describe('TeacherDashboard — worklist-first (ADR-0043)', () => {
       'Courses to close',
       'Enrollment requests',
       'TCU approval queue',
-      'Next sessions to mark',
       'My courses',
       'Announcements',
     ]
@@ -107,6 +105,15 @@ describe('TeacherDashboard — worklist-first (ADR-0043)', () => {
     // that follow it. The shell's sr-only section title is the column's only h2.
     const h2s = screen.getAllByRole('heading', { level: 2 }).filter(inMainColumn)
     expect(h2s.map((h) => h.textContent)).toEqual(['Your worklist'])
+  })
+
+  // Upcoming Sessions cannot be marked yet (ADR-0034), so a card that offered
+  // "Mark attendance" on each one only led to the read-only future-Session page.
+  // They stay visible in the agenda aside and on the calendar.
+  it('offers no mark-attendance shortcut onto future Sessions', async () => {
+    renderDashboard()
+    await screen.findByRole('heading', { name: /announcements/i })
+    expect(screen.queryByRole('heading', { name: /next sessions to mark/i })).toBeNull()
   })
 
   it('drops the retired "Author a course" prompt card', () => {

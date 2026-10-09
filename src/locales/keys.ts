@@ -182,9 +182,6 @@ t('bulkEmail.audience.guardians')
 t('bulkEmail.audience.both')
 
 // Dashboard keys passed as literal strings — declare them so the parser sees them
-t('dashboard.teacher.nextSessions')
-t('dashboard.teacher.noUpcomingSessions')
-t('dashboard.teacher.markAttendance')
 t('dashboard.tcu.hoursCompleted')
 t('dashboard.tcu.hoursRemaining')
 t('dashboard.tcu.recentActivities')

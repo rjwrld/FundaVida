@@ -124,9 +124,9 @@ describe('<DashboardPage /> (teacher)', () => {
   it('renders at least three meaningful role-scoped widgets', async () => {
     renderDashboard()
     // Worklist-first (ADR-0043): needs-marking + courses-to-close + own courses,
-    // with next-sessions and the announcements feed as supporting reads.
+    // with the announcements feed as a supporting read.
     expect((await screen.findAllByText(/needs marking/i)).length).toBeGreaterThan(0)
-    expect(screen.getByText(/next sessions to mark/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/courses to close/i).length).toBeGreaterThan(0)
     expect(screen.getAllByText(/my courses/i).length).toBeGreaterThan(0)
   })
 
