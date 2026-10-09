@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useTcuActivities, useTcuTrainees, useApproveTcuActivity } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
+import { oldestFirst } from '@/lib/tcuActivityOrder'
 import { fullName } from '@/lib/personName'
 
 /**
@@ -28,7 +29,7 @@ export function TcuApprovalQueue() {
   const { data: trainees = [] } = useTcuTrainees()
   const approveMutation = useApproveTcuActivity()
 
-  const pendingActivities = activities.filter((a) => a.status === 'pending')
+  const pendingActivities = oldestFirst(activities.filter((a) => a.status === 'pending'))
 
   // Only render if there are pending activities
   if (pendingActivities.length === 0) {
