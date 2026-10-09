@@ -373,6 +373,7 @@
   "courses": {
     "browse": {
       "columns": {
+        "request": "Solicitud",
         "seats": "Espacios"
       },
       "courseFullWarning": "Este curso está lleno. Los espacios solicitados se retienen como aprobación pendiente.",
@@ -382,7 +383,11 @@
       "pendingDescription": "Tu solicitud está esperando la aprobación del docente. Te notificaremos una vez revisada.",
       "pendingSection": "Tu solicitud",
       "pendingStatus": "Solicitud pendiente",
+      "request": "Solicitar",
+      "requestAria": "Solicitar un espacio en {{course}}",
       "requestButton": "Solicitar un espacio",
+      "requested": "Solicitado",
+      "requesting": "Solicitando…",
       "requestSection": "Solicitar matrícula",
       "searchPlaceholder": "Buscar por nombre",
       "seatsLabel": "Espacios restantes",

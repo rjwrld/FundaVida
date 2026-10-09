@@ -367,6 +367,7 @@
   "courses": {
     "browse": {
       "columns": {
+        "request": "Request",
         "seats": "Seats"
       },
       "courseFullWarning": "This course is full. Requested seats are held as pending approval.",
@@ -376,7 +377,11 @@
       "pendingDescription": "Your request is awaiting the teacher's approval. You'll be notified once reviewed.",
       "pendingSection": "Your request",
       "pendingStatus": "Request pending",
+      "request": "Request",
+      "requestAria": "Request a spot in {{course}}",
       "requestButton": "Request a spot",
+      "requested": "Requested",
+      "requesting": "Requesting…",
       "requestSection": "Request enrollment",
       "searchPlaceholder": "Search by name",
       "seatsLabel": "Seats remaining",
