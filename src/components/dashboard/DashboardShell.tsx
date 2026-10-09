@@ -58,7 +58,9 @@ export function DashboardShell({ sectionTitle, children, aside }: DashboardShell
         <motion.aside
           variants={fadeUp}
           transition={transitionDefaults}
-          className="flex flex-col gap-6"
+          // Top-aligned: a stretched grid item would pull the aside's card down to
+          // the main column's full height.
+          className="flex flex-col gap-6 xl:self-start"
           aria-label={t('dashboard.rightPanel.agendaTitle')}
         >
           {aside}
