@@ -81,18 +81,34 @@ describe('<CoursesListPage />', () => {
     })
   })
 
-  it('hides action column header for teacher role', async () => {
+  // ADR-0016: a Teacher may edit the Courses they own. The row check needs the
+  // Course in context — a context-free check denied the Teacher everywhere, so the
+  // Actions column rendered empty for them.
+  it('gives a teacher Edit on their own live courses, and none on a closed one', async () => {
     useStore.getState().setRole('teacher')
+    const { courses, currentUserId } = useStore.getState()
+    const own = courses.filter((c) => c.teacherId === currentUserId)
+    const live = own.find((c) => c.status === 'published')
+    const closed = own.find((c) => c.status === 'closed')
+    if (!live || !closed) throw new Error('seed: acting teacher needs a live and a closed course')
+    if (own.length > 10) throw new Error('seed: teacher courses no longer fit one page')
     renderPage()
 
-    // Wait for page to be fully loaded
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /courses/i })).toBeInTheDocument()
-    })
+    const edits = await screen.findAllByRole('button', { name: `Edit ${live.name}` })
+    expect(edits.length).toBeGreaterThan(0)
+    expect(screen.queryAllByRole('button', { name: `Edit ${closed.name}` })).toHaveLength(0)
 
-    // Actions header should not exist
-    const actionsHeader = screen.queryByText('Actions')
-    expect(actionsHeader).not.toBeInTheDocument()
+    // The edit form opens for the Teacher, not just the button.
+    edits[0]?.click()
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('hides the Actions column for a student, who can act on no row', async () => {
+    useStore.getState().setRole('student')
+    renderPage()
+
+    await screen.findByRole('table')
+    expect(screen.queryByRole('columnheader', { name: 'Actions' })).not.toBeInTheDocument()
   })
 
   it('windows the scoped courses to the default page size', async () => {

@@ -166,7 +166,9 @@ export function CoursesDetailPage() {
   }, [justClosed])
 
   const canViewRoster = useCan('view', 'enrollments', { course: course || undefined })
-  const canEdit = useCan('edit', 'courses')
+  // Edit is per-Course (courseOwned for a Teacher, ADR-0016), so it is checked
+  // with the Course in context — a context-free check only resolved for admin.
+  const canEdit = useCan('edit', 'courses', { course: course || undefined })
   const canClose = useCan('close', 'courses', { course: course || undefined })
   // Direct-enroll follows the store's enrollment window (ADR-0042): a Term-ended,
   // draft, or closed Course rejects it, so the Enroll button drops with it.
@@ -182,8 +184,7 @@ export function CoursesDetailPage() {
   const canMark = useCan('mark', 'attendance', { course: course || undefined })
   // Cancel/reschedule/add Sessions ride the `edit courses` permission + ownership
   // (ADR-0039): the Course's own Teacher or admin, on a non-closed cohort.
-  const canManageSessions =
-    useCan('edit', 'courses', { course: course || undefined }) && isLiveCohort(course)
+  const canManageSessions = canEdit && isLiveCohort(course)
   // Compose/delete on the feed rides the announcements create permission
   // (teacher-own + admin, ADR-0040) and closes on a terminal cohort, mirroring the
   // Sessions manage gate. A scoped reader without it still sees the list.
