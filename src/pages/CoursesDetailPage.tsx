@@ -168,10 +168,17 @@ export function CoursesDetailPage() {
   const canViewRoster = useCan('view', 'enrollments', { course: course || undefined })
   const canEdit = useCan('edit', 'courses')
   const canClose = useCan('close', 'courses', { course: course || undefined })
-  const canCreate = useCan('create', 'enrollments')
+  // Direct-enroll follows the store's enrollment window (ADR-0042): a Term-ended,
+  // draft, or closed Course rejects it, so the Enroll button drops with it.
+  const canCreate =
+    useCan('create', 'enrollments') && !!course && isOpenForEnrollment(course, clock.now())
+  // Grade entry/edit keep their own gates: the Teacher predicate already excludes a
+  // closed cohort, and admin corrections stay open after close (ADR-0025).
   const canEnter = useCan('enter', 'grades', { course: course || undefined })
   const canEditGrade = useCan('edit', 'grades', { course: course || undefined })
-  const canDelete = useCan('delete', 'enrollments')
+  // Removing a Student from a closed cohort would rewrite a credentialed roster
+  // (ADR-0024), so Remove closes with the cohort like the other write actions.
+  const canDelete = useCan('delete', 'enrollments') && isLiveCohort(course)
   const canMark = useCan('mark', 'attendance', { course: course || undefined })
   // Cancel/reschedule/add Sessions ride the `edit courses` permission + ownership
   // (ADR-0039): the Course's own Teacher or admin, on a non-closed cohort.
