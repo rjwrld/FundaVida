@@ -1,0 +1,28 @@
+# Dashboards are short, honest worklists
+
+_Accepted (declutter review, 2026-10-08). Amends ADR-0038 (the dashboard aside's contents) and ADR-0043 (per-role composition). The calendar page's own sidebar (ADR-0038) is untouched._
+
+The demo is skimmed by reviewers for a minute or so per role, and the dashboards read as generated: the same fact twice (a Certificates stat beside a "Certificates this epoch" card, a needs-marking card beside a needs-marking aside, an attendance column beside a "My progress" list), vanity numbers (month-over-month deltas on data seeded seconds ago), a decorative aria-hidden chart, and copy that narrates the demo rather than the work. A dashboard earns its place by answering "what do I do next?" for its role. So each one becomes a short worklist, and anything that is not essential to that answer is **deleted** — component, tests, locale keys, dependency — not moved elsewhere.
+
+**One card shape.** Every dashboard list card is a `WorklistCard`: an h3 title with its icon on the left, the pending count as a badge in the header's action slot (shown only when there is work), rows from one `WorklistRow`, a compact in-card empty state (`Empty` with an icon and one line) instead of vanishing, and an optional "View all" footer link. The card is a region named by its title. A row is one stretched link named by its title — the whole row is the hit area — with at most one sibling action, and only for work due now: an overdue Session gets **Mark**, an upcoming one gets nothing (it cannot be marked yet, ADR-0034). Session rows read "Session n · date" and never repeat the course name. The approval queues use the same card around a `DataTable` (table at `sm` and up, cards below), and they stay on screen with the empty state rather than `return null`. `NoResults` stays for filtered lists only.
+
+**Per-role composition after this ADR.**
+
+- **Admin** — four plain stat numbers (no trend chip, no gradient), then the admin's real pending work in the order it gets done: Enrollment requests → TCU hours to approve → Courses to close → Students at risk. No aside, no announcements feed: the admin has no session to attend and no class to read to.
+- **Teacher** — one column: Needs marking → Courses to close → Enrollment requests → TCU hours to approve → the slim announcements feed. The "My courses" card is gone; the Courses page is already teacher-scoped.
+- **Student** — the My courses table (Course · Status · Attendance · Grade · Certificate) and the slim feed. The Schedule column gave way to a Certificate column: an Issued badge with a download through the shared preview dialog, or a dash.
+- **TCU** — the trainee's single home: the assigned Course card with its next Session, one approved-hours progress bar with pending named beside it ("107 / 300 h approved · +9 pending", approved-only per ADR-0036), and **Log hours** as the one primary action; then the full activity log (Activity · Hours · Date · Status, newest first, paginated); then the Course's slim feed. The three stat tiles and the recent-activities list are gone.
+- **Every role** — the H1 greets the person behind the persona ("Hi, Jessica" / "Hola, Jessica"); admin, a seat rather than a seeded person, reads "Dashboard". "Signed in as {role}" restated the role switcher.
+
+**The aside is per-role opt-in.** `DashboardShell` no longer always renders the agenda aside (ADR-0038). Admin and TCU have none; their main column takes the full width (the TCU course card already says when the next Session is). Teacher and student keep a slim aside holding only **Upcoming** — the next three Sessions, short calendar names, each row linking to its Course, ending with Open Calendar. The teacher's needs-marking hero and the student's "My progress" list leave it, because the main column already carries both.
+
+**The announcements feed is slim.** On the teacher, student, and TCU dashboards the feed (ADR-0040/0043) shows the Post button for composers, the two newest posts, and "View all" only when the feed is one Course's — that Course's page is the full feed. A cross-course feed has no all-announcements page to send the viewer to, so it offers no link rather than a misleading one. The per-post course status badge is gone.
+
+**Removed outright.** The stat deltas and their whole derivation path (`dashboardStatDeltas`, `lib/stats`, the hook's `deltas`, the seed test that kept the trend positive); the enrollment funnel, which was the app's only recharts consumer, so the shadcn chart wrapper, the `chartDrawIn` motion helper, and the `recharts` dependency go with it; `CertsThisEpoch`, `OwnCoursesList`, `TcuActivityList`, and `SkeletonStatCard`. The landing's stack grid listed Recharts as a real dependency, so its cell now names Faker, which the demo really does ship.
+
+## Consequences
+
+- The Pager hides itself when every row fits on the smallest page size, decided once for every windowed surface, and its page-size control is the stock shadcn `Select`.
+- Cards that join several reads gate on all of them (`resolveQueries`, ADR-0030) — Students at risk no longer flashes its all-clear while grades load, and Courses to close no longer paints rows before their readiness.
+- No matrix, scope, API, seed, or `STATE_KEY` change. Approve/reject on the dashboard queues refreshes their counts through the existing write-set invalidation (ADR-0029); the admin stats read the store directly.
+- Navigation is untouched here: removing the TCU nav item for the trainee and making `TcuListPage` reuse `TcuApprovalQueue` are follow-up work.
