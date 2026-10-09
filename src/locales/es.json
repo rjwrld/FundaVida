@@ -642,11 +642,7 @@
       "certificatesIssued": "Certificados emitidos",
       "sectionTitle": "Estado de la organización",
       "students": "Total de estudiantes",
-      "tcuHours": "Horas TCU",
-      "trendDown": "Disminuyó",
-      "trendFlat": "Sin cambios",
-      "trendUp": "Aumentó",
-      "vsLastMonth": "vs. mes pasado"
+      "tcuHours": "Horas TCU"
     },
     "student": {
       "sectionTitle": "Tu aprendizaje",

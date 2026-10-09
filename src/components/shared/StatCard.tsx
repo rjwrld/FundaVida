@@ -1,53 +1,25 @@
 import * as React from 'react'
-import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardDescription, CardFooter, CardHeader } from '@/components/ui/card'
+import { Card, CardDescription, CardHeader } from '@/components/ui/card'
 import { AnimatedNumber } from './AnimatedNumber'
-
-export interface StatCardDelta {
-  value: number
-  label?: string
-  /** Already-localized words announcing the trend direction to assistive tech. */
-  trend?: { up: string; down: string; flat?: string }
-}
 
 export interface StatCardProps extends React.ComponentProps<typeof Card> {
   label: string
   value: number
   format?: (value: number) => string
-  delta?: StatCardDelta
 }
 
 /**
  * The registry's stat-card composition (ADR-0047 phase 5a, dashboard-01's
- * SectionCards): label as CardDescription, the value as the big tabular figure,
- * and the trend Badge leading the footer beside its comparison label. The value
+ * SectionCards), reduced to the honest part: the label as CardDescription and
+ * the value as the big tabular figure. No trend chip and no tinted gradient —
+ * both were decoration on a demo whose history is seeded (ADR-0050). The value
  * is deliberately NOT a CardTitle — a bare number makes a meaningless heading,
  * and the card's accessible name is the label above it.
  */
-export function StatCard({ label, value, format, delta, className, ...props }: StatCardProps) {
-  // Direction is keyed off the rounded percentage we actually display, so a
-  // value that rounds to 0% always reads as flat (no false up/down arrow).
-  const deltaRounded = delta ? Math.round(delta.value * 100) : 0
-  const direction = deltaRounded > 0 ? 'up' : deltaRounded < 0 ? 'down' : 'flat'
-  const deltaPct = delta ? `${Math.abs(deltaRounded)}%` : null
-  const trendWord = delta?.trend
-    ? direction === 'up'
-      ? delta.trend.up
-      : direction === 'down'
-        ? delta.trend.down
-        : delta.trend.flat
-    : null
-
+export function StatCard({ label, value, format, className, ...props }: StatCardProps) {
   return (
-    <Card
-      className={cn(
-        '@container/card h-full bg-gradient-to-t from-primary/5 to-card dark:bg-card',
-        className
-      )}
-      {...props}
-    >
+    <Card className={cn('@container/card h-full', className)} {...props}>
       <CardHeader>
         <CardDescription>{label}</CardDescription>
         <AnimatedNumber
@@ -56,30 +28,6 @@ export function StatCard({ label, value, format, delta, className, ...props }: S
           className="text-2xl font-semibold text-foreground tabular-nums @[250px]/card:text-3xl"
         />
       </CardHeader>
-      {delta && (
-        // The trend reads as one phrase with its comparison ("↗ 5% vs. last
-        // month"), so the badge leads the footer rather than sitting in the
-        // header's action slot, where it fought long (ES) labels for width.
-        <CardFooter className="mt-auto flex-wrap gap-x-2 gap-y-1 text-sm text-muted-foreground">
-          <Badge
-            variant={
-              direction === 'up' ? 'success' : direction === 'down' ? 'destructive' : 'neutral'
-            }
-            className="tabular-nums"
-          >
-            {direction === 'up' ? (
-              <ArrowUpRight aria-hidden="true" />
-            ) : direction === 'down' ? (
-              <ArrowDownRight aria-hidden="true" />
-            ) : (
-              <Minus aria-hidden="true" />
-            )}
-            {trendWord ? <span className="sr-only">{trendWord} </span> : null}
-            {deltaPct}
-          </Badge>
-          {delta.label ? <span>{delta.label}</span> : null}
-        </CardFooter>
-      )}
     </Card>
   )
 }

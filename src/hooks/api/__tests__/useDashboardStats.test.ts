@@ -2,24 +2,11 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useDashboardStats } from '../useDashboardStats'
 import { useStore } from '@/data/store'
-import { clock, setDemoEpoch } from '@/lib/clock'
-import { dashboardStatDeltas } from '@/lib/stats'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
   clearPersistedState,
 } from '@/data/persistence'
-
-const storeSnapshot = () => {
-  const s = useStore.getState()
-  return {
-    students: s.students,
-    courses: s.courses,
-    enrollments: s.enrollments,
-    certificates: s.certificates,
-    tcuActivities: s.tcuActivities,
-  }
-}
 
 /**
  * Grade an approved student in a published course with a passing score, then close
@@ -62,32 +49,5 @@ describe('useDashboardStats — certificate-backed counts (ADR-0024)', () => {
 
     const after = renderHook(() => useDashboardStats()).result.current
     expect(after.certsIssued).toBe(before.certsIssued + emitted)
-  })
-
-  it('derives its trailing window from the frozen clock, not wall-time', () => {
-    // Override the clock to a far epoch after the real-now seed. Every seeded record
-    // then predates the trailing window, so each metric equals its own baseline and
-    // every delta is exactly 0. A hook reading wall-time would still see the fresh
-    // seed inside the window and report growth.
-    setDemoEpoch(new Date('2099-06-15T12:00:00.000Z'))
-    const { result } = renderHook(() => useDashboardStats())
-    expect(result.current.deltas).toEqual({
-      totalStudents: 0,
-      activeCourses: 0,
-      certsIssued: 0,
-      tcuHours: 0,
-    })
-  })
-
-  it('exposes real month-over-month deltas derived from the same dated data', () => {
-    const { result } = renderHook(() => useDashboardStats())
-    expect(result.current.deltas).toEqual(dashboardStatDeltas(storeSnapshot(), clock.now()))
-  })
-
-  it('recomputes deltas after a mutation (closing a course)', () => {
-    closePublishedCourseEmittingCert()
-
-    const { result } = renderHook(() => useDashboardStats())
-    expect(result.current.deltas).toEqual(dashboardStatDeltas(storeSnapshot(), clock.now()))
   })
 })
