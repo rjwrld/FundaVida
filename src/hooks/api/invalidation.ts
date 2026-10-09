@@ -35,7 +35,10 @@ export type StoreSliceName = {
  * Identity by default (a slice invalidates its own key). The exceptions:
  *  - `enrollments` also invalidates `['courses']`: seat counts and browse
  *    eligibility derive from enrollments, so a course's derived reads go stale
- *    when enrollments change without the `courses` slice itself changing.
+ *    when enrollments change without the `courses` slice itself changing. It
+ *    invalidates `['students']` too: a Teacher's scoped students
+ *    ('enrolledInOwnCourses') derive from enrollments, and rejecting a request
+ *    writes only the enrollments slice.
  *  - `tcuActivities` maps to `['tcu']` (name mismatch) and also `['trainees']`,
  *    because trainee hour rollups derive from activities.
  *  - `tcuTrainees` maps to `['trainees']` (name mismatch).
@@ -54,7 +57,7 @@ export const SLICE_TO_KEYS: Record<StoreSliceName, QueryKey[]> = {
   students: [STUDENTS_KEY],
   teachers: [TEACHERS_KEY],
   courses: [COURSES_KEY],
-  enrollments: [ENROLLMENTS_KEY, COURSES_KEY],
+  enrollments: [ENROLLMENTS_KEY, COURSES_KEY, STUDENTS_KEY],
   grades: [GRADES_KEY],
   certificates: [CERTIFICATES_KEY],
   tcuTrainees: [TRAINEES_KEY],
