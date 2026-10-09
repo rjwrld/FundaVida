@@ -5,8 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '@/lib/i18n'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { useStore } from '@/data/store'
-import { clock } from '@/lib/clock'
-import { dashboardStatDeltas } from '@/lib/stats'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
@@ -50,35 +48,20 @@ describe('<DashboardPage /> (admin)', () => {
     expect(screen.getByText('TCU hours')).toBeInTheDocument()
   })
 
-  it('shows each stat card its real month-over-month trend, not a hardcoded one', () => {
+  // The tiles are plain counts: a month-over-month chip on a freshly seeded demo
+  // is a vanity number, and the tinted gradient was decoration (ADR-0050).
+  it('shows each stat as a plain number — no trend chip, no gradient', () => {
     renderDashboard()
-    const s = useStore.getState()
-    const deltas = dashboardStatDeltas(
-      {
-        students: s.students,
-        courses: s.courses,
-        enrollments: s.enrollments,
-        certificates: s.certificates,
-        tcuActivities: s.tcuActivities,
-      },
-      clock.now()
-    )
-    const cases: [RegExp, number | null][] = [
-      [/total students/i, deltas.totalStudents],
-      [/active courses/i, deltas.activeCourses],
-      [/certificates issued/i, deltas.certsIssued],
-      [/tcu hours/i, deltas.tcuHours],
-    ]
-    for (const [label, delta] of cases) {
+    for (const label of [
+      /total students/i,
+      /active courses/i,
+      /certificates issued/i,
+      /tcu hours/i,
+    ]) {
       const card = screen.getByText(label).closest('[data-slot="card"]') as HTMLElement
-      if (delta === null) {
-        expect(within(card).queryByText(/vs last month/i)).toBeNull()
-      } else {
-        const pct = Math.abs(Math.round(delta * 100))
-        // not preceded by a digit, so "0%" can't match inside "10%"
-        expect(within(card).getByText(new RegExp(`(^|\\D)${pct}%`))).toBeInTheDocument()
-        expect(within(card).getByText(/vs last month/i)).toBeInTheDocument()
-      }
+      expect(within(card).queryByText(/vs last month/i)).toBeNull()
+      expect(within(card).queryByText(/%/)).toBeNull()
+      expect(card.className).not.toMatch(/gradient/)
     }
   })
 

@@ -636,11 +636,7 @@
       "certificatesIssued": "Certificates issued",
       "sectionTitle": "Organization health",
       "students": "Total students",
-      "tcuHours": "TCU hours",
-      "trendDown": "Decreased",
-      "trendFlat": "No change",
-      "trendUp": "Increased",
-      "vsLastMonth": "vs last month"
+      "tcuHours": "TCU hours"
     },
     "student": {
       "sectionTitle": "Your learning",

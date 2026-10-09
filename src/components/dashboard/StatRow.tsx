@@ -1,75 +1,42 @@
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { StatCard, type StatCardDelta } from '@/components/shared/StatCard'
+import { StatCard } from '@/components/shared/StatCard'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useFormat } from '@/hooks/useFormat'
-import type { StatDeltas } from '@/lib/stats'
 
 export interface StatRowProps {
   totalStudents: number
   activeCourses: number
   certsIssued: number
   tcuHours: number
-  /** Real month-over-month change per metric; `null` omits the trend chip. */
-  deltas: StatDeltas
 }
 
-export function StatRow({
-  totalStudents,
-  activeCourses,
-  certsIssued,
-  tcuHours,
-  deltas,
-}: StatRowProps) {
+export function StatRow({ totalStudents, activeCourses, certsIssued, tcuHours }: StatRowProps) {
   const { t } = useTranslation()
   const { formatNumber } = useFormat()
-  const vsLastMonth = t('dashboard.stats.vsLastMonth')
-  const trend = {
-    up: t('dashboard.stats.trendUp'),
-    down: t('dashboard.stats.trendDown'),
-    flat: t('dashboard.stats.trendFlat'),
-  }
   const numberFormat = (n: number) => formatNumber(Math.round(n))
-  const deltaProp = (value: number | null): StatCardDelta | undefined =>
-    value === null ? undefined : { value, label: vsLastMonth, trend }
+  const stats = [
+    { key: 'students', label: t('dashboard.stats.students'), value: totalStudents },
+    { key: 'activeCourses', label: t('dashboard.stats.activeCourses'), value: activeCourses },
+    { key: 'certs', label: t('dashboard.stats.certificatesIssued'), value: certsIssued },
+    { key: 'tcuHours', label: t('dashboard.stats.tcuHours'), value: tcuHours },
+  ]
 
   return (
-    // Columns follow the row's own width, not the viewport: beside the sidebar
-    // and the agenda rail a 1280px screen leaves ~650px, too narrow for four.
+    // Columns follow the row's own width, not the viewport, so the four tiles
+    // wrap to two before they squeeze.
     <div className="@container">
       <div className="grid grid-cols-1 gap-4 @md:grid-cols-2 @3xl:grid-cols-4">
-        <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
-          <StatCard
-            label={t('dashboard.stats.students')}
-            value={totalStudents}
-            format={numberFormat}
-            delta={deltaProp(deltas.totalStudents)}
-          />
-        </motion.div>
-        <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
-          <StatCard
-            label={t('dashboard.stats.activeCourses')}
-            value={activeCourses}
-            format={numberFormat}
-            delta={deltaProp(deltas.activeCourses)}
-          />
-        </motion.div>
-        <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
-          <StatCard
-            label={t('dashboard.stats.certificatesIssued')}
-            value={certsIssued}
-            format={numberFormat}
-            delta={deltaProp(deltas.certsIssued)}
-          />
-        </motion.div>
-        <motion.div className="h-full" variants={fadeUp} transition={transitionDefaults}>
-          <StatCard
-            label={t('dashboard.stats.tcuHours')}
-            value={tcuHours}
-            format={numberFormat}
-            delta={deltaProp(deltas.tcuHours)}
-          />
-        </motion.div>
+        {stats.map((stat) => (
+          <motion.div
+            key={stat.key}
+            className="h-full"
+            variants={fadeUp}
+            transition={transitionDefaults}
+          >
+            <StatCard label={stat.label} value={stat.value} format={numberFormat} />
+          </motion.div>
+        ))}
       </div>
     </div>
   )

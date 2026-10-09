@@ -1,14 +1,11 @@
 import { useMemo } from 'react'
-import { clock } from '@/lib/clock'
 import { useStore } from '@/data/store'
-import { dashboardStatDeltas, type StatDeltas } from '@/lib/stats'
 
 export interface DashboardStats {
   totalStudents: number
   activeCourses: number
   certsIssued: number
   tcuHours: number
-  deltas: StatDeltas
 }
 
 // Pure derived stats for the admin dashboard.
@@ -36,18 +33,11 @@ export function useDashboardStats(): DashboardStats {
 
     const tcuHours = tcuActivities.reduce((sum, t) => sum + t.hours, 0)
 
-    // Real month-over-month trend for each headline metric (vs end of last month).
-    const deltas = dashboardStatDeltas(
-      { students, courses, enrollments, certificates, tcuActivities },
-      clock.now()
-    )
-
     return {
       totalStudents,
       activeCourses,
       certsIssued,
       tcuHours,
-      deltas,
     }
   }, [students, courses, enrollments, certificates, tcuActivities])
 }
