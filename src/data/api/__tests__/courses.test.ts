@@ -64,3 +64,29 @@ describe('coursesApi.seatsRemaining (#166)', () => {
     expect(await coursesApi.seatsRemaining('does-not-exist')).toBe(0)
   })
 })
+
+describe('coursesApi.seatsRemainingFor — one read for a list (ADR-0051)', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('student')
+  })
+
+  it('returns each listed Course’s seats, matching the single-course count', async () => {
+    const ids = useStore
+      .getState()
+      .courses.slice(0, 3)
+      .map((c) => c.id)
+
+    const seats = await coursesApi.seatsRemainingFor(ids)
+
+    expect(Object.keys(seats).sort()).toEqual([...ids].sort())
+    for (const id of ids) expect(seats[id]).toBe(await coursesApi.seatsRemaining(id))
+  })
+
+  it('reads an unknown Course as no seats', async () => {
+    expect(await coursesApi.seatsRemainingFor(['does-not-exist'])).toEqual({ 'does-not-exist': 0 })
+  })
+})

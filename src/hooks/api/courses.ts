@@ -61,6 +61,18 @@ export function useCourseSeats(id: string, enabled = true) {
   })
 }
 
+// Seats for every listed Course in one read (the Browse page, ADR-0051). Same
+// ['courses'] prefix as useCourseSeats, so an approve or a request — whose
+// enrollments write invalidates ['courses'] (ADR-0029) — refreshes the counts.
+export function useCoursesSeats(ids: string[]) {
+  const key = [...ids].sort()
+  return useQuery({
+    queryKey: [...COURSES_KEY, 'seats', 'many', key],
+    queryFn: () => api.courses.seatsRemainingFor(key),
+    enabled: key.length > 0,
+  })
+}
+
 export const useCreateCourse = makeEntityMutation('createCourse')({
   toastKey: 'toasts.courseCreated',
 })

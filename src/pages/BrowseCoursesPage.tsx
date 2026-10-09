@@ -11,18 +11,13 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { ListView } from '@/components/shared/ListView'
 import { listViewState } from '@/lib/listViewState'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
-import { useCourses, useCourseSeats } from '@/hooks/api'
+import { useCourses, useCoursesSeats } from '@/hooks/api'
 import type { CourseFilters } from '@/data/api/courses'
 import type { Course } from '@/types'
 
-/**
- * Seats left in one open Course, read through the aggregate seam (issue #166):
- * a Student's 'own' enrollment scope cannot count classmates, so the count comes
- * from the data layer and never exposes who holds a seat.
- */
-function SeatsLeft({ course }: { course: Course }) {
+/** Seats left in one open Course, from the page's single batched read. */
+function SeatsLeft({ seats }: { seats: number | undefined }) {
   const { t } = useTranslation()
-  const { data: seats } = useCourseSeats(course.id)
   if (seats === undefined) return <span className="text-muted-foreground">…</span>
   if (seats === 0) return <Badge variant="destructive">{t('courses.browse.full')}</Badge>
   return <span className="tabular-nums">{t('courses.browse.seatsLeft', { count: seats })}</span>
@@ -40,6 +35,10 @@ export function BrowseCoursesPage() {
     openOnly: true,
   })
   const { data = [], isLoading } = useCourses(filters)
+  // Seats for every listed Course in one aggregate read (issue #166): a Student's
+  // 'own' enrollment scope cannot count classmates, so the data layer counts and
+  // never exposes who holds a seat.
+  const { data: seatsById } = useCoursesSeats(data.map((c) => c.id))
 
   const hasFilters = Boolean(filters.search)
   const count = data.length
@@ -57,7 +56,7 @@ export function BrowseCoursesPage() {
     {
       id: 'seats',
       header: t('courses.browse.columns.seats'),
-      cell: (c) => <SeatsLeft course={c} />,
+      cell: (c) => <SeatsLeft seats={seatsById?.[c.id]} />,
     },
   ]
 
