@@ -161,6 +161,10 @@ test.describe('accessibility (axe)', () => {
     { name: 'courses list', path: '/app/courses' },
     { name: 'grades list', path: '/app/grades' },
     { name: 'audit log', path: '/app/audit-log' },
+    // The pages ADR-0051 rebuilt.
+    { name: 'enrollments queue', path: '/app/enrollments' },
+    { name: 'attendance rollup', path: '/app/attendance' },
+    { name: 'tcu page', path: '/app/tcu' },
   ]
 
   for (const { name, path } of authed) {

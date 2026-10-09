@@ -69,8 +69,9 @@ test('volunteer logs activity (pending) and teacher approves it', async ({ page 
   await page.waitForTimeout(1000) // Wait for dialog to close
   await expect(page.getByRole('heading', { name: 'Log an activity' })).toBeHidden()
 
-  // Verify the activity appears in the table with pending status
-  await expect(page.getByText(activityTitle)).toBeVisible()
+  // Verify the activity appears in the table with pending status. The log is a
+  // DataTable, so its card copy duplicates the text — read the table cell.
+  await expect(page.getByRole('cell', { name: activityTitle })).toBeVisible()
   const volunteerActivityRow = page.getByRole('row').filter({ has: page.getByText(activityTitle) })
   await expect(volunteerActivityRow.getByText('Pending')).toBeVisible()
 
