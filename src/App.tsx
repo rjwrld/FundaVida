@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { Analytics } from '@vercel/analytics/react'
 import { Toaster } from '@/components/ui/sonner'
@@ -125,6 +125,10 @@ export function App() {
               </Route>
               <Route element={<RoleGate resource="courses" />}>
                 <Route path="courses" element={<CoursesIndex />} />
+                {/* The retired browse URL (ADR-0051): Courses is Browse for a
+                    student now, so the old link lands there rather than resolving
+                    as a course whose id is "browse". */}
+                <Route path="courses/browse" element={<Navigate to="/app/courses" replace />} />
                 {/* Preloadable rather than plain-lazy: the list warms this route on
                     hover so the detail page mounts without the extra suspended commit
                     `React.lazy` costs on its first render — the commit that would
