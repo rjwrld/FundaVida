@@ -1,134 +1,117 @@
 import { useTranslation } from 'react-i18next'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
+import { WorklistCard } from '@/components/shared/WorklistCard'
+import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { useTcuActivities, useTcuTrainees, useApproveTcuActivity } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
+import { resolveQueries } from '@/lib/resolveQueries'
 import { oldestFirst } from '@/lib/tcuActivityOrder'
 import { fullName } from '@/lib/personName'
+import type { TcuActivity } from '@/types'
+
+interface PendingRow {
+  activity: TcuActivity
+  traineeName: string
+}
 
 /**
- * Renders an approval queue for pending TCU activities.
- * For teachers, this shows pending activities for trainees assigned to their courses.
- * For admins, this shows all pending activities.
- * Only renders when there are pending activities.
+ * The queue of pending TCU activities, oldest first (FIFO). Rides the scope seam
+ * (ADR-0012): a Teacher sees the volunteers assigned to their own Courses, an
+ * admin sees all (ADR-0017). A {@link WorklistCard} around a {@link DataTable} —
+ * a table at `sm` and up, stacked cards below — that stays on screen with the
+ * compact empty state when nothing is waiting (ADR-0050).
  */
 export function TcuApprovalQueue() {
   const { t } = useTranslation()
   const { formatDate, formatNumber } = useFormat()
-  // Both rides the scope seam (ADR-0012): a Teacher sees activities and trainees
-  // for the volunteers assigned to their own Courses; an admin sees all (ADR-0017).
-  const { data: activities = [] } = useTcuActivities({})
-  const { data: trainees = [] } = useTcuTrainees()
+  // Rows render trainee names from a second read, so gate on both (ADR-0030).
+  const gate = resolveQueries([useTcuActivities({}), useTcuTrainees()])
   const approveMutation = useApproveTcuActivity()
 
-  const pendingActivities = oldestFirst(activities.filter((a) => a.status === 'pending'))
+  if (gate.isPending) return <SkeletonCard lines={3} />
 
-  // Only render if there are pending activities
-  if (pendingActivities.length === 0) {
-    return null
-  }
-
-  const rows = pendingActivities.map((a) => {
-    const trainee = trainees.find((x) => x.id === a.traineeId)
-    return {
-      activity: a,
-      traineeName: trainee ? fullName(trainee) : '',
+  const [activities, trainees] = gate.data
+  const traineeById = new Map(trainees.map((x) => [x.id, x]))
+  const rows: PendingRow[] = oldestFirst(activities.filter((a) => a.status === 'pending')).map(
+    (activity) => {
+      const trainee = traineeById.get(activity.traineeId)
+      return { activity, traineeName: trainee ? fullName(trainee) : '' }
     }
-  })
-
-  const approveButton = (activityId: string, full?: boolean) => (
-    <Button
-      size="sm"
-      variant="default"
-      className={full ? 'flex-1' : undefined}
-      onClick={() => approveMutation.mutate({ activityId, decision: 'approved' })}
-      disabled={approveMutation.isPending}
-    >
-      {t('common.actions.approve')}
-    </Button>
   )
 
-  const rejectButton = (activityId: string, full?: boolean) => (
-    <Button
-      size="sm"
-      variant="outline"
-      className={full ? 'flex-1' : undefined}
-      onClick={() => approveMutation.mutate({ activityId, decision: 'rejected' })}
-      disabled={approveMutation.isPending}
-    >
-      {t('common.actions.reject')}
-    </Button>
-  )
+  const decide = (activityId: string, decision: 'approved' | 'rejected') =>
+    approveMutation.mutate({ activityId, decision })
+
+  const columns: DataTableColumn<PendingRow>[] = [
+    { id: 'title', header: t('tcu.list.columns.title'), cell: (r) => r.activity.title },
+    {
+      id: 'hours',
+      header: t('tcu.list.columns.hours'),
+      align: 'right',
+      className: 'font-mono tabular-nums',
+      cell: (r) => formatNumber(r.activity.hours),
+    },
+    { id: 'date', header: t('tcu.list.columns.date'), cell: (r) => formatDate(r.activity.date) },
+    { id: 'trainee', header: t('tcu.list.columns.trainee'), cell: (r) => r.traineeName },
+    {
+      id: 'actions',
+      header: t('tcu.approvalQueue.approval'),
+      align: 'right',
+      cell: (r) => (
+        <div className="flex justify-end gap-2">
+          <Button
+            size="sm"
+            onClick={() => decide(r.activity.id, 'approved')}
+            disabled={approveMutation.isPending}
+            aria-label={t('tcu.approvalQueue.approveAria', {
+              activity: r.activity.title,
+              trainee: r.traineeName,
+            })}
+          >
+            {t('common.actions.approve')}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => decide(r.activity.id, 'rejected')}
+            disabled={approveMutation.isPending}
+            aria-label={t('tcu.approvalQueue.rejectAria', {
+              activity: r.activity.title,
+              trainee: r.traineeName,
+            })}
+          >
+            {t('common.actions.reject')}
+          </Button>
+        </div>
+      ),
+    },
+  ]
 
   return (
-    <section className="space-y-3">
-      {/* An h3, like every sibling card on the TeacherDashboard — its only consumer. */}
-      <h3 className="text-lg font-semibold">{t('tcu.approvalQueue.title')}</h3>
-
-      {/* Desktop: a dense table. Hidden on mobile, where columns would push the
-          actions off-screen — the same rows render as stacked cards instead. */}
-      <Card className="hidden overflow-hidden py-0 gap-0 sm:block">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50 hover:bg-muted/50">
-              <TableHead>{t('tcu.list.columns.title')}</TableHead>
-              <TableHead className="text-right font-mono tabular-nums">
-                {t('tcu.list.columns.hours')}
-              </TableHead>
-              <TableHead>{t('tcu.list.columns.date')}</TableHead>
-              <TableHead>{t('tcu.list.columns.trainee')}</TableHead>
-              <TableHead className="text-right">{t('tcu.approvalQueue.approval')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map(({ activity, traineeName }) => (
-              <TableRow key={activity.id} className="h-12 hover:bg-muted/40">
-                <TableCell>{activity.title}</TableCell>
-                <TableCell className="text-right font-mono tabular-nums">
-                  {formatNumber(activity.hours)}
-                </TableCell>
-                <TableCell>{formatDate(activity.date)}</TableCell>
-                <TableCell>{traineeName}</TableCell>
-                <TableCell className="space-x-2 text-right">
-                  {approveButton(activity.id)}
-                  {rejectButton(activity.id)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
-
-      {/* Mobile: one card per activity with the actions full-width underneath. */}
-      <ul className="space-y-3 sm:hidden">
-        {rows.map(({ activity, traineeName }) => (
-          <li key={activity.id}>
-            <Card>
-              <CardContent>
-                <p className="font-medium text-foreground">{activity.title}</p>
-                <p className="text-sm text-muted-foreground">{traineeName}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {formatDate(activity.date)} ·{' '}
-                  <span className="font-mono tabular-nums">{formatNumber(activity.hours)}</span>{' '}
-                  {t('tcu.list.columns.hours').toLowerCase()}
-                </p>
-              </CardContent>
-              <CardFooter className="gap-2">
-                {approveButton(activity.id, true)}
-                {rejectButton(activity.id, true)}
-              </CardFooter>
-            </Card>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <WorklistCard
+      title={t('tcu.approvalQueue.title')}
+      icon={Clock}
+      count={rows.length}
+      emptyLabel={t('tcu.approvalQueue.empty')}
+      body={
+        rows.length > 0 ? (
+          <DataTable
+            data={rows}
+            columns={columns}
+            getRowKey={(r) => r.activity.id}
+            renderCard={(r) => (
+              <DataTableCard
+                row={r}
+                columns={columns}
+                titleColumnId="title"
+                actionsColumnId="actions"
+              />
+            )}
+          />
+        ) : undefined
+      }
+    />
   )
 }

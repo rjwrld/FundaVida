@@ -76,7 +76,7 @@ test('volunteer logs activity (pending) and teacher approves it', async ({ page 
   await page.waitForLoadState('networkidle')
 
   // Teacher dashboard should show the approval queue widget with the pending activity
-  await expect(page.getByRole('heading', { name: /approval queue/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'TCU hours to approve' })).toBeVisible()
   const approvalQueueRow = page.getByRole('row').filter({ has: page.getByText(activityTitle) })
   await expect(approvalQueueRow).toBeVisible()
 
