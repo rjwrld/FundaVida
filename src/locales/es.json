@@ -1028,11 +1028,6 @@
       "title": "Horas TCU por aprobar",
       "unknownTrainee": "Becario desconocido"
     },
-    "dashboard": {
-      "approvedHours": "Horas aprobadas",
-      "pendingHours": "Horas pendientes",
-      "progress": "Progreso hacia 300 horas"
-    },
     "dialog": {
       "logActivityTitle": "Registrar una actividad",
       "submit": "Registrar actividad",
@@ -1054,13 +1049,12 @@
         "trainee": "Becario"
       },
       "empty": "Aún no hay actividades registradas.",
-      "emptyFiltered": "Ninguna actividad coincide con el filtro.",
+      "logTitle": "Actividades de {{name}}",
       "status": {
         "approved": "Aprobada",
         "pending": "Pendiente",
         "rejected": "Rechazada"
       },
-      "subtitle": "Horas de servicio comunitario registradas por becarios hacia su requisito de 300 horas.",
       "title": "Actividades TCU"
     },
     "progressAria": "{{approved}} de {{target}} horas aprobadas",

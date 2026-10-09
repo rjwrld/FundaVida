@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import { Clock, GraduationCap, ListChecks, MapPin, CalendarDays } from 'lucide-react'
 import { fadeUp, transitionDefaults } from '@/lib/motion'
 import { useTcuActivities, useTcuTrainees, useCourses, useSessionExceptions } from '@/hooks/api'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -15,21 +14,18 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
 import { Progress } from '@/components/ui/progress'
 import { WorklistCard } from '@/components/shared/WorklistCard'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { LogTcuActivityDialog } from '@/components/tcu/LogTcuActivityDialog'
+import { TcuActivityLog } from '@/components/tcu/TcuActivityLog'
 import { resolveQueries } from '@/lib/resolveQueries'
 import { effectiveSessions, upcomingSessions } from '@/lib/sessions'
 import { tcuHoursByStatus, TCU_TARGET_HOURS } from '@/lib/tcuHours'
-import { newestFirst } from '@/lib/tcuActivityOrder'
-import { TCU_VARIANT } from '@/lib/statusVariant'
 import { clock } from '@/lib/clock'
 import { useFormat } from '@/hooks/useFormat'
 import { DashboardAnnouncementsFeed } from './DashboardAnnouncementsFeed'
 import { DashboardShell } from './DashboardShell'
-import type { TcuActivity } from '@/types'
 
 /**
  * The TCU trainee's home (ADR-0036, recomposed by ADR-0050): the assigned
@@ -120,26 +116,6 @@ export function TcuDashboard() {
     ? assignedCourse.meetingDays.map((d) => t(`courses.form.weekdays.${d}`)).join(', ')
     : ''
 
-  const columns: DataTableColumn<TcuActivity>[] = [
-    { id: 'title', header: t('tcu.list.columns.title'), cell: (a) => a.title },
-    {
-      id: 'hours',
-      header: t('tcu.list.columns.hours'),
-      align: 'right',
-      className: 'font-mono tabular-nums',
-      cell: (a) => formatNumber(a.hours),
-    },
-    { id: 'date', header: t('tcu.list.columns.date'), cell: (a) => formatDate(a.date) },
-    {
-      id: 'status',
-      header: t('tcu.list.columns.status'),
-      cell: (a) => (
-        <Badge variant={TCU_VARIANT[a.status]}>{t(`tcu.list.status.${a.status}`)}</Badge>
-      ),
-    },
-  ]
-  const log = newestFirst(activities)
-
   return (
     <DashboardShell sectionTitle={t('dashboard.tcu.sectionTitle')}>
       {/* Hero: the assigned Course — where the volunteer serves (ADR-0036) — with
@@ -206,18 +182,7 @@ export function TcuDashboard() {
           title={t('dashboard.tcu.activities')}
           icon={ListChecks}
           emptyLabel={t('dashboard.tcu.noActivities')}
-          body={
-            log.length > 0 ? (
-              <DataTable
-                data={log}
-                columns={columns}
-                getRowKey={(a) => a.id}
-                renderCard={(a) => (
-                  <DataTableCard row={a} columns={columns} titleColumnId="title" />
-                )}
-              />
-            ) : undefined
-          }
+          body={activities.length > 0 ? <TcuActivityLog activities={activities} /> : undefined}
         />
       </motion.div>
 
