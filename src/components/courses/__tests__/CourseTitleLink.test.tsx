@@ -24,13 +24,13 @@ vi.mock('framer-motion', async (importOriginal) => ({
 
 const mockReducedMotion = vi.mocked(useReducedMotion)
 
-function renderLink(course: Course, shared: boolean) {
+function renderLink(course: Course, shared: boolean, fullName = false) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
   const view = render(
     <I18nProvider>
       <QueryClientProvider client={client}>
         <MemoryRouter>
-          <CourseTitleLink course={course} shared={shared} />
+          <CourseTitleLink course={course} shared={shared} fullName={fullName} />
         </MemoryRouter>
       </QueryClientProvider>
     </I18nProvider>
@@ -58,6 +58,17 @@ describe('<CourseTitleLink />', () => {
     renderLink(course, false)
 
     expect(screen.getByRole('link', { name: shortCourseName(course) })).toHaveAttribute(
+      'href',
+      `/app/courses/${course.id}`
+    )
+  })
+
+  // Where the row shows no Sede of its own (the student's Browse), the full name
+  // keeps cohorts apart — the shortCourseName Sede trap (ADR-0021).
+  it('links under the full name when asked to', () => {
+    renderLink(course, false, true)
+
+    expect(screen.getByRole('link', { name: course.name })).toHaveAttribute(
       'href',
       `/app/courses/${course.id}`
     )

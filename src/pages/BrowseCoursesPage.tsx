@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Search, AlertCircle } from 'lucide-react'
 import { NoResults } from '@/components/shared/NoResults'
@@ -12,6 +11,8 @@ import { ListView } from '@/components/shared/ListView'
 import { listViewState } from '@/lib/listViewState'
 import { SkeletonTable } from '@/components/shared/skeletons/SkeletonTable'
 import { useCourses, useCoursesSeats } from '@/hooks/api'
+import { useDataTableSurface } from '@/hooks/useDataTableSurface'
+import { CourseTitleLink } from '@/components/courses/CourseTitleLink'
 import type { CourseFilters } from '@/data/api/courses'
 import type { Course } from '@/types'
 
@@ -30,6 +31,7 @@ function SeatsLeft({ seats }: { seats: number | undefined }) {
  */
 export function BrowseCoursesPage() {
   const { t } = useTranslation()
+  const surface = useDataTableSurface()
   const [filters, setFilters] = useState<CourseFilters>({
     scopeOverride: 'browseable',
     openOnly: true,
@@ -47,10 +49,11 @@ export function BrowseCoursesPage() {
     {
       id: 'name',
       header: t('courses.list.columns.name'),
+      // The full name: a student's row has no Sede column, so the short name would
+      // collide across cohorts (ADR-0021). Hover/focus warms the detail page, and
+      // the link the visible surface renders morphs into its heading.
       cell: (c) => (
-        <Link to={`/app/courses/${c.id}`} className="font-medium hover:underline">
-          {c.name}
-        </Link>
+        <CourseTitleLink course={c} shared={surface === 'table'} fullName className="font-medium" />
       ),
     },
     {
@@ -59,6 +62,24 @@ export function BrowseCoursesPage() {
       cell: (c) => <SeatsLeft seats={seatsById?.[c.id]} />,
     },
   ]
+
+  // The stacked cards (below `sm`) own the shared element there instead, so only
+  // one node per Course ever registers it (useDataTableSurface).
+  const cardColumns: DataTableColumn<Course>[] = columns.map((column) =>
+    column.id === 'name'
+      ? {
+          ...column,
+          cell: (c: Course) => (
+            <CourseTitleLink
+              course={c}
+              shared={surface === 'card'}
+              fullName
+              className="font-medium"
+            />
+          ),
+        }
+      : column
+  )
 
   return (
     <div className="space-y-6">
@@ -104,7 +125,7 @@ export function BrowseCoursesPage() {
             data={data}
             columns={columns}
             getRowKey={(c) => c.id}
-            renderCard={(c) => <DataTableCard row={c} columns={columns} titleColumnId="name" />}
+            renderCard={(c) => <DataTableCard row={c} columns={cardColumns} titleColumnId="name" />}
           />
         }
       />
