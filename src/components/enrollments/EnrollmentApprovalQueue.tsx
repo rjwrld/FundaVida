@@ -3,7 +3,7 @@ import { UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
-import { WorklistCard } from '@/components/shared/WorklistCard'
+import { WorklistCard, type WorklistLimit } from '@/components/shared/WorklistCard'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import {
   useCourses,
@@ -28,8 +28,11 @@ interface PendingRow {
  * The queue of pending enrollment requests: a Teacher's own Courses, or every
  * request for an admin. A {@link WorklistCard} around a {@link DataTable} that
  * stays on screen with the compact empty state when nothing is waiting (ADR-0050).
+ * Requests read oldest first (FIFO). With a `limit` (the admin dashboard) it shows
+ * only the longest-waiting rows and links to the full page; the count badge still
+ * reports every pending request.
  */
-export function EnrollmentApprovalQueue() {
+export function EnrollmentApprovalQueue({ limit }: { limit?: WorklistLimit } = {}) {
   const { t } = useTranslation()
   const { formatDate } = useFormat()
   // Every read rides the scope seam (ADR-0008): a Teacher's enrollments are their
@@ -54,6 +57,7 @@ export function EnrollmentApprovalQueue() {
 
   const rows: PendingRow[] = enrollments
     .filter((e) => e.status === 'pending')
+    .sort((a, b) => a.requestedAt.localeCompare(b.requestedAt) || a.id.localeCompare(b.id))
     .map((enrollment) => {
       const student = studentById.get(enrollment.studentId)
       const course = courseById.get(enrollment.courseId)
@@ -144,16 +148,26 @@ export function EnrollmentApprovalQueue() {
     },
   ]
 
+  const shown = limit ? rows.slice(0, limit.rows) : rows
+
   return (
     <WorklistCard
       title={t('enrollments.approvalQueue.title')}
       icon={UserPlus}
       count={rows.length}
       emptyLabel={t('enrollments.approvalQueue.empty')}
+      viewAll={
+        limit && rows.length > 0
+          ? {
+              to: limit.viewAllTo,
+              label: t('dashboard.worklist.viewAllCount', { n: rows.length }),
+            }
+          : undefined
+      }
       body={
         rows.length > 0 ? (
           <DataTable
-            data={rows}
+            data={shown}
             columns={columns}
             getRowKey={(r) => r.id}
             renderCard={(r) => (

@@ -104,6 +104,15 @@ export function WorklistCard({
   )
 }
 
+/**
+ * Caps a queue on a surface that is not its home (the admin dashboard): show the
+ * `rows` longest-waiting items and link to `viewAllTo`, the queue's full page.
+ */
+export interface WorklistLimit {
+  rows: number
+  viewAllTo: string
+}
+
 export interface WorklistRowProps {
   to: string
   /** The row's name — also the link's accessible name. */

@@ -165,3 +165,42 @@ describe('<EnrollmentApprovalQueue /> reads the scope seam (ADR-0008/0030)', () 
     expect(rows[0]).toHaveTextContent(own.name)
   })
 })
+
+describe('<EnrollmentApprovalQueue limit /> — the capped admin view', () => {
+  beforeEach(() => {
+    clearPersistedState()
+    clearPersistedRole()
+    clearPersistedCurrentUser()
+    useStore.getState().resetDemo()
+    useStore.getState().setRole('admin')
+    useStore.getState().setLocale('en')
+  })
+
+  it('shows the longest-waiting requests first, up to the limit', async () => {
+    pendExactly(4)
+    const pending = useStore
+      .getState()
+      .enrollments.filter((e) => e.status === 'pending')
+      .sort((a, b) => a.requestedAt.localeCompare(b.requestedAt) || a.id.localeCompare(b.id))
+    const client = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
+    render(
+      <I18nProvider>
+        <QueryClientProvider client={client}>
+          <MemoryRouter>
+            <EnrollmentApprovalQueue limit={{ rows: 2, viewAllTo: '/app/enrollments' }} />
+          </MemoryRouter>
+        </QueryClientProvider>
+      </I18nProvider>
+    )
+
+    const table = await screen.findByRole('table')
+    const approveIds = within(table)
+      .getAllByRole('button', { name: /^approve/i })
+      .map((b) => b.getAttribute('data-testid'))
+    expect(approveIds).toEqual(pending.slice(0, 2).map((e) => `approve-${e.id}`))
+    expect(screen.getByRole('link', { name: 'View all (4)' })).toHaveAttribute(
+      'href',
+      '/app/enrollments'
+    )
+  })
+})

@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTable, DataTableCard, type DataTableColumn } from '@/components/ui/data-table'
-import { WorklistCard } from '@/components/shared/WorklistCard'
+import { WorklistCard, type WorklistLimit } from '@/components/shared/WorklistCard'
 import { SkeletonCard } from '@/components/shared/skeletons/SkeletonCard'
 import { useTcuActivities, useTcuTrainees, useApproveTcuActivity } from '@/hooks/api'
 import { useFormat } from '@/hooks/useFormat'
@@ -21,9 +21,11 @@ interface PendingRow {
  * (ADR-0012): a Teacher sees the volunteers assigned to their own Courses, an
  * admin sees all (ADR-0017). A {@link WorklistCard} around a {@link DataTable} —
  * a table at `sm` and up, stacked cards below — that stays on screen with the
- * compact empty state when nothing is waiting (ADR-0050).
+ * compact empty state when nothing is waiting (ADR-0050). With a `limit` (the
+ * admin dashboard) it shows only the longest-waiting rows and links to the full
+ * page; the count badge still reports every pending activity.
  */
-export function TcuApprovalQueue() {
+export function TcuApprovalQueue({ limit }: { limit?: WorklistLimit } = {}) {
   const { t } = useTranslation()
   const { formatDate, formatNumber } = useFormat()
   // Rows render trainee names from a second read, so gate on both (ADR-0030).
@@ -93,16 +95,26 @@ export function TcuApprovalQueue() {
     },
   ]
 
+  const shown = limit ? rows.slice(0, limit.rows) : rows
+
   return (
     <WorklistCard
       title={t('tcu.approvalQueue.title')}
       icon={Clock}
       count={rows.length}
       emptyLabel={t('tcu.approvalQueue.empty')}
+      viewAll={
+        limit && rows.length > 0
+          ? {
+              to: limit.viewAllTo,
+              label: t('dashboard.worklist.viewAllCount', { n: rows.length }),
+            }
+          : undefined
+      }
       body={
         rows.length > 0 ? (
           <DataTable
-            data={rows}
+            data={shown}
             columns={columns}
             getRowKey={(r) => r.activity.id}
             renderCard={(r) => (

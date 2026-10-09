@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/lib/i18n'
@@ -140,5 +140,17 @@ describe('TeacherDashboard — worklist-first (ADR-0043)', () => {
     renderDashboard()
     expect(screen.queryByText(/author a course/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /create a course/i })).not.toBeInTheDocument()
+  })
+
+  // The teacher has no Enrollments or TCU page to send "View all" to (both are
+  // context-free-denied in the matrix), so the queues stay whole, with the pager.
+  it('keeps the approval queues uncapped, with no View all link', async () => {
+    pendOneEnrollmentForTeacher()
+    renderDashboard()
+
+    for (const name of ['Enrollment requests', 'TCU hours to approve']) {
+      const queue = await screen.findByRole('region', { name })
+      expect(within(queue).queryByRole('link', { name: /view all/i })).not.toBeInTheDocument()
+    }
   })
 })

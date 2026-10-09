@@ -661,7 +661,8 @@
     },
     "worklist": {
       "mark": "Registrar",
-      "sessionLine": "Sesión {{n}} · {{date}}"
+      "sessionLine": "Sesión {{n}} · {{date}}",
+      "viewAllCount": "Ver todo ({{n}})"
     }
   },
   "demoBanner": {

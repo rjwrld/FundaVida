@@ -655,7 +655,8 @@
     },
     "worklist": {
       "mark": "Mark",
-      "sessionLine": "Session {{n}} · {{date}}"
+      "sessionLine": "Session {{n}} · {{date}}",
+      "viewAllCount": "View all ({{n}})"
     }
   },
   "demoBanner": {

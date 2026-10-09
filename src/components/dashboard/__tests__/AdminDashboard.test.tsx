@@ -115,6 +115,35 @@ describe('AdminDashboard — four numbers, then the admin’s real worklists (AD
     const left = pending - 1
     const rowsNow = () =>
       within(screen.getByRole('region', { name: 'Enrollment requests' })).queryAllByRole('row')
-    await expect.poll(() => rowsNow().length).toBe(left > 0 ? Math.min(left, 10) + 1 : 0)
+    // The admin queue shows at most five rows; the badge carries the true total.
+    await expect.poll(() => rowsNow().length).toBe(left > 0 ? Math.min(left, 5) + 1 : 0)
+    if (left > 0) {
+      const regionNow = screen.getByRole('region', { name: 'Enrollment requests' })
+      const headingNow = within(regionNow).getByRole('heading', { name: 'Enrollment requests' })
+      await expect.poll(() => headingNow.parentElement?.textContent).toContain(String(left))
+    }
+  })
+
+  // Uncapped, a 15-row TCU queue plus its pager pushed the close and at-risk
+  // worklists below the fold. The admin sees the five longest-waiting rows of
+  // each queue, the full count, and a way to the full page.
+  it.each([
+    { title: 'Enrollment requests', to: '/app/enrollments', status: 'enrollments' as const },
+    { title: 'TCU hours to approve', to: '/app/tcu', status: 'tcuActivities' as const },
+  ])('caps the $title queue at five rows with View all to $to', async ({ title, to, status }) => {
+    const pending = useStore.getState()[status].filter((r) => r.status === 'pending').length
+    expect(pending, `seed should leave more than five ${title}`).toBeGreaterThan(5)
+    renderDashboard()
+
+    const queue = await screen.findByRole('region', { name: title })
+    const table = within(queue).getByRole('table')
+    expect(within(table).getAllByRole('row')).toHaveLength(5 + 1)
+    const heading = within(queue).getByRole('heading', { name: title })
+    expect(heading.parentElement).toHaveTextContent(String(pending))
+    expect(within(queue).getByRole('link', { name: `View all (${pending})` })).toHaveAttribute(
+      'href',
+      to
+    )
+    expect(within(queue).queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument()
   })
 })
