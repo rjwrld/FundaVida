@@ -135,6 +135,25 @@ describe('<TcuDashboard /> — assigned Course card + approved-only hours (ADR-0
     expect(screen.getByRole('button', { name: /log hours/i })).toBeInTheDocument()
   })
 
+  // Today's Session is still recordable, so the upcoming-only derivation skips it
+  // (ADR-0034); on a session day the hero must say the volunteer serves today.
+  // The epoch is pinned after resetDemo, which re-anchors the clock to wall time.
+  it('reads "Today" as the next session on a session day', async () => {
+    setDemoEpoch(new Date(2026, 5, 23, 10, 0)) // Tue, a Tue/Thu meeting day
+    renderDashboard()
+
+    expect(await screen.findByText('Next session: Today')).toBeInTheDocument()
+  })
+
+  it('names the next meeting day on a day without a session', async () => {
+    setDemoEpoch(new Date(2026, 5, 24, 10, 0)) // Wed → next is Thu, Jun 25
+    renderDashboard()
+
+    const line = await screen.findByText(/^Next session: /)
+    expect(line).not.toHaveTextContent('Today')
+    expect(line).toHaveTextContent(/25/)
+  })
+
   it('counts approved hours only toward the target, showing pending separately', async () => {
     renderDashboard()
 
