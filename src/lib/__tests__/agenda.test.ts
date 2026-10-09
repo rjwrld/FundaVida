@@ -111,8 +111,10 @@ describe('buildAgenda', () => {
       const group = agenda.worklist[0]
       expect(group?.courseId).toBe('cou-1')
       expect(group?.count).toBe(2)
-      // The oldest unmarked session (the first, ascending) is the deep-link target.
+      // The oldest unmarked session (the first, ascending) is the deep-link target,
+      // and the group carries its ordinal so a row can name it without re-scanning.
       expect(group?.oldestDate).toBe(agenda.needsMarking[0]?.date)
+      expect(group?.oldestOrdinal).toBe(agenda.needsMarking[0]?.ordinal)
     })
 
     it('a session marked by any attendance record drops off the worklist', () => {

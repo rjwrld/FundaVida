@@ -42,6 +42,7 @@ describe('<AgendaSidebar />', () => {
             sede: 'Linda Vista',
             count: 3,
             oldestDate: isoDay(2026, 5, 10),
+            oldestOrdinal: 3,
           },
         ],
       })
@@ -72,6 +73,7 @@ describe('<AgendaSidebar />', () => {
               sede: 'Linda Vista',
               count: 3,
               oldestDate: isoDay(2026, 5, 10),
+              oldestOrdinal: 3,
             },
           ],
         },
