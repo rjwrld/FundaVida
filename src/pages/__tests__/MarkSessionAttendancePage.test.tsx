@@ -85,6 +85,21 @@ describe('<MarkSessionAttendancePage />', () => {
     expect(screen.queryByRole('button', { name: /Save/i })).not.toBeInTheDocument()
   })
 
+  // A closed cohort's attendance is final (ADR-0024) and the store rejects a save,
+  // so a deep link to its marking route leaves rather than offer a dead Save.
+  it('redirects an admin away from marking a closed course', async () => {
+    useStore.getState().setRole('admin')
+    const closed = useStore.getState().courses.find((c) => c.status === 'closed')
+    if (!closed) throw new Error('seed: no closed course')
+    const pastSession = sessionsFor(closed).find((s) => new Date(s.date) < today())
+    if (!pastSession) throw new Error('seed: closed course has no past session')
+
+    renderPage(`/app/courses/${closed.id}/sessions/${pastSession.date}/mark`)
+
+    expect(await screen.findByText('Redirected to dashboard')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Save/i })).not.toBeInTheDocument()
+  })
+
   it('shows marking UI to the owning teacher for a past session', async () => {
     // setRole('teacher') sets currentUserId to 'tea-1', so find a course owned by that teacher
     const state = useStore.getState()
@@ -157,8 +172,10 @@ describe('<MarkSessionAttendancePage />', () => {
     // roster does — the page copy promises it and Save sends this map as-is.
     useStore.getState().setRole('admin')
     const state = useStore.getState()
+    // A live cohort: a closed one's marking route redirects (ADR-0024).
     const course = state.courses.find(
       (c) =>
+        c.status !== 'closed' &&
         state.enrollments.some((e) => e.courseId === c.id && e.status === 'approved') &&
         sessionsFor(c).some((s) => new Date(s.date) < today())
     )

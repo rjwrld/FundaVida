@@ -1536,6 +1536,10 @@ export const useStore = create<StoreState>((set, get) => ({
       throw new Error(`cannot mark attendance: unknown course ${courseId}`)
     }
     assertCan(state, 'mark', 'attendance', { userId: state.currentUserId ?? undefined, course })
+    // A closed cohort is terminal (ADR-0024): its attendance is final.
+    if (course.status === 'closed') {
+      throw new Error(`cannot mark attendance for course ${courseId}: it is closed`)
+    }
     // Attendance attaches to the approved roster only (issue #408): reject a
     // student who is pending, rejected, withdrawn, or not enrolled at all.
     assertApprovedEnrollment(state.enrollments, studentId, courseId, 'mark attendance')
@@ -1593,6 +1597,10 @@ export const useStore = create<StoreState>((set, get) => ({
     // (on or before today). The route guard will also check markability, but we verify
     // here to prevent permission bypass.
     assertCan(state, 'mark', 'attendance', { userId: state.currentUserId ?? undefined, course })
+    // A closed cohort is terminal (ADR-0024): its attendance is final.
+    if (course.status === 'closed') {
+      throw new Error(`cannot mark session attendance for course ${courseId}: it is closed`)
+    }
     // Attendance attaches to the approved roster only (issue #408): reject the
     // whole batch if it carries a student who is pending, rejected, withdrawn, or
     // not enrolled — the roster seam already filters to approved, so this is the
