@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { I18nProvider } from '@/lib/i18n'
 import { useStore } from '@/data/store'
-import { useEnrollmentRows } from '@/hooks/useEnrollmentRequests'
+import { useEnrollmentRequestColumns, useEnrollmentRows } from '@/hooks/useEnrollmentRequests'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
@@ -40,5 +40,23 @@ describe('useEnrollmentRows', () => {
     rerender()
 
     expect(result.current).toBe(first)
+  })
+})
+
+describe('useEnrollmentRequestColumns', () => {
+  beforeEach(() => {
+    useStore.getState().setLocale('en')
+  })
+
+  it('opens with Student · Course · Requested', () => {
+    const { result } = renderHook(() => useEnrollmentRequestColumns(), { wrapper })
+    expect(result.current.map((c) => c.id)).toEqual(['student', 'course', 'requested'])
+  })
+
+  it('places Campus after Course when asked', () => {
+    const { result } = renderHook(() => useEnrollmentRequestColumns({ includeSede: true }), {
+      wrapper,
+    })
+    expect(result.current.map((c) => c.id)).toEqual(['student', 'course', 'sede', 'requested'])
   })
 })
