@@ -10,9 +10,8 @@ import { RoleGate } from '@/components/demo/RoleGate'
 import { coursesDetailRoute } from '@/pages/coursesDetailRoute'
 
 // Every /app page is code-split into its own chunk (#353): the landing page is
-// the entry surface and stays eager, while the heavy leaves (recharts on the
-// dashboards, TanStack Table on the lists, react-day-picker on the calendar)
-// load with the route that needs them. Pages export by name, so each lazy()
+// the entry surface and stays eager, while the heavy leaves (TanStack Table on
+// the lists, react-day-picker on the calendar) load with the route that needs them. Pages export by name, so each lazy()
 // re-plumbs the named export into the default React.lazy expects. The Suspense
 // boundary lives in AppLayout's outlet (shell stays painted); the one around
 // <Routes> below covers pages outside the shell.

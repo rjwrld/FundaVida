@@ -88,7 +88,7 @@ test.describe('smoke', () => {
     await expect(page.getByRole('heading', { name: /It's all here\./i })).toBeVisible()
     // Exact match: these names live only in the grid, but "Zustand"/"Playwright"
     // also appear in the Q&A prose above.
-    await expect(page.getByText('Recharts', { exact: true })).toBeVisible()
+    await expect(page.getByText('Faker', { exact: true })).toBeVisible()
     await expect(page.getByText('TanStack Table', { exact: true })).toBeVisible()
   })
 

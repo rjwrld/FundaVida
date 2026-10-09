@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { Trans, useTranslation } from 'react-i18next'
-import { BarChart3, Bell, FileText, type LucideIcon } from 'lucide-react'
+import { Bell, Dices, FileText, type LucideIcon } from 'lucide-react'
 import { fadeIn, staggerContainer } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { HighlighterSmear } from './HighlighterSmear'
@@ -18,7 +18,7 @@ import { TECH_ICONS } from './techIcons'
  * hover. Logos come from three tiers: extracted full-colour artwork
  * (`stackLogos.ts`, theme-variant aware), single-path marks tinted with a brand
  * hue (`techIcons.ts`), and — for the three tools with no distributable mark
- * anywhere (Sonner, Recharts, React PDF) — a Lucide glyph that ignites to the
+ * anywhere (Sonner, React PDF, Faker) — a Lucide glyph that ignites to the
  * site's own green. Names are proper nouns and kinds are a fixed technical
  * taxonomy, so both stay untranslated (the marquee precedent, and the ADR-0017
  * proper-noun rule); only the center prose is bilingual. The center cell is
@@ -50,7 +50,7 @@ const DEPS: Dep[] = [
   { name: 'react-i18next', kind: 'i18n' },
   { name: 'Framer Motion', kind: 'Motion' },
   { name: 'React PDF', kind: 'Certificates' },
-  { name: 'Recharts', kind: 'Charts' },
+  { name: 'Faker', kind: 'Seed data' },
   { name: 'date-fns', kind: 'Dates' },
   { name: 'Lucide', kind: 'Icons' },
   { name: 'Vitest', kind: 'Unit tests' },
@@ -61,7 +61,7 @@ const DEPS: Dep[] = [
 const FALLBACK_ICONS: Record<string, LucideIcon> = {
   Sonner: Bell,
   'React PDF': FileText,
-  Recharts: BarChart3,
+  Faker: Dices,
 }
 
 /**

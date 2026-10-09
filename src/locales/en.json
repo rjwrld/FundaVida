@@ -604,12 +604,6 @@
       "ended": "Term ended {{date}}",
       "title": "Courses to close"
     },
-    "enrollmentFunnel": {
-      "empty": "No enrollment activity yet.",
-      "summary": "{{approved}} approved · {{pending}} pending",
-      "title": "Enrollment funnel by campus",
-      "viewAll": "Review enrollments"
-    },
     "rightPanel": {
       "agendaTitle": "Agenda",
       "agendaUpcomingEmpty": "Nothing on deck.",

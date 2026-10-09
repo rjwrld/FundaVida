@@ -104,17 +104,3 @@ export const drawOn: Variants = {
   hidden: { scaleX: 0 },
   visible: { scaleX: 1 },
 }
-
-/**
- * Recharts animation props for a chart draw-in (phase 6a). Recharts animates
- * outside framer, so the reduced-motion opt-out cannot ride `MotionConfig` —
- * callers pass their own `useReducedMotion()` read and spread the result onto
- * each series (`<Bar>`, `<Line>`, …).
- */
-export function chartDrawIn(reduce: boolean | null) {
-  return {
-    isAnimationActive: !reduce,
-    animationDuration: 250,
-    animationEasing: 'ease-out',
-  } as const
-}
