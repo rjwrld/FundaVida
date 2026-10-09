@@ -594,8 +594,6 @@
     },
     "atRisk": {
       "empty": "No students need attention right now.",
-      "more_one": "+{{count}} more",
-      "more_other": "+{{count}} more",
       "reasonFailing": "Failing grade",
       "reasonLowAttendance": "Low attendance",
       "title": "Students at risk",
@@ -682,7 +680,11 @@
       },
       "sectionTitle": "Your worklist"
     },
-    "title": "Signed in as {{role}}"
+    "title": "Signed in as {{role}}",
+    "worklist": {
+      "mark": "Mark",
+      "sessionLine": "Session {{n}} · {{date}}"
+    }
   },
   "demoBanner": {
     "badge": "Demo snapshot",
