@@ -19,7 +19,7 @@ import { can } from '@/permissions'
 import type { Resource } from '@/permissions'
 import type { Role } from '@/types'
 
-export type NavSection = 'programs' | 'people' | 'reports' | 'account'
+export type NavSection = 'workspace' | 'people' | 'reports' | 'account'
 
 export interface NavItem {
   to: string
@@ -40,7 +40,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     to: '/app',
     labelKey: 'nav.dashboard',
-    section: 'programs',
+    section: 'workspace',
     icon: LayoutDashboard,
     keywords: ['home'],
   },
@@ -49,7 +49,7 @@ export const NAV_ITEMS: NavItem[] = [
     // permission, so it rides the existing Courses scope and shows for every role (ADR-0013).
     to: '/app/calendar',
     labelKey: 'nav.calendar',
-    section: 'programs',
+    section: 'workspace',
     icon: CalendarDays,
   },
   {
@@ -59,21 +59,21 @@ export const NAV_ITEMS: NavItem[] = [
     to: '/app/programs',
     labelKey: 'nav.programs',
     resource: 'programs',
-    section: 'programs',
+    section: 'workspace',
     icon: Library,
   },
   {
     to: '/app/courses',
     labelKey: 'nav.courses',
     resource: 'courses',
-    section: 'programs',
+    section: 'workspace',
     icon: BookOpen,
   },
   {
     to: '/app/certificates',
     labelKey: 'nav.certificates',
     resource: 'certificates',
-    section: 'programs',
+    section: 'workspace',
     icon: Award,
   },
   {
@@ -145,7 +145,7 @@ export const NAV_ITEMS: NavItem[] = [
   },
 ]
 
-export const NAV_SECTIONS: NavSection[] = ['programs', 'people', 'reports', 'account']
+export const NAV_SECTIONS: NavSection[] = ['workspace', 'people', 'reports', 'account']
 
 export function navItemsForRole(role: Role): NavItem[] {
   return NAV_ITEMS.filter((item) => {

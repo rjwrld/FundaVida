@@ -99,7 +99,11 @@ export function AppSidebar() {
         <SidebarContent>
           {groups.map((group) => (
             <SidebarGroup key={group.section}>
-              <SidebarGroupLabel>{t(`nav.sections.${group.section}`)}</SidebarGroupLabel>
+              {/* A label names a choice between groups; over a role's only group it
+                  is noise (ADR-0051). */}
+              {groups.length > 1 && (
+                <SidebarGroupLabel>{t(`nav.sections.${group.section}`)}</SidebarGroupLabel>
+              )}
               <SidebarGroupContent>
                 <SidebarMenu>
                   {group.items.map((item) => {
