@@ -95,4 +95,21 @@ describe('<Pager />', () => {
 
     expect(screen.getByRole('navigation', { name: 'Pagination' })).toBeInTheDocument()
   })
+
+  // A table may open on a page size below the smallest option. Hiding by the
+  // options alone would strand rows 6–8 of 8 behind a missing pager.
+  it('stays when the rows outgrow a starting page size below the smallest option', () => {
+    renderPager(fakePagination({ pageSize: 5, total: 8, pageCount: 2 }), [10, 25, 50])
+
+    expect(screen.getByRole('navigation', { name: 'Pagination' })).toBeInTheDocument()
+  })
+
+  it('hides when the rows fit the starting page size below the smallest option', () => {
+    renderPager(
+      fakePagination({ pageSize: 5, total: 5, pageCount: 1, canNext: false }),
+      [10, 25, 50]
+    )
+
+    expect(screen.queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument()
+  })
 })

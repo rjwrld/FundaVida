@@ -2,6 +2,7 @@ import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -16,6 +17,8 @@ export interface PagerProps {
   pagination: UsePaginationResult<unknown>
   /** Selectable page sizes. Defaults to `[10, 25, 50]`. */
   pageSizeOptions?: number[]
+  /** Extra classes for the nav — chrome that should vanish with the pager. */
+  className?: string
 }
 
 /**
@@ -26,11 +29,13 @@ export interface PagerProps {
  * each list doesn't reinvent them. Presentation only: it never touches the
  * scoped data, it just drives the passed-in `usePagination` controls.
  *
- * It renders nothing when every row fits on the smallest page size: there is
- * then no page to move to and no size choice that changes what is shown, so
- * the control would be pure chrome — decided here, once, for every surface.
+ * It renders nothing when every row fits on the smallest page size (the current
+ * one included — a table may open below its smallest option): there is then no
+ * page to move to and no size choice that changes what is shown, so the control
+ * would be pure chrome. Decided here, once, for every surface — callers render
+ * it unconditionally and never guard on `pageCount`.
  */
-export function Pager({ pagination, pageSizeOptions = [10, 25, 50] }: PagerProps) {
+export function Pager({ pagination, pageSizeOptions = [10, 25, 50], className }: PagerProps) {
   const { t } = useTranslation()
   const pageSizeLabelId = useId()
   const {
@@ -48,12 +53,15 @@ export function Pager({ pagination, pageSizeOptions = [10, 25, 50] }: PagerProps
     last,
   } = pagination
 
-  if (total <= Math.min(...pageSizeOptions)) return null
+  if (total <= Math.min(pageSize, ...pageSizeOptions)) return null
 
   return (
     <nav
       aria-label={t('common.pagination.label')}
-      className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground"
+      className={cn(
+        'flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground',
+        className
+      )}
     >
       <div className="flex items-center gap-4">
         <p role="status" aria-live="polite">
