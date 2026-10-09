@@ -244,12 +244,12 @@
     "sidebar": {
       "admin": {
         "caughtUpBody": "Todas las sesiones activas están registradas.",
-        "coursesToClose_one": "{{count}} curso listo para cerrar",
-        "coursesToClose_many": "{{count}} cursos listos para cerrar",
-        "coursesToClose_other": "{{count}} cursos listos para cerrar",
+        "coursesToClose_one": "{{count}} curso por cerrar",
+        "coursesToClose_many": "{{count}} cursos por cerrar",
+        "coursesToClose_other": "{{count}} cursos por cerrar",
         "pulseTitle": "Pulso operativo",
         "review": "Revisar",
-        "toCloseLabel": "cursos listos para cerrar",
+        "toCloseLabel": "cursos por cerrar",
         "unmarked_one": "{{count}} sesión sin registrar",
         "unmarked_many": "{{count}} sesiones sin registrar",
         "unmarked_other": "{{count}} sesiones sin registrar",
@@ -635,7 +635,7 @@
       "progressEmpty": "Aún no hay matrículas.",
       "progressTitle": "Mi progreso",
       "pulse": {
-        "toClose": "Listos para cerrar",
+        "toClose": "Por cerrar",
         "unmarked": "Sesiones sin registrar"
       }
     },

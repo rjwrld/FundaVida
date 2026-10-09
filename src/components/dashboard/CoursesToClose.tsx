@@ -16,7 +16,8 @@ import { useFormat } from '@/hooks/useFormat'
 
 /**
  * The "Courses to close" worklist: published cohorts whose Term has ended and so
- * are ready for the close ceremony (ADR-0024), which emits their Certificates.
+ * await the close ceremony (ADR-0024), which emits their Certificates. Each row
+ * carries its close-readiness: "Ready to close", or the blockers still open.
  * Reads the role-scoped {@link useCourses} query, so admin sees every Sede's
  * eligible cohorts and a Teacher sees only their own — no raw store access.
  * Each row links to the Course detail page, where the close action lives.
@@ -82,15 +83,35 @@ export function CoursesToClose() {
                       </span>
                     </span>
                     {readiness && (
-                      <Badge
-                        variant={readiness.ready ? 'success' : 'warning'}
-                        className="shrink-0"
+                      // A blocked row names its blockers with the same counts the
+                      // detail checklist shows, so "why not yet" reads at a glance.
+                      <span
+                        className="flex shrink-0 flex-wrap justify-end gap-1"
                         data-testid="close-readiness-indicator"
                       >
-                        {readiness.ready
-                          ? t('courses.detail.readiness.verdict.ready')
-                          : t('courses.detail.readiness.verdict.blocked')}
-                      </Badge>
+                        {readiness.ready ? (
+                          <Badge variant="success">
+                            {t('courses.detail.readiness.verdict.ready')}
+                          </Badge>
+                        ) : (
+                          <>
+                            {readiness.ungradedStudentIds.length > 0 && (
+                              <Badge variant="warning">
+                                {t('courses.detail.readiness.grades.fail', {
+                                  count: readiness.ungradedStudentIds.length,
+                                })}
+                              </Badge>
+                            )}
+                            {readiness.unrecordedSessions.length > 0 && (
+                              <Badge variant="warning">
+                                {t('courses.detail.readiness.attendance.fail', {
+                                  count: readiness.unrecordedSessions.length,
+                                })}
+                              </Badge>
+                            )}
+                          </>
+                        )}
+                      </span>
                     )}
                   </Link>
                 </li>
