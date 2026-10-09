@@ -415,11 +415,8 @@ function CourseEnrollmentGroup({
           })}
         </AnimatePresence>
       </ul>
-      {pagination.pageCount > 1 && (
-        <div className="border-t border-border/60 px-4 py-3">
-          <Pager pagination={pagination} />
-        </div>
-      )}
+      {/* The border rides the Pager, so it vanishes with it on a one-page group. */}
+      <Pager pagination={pagination} className="border-t border-border/60 px-4 py-3" />
     </Card>
   )
 }

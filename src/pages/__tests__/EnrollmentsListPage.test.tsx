@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -127,6 +128,23 @@ describe('<EnrollmentsListPage /> — admin oversight by Sede → Course (ADR-00
     expect(screen.getAllByRole('listitem')).toHaveLength(expectedRendered)
     // At least one group needs a second page, so a pager is shown.
     expect(screen.getAllByText(/^Page 1 of [2-9]/).length).toBeGreaterThan(0)
+  })
+
+  // The pager decides its own visibility; a pageCount > 1 caller guard removed it
+  // once a bigger page size fit the group, leaving no way back to 10 rows.
+  it('keeps a group’s pager after a page size that fits the whole group', async () => {
+    const user = userEvent.setup()
+    useStore.getState().setRole('admin')
+    renderPage()
+
+    await screen.findAllByRole('button', { name: /enrollment$/i })
+    const before = screen.getAllByRole('combobox', { name: 'Rows per page' }).length
+    expect(before).toBeGreaterThan(0)
+    const [first] = screen.getAllByRole('combobox', { name: 'Rows per page' })
+    await user.click(req(first, 'a group should be paged'))
+    await user.click(screen.getByRole('option', { name: '50' }))
+
+    expect(screen.getAllByRole('combobox', { name: 'Rows per page' })).toHaveLength(before)
   })
 
   // A closed cohort is terminal (ADR-0024) and the store rejects unenrolling from

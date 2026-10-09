@@ -232,9 +232,7 @@ export function CertificatesListPage() {
                 ))}
               </AnimatePresence>
             </motion.div>
-            {pagination.pageCount > 1 && (
-              <Pager pagination={pagination} pageSizeOptions={[12, 24, 48]} />
-            )}
+            <Pager pagination={pagination} pageSizeOptions={[12, 24, 48]} />
           </div>
         }
       />

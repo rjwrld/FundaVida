@@ -208,4 +208,22 @@ describe('<CertificatesListPage />', () => {
     // The pager reports the full total across multiple pages.
     expect(screen.getByText(`Page 1 of ${Math.ceil(total / 12)}`)).toBeInTheDocument()
   })
+
+  // The pager decides its own visibility (one place). A caller guard on
+  // pageCount > 1 unmounted it the moment a bigger page size fit every card,
+  // stranding the user on that size with no way back.
+  it('keeps the pager after a page size that fits every certificate', async () => {
+    const user = userEvent.setup()
+    useStore.getState().setRole('admin')
+    const total = useStore.getState().certificates.length
+    expect(total, 'seed should hold more certificates than one 12-card page').toBeGreaterThan(12)
+    expect(total).toBeLessThanOrEqual(48)
+    renderPage()
+
+    await user.click(await screen.findByRole('combobox', { name: 'Rows per page' }))
+    await user.click(screen.getByRole('option', { name: '48' }))
+
+    expect(screen.getByText('Page 1 of 1')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Rows per page' })).toHaveTextContent('48')
+  })
 })
