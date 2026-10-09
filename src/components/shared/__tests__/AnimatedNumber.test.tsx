@@ -1,3 +1,4 @@
+import type * as React from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, render, screen } from '@testing-library/react'
 import { AnimatedNumber } from '../AnimatedNumber'
@@ -48,6 +49,38 @@ describe('<AnimatedNumber />', () => {
       // A raw tween frame read "35.613"; every frame must be a whole number.
       expect(frames.some((f) => f !== '0' && f !== '50')).toBe(true)
       for (const frame of frames) expect(frame).toMatch(/^\d+$/)
+    })
+
+    // Rounding lives in the component, not the default formatter, so a custom
+    // format (the TCU hours stats pass `${v}h`) gets whole frames too.
+    function tween(node: (value: number) => React.ReactElement, to: number) {
+      reducedMotion.value = false
+      vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'] })
+      const { container, rerender } = render(node(0))
+      rerender(node(to))
+      // 25 × 37ms runs past the 800ms default duration, so the last frame is final.
+      const frames: string[] = []
+      for (let i = 0; i < 25; i++) {
+        act(() => {
+          vi.advanceTimersByTime(37)
+        })
+        frames.push(container.textContent ?? '')
+      }
+      return frames
+    }
+
+    it('hands a custom formatter whole frames for an integer target', () => {
+      const frames = tween((v) => <AnimatedNumber value={v} format={(n) => `${n}h`} />, 120)
+
+      expect(frames.some((f) => f !== '0h' && f !== '120h')).toBe(true)
+      for (const frame of frames) expect(frame).toMatch(/^\d+h$/)
+    })
+
+    it("keeps a fractional target's frames to its own decimal places", () => {
+      const frames = tween((v) => <AnimatedNumber value={v} format={(n) => `${n}`} />, 12.5)
+
+      for (const frame of frames) expect(frame).toMatch(/^\d+(\.\d)?$/)
+      expect(frames.at(-1)).toBe('12.5')
     })
   })
 })

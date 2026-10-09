@@ -8,10 +8,26 @@ export interface AnimatedNumberProps extends React.HTMLAttributes<HTMLSpanElemen
   format?: (value: number) => string
 }
 
-// The tween passes fractional in-between values; a count is a whole number, so
-// the default rounds each frame. Fractional values (rates, grades) bring their own
-// `format`.
-const defaultFormat = (n: number) => Math.round(n).toLocaleString('en-US')
+const defaultFormat = (n: number) => n.toLocaleString('en-US')
+
+/** Decimal places the target value carries (0 for an integer count). */
+function decimalsOf(n: number): number {
+  if (Number.isInteger(n)) return 0
+  const text = String(n)
+  const exp = text.match(/e-(\d+)$/)
+  if (exp) return Number(exp[1])
+  return text.split('.')[1]?.length ?? 0
+}
+
+/**
+ * Round a tween frame to the target's own precision, so an integer count never
+ * shows "35.613" mid-tween and a 12.5 target never shows 7.31 — whatever
+ * `format` the caller passes.
+ */
+function roundTo(n: number, decimals: number): number {
+  const factor = 10 ** decimals
+  return Math.round(n * factor) / factor
+}
 
 function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - t, 3)
@@ -38,6 +54,7 @@ export function AnimatedNumber({
 
     const from = prev.current
     const to = value
+    const decimals = decimalsOf(to)
     prev.current = value
 
     const start = performance.now()
@@ -45,7 +62,7 @@ export function AnimatedNumber({
     function tick(now: number) {
       const elapsed = now - start
       const t = Math.min(elapsed / duration, 1)
-      setDisplay(from + (to - from) * easeOutCubic(t))
+      setDisplay(roundTo(from + (to - from) * easeOutCubic(t), decimals))
       if (t < 1) {
         rafRef.current = requestAnimationFrame(tick)
       }
