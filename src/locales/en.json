@@ -624,10 +624,10 @@
         "attendance": "Attendance",
         "certificate": "Certificate",
         "course": "Course",
-        "downloadCertificate": "Download the {{course}} certificate",
         "empty": "You're not enrolled in any courses yet.",
         "grade": "Grade",
         "issued": "Issued",
+        "previewCertificate": "Preview the {{course}} certificate",
         "state": "Status",
         "title": "My courses"
       }

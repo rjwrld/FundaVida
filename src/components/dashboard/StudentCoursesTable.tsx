@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { BookOpen, Download } from 'lucide-react'
+import { BookOpen, Eye } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,7 +34,7 @@ import { useFormat } from '@/hooks/useFormat'
 /**
  * The Student's "My courses" roll-up on the landing surface (ADR-0043): one row
  * per enrolled Course with its derived display-state badge (ADR-0042), attendance
- * rate, Grade, and Certificate — Issued with a download, or a dash (ADR-0050
+ * rate, Grade, and Certificate — Issued with a preview, or a dash (ADR-0050
  * swapped the schedule column for it) — the {@link buildStudentProgress} join (ADR-0032)
  * the admin/teacher StudentsDetailPage also renders, now the self view. Each row
  * deep-links to the Course detail. `/app/courses` keeps its browse-and-request
@@ -51,13 +51,15 @@ export function StudentCoursesTable() {
   const [openRow, setOpenRow] = useState<StudentProgressRow | null>(null)
 
   const { data: student } = useCurrentStudent()
-  const { data: programs } = usePrograms()
   const studentId = student?.id ?? ''
   const enrollmentsQuery = useEnrollments({ studentId })
   const coursesQuery = useCourses()
   const gradesQuery = useGrades({ studentId })
   const attendanceQuery = useAttendance({ studentId })
   const certificatesQuery = useCertificates({ studentId })
+  // Programs name the certificate's Program, so they gate the table too: a row's
+  // preview must never be built (and downloadable) with a blank Program.
+  const programsQuery = usePrograms()
 
   const gate = resolveQueries([
     enrollmentsQuery,
@@ -65,7 +67,9 @@ export function StudentCoursesTable() {
     gradesQuery,
     attendanceQuery,
     certificatesQuery,
+    programsQuery,
   ])
+  const programs = gate.isPending ? null : gate.data[5]
 
   const columns: DataTableColumn<StudentProgressRow>[] = [
     {
@@ -138,11 +142,11 @@ export function StudentCoursesTable() {
               variant="ghost"
               className="size-7"
               onClick={() => setOpenRow(row)}
-              aria-label={t('dashboard.student.table.downloadCertificate', {
+              aria-label={t('dashboard.student.table.previewCertificate', {
                 course: shortCourseName(row.course),
               })}
             >
-              <Download aria-hidden="true" />
+              <Eye aria-hidden="true" />
             </Button>
           </span>
         ) : (
@@ -151,11 +155,12 @@ export function StudentCoursesTable() {
     },
   ]
 
-  // The preview dialog is the one download path every certificate surface shares
-  // (ADR-0024: a Certificate exists iff its PDF does); its footer saves the PDF.
+  // The row's action previews; the preview dialog is the one download path every
+  // certificate surface shares (ADR-0024: a Certificate exists iff its PDF does),
+  // and its footer saves the PDF.
   const certificate = openRow?.certificate ?? null
   const payload = useMemo<CertificatePayload | null>(() => {
-    if (!openRow || !certificate || !student) return null
+    if (!openRow || !certificate || !student || !programs) return null
     return {
       studentName: fullName(student),
       courseName: openRow.course.name,

@@ -102,7 +102,7 @@ describe('<StudentCoursesTable /> — buildStudentProgress roll-up (ADR-0032/004
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
-  it('shows an issued certificate with its download, and a dash where there is none', async () => {
+  it('shows an issued certificate with its preview, and a dash where there is none', async () => {
     const user = userEvent.setup()
     const { currentUserId, enrollments, courses, certificates } = useStore.getState()
     if (!currentUserId) throw new Error('the student persona should be signed in')
@@ -139,12 +139,38 @@ describe('<StudentCoursesTable /> — buildStudentProgress roll-up (ADR-0032/004
     const plainCells = within(rowOf(shortCourseName(plainCourse))).getAllByRole('cell')
     expect(plainCells[plainCells.length - 1]).toHaveTextContent('—')
 
-    // The download rides the existing preview dialog, whose footer saves the PDF.
+    // The action says what it does: it previews, and the preview's footer saves the PDF.
     await user.click(
       within(certRow).getByRole('button', {
-        name: `Download the ${shortCourseName(certCourse)} certificate`,
+        name: `Preview the ${shortCourseName(certCourse)} certificate`,
       })
     )
     expect(await screen.findByRole('dialog', { name: /certificate preview/i })).toBeInTheDocument()
+  })
+
+  // The certificate payload names the Program; built before programs resolve it
+  // would carry a blank program into a downloadable PDF. Programs join the gate.
+  it('holds the table until programs resolve', async () => {
+    let programsResolved = false
+    const listPrograms = api.programs.list
+    vi.spyOn(api.programs, 'list').mockImplementation(async (...args) => {
+      await delay(400)
+      const result = await listPrograms(...args)
+      programsResolved = true
+      return result
+    })
+
+    let tableBeforePrograms = false
+    const observer = new MutationObserver(() => {
+      if (!programsResolved && document.querySelector('table')) tableBeforePrograms = true
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+    try {
+      renderTable()
+      expect(await screen.findByRole('table', {}, { timeout: 3000 })).toBeInTheDocument()
+      expect(tableBeforePrograms).toBe(false)
+    } finally {
+      observer.disconnect()
+    }
   })
 })

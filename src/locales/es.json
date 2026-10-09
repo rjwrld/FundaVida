@@ -630,10 +630,10 @@
         "attendance": "Asistencia",
         "certificate": "Certificado",
         "course": "Curso",
-        "downloadCertificate": "Descargar el certificado de {{course}}",
         "empty": "Aún no estás matriculado en ningún curso.",
         "grade": "Calificación",
         "issued": "Emitido",
+        "previewCertificate": "Ver el certificado de {{course}}",
         "state": "Estado",
         "title": "Mis cursos"
       }
