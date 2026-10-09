@@ -93,20 +93,11 @@ describe('<DashboardPage /> (teacher)', () => {
     useStore.getState().setLocale('en')
   })
 
-  it('renders at least three meaningful role-scoped widgets', async () => {
+  it('renders the teacher worklists', async () => {
     renderDashboard()
-    // Worklist-first (ADR-0043): needs-marking + courses-to-close + own courses,
-    // with the announcements feed as a supporting read.
-    expect((await screen.findAllByText(/needs marking/i)).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/courses to close/i).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/my courses/i).length).toBeGreaterThan(0)
-  })
-
-  it('shows only courses the teacher owns (scoped by own)', async () => {
-    renderDashboard()
-
-    // The own-courses list (with display-state badges) reads the scoped query.
-    expect(await screen.findByRole('heading', { name: 'My courses' })).toBeInTheDocument()
+    // Worklist-first (ADR-0043/0050): needs-marking + courses-to-close lead.
+    expect(await screen.findByRole('heading', { name: /needs marking/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /courses to close/i })).toBeInTheDocument()
   })
 
   it('does not show the placeholder panel for teacher', () => {

@@ -62,11 +62,32 @@ describe('TeacherDashboard — worklist-first (ADR-0043)', () => {
     expect(screen.getByRole('heading', { name: /courses to close/i })).toBeInTheDocument()
   })
 
-  it('carries the supporting reads: own courses and announcements', async () => {
+  // The Courses page is already teacher-scoped, so a "My courses" card only
+  // repeated it (ADR-0050). The announcements feed stays, slimmed.
+  it('drops the My courses card and keeps the announcements feed', async () => {
     renderDashboard()
-    // Own courses list (with display-state badges) + the announcements feed.
     expect(await screen.findByRole('heading', { name: /announcements/i })).toBeInTheDocument()
-    expect(screen.getAllByRole('heading', { name: 'My courses' }).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('heading', { name: 'My courses' })).not.toBeInTheDocument()
+  })
+
+  it('runs one column of worklists in order: marking, close, requests, TCU hours, announcements', async () => {
+    pendOneEnrollmentForTeacher()
+    renderDashboard()
+
+    const order = [
+      'Needs marking',
+      'Courses to close',
+      'Enrollment requests',
+      'TCU hours to approve',
+      'Announcements',
+    ]
+    for (const name of order) await screen.findByRole('heading', { level: 3, name })
+    const aside = screen.getByRole('complementary')
+    const titles = screen
+      .getAllByRole('heading', { level: 3 })
+      .filter((h) => !aside.contains(h))
+      .map((h) => h.textContent ?? '')
+    expect(titles).toEqual(order)
   })
 
   it('opens the main column with an h2, bridging the PageHeader h1 to the h3 cards', async () => {
@@ -88,7 +109,6 @@ describe('TeacherDashboard — worklist-first (ADR-0043)', () => {
       'Courses to close',
       'Enrollment requests',
       'TCU hours to approve',
-      'My courses',
       'Announcements',
     ]
 
