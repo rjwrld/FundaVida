@@ -152,16 +152,4 @@ describe('<GradesListPage />', () => {
       expect(within(table).getAllByRole('button', { name: /^delete/i }).length).toBeGreaterThan(0)
     })
   })
-
-  it('only tells an Admin that entries can be corrected or removed', async () => {
-    useStore.getState().setRole('teacher')
-    const { unmount } = renderPage()
-    await screen.findByRole('heading', { name: 'Grades' })
-    expect(screen.queryByText(/correct or remove/i)).toBeNull()
-    unmount()
-
-    useStore.getState().setRole('admin')
-    renderPage()
-    expect(await screen.findByText(/correct or remove/i)).toBeInTheDocument()
-  })
 })

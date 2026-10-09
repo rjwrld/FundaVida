@@ -9,9 +9,22 @@ describe('<PageHeader />', () => {
     expect(screen.getByText(/manage everyone enrolled/i)).toBeInTheDocument()
   })
 
-  it('renders an eyebrow when provided', () => {
-    render(<PageHeader eyebrow="Dashboard" title="Overview" />)
-    expect(screen.getByText(/dashboard/i)).toBeInTheDocument()
+  it('renders a meta line between the title and the description', () => {
+    render(
+      <PageHeader
+        title="Matemáticas"
+        meta={<span data-testid="meta">Hatillo · Jessica</span>}
+        description="Refuerzo."
+      />
+    )
+    const meta = screen.getByTestId('meta')
+    expect(
+      screen.getByRole('heading', { level: 1 }).compareDocumentPosition(meta) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    expect(
+      meta.compareDocumentPosition(screen.getByText('Refuerzo.')) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
   })
 
   it('renders action slot content', () => {

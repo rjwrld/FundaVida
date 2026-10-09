@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils'
 export interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string
   description?: string
-  eyebrow?: string
   /** One line of facts under the title (a detail page's Campus · Teacher · state). */
   meta?: React.ReactNode
   action?: React.ReactNode
@@ -21,7 +20,6 @@ export interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 export function PageHeader({
   title,
   description,
-  eyebrow,
   meta,
   action,
   titleLayoutId,
@@ -37,11 +35,6 @@ export function PageHeader({
       {...props}
     >
       <div className="flex min-w-0 flex-col gap-1">
-        {eyebrow ? (
-          <span className="text-xs font-medium uppercase tracking-wider text-primary">
-            {eyebrow}
-          </span>
-        ) : null}
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           {titleLayoutId ? <MorphSpan layoutId={titleLayoutId}>{title}</MorphSpan> : title}
         </h1>

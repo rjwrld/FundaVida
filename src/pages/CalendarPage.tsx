@@ -55,7 +55,7 @@ export function CalendarPage() {
   if (gate.isPending) {
     return (
       <div className="space-y-6">
-        <PageHeader title={t('calendar.title')} description={t('calendar.subtitle')} />
+        <PageHeader title={t('calendar.title')} />
         <SkeletonTable />
       </div>
     )
@@ -66,7 +66,7 @@ export function CalendarPage() {
   if (courses.length === 0) {
     return (
       <div className="space-y-6">
-        <PageHeader title={t('calendar.title')} description={t('calendar.subtitle')} />
+        <PageHeader title={t('calendar.title')} />
         <div className="rounded-xl border border-dashed border-border/60 bg-card/50 px-5 py-10 text-center text-sm text-muted-foreground">
           {t('calendar.noCourses')}
         </div>
@@ -122,7 +122,6 @@ export function CalendarPage() {
     <div className="space-y-6">
       <PageHeader
         title={t('calendar.title')}
-        description={t('calendar.subtitle')}
         action={
           <div className="inline-flex rounded-lg border border-border p-0.5">
             <Button

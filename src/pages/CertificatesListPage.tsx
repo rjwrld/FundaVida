@@ -171,10 +171,7 @@ export function CertificatesListPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t('certificates.list.title')}
-        description={t('certificates.list.subtitle')}
-      />
+      <PageHeader title={t('certificates.list.title')} />
 
       <ListView
         state={listViewState({ isLoading, count: visible.length, hasFilters })}

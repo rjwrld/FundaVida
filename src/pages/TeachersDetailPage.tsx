@@ -78,7 +78,6 @@ export function TeachersDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow={t('teachers.detail.title')}
         title={fullName(teacher)}
         description={teacher.email}
         action={

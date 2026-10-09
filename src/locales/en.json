@@ -109,7 +109,6 @@
     "list": {
       "emptyFiltered": "No audit entries match your filter."
     },
-    "subtitle": "Chronological record of every create, update, and delete.",
     "summary": {
       "approveEnrollment": "Approved the enrollment of {{student}} in {{course}}",
       "approveTcu": "Approved TCU activity “{{title}}” for {{name}}",
@@ -259,7 +258,6 @@
       "upcomingEmpty": "Nothing on deck.",
       "upcomingTitle": "Upcoming"
     },
-    "subtitle": "Your scoped sessions at a glance.",
     "title": "Calendar",
     "today": "Today",
     "viewToggle": {
@@ -295,7 +293,6 @@
         "ariaLabel": "Search certificates by student name",
         "placeholder": "Search by student name…"
       },
-      "subtitle": "Closing a course issues a certificate for every passing student — preview and download each here.",
       "title": "Certificates"
     },
     "status": {
@@ -557,7 +554,6 @@
       "emptyFiltered": "No courses match your filter.",
       "publishButton": "Publish {{name}}",
       "searchPlaceholder": "Search by name or program",
-      "subtitle": "Catalog of courses offered across programs and campuses.",
       "title": "Courses"
     },
     "status": {
@@ -730,11 +726,6 @@
         "coursePlaceholder": "Course",
         "studentPlaceholder": "Student"
       },
-      "subtitles": {
-        "admin": "Every grade in the system. You can correct or remove entries.",
-        "student": "Your grades across your courses.",
-        "teacher": "Grades for the courses you teach. You can edit a grade once the term ends."
-      },
       "title": "Grades"
     }
   },
@@ -892,14 +883,12 @@
     "detail": {
       "backToList": "Back to catalog",
       "coursesTitle": "Courses",
-      "eyebrow": "Program",
       "loading": "Loading…",
       "noCourses": "No courses in this program yet.",
       "notFound": "Program not found."
     },
     "list": {
       "empty": "No programs in the catalog yet.",
-      "subtitle": "The foundation's catalog of educational programs.",
       "title": "Programs"
     }
   },
@@ -1007,7 +996,6 @@
       },
       "emptyFiltered": "No students match your filter.",
       "searchPlaceholder": "Search by name or email",
-      "subtitle": "Create, filter, and manage students enrolled in programs.",
       "title": "Students"
     }
   },
@@ -1111,7 +1099,6 @@
       },
       "emptyFiltered": "No teachers match your filter.",
       "searchPlaceholder": "Search by name or email",
-      "subtitle": "Manage teachers and their course assignments.",
       "title": "Teachers"
     }
   },

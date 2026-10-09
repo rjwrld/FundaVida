@@ -60,7 +60,6 @@ export function StudentsDetailPage() {
     <StudentProgress
       student={student}
       rows={rows}
-      eyebrow={t('students.detail.title')}
       action={
         canEdit ? (
           <Button onClick={() => navigate(`/app/students?edit=${student.id}`)}>
