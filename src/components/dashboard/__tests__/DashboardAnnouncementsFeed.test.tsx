@@ -18,13 +18,13 @@ import type { Announcement, Course } from '@/types'
 
 const EPOCH = new Date('2026-06-23T15:30:00.000Z')
 
-function renderFeed() {
+function renderFeed(courseId?: string) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <I18nProvider>
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
-          <DashboardAnnouncementsFeed />
+          <DashboardAnnouncementsFeed courseId={courseId} />
         </MemoryRouter>
       </QueryClientProvider>
     </I18nProvider>
@@ -203,5 +203,76 @@ describe('<DashboardAnnouncementsFeed /> — cross-course feed (ADR-0040/0043)',
     // Once both resolve, the section (and its designed empty state) appears.
     expect(await screen.findByRole('heading', { name: /announcements/i })).toBeInTheDocument()
     expect(screen.getByText(/no announcements yet/i)).toBeInTheDocument()
+  })
+
+  function post(id: string, courseId: string, daysAgo: number): Announcement {
+    return {
+      id,
+      courseId,
+      body: `Post ${id}`,
+      kind: 'manual',
+      createdAt: new Date(EPOCH.getTime() - daysAgo * 86_400_000).toISOString(),
+    }
+  }
+
+  // The dashboard feed is a glance, not the inbox: the two newest posts, then a
+  // way onward (ADR-0050).
+  it('shows only the two newest posts', async () => {
+    const [a, b] = useStore.getState().courses
+    if (!a || !b) throw new Error('seed: needs two courses')
+    useStore.setState({
+      announcements: [post('ann-old', a.id, 9), post('ann-new', b.id, 1), post('ann-mid', a.id, 4)],
+    })
+
+    renderFeed()
+
+    const region = await screen.findByRole('region', { name: 'Announcements' })
+    expect(within(region).getByText('Post ann-new')).toBeInTheDocument()
+    expect(within(region).getByText('Post ann-mid')).toBeInTheDocument()
+    expect(within(region).queryByText('Post ann-old')).not.toBeInTheDocument()
+  })
+
+  it('drops the per-post course status badge', async () => {
+    const [a, b] = useStore.getState().courses
+    if (!a || !b) throw new Error('seed: needs two courses')
+    useStore.setState({ announcements: [post('ann-1', a.id, 1), post('ann-2', b.id, 2)] })
+
+    renderFeed()
+
+    const region = await screen.findByRole('region', { name: 'Announcements' })
+    await within(region).findByText('Post ann-1')
+    expect(region.querySelector('[data-slot="badge"]')).toBeNull()
+  })
+
+  it('links View all to the Course when the feed is one Course’s (the TCU trainee’s)', async () => {
+    const course = useStore.getState().courses.find((c) => c.status === 'published')
+    if (!course) throw new Error('seed: needs a published course')
+    useStore.setState({
+      announcements: [
+        post('ann-1', course.id, 1),
+        post('ann-2', course.id, 2),
+        post('ann-3', course.id, 3),
+      ],
+    })
+
+    renderFeed(course.id)
+
+    const link = await screen.findByRole('link', { name: /view all announcements/i })
+    expect(link).toHaveAttribute('href', `/app/courses/${course.id}`)
+  })
+
+  // There is no all-announcements page, and the Courses list shows no feed, so a
+  // cross-course feed has nowhere honest to send "View all".
+  it('offers no View all link when the feed spans several Courses', async () => {
+    const [a, b] = useStore.getState().courses
+    if (!a || !b) throw new Error('seed: needs two courses')
+    useStore.setState({
+      announcements: [post('ann-1', a.id, 1), post('ann-2', b.id, 2), post('ann-3', a.id, 3)],
+    })
+
+    renderFeed()
+
+    await screen.findByText('Post ann-1')
+    expect(screen.queryByRole('link', { name: /view all announcements/i })).not.toBeInTheDocument()
   })
 })

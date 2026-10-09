@@ -590,7 +590,8 @@
       },
       "empty": "No announcements yet.",
       "title": "Announcements",
-      "unknownCourse": "A course"
+      "unknownCourse": "A course",
+      "viewAll": "View all announcements"
     },
     "atRisk": {
       "empty": "No students need attention right now.",

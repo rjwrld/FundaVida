@@ -596,7 +596,8 @@
       },
       "empty": "Aún no hay anuncios.",
       "title": "Anuncios",
-      "unknownCourse": "Un curso"
+      "unknownCourse": "Un curso",
+      "viewAll": "Ver todos los anuncios"
     },
     "atRisk": {
       "empty": "Ningún estudiante necesita atención ahora.",
