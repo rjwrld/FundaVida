@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Download } from 'lucide-react'
+import { BookOpen, Download } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -191,7 +191,8 @@ export function StudentCoursesTable() {
     // is restated here rather than dropped in the port.
     <Card role="region" aria-labelledby="my-courses-heading">
       <CardHeader>
-        <CardTitle as="h3" id="my-courses-heading">
+        <CardTitle as="h3" id="my-courses-heading" className="flex items-center gap-2">
+          <BookOpen className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           {t('dashboard.student.table.title')}
         </CardTitle>
       </CardHeader>

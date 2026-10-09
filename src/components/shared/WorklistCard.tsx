@@ -92,7 +92,7 @@ export function WorklistCard({
       </CardContent>
       {viewAll && (
         <CardFooter>
-          <Button variant="link" size="sm" asChild className="h-auto px-0">
+          <Button variant="link" size="sm" asChild className="h-auto px-0 has-[>svg]:px-0">
             <Link to={viewAll.to}>
               {viewAll.label}
               <ArrowRight aria-hidden="true" />
@@ -126,8 +126,10 @@ export interface WorklistRowProps {
  */
 export function WorklistRow({ to, title, subtitle, body, trailing, action }: WorklistRowProps) {
   return (
-    <li className="relative flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-      <div className="min-w-0 flex-1">
+    // Wraps rather than truncating the title to nothing: long trailing badges
+    // (a Course's close blockers) drop under the title in a narrow card.
+    <li className="relative flex flex-wrap items-center gap-x-3 gap-y-1.5 py-3 first:pt-0 last:pb-0">
+      <div className="min-w-[min(100%,14rem)] flex-1">
         <Link
           to={to}
           className="block truncate text-sm font-medium text-foreground outline-none after:absolute after:inset-0 after:rounded-md hover:text-primary hover:underline focus-visible:after:ring-2 focus-visible:after:ring-ring"
@@ -150,8 +152,8 @@ export function WorklistRow({ to, title, subtitle, body, trailing, action }: Wor
  */
 export function WorklistEmpty({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return (
-    <Empty className="gap-3 p-4 md:p-4">
-      <EmptyHeader>
+    <Empty className="gap-2 p-2 md:p-2">
+      <EmptyHeader className="gap-1.5">
         <EmptyMedia variant="icon" className="mb-0 size-8">
           <Icon className="size-4" aria-hidden="true" />
         </EmptyMedia>
