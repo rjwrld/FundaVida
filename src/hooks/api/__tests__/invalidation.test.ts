@@ -110,7 +110,10 @@ describe('writeSetInvalidations — named regressions', () => {
   })
 
   it('unenroll invalidates certificates (the useDeleteEnrollment divergence)', () => {
-    const enrollment = useStore.getState().enrollments[0]
+    const enrollment = useStore.getState().enrollments.find(
+      // A live cohort: a closed one rejects unenrolls (ADR-0024).
+      (e) => useStore.getState().courses.find((c) => c.id === e.courseId)?.status !== 'closed'
+    )
     if (!enrollment) throw new Error('expected a seeded enrollment')
     const before = useStore.getState()
     useStore.getState().unenrollStudent(enrollment.id)

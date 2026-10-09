@@ -156,7 +156,10 @@ describe('useUpdateCourse', () => {
     const { toast } = await import('sonner')
     const { result } = renderHook(() => useUpdateCourse(), { wrapper: createWrapper() })
 
-    const course = useStore.getState().courses[0]
+    const course = useStore
+      .getState()
+      // A live cohort: a closed one rejects edits (ADR-0024).
+      .courses.find((c) => c.status !== 'closed')
     if (!course) throw new Error('expected at least one course')
     const courseId = course.id
 
@@ -383,7 +386,10 @@ describe('useUnenrollStudent', () => {
     const { toast } = await import('sonner')
     const { result } = renderHook(() => useUnenrollStudent(), { wrapper: createWrapper() })
 
-    const enrollment = useStore.getState().enrollments[0]
+    const enrollment = useStore.getState().enrollments.find(
+      // A live cohort: a closed one rejects unenrolls (ADR-0024).
+      (e) => useStore.getState().courses.find((c) => c.id === e.courseId)?.status !== 'closed'
+    )
     if (!enrollment) throw new Error('expected at least one enrollment')
     const enrollmentId = enrollment.id
 
@@ -407,7 +413,10 @@ describe('useUnenrollStudent', () => {
       },
     })
 
-    const enrollment = useStore.getState().enrollments[0]
+    const enrollment = useStore.getState().enrollments.find(
+      // A live cohort: a closed one rejects unenrolls (ADR-0024).
+      (e) => useStore.getState().courses.find((c) => c.id === e.courseId)?.status !== 'closed'
+    )
     if (!enrollment) throw new Error('expected at least one enrollment')
     const enrollmentId = enrollment.id
 
