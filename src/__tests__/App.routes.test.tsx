@@ -73,6 +73,23 @@ describe('App routes per role (ADR-0051)', () => {
     ).toBeInTheDocument()
   })
 
+  // The retired browse URL (ADR-0051) must not resolve as a course with id
+  // "browse": it lands on Courses, which for a student is Browse.
+  it.each(['student', 'admin'] as Role[])(
+    'redirects the old /app/courses/browse URL to Courses for %s',
+    async (role) => {
+      useStore.getState().setRole(role)
+      renderAppAt('/app/courses/browse')
+      await waitFor(() => expect(window.location.pathname).toBe('/app/courses'))
+      expect(
+        await screen.findByRole('heading', {
+          level: 1,
+          name: role === 'student' ? 'Browse courses' : 'Courses',
+        })
+      ).toBeInTheDocument()
+    }
+  )
+
   it.each(['admin', 'teacher'] as Role[])(
     'opens the course list on Courses for %s',
     async (role) => {
