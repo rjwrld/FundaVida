@@ -21,9 +21,9 @@ FundaVida was a production educational-management platform built for a Costa Ric
 
 [**Open the interactive demo →**](https://fundavida.vercel.app/)
 
-[![Watch the FundaVida UI walkthrough](public/demo/walkthrough-poster.webp)](public/demo/fundavida-walkthrough.mp4)
+[![Animated FundaVida UI walkthrough](public/demo/fundavida-walkthrough.gif)](https://fundavida.vercel.app/)
 
-[**Watch the UI walkthrough →**](public/demo/fundavida-walkthrough.mp4) · 36 seconds · Landing, admin worklists, course details, attendance, certificate preview, English/Spanish, and light/dark themes.
+_18-second loop — landing, admin worklists, course details, attendance, certificate preview, English/Spanish, and light/dark themes. Click the animation to explore the live demo._
 
 ![Admin dashboard](public/screenshots/hero.en.png)
 _Admin dashboard — enrollment requests, TCU hours to approve, courses to close, and students at risk._
@@ -122,7 +122,7 @@ _Attendance — mark a course session in dark mode._
 
 The interface ships in both locales; `npm run i18n:check` fails CI on any missing translation.
 
-> **Maintenance:** Screenshots, landing thumbnails (`*.thumb.webp`), `public/og-image.png`, and the walkthrough in `public/demo/` are committed assets. Run `npm run screenshots` after changes to a captured surface; it also derives the thumbnails and social card. Use `npm run images:derive` to rebuild only those derived images. Re-record the walkthrough when its featured flows change.
+> **Maintenance:** Screenshots, landing thumbnails (`*.thumb.webp`), `public/og-image.png`, and the walkthrough GIF in `public/demo/` are committed assets. Run `npm run screenshots` after changes to a captured surface; it also derives the thumbnails and social card. Use `npm run images:derive` to rebuild only those derived images. Re-record and optimize the looping GIF when its featured flows change; omit loading states and keep it under 5 MB.
 
 ## Getting started
 
