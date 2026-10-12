@@ -5,7 +5,7 @@
 [![Live demo](https://img.shields.io/badge/demo-live-brightgreen?style=flat-square)](https://fundavida.vercel.app/)
 [![Build](https://img.shields.io/github/actions/workflow/status/rjwrld/FundaVida/ci.yml?branch=main&label=CI&style=flat-square)](https://github.com/rjwrld/FundaVida/actions)
 
-FundaVida was a production educational-management platform built for a Costa Rican non-profit on React + Supabase. This repository is a **portfolio rearchitecture**: all data runs in your browser via `localStorage`, there is no backend, no auth, no secrets. The original platform's visual breadth is preserved; interactivity is deliberately tiered (full CRUD on hero modules, read-only showcase on others).
+FundaVida was a production educational-management platform built for a Costa Rican non-profit on React + Supabase. This repository is a **portfolio rearchitecture**: all data runs in your browser via `localStorage`, there is no backend, no auth, no secrets. Explore four role-specific workspaces, manage courses and enrollment requests, mark attendance, issue certificates, and log community-service hours. The UI supports English and Spanish, light and dark themes, and responsive layouts.
 
 ## Rearchitected from production
 
@@ -19,129 +19,100 @@ FundaVida was a production educational-management platform built for a Costa Ric
 
 ## Live demo
 
-[![Dashboard preview](public/screenshots/hero.en.png)](https://fundavida.vercel.app/)
+[**Open the interactive demo →**](https://fundavida.vercel.app/)
+
+[![Watch the FundaVida UI walkthrough](public/demo/walkthrough-poster.webp)](public/demo/fundavida-walkthrough.mp4)
+
+[**Watch the UI walkthrough →**](public/demo/fundavida-walkthrough.mp4) · 36 seconds · Landing, admin worklists, course details, attendance, certificate preview, English/Spanish, and light/dark themes.
+
+![Admin dashboard](public/screenshots/hero.en.png)
+_Admin dashboard — enrollment requests, TCU hours to approve, courses to close, and students at risk._
 
 ## Stack
 
 | Layer              | Technology                                       |
 | ------------------ | ------------------------------------------------ |
-| Framework          | React 18 · TypeScript (strict) · Vite            |
-| Styling            | Tailwind CSS · shadcn/ui · Radix primitives      |
+| Framework          | React 19 · TypeScript (strict) · Vite 7          |
+| Styling            | Tailwind CSS 4 · shadcn/ui · Radix primitives    |
 | State              | Zustand (persisted via `localStorage`)           |
 | Data fetching      | TanStack Query                                   |
 | Forms & validation | React Hook Form · Zod (t-bound factories)        |
-| Routing            | React Router v6                                  |
+| Routing            | React Router v7                                  |
 | i18n               | react-i18next · i18next-parser (CI-gated)        |
 | PDF                | @react-pdf/renderer                              |
 | Testing            | Vitest · Testing Library · Playwright            |
 | CI                 | GitHub Actions · Lighthouse CI · Vercel previews |
 
-## Features by tier
+## Features
 
-### Per-role dashboards
+### Four role-specific workspaces
 
-Each role sees a customized dashboard on login reflecting their responsibilities:
+- **Admin** — organization totals and worklists for enrollment requests, TCU hours to approve, courses to close, and students at risk.
+- **Teacher** — sessions needing attendance, course closure, enrollment and TCU approval queues, announcements, and an upcoming-session agenda. Course pages hold the roster, grades, class messages, and certificates.
+- **Student** — a My courses table with attendance, grades, and certificate downloads; announcements, a calendar, course browsing, enrollment requests, and a personal profile.
+- **TCU Trainee** — an assigned course, approved hours toward the 300-hour requirement, pending hours, a paginated activity log, and a Log hours action.
 
-- **Admin** — platform overview: total students, courses, certificates pending approval, attendance summary, bulk-email audit trail.
-- **Teacher** — your courses, students enrolled in your courses, grades entered, sessions for this month.
-- **Student** — your enrollments, grades you've received, certificates earned, your attendance record.
-- **TCU Trainee** — your logged activities, hours completed toward the 300-hour requirement.
+### Course lifecycle
 
-### Tier 1 — Hero modules (full CRUD + deep polish)
+Teachers and admins author courses with a program, campus, term, meeting days, and capacity. Students request enrollment in courses at their own campus; teachers or admins approve the requests. Sessions are derived from the term and meeting days, with cancellation, rescheduling, and extra-session support.
 
-- **Students** — create, filter, search, edit, delete. Form validation with localized messages, optimistic updates, keyboard navigation, responsive layout.
-- **Courses** — pair with students via enrollments; exercises relational state.
-- **Certificates** — generate and download PDFs in-browser via `@react-pdf/renderer`. Approval workflow: pending → approved by admin → download enabled.
+Attendance is marked per session. Once a term ends, the course can be closed after every approved student has a grade and every past session has attendance recorded. Closing issues a certificate to each student with a passing grade (70+). Certificates can be previewed and downloaded as PDFs generated entirely in-browser; there is no separate certificate approval step.
 
-### Tier 2 — Supporting modules (basic CRUD)
+### Supporting tools
 
-- **Teachers** — referenced by courses.
-- **Enrollments** — bridges students and courses.
-- **Grades** — enter scores after course ends (70+ threshold makes a student eligible for a certificate).
-- **Attendance** — mark per-Session presence/absence; Teacher marks within their courses, Admin globally.
-
-### Tier 3 — Read-only showcase + Specialised workflows
-
-- **Bulk Email** — draft, recipient filter preview, send (simulated, logged to audit).
-- **Reports** — cross-cutting totals, averages, attendance rates, community hours.
-- **Audit Logs** — every create/update/delete since the last demo reset.
-- **TCU** — community-service trainees log activities (hours, title, date) in self-service portal; all role-scoped.
+- **Students and teachers** — searchable, filtered directories, detail pages, and admin CRUD. Teachers see only students in their own courses.
+- **Calendar** — a role-scoped week agenda and a month term map with milestones.
+- **Enrollments** — a flat request queue with Pending, Approved, and All filters.
+- **Attendance** — an admin course rollup showing attendance rates and unmarked sessions, linking back to each course.
+- **Announcements and class messages** — course feeds and simulated email with a sent-message history. Admins also have a bulk-email workspace.
+- **TCU** — trainees log their own activities; teachers approve hours for volunteers assigned to their courses, and admins have an organization-wide queue and roster.
+- **Audit Logs** — persisted mutation history since the last demo reset.
 
 ## Role × capability matrix
 
-All access decisions flow through a single declarative matrix (see [ADR-0007](docs/adr/0007-permissions-are-one-declarative-matrix.md)). The table below shows which roles can perform which actions on each resource. **✓** = allowed; empty = denied.
+Navigation and actions derive from one [permission matrix](src/permissions/matrix.ts); reads are narrowed by role-specific scope tokens. The overview below includes actions inside course pages and dashboards, even when a role has no standalone page for that resource.
 
-| Resource         | Admin |  Teacher  | Student | TCU |
-| ---------------- | :---: | :-------: | :-----: | :-: |
-| **Students**     |       |           |         |     |
-| — view           |   ✓   |    ✓\*    |    —    |  —  |
-| — create         |   ✓   |     —     |    —    |  —  |
-| — edit           |   ✓   |     —     |    —    |  —  |
-| — delete         |   ✓   |     —     |    —    |  —  |
-| **Teachers**     |       |           |         |     |
-| — view           |   ✓   |     —     |    —    |  —  |
-| — create         |   ✓   |     —     |    —    |  —  |
-| — edit           |   ✓   |     —     |    —    |  —  |
-| — delete         |   ✓   |     —     |    —    |  —  |
-| **Courses**      |       |           |         |     |
-| — view           |   ✓   |   ✓\*\*   |    ✓    |  —  |
-| — create         |   ✓   |     —     |    —    |  —  |
-| — edit           |   ✓   |     —     |    —    |  —  |
-| — delete         |   ✓   |     —     |    —    |  —  |
-| **Enrollments**  |       |           |         |     |
-| — view           |   ✓   |   ✓\*\*   |    —    |  —  |
-| — create         |   ✓   |     —     |    —    |  —  |
-| — delete         |   ✓   |     —     |    —    |  —  |
-| **Grades**       |       |           |         |     |
-| — view           |   ✓   |     ✓     | ✓\*\*\* |  —  |
-| — enter          |   ✓   | ✓\*\*\*\* |    —    |  —  |
-| — edit           |   ✓   | ✓\*\*\*\* |    —    |  —  |
-| — delete         |   ✓   |     —     |    —    |  —  |
-| **Certificates** |       |           |         |     |
-| — view           |   ✓   |     —     | ✓\*\*\* |  —  |
-| — approve        |   ✓   |     —     |    —    |  —  |
-| **Attendance**   |       |           |         |     |
-| — view           |   ✓   |   ✓\*\*   | ✓\*\*\* |  —  |
-| — mark           |   ✓   |   ✓\*\*   |    —    |  —  |
-| **TCU**          |       |           |         |     |
-| — view           |   ✓   |     —     |    —    |  —  |
-| — log            |   ✓   |     —     |    —    | ✓†  |
-| **Reports**      |       |           |         |     |
-| — view           |   ✓   |     —     |    —    |  —  |
-| **Bulk Email**   |       |           |         |     |
-| — view           |   ✓   |     —     |    —    |  —  |
-| — create         |   ✓   |     —     |    —    |  —  |
-| **Audit Log**    |       |           |         |     |
-| — view           |   ✓   |     —     |    —    |  —  |
+| Capability                              | Admin                   | Teacher                                          | Student                                 | TCU                  |
+| --------------------------------------- | ----------------------- | ------------------------------------------------ | --------------------------------------- | -------------------- |
+| Dashboards and calendar                 | Organization-wide       | Own courses                                      | Enrolled courses                        | Assigned course      |
+| Student records                         | CRUD                    | View students in own courses                     | Own profile                             | —                    |
+| Teacher directory                       | CRUD                    | —                                                | —                                       | —                    |
+| Course authoring and closure            | All courses             | Own courses                                      | —                                       | —                    |
+| Course browsing and enrollment requests | Manage all              | Approve in own courses                           | Request / withdraw own pending requests | —                    |
+| Grades                                  | Manage all              | Enter / edit after own term ends, before closure | Read own                                | —                    |
+| Attendance                              | Mark all                | Mark own courses                                 | Read own                                | —                    |
+| Certificate PDFs                        | All issued              | Own courses                                      | Own issued                              | —                    |
+| TCU activities                          | Log / approve all       | Approve assigned volunteers                      | —                                       | Log own              |
+| Announcements                           | Post / delete all       | Post / delete in own courses                     | Read enrolled courses                   | Read assigned course |
+| Simulated email                         | Bulk and class messages | Own class messages                               | —                                       | —                    |
+| Audit Logs                              | View                    | —                                                | —                                       | —                    |
 
-**Scope annotations:**
-
-- `*` Teacher sees students enrolled in their own courses only.
-- `**` Teacher sees data only for courses they own.
-- `***` Student sees only their own records.
-- `****` Teacher may enter and edit grades only after their course's term ends.
-- `†` TCU trainee can log activities for their own ID only (cannot log for other trainees).
-
-See [src/permissions/matrix.ts](src/permissions/matrix.ts) for the authoritative source and [ADR-0008](docs/adr/0008-scopefor-returns-tokens-api-interprets.md) for how scopes are applied at read time.
+See [ADR-0007](docs/adr/0007-permissions-are-one-declarative-matrix.md) for authorization, [ADR-0008](docs/adr/0008-scopefor-returns-tokens-api-interprets.md) for read scopes, and [ADR-0051](docs/adr/0051-each-role-sees-only-its-jobs.md) for the current navigation.
 
 ## Scheduling & Demo Epoch
 
-Courses are scheduled via two properties: **Term** (start and end dates) and **Meeting Days** (e.g. Mon/Wed). The app derives the **Session list** (individual class meetings) from these two at read time — Sessions are never stored, keeping the model simple and preventing drift (see [ADR-0001](docs/adr/0001-sessions-are-derived-never-stored.md)).
+Courses are scheduled via two properties: **Term** (start and end dates) and **Meeting Days** (e.g. Mon/Wed). The app derives the **Session list** (individual class meetings) from these two at read time — the base Sessions are never stored, while exceptions overlay cancellations, rescheduling, and extra sessions (see [ADR-0001](docs/adr/0001-sessions-are-derived-never-stored.md)).
 
-**Demo Epoch** (see [ADR-0002](docs/adr/0002-demo-epoch-is-seed-relative.md)): all seeded dates are positioned relative to the moment the demo loads in your browser. This ensures the demo always shows real upcoming Sessions and current "this month" metrics, never decaying as time passes. Return visitors' data slowly ages until they reset the demo.
+**Demo Epoch**: the demo freezes its clock when the data is seeded, and restores that same clock on return visits. Course terms, session windows, and dashboard worklists share this snapshot until you reset the demo (see [ADR-0014](docs/adr/0014-clock-seam-explicit-demo-epoch.md)).
 
 See [CONTEXT.md](CONTEXT.md) for the complete domain vocabulary (Sede, Educational Level, TCU Trainee, etc.) and the `docs/adr/` directory for the architectural decisions behind each module.
 
 ## Screenshots
 
+![Course detail](public/screenshots/course.en.png)
+_Course detail — session worklists, announcements, roster, and course closure._
+
 ![Students list](public/screenshots/students.en.png)
 _Students module — CRUD with search, filters, form validation._
 
 ![Certificate preview](public/screenshots/certificate.en.png)
-_Certificates module — PDF preview + download._
+_Certificate preview — PDFs issued when a course closes, ready to download._
 
 ![Calendar month term map](public/screenshots/calendar.en.png)
 _Calendar — month term map with milestone glyphs._
+
+![Mark attendance in dark mode](public/screenshots/mark-session.en.png)
+_Attendance — mark a course session in dark mode._
 
 ### Bilingual in action
 
@@ -149,9 +120,9 @@ _Calendar — month term map with milestone glyphs._
 | -------------------------------------------------- | -------------------------------------------------- |
 | ![Students EN](public/screenshots/students.en.png) | ![Students ES](public/screenshots/students.es.png) |
 
-Every module ships in both locales; `npm run i18n:check` fails CI on any missing translation.
+The interface ships in both locales; `npm run i18n:check` fails CI on any missing translation.
 
-> **Maintenance:** these PNGs, their landing thumbnails (`*.thumb.webp`) and `public/og-image.png` are committed, not generated in CI, so they can silently drift from the live UI. Regenerate them with `npm run screenshots` whenever a shot's surface changes visually (theme, layout, seed), and commit the result. `npm run images:derive` alone rebuilds the thumbnails and the social preview card without recapturing.
+> **Maintenance:** Screenshots, landing thumbnails (`*.thumb.webp`), `public/og-image.png`, and the walkthrough in `public/demo/` are committed assets. Run `npm run screenshots` after changes to a captured surface; it also derives the thumbnails and social card. Use `npm run images:derive` to rebuild only those derived images. Re-record the walkthrough when its featured flows change.
 
 ## Getting started
 
@@ -162,25 +133,26 @@ npm install
 npm run dev
 ```
 
-No environment variables required. The demo seeds deterministic data on first load (`faker.seed(42)`).
+Requires Node.js 24. No environment variables required. The demo seeds deterministic data on first load (`faker.seed(42)`).
 
 ## Scripts
 
-| Command                 | Description                                 |
-| ----------------------- | ------------------------------------------- |
-| `npm run dev`           | Start Vite dev server                       |
-| `npm run build`         | Typecheck + production build                |
-| `npm run typecheck`     | `tsc --noEmit`                              |
-| `npm run lint`          | ESLint (zero warnings allowed)              |
-| `npm run format`        | Prettier write                              |
-| `npm run format:check`  | Prettier check (CI-gated)                   |
-| `npm run i18n:extract`  | Extract translation keys via i18next-parser |
-| `npm run i18n:check`    | Extract + diff; fails if locale files drift |
-| `npm run test`          | Vitest (unit + component)                   |
-| `npm run test:coverage` | Vitest with coverage report                 |
-| `npm run e2e`           | Playwright end-to-end suite                 |
-| `npm run e2e:ui`        | Playwright UI mode                          |
-| `npm run screenshots`   | Regenerate landing + README screenshots     |
+| Command                 | Description                                                          |
+| ----------------------- | -------------------------------------------------------------------- |
+| `npm run dev`           | Start Vite dev server                                                |
+| `npm run build`         | Typecheck + production build                                         |
+| `npm run typecheck`     | `tsc --noEmit`                                                       |
+| `npm run lint`          | ESLint (zero warnings allowed)                                       |
+| `npm run format`        | Prettier write                                                       |
+| `npm run format:check`  | Prettier check (CI-gated)                                            |
+| `npm run i18n:extract`  | Extract translation keys via i18next-parser                          |
+| `npm run i18n:check`    | Extract + diff; fails if locale files drift                          |
+| `npm run test`          | Vitest (unit + component)                                            |
+| `npm run test:coverage` | Vitest with coverage report                                          |
+| `npm run e2e`           | Playwright end-to-end suite                                          |
+| `npm run e2e:ui`        | Playwright UI mode                                                   |
+| `npm run screenshots`   | Regenerate landing + README screenshots, thumbnails, and social card |
+| `npm run images:derive` | Rebuild thumbnails and social card from existing captures            |
 
 ## Project structure
 

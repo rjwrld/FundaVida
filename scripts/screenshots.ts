@@ -139,12 +139,10 @@ const SHOTS: Shot[] = [
     height: 900,
     locales: ['en', 'es'],
     capture: async (page) => {
-      // The course id is seed-derived; reach a detail page by clicking the first
-      // real course in the list rather than hard-coding an id that would drift.
-      await page.goto(`${DEV_URL}/app/courses`)
-      await page.waitForLoadState('networkidle')
-      await page.locator('a[href^="/app/courses/"]:not([href$="/browse"])').first().click()
-      await page.waitForURL(/\/app\/courses\/[^/]+$/)
+      // Showcase a cohort with sessions, rather than the first seeded draft.
+      const courseHref = (await markSessionHref(page)).split('/sessions/')[0]
+      await page.goto(`${DEV_URL}${courseHref}`)
+      await page.locator('a[href*="/sessions/"][href*="/mark"]').first().waitFor()
       await page.waitForLoadState('networkidle')
       await delay(500)
     },
@@ -226,6 +224,10 @@ async function captureShot(page: Page, shot: Shot, locale: Locale) {
   await enterAsAdmin(page, locale)
   if (shot.path) await page.goto(`${DEV_URL}${shot.path}`)
   await shot.capture(page)
+  // Mock API reads do not keep the network busy. Wait for their loading copy
+  // to disappear too, so a network-idle page cannot capture a half-loaded section.
+  await page.waitForFunction(() => !/^(Loading…|Cargando…)$/m.test(document.body.innerText))
+  await page.evaluate(() => document.fonts.ready)
   await page.screenshot({ path: outPath, fullPage: false })
   console.log(`wrote ${filename}`)
 }
@@ -236,7 +238,8 @@ async function main() {
   const server = await startDevServer()
   try {
     const browser = await chromium.launch({ channel: 'chrome' })
-    const context = await browser.newContext({ deviceScaleFactor: 2 })
+    // Capture resting layouts, without partially faded entrance-animation rows.
+    const context = await browser.newContext({ deviceScaleFactor: 2, reducedMotion: 'reduce' })
     const page = await context.newPage()
 
     for (const shot of SHOTS) {
