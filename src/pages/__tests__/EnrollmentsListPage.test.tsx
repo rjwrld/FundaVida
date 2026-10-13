@@ -204,7 +204,9 @@ describe('<EnrollmentsListPage /> — the admin request queue (ADR-0051)', () =>
     await screen.findByRole('combobox', { name: 'Filter by status' })
     await chooseStatus('Approved')
 
-    expect(await bodyRows()).toHaveLength(10)
+    // The pending rows animate out (AnimatePresence) and linger beside the
+    // approved page until the exit finishes — wait for the table to settle.
+    await waitFor(async () => expect(await bodyRows()).toHaveLength(10))
     expect(screen.getAllByText(`Page 1 of ${Math.ceil(approved.length / 10)}`)).toHaveLength(1)
   })
 })
