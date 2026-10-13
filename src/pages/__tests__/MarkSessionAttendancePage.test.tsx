@@ -6,7 +6,8 @@ import { I18nProvider } from '@/lib/i18n'
 import { MarkSessionAttendancePage } from '@/pages/MarkSessionAttendancePage'
 import { useStore } from '@/data/store'
 import { clock } from '@/lib/clock'
-import { sessionsFor } from '@/lib/sessions'
+import { effectiveSessions } from '@/lib/sessions'
+import type { Course } from '@/types'
 import {
   clearPersistedCurrentUser,
   clearPersistedRole,
@@ -46,6 +47,13 @@ describe('<MarkSessionAttendancePage />', () => {
   // seeded Terms drift past it (this file went red two months after landing).
   const today = () => clock.today()
 
+  // The page resolves a date on the composed seam (ADR-0039), so a fixture must
+  // too: the bare derivation can hand back a seeded cancelled or rescheduled
+  // date, which the page answers with "not on the Course calendar" (the seed
+  // floats with wall time, so that only bites on some days).
+  const sessionsOf = (course: Course) =>
+    effectiveSessions(course, useStore.getState().sessionExceptions)
+
   it('redirects a student trying to access a marking route (AC#3)', async () => {
     // setRole('student') acts as 'stu-1', whose Course view is self-only
     // (ADR-0012) — so pick a course stu-1 is approved on that already has a
@@ -57,12 +65,12 @@ describe('<MarkSessionAttendancePage />', () => {
         .map((e) => e.courseId)
     )
     const candidates = state.courses.filter(
-      (c) => myCourseIds.has(c.id) && sessionsFor(c).some((s) => new Date(s.date) < today())
+      (c) => myCourseIds.has(c.id) && sessionsOf(c).some((s) => new Date(s.date) < today())
     )
     expect(candidates.length).toBeGreaterThan(0)
     const course = candidates[0]
     if (!course) return
-    const pastSession = sessionsFor(course).find((s) => new Date(s.date) < today())
+    const pastSession = sessionsOf(course).find((s) => new Date(s.date) < today())
     expect(pastSession).toBeDefined()
     if (!pastSession) return
 
@@ -91,7 +99,7 @@ describe('<MarkSessionAttendancePage />', () => {
     useStore.getState().setRole('admin')
     const closed = useStore.getState().courses.find((c) => c.status === 'closed')
     if (!closed) throw new Error('seed: no closed course')
-    const pastSession = sessionsFor(closed).find((s) => new Date(s.date) < today())
+    const pastSession = sessionsOf(closed).find((s) => new Date(s.date) < today())
     if (!pastSession) throw new Error('seed: closed course has no past session')
 
     renderPage(`/app/courses/${closed.id}/sessions/${pastSession.date}/mark`)
@@ -122,7 +130,7 @@ describe('<MarkSessionAttendancePage />', () => {
     if (!course) return
 
     // Get a past session (before the epoch)
-    const sessions = sessionsFor(course)
+    const sessions = sessionsOf(course)
     expect(sessions.length).toBeGreaterThan(0)
     const pastSession = sessions.find((s) => {
       const sessionDate = new Date(s.date)
@@ -177,10 +185,10 @@ describe('<MarkSessionAttendancePage />', () => {
       (c) =>
         c.status !== 'closed' &&
         state.enrollments.some((e) => e.courseId === c.id && e.status === 'approved') &&
-        sessionsFor(c).some((s) => new Date(s.date) < today())
+        sessionsOf(c).some((s) => new Date(s.date) < today())
     )
     if (!course) throw new Error('expected a course with an approved roster and a past session')
-    const pastSession = sessionsFor(course).find((s) => new Date(s.date) < today())
+    const pastSession = sessionsOf(course).find((s) => new Date(s.date) < today())
     if (!pastSession) throw new Error('expected a past session')
 
     renderPage(`/app/courses/${course.id}/sessions/${pastSession.date}/mark`)
@@ -200,12 +208,12 @@ describe('<MarkSessionAttendancePage />', () => {
     // of theirs that still has a Session after "today".
     const state = useStore.getState()
     const candidates = state.courses.filter(
-      (c) => c.teacherId === 'tea-1' && sessionsFor(c).some((s) => new Date(s.date) > today())
+      (c) => c.teacherId === 'tea-1' && sessionsOf(c).some((s) => new Date(s.date) > today())
     )
     expect(candidates.length).toBeGreaterThan(0)
     const course = candidates[0]
     if (!course) return
-    const futureSession = sessionsFor(course).find((s) => new Date(s.date) > today())
+    const futureSession = sessionsOf(course).find((s) => new Date(s.date) > today())
     expect(futureSession).toBeDefined()
     if (!futureSession) return
 
