@@ -13,7 +13,8 @@
 
     <!-- Social preview. Crawlers (LinkedIn, Slack, WhatsApp, iMessage, X) drop
          relative image URLs, so every URL here is absolute. The card is
-         rendered by scripts/derive-images.ts (npm run images:derive). -->
+         rendered by scripts/derive-images.ts (npm run images:derive).
+         LinkedIn caches the image per URL: bump ?v= on both image tags when the card changes. -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="FundaVida" />
     <meta property="og:url" content="https://fundavida.vercel.app/" />
@@ -27,7 +28,7 @@
     />
     <meta property="og:locale" content="en_US" />
     <meta property="og:locale:alternate" content="es_CR" />
-    <meta property="og:image" content="https://fundavida.vercel.app/og-image.png" />
+    <meta property="og:image" content="https://fundavida.vercel.app/og-image.png?v=2" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="2400" />
     <meta property="og:image:height" content="1260" />
@@ -45,7 +46,7 @@
       name="twitter:description"
       content="Courses, attendance, grades and certificates for FundaVida — now a live demo you can explore as any of four roles, entirely in your browser."
     />
-    <meta name="twitter:image" content="https://fundavida.vercel.app/og-image.png" />
+    <meta name="twitter:image" content="https://fundavida.vercel.app/og-image.png?v=2" />
     <meta
       name="twitter:image:alt"
       content="The platform I built for FundaVida — education management for a Costa Rican non-profit. Live demo, 4 roles, EN / ES."
